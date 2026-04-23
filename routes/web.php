@@ -9,6 +9,7 @@ use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WaitlistController::class, 'create'])->name('waitlist.create');
+Route::view('/terms-of-service', 'terms-of-service')->name('terms.show');
 Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');
