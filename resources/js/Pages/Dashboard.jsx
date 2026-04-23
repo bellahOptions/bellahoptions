@@ -1,7 +1,7 @@
 import Modal from '@/Components/Modal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Dashboard({
     isStaff = false,
@@ -13,12 +13,16 @@ export default function Dashboard({
     occupations = [],
     supportedCurrencies = [],
     defaultCurrency = 'NGN',
+    waitlistStats = {},
+    userStats = {},
 }) {
     const { flash, auth } = usePage().props;
     const user = auth?.user;
 
     const canManageInvoices = Boolean(permissions?.can_manage_invoices);
     const canManageSettings = Boolean(permissions?.can_manage_settings);
+    const canManageUsers = Boolean(permissions?.can_manage_users);
+    const canManageWaitlist = Boolean(permissions?.can_manage_waitlist);
 
     const {
         data: invoiceData,
@@ -62,28 +66,13 @@ export default function Dashboard({
     const [customerSearchResults, setCustomerSearchResults] = useState([]);
     const [customerSearchLoading, setCustomerSearchLoading] = useState(false);
     const [customerSearchError, setCustomerSearchError] = useState('');
+    const [isCustomerSearchFocused, setIsCustomerSearchFocused] = useState(false);
     const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
-
-    const starterCustomerResults = useMemo(
-        () =>
-            customers.slice(0, 8).map((customer) => ({
-                source: 'customer',
-                customer_id: customer.id,
-                name: customer.name,
-                first_name: customer.first_name,
-                last_name: customer.last_name,
-                email: customer.email,
-                occupation: customer.occupation,
-                phone: customer.phone,
-                company: customer.company,
-                address: customer.address,
-                display_name: displayCustomerName(customer),
-            })),
-        [customers],
-    );
+    const shouldShowCustomerSearchDropdown =
+        isCustomerSearchFocused && customerSearchQuery.trim().length >= 2;
 
     useEffect(() => {
-        if (!canManageInvoices) {
+        if (!canManageInvoices || !isCustomerSearchFocused) {
             return;
         }
 
@@ -92,7 +81,7 @@ export default function Dashboard({
         if (query.length < 2) {
             setCustomerSearchLoading(false);
             setCustomerSearchError('');
-            setCustomerSearchResults(starterCustomerResults);
+            setCustomerSearchResults([]);
 
             return;
         }
@@ -135,7 +124,7 @@ export default function Dashboard({
             controller.abort();
             clearTimeout(timeout);
         };
-    }, [canManageInvoices, customerSearchQuery, starterCustomerResults]);
+    }, [canManageInvoices, customerSearchQuery, isCustomerSearchFocused]);
 
     const submitInvoice = (event) => {
         event.preventDefault();
@@ -156,7 +145,7 @@ export default function Dashboard({
                 setInvoiceData('currency', defaultCurrency);
                 setCustomerSearchQuery('');
                 setCustomerSearchError('');
-                setCustomerSearchResults(starterCustomerResults);
+                setCustomerSearchResults([]);
             },
         });
     };
@@ -195,6 +184,7 @@ export default function Dashboard({
         setCustomerSearchQuery(`${resolvedName} (${candidate.email})`);
         setCustomerSearchResults([]);
         setCustomerSearchError('');
+        setIsCustomerSearchFocused(false);
     };
 
     const clearSelectedCustomer = () => {
@@ -204,7 +194,8 @@ export default function Dashboard({
         setInvoiceData('customer_occupation', '');
         setCustomerSearchQuery('');
         setCustomerSearchError('');
-        setCustomerSearchResults(starterCustomerResults);
+        setCustomerSearchResults([]);
+        setIsCustomerSearchFocused(false);
     };
 
     const openAddCustomerModal = () => {
@@ -218,6 +209,10 @@ export default function Dashboard({
 
     const resendInvoice = (invoiceId) => {
         router.post(route('admin.invoices.resend', invoiceId), {}, { preserveScroll: true });
+    };
+
+    const sendReminder = (invoiceId) => {
+        router.post(route('admin.invoices.remind', invoiceId), {}, { preserveScroll: true });
     };
 
     const markInvoicePaid = (invoiceId) => {
@@ -258,7 +253,7 @@ export default function Dashboard({
                                 Welcome, {user?.first_name || user?.name}
                             </h3>
                             <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600">
-                                Your account is active. Staff tools are available only to authorized Bellah Options team members.
+                                Your account is active.
                             </p>
                             <div className="mt-6">
                                 <Link
@@ -277,34 +272,14 @@ export default function Dashboard({
                                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                                     <div>
                                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-cyan-200">
-                                            Bellah Options Operations
+                                            Welcome to your office
                                         </p>
                                         <h3 className="mt-2 text-xl font-semibold sm:text-2xl">
                                             Hello, {user?.first_name || user?.name}
                                         </h3>
-                                        <p className="mt-2 text-sm text-slate-200">
-                                            Role: {formatRole(user?.role)}
-                                        </p>
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-2">
-                                        <StatusChip
-                                            active={Boolean(platformSettings?.maintenance_mode)}
-                                            label="Maintenance Mode"
-                                        />
-                                        <StatusChip
-                                            active={Boolean(platformSettings?.coming_soon_mode)}
-                                            label="Coming Soon Mode"
-                                        />
-                                        {canManageSettings && (
-                                            <Link
-                                                href={route('admin.settings.edit')}
-                                                className="rounded-lg bg-white/10 px-3 py-2 text-sm font-semibold text-white hover:bg-white/20"
-                                            >
-                                                Platform Settings
-                                            </Link>
-                                        )}
-                                    </div>
+                                    
                                 </div>
                             </section>
 
@@ -324,12 +299,54 @@ export default function Dashboard({
                                     />
                                     <MetricCard
                                         label="Pending Amount"
-                                        value={formatAmount(invoiceStats.sent_total ?? 0)}
+                                        value={formatMoney(invoiceStats.sent_total ?? 0, defaultCurrency)}
                                     />
                                     <MetricCard
                                         label="Paid Amount"
-                                        value={formatAmount(invoiceStats.paid_total ?? 0)}
+                                        value={formatMoney(invoiceStats.paid_total ?? 0, defaultCurrency)}
                                     />
+                                </section>
+                            )}
+
+                            {(canManageWaitlist || canManageUsers) && (
+                                <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                                    {canManageWaitlist && (
+                                        <>
+                                            <MetricCard
+                                                label="Waitlist Total"
+                                                value={waitlistStats.total_waitlists ?? 0}
+                                            />
+                                            <MetricCard
+                                                label="Waitlist Today"
+                                                value={waitlistStats.joined_today ?? 0}
+                                            />
+                                            <MetricCard
+                                                label="Waitlist (7 days)"
+                                                value={waitlistStats.joined_last_7_days ?? 0}
+                                            />
+                                        </>
+                                    )}
+
+                                    {canManageUsers && (
+                                        <>
+                                            <MetricCard
+                                                label="Registered Users"
+                                                value={userStats.total_users ?? 0}
+                                            />
+                                            <MetricCard
+                                                label="Staff Accounts"
+                                                value={userStats.staff_users ?? 0}
+                                            />
+                                            <MetricCard
+                                                label="Customer Accounts"
+                                                value={userStats.customer_users ?? 0}
+                                            />
+                                            <MetricCard
+                                                label="Verified Users"
+                                                value={userStats.verified_users ?? 0}
+                                            />
+                                        </>
+                                    )}
                                 </section>
                             )}
 
@@ -376,10 +393,16 @@ export default function Dashboard({
                                                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                                                             value={customerSearchQuery}
                                                             onChange={(event) => setCustomerSearchQuery(event.target.value)}
+                                                            onFocus={() => setIsCustomerSearchFocused(true)}
+                                                            onBlur={() => {
+                                                                setTimeout(() => {
+                                                                    setIsCustomerSearchFocused(false);
+                                                                }, 120);
+                                                            }}
                                                             placeholder="Search by customer name or email"
                                                         />
 
-                                                        {(customerSearchLoading || customerSearchResults.length > 0 || customerSearchError) && (
+                                                        {shouldShowCustomerSearchDropdown && (
                                                             <div className="absolute z-20 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
                                                                 {customerSearchLoading && (
                                                                     <div className="px-3 py-2 text-xs text-gray-500">
@@ -568,12 +591,22 @@ export default function Dashboard({
 
                                     <div className="space-y-6 lg:space-y-8">
                                         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-                                            <h3 className="text-lg font-semibold text-gray-900">
-                                                Invoice Management
-                                            </h3>
-                                            <p className="mt-1 text-sm text-gray-600">
-                                                Track invoice status, resend invoices, and mark payments.
-                                            </p>
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                <div>
+                                                    <h3 className="text-lg font-semibold text-gray-900">
+                                                        Invoice Management
+                                                    </h3>
+                                                    <p className="mt-1 text-sm text-gray-600">
+                                                        Track invoice status, resend invoices, and mark payments.
+                                                    </p>
+                                                </div>
+                                                <Link
+                                                    href={route('admin.invoices.index')}
+                                                    className="rounded-md border border-slate-300 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                >
+                                                    View all invoices
+                                                </Link>
+                                            </div>
 
                                             <div className="mt-5 space-y-3 md:hidden">
                                                 {invoices.length === 0 && (
@@ -600,7 +633,7 @@ export default function Dashboard({
                                                                 {invoice.customer_email}
                                                             </p>
                                                             <p>
-                                                                {formatAmount(invoice.amount)} {invoice.currency}
+                                                                {formatMoney(invoice.amount, invoice.currency)}
                                                             </p>
                                                         </div>
 
@@ -626,12 +659,27 @@ export default function Dashboard({
                                                                 {invoice.status !== 'paid' && (
                                                                     <button
                                                                         type="button"
+                                                                        className="rounded-md border border-amber-200 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50"
+                                                                        onClick={() => sendReminder(invoice.id)}
+                                                                    >
+                                                                        Remind
+                                                                    </button>
+                                                                )}
+                                                                {invoice.status !== 'paid' && (
+                                                                    <button
+                                                                        type="button"
                                                                         className="rounded-md border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
                                                                         onClick={() => markInvoicePaid(invoice.id)}
                                                                     >
                                                                         Paid
                                                                     </button>
                                                                 )}
+                                                                <Link
+                                                                    href={route('admin.invoices.show', invoice.id)}
+                                                                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                                                >
+                                                                    View
+                                                                </Link>
                                                             </div>
                                                         </div>
                                                     </article>
@@ -684,7 +732,7 @@ export default function Dashboard({
                                                                     </p>
                                                                 </td>
                                                                 <td className="px-3 py-3 align-top text-gray-700">
-                                                                    {formatAmount(invoice.amount)} {invoice.currency}
+                                                                    {formatMoney(invoice.amount, invoice.currency)}
                                                                 </td>
                                                                 <td className="px-3 py-3 align-top">
                                                                     <span
@@ -708,12 +756,27 @@ export default function Dashboard({
                                                                     {invoice.status !== 'paid' && (
                                                                         <button
                                                                             type="button"
+                                                                            className="rounded-md border border-amber-200 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-50"
+                                                                            onClick={() => sendReminder(invoice.id)}
+                                                                        >
+                                                                            Remind
+                                                                        </button>
+                                                                    )}
+                                                                    {invoice.status !== 'paid' && (
+                                                                        <button
+                                                                            type="button"
                                                                             className="rounded-md border border-emerald-200 px-2 py-1 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
                                                                             onClick={() => markInvoicePaid(invoice.id)}
                                                                         >
                                                                             Mark Paid
                                                                         </button>
                                                                     )}
+                                                                    <Link
+                                                                        href={route('admin.invoices.show', invoice.id)}
+                                                                        className="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+                                                                    >
+                                                                        View
+                                                                    </Link>
                                                                 </td>
                                                             </tr>
                                                         ))}
@@ -1026,9 +1089,20 @@ function displayCustomerName(customer) {
     return customer?.email || 'Customer';
 }
 
-function formatAmount(amount) {
-    return Number(amount).toLocaleString(undefined, {
+function formatMoney(amount, currency = 'NGN') {
+    const formattedAmount = Number(amount).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
     });
+    const normalizedCurrency = String(currency || '').toUpperCase();
+
+    if (normalizedCurrency === 'NGN') {
+        return `₦${formattedAmount}`;
+    }
+
+    if (normalizedCurrency === '') {
+        return formattedAmount;
+    }
+
+    return `${normalizedCurrency} ${formattedAmount}`;
 }

@@ -8,7 +8,9 @@ import { useState } from 'react';
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const isStaff = Boolean(user?.is_staff);
+    const canManageInvoices = Boolean(user?.can_manage_invoices);
     const canManageSettings = Boolean(user?.can_manage_settings);
+    const canManageUsers = Boolean(user?.can_manage_users);
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
@@ -34,6 +36,24 @@ export default function AuthenticatedLayout({ header, children }) {
                                         >
                                             Dashboard
                                         </NavLink>
+
+                                        {canManageInvoices && (
+                                            <NavLink
+                                                href={route('admin.invoices.index')}
+                                                active={route().current('admin.invoices.*')}
+                                            >
+                                                Invoices
+                                            </NavLink>
+                                        )}
+
+                                        {canManageUsers && (
+                                            <NavLink
+                                                href={route('admin.users.index')}
+                                                active={route().current('admin.users.*')}
+                                            >
+                                                Users
+                                            </NavLink>
+                                        )}
 
                                         {canManageSettings && (
                                             <NavLink
@@ -151,6 +171,22 @@ export default function AuthenticatedLayout({ header, children }) {
                                 >
                                     Dashboard
                                 </ResponsiveNavLink>
+                                {canManageInvoices && (
+                                    <ResponsiveNavLink
+                                        href={route('admin.invoices.index')}
+                                        active={route().current('admin.invoices.*')}
+                                    >
+                                        Invoices
+                                    </ResponsiveNavLink>
+                                )}
+                                {canManageUsers && (
+                                    <ResponsiveNavLink
+                                        href={route('admin.users.index')}
+                                        active={route().current('admin.users.*')}
+                                    >
+                                        Users
+                                    </ResponsiveNavLink>
+                                )}
                                 {canManageSettings && (
                                     <ResponsiveNavLink
                                         href={route('admin.settings.edit')}

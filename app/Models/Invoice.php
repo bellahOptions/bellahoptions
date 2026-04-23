@@ -22,6 +22,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'issued_at',
     'paid_at',
     'payment_reference',
+    'automatic_reminders_sent',
+    'last_automatic_reminder_sent_at',
+    'last_manual_reminder_sent_at',
     'created_by',
 ])]
 class Invoice extends Model
@@ -37,6 +40,8 @@ class Invoice extends Model
             'due_date' => 'date',
             'issued_at' => 'datetime',
             'paid_at' => 'datetime',
+            'last_automatic_reminder_sent_at' => 'datetime',
+            'last_manual_reminder_sent_at' => 'datetime',
             'amount' => 'decimal:2',
         ];
     }

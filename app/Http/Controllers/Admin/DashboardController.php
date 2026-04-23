@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\User;
+use App\Models\Waitlist;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -23,10 +25,25 @@ class DashboardController extends Controller
 
         $canManageInvoices = $user->canManageInvoices();
         $canManageSettings = $user->canManageSettings();
+        $canManageUsers = $user->canManageUsers();
+        $canManageWaitlist = $user->canManageWaitlist();
 
         $settings = [
             'maintenance_mode' => AppSetting::getBool('maintenance_mode'),
             'coming_soon_mode' => AppSetting::getBool('coming_soon_mode'),
+        ];
+
+        $waitlistStats = [
+            'total_waitlists' => 0,
+            'joined_today' => 0,
+            'joined_last_7_days' => 0,
+        ];
+
+        $userStats = [
+            'total_users' => 0,
+            'staff_users' => 0,
+            'customer_users' => 0,
+            'verified_users' => 0,
         ];
 
         if (! $user->isStaff()) {
@@ -35,6 +52,8 @@ class DashboardController extends Controller
                 'permissions' => [
                     'can_manage_invoices' => false,
                     'can_manage_settings' => false,
+                    'can_manage_users' => false,
+                    'can_manage_waitlist' => false,
                 ],
                 'platformSettings' => $settings,
                 'invoices' => [],
@@ -50,6 +69,8 @@ class DashboardController extends Controller
                 'customers' => [],
                 'supportedCurrencies' => ['NGN', 'USD', 'EUR', 'GBP'],
                 'defaultCurrency' => config('bellah.invoice.currency', 'NGN'),
+                'waitlistStats' => $waitlistStats,
+                'userStats' => $userStats,
             ]);
         }
 
@@ -103,6 +124,9 @@ class DashboardController extends Controller
                     'issued_at' => $invoice->issued_at?->toDateTimeString(),
                     'paid_at' => $invoice->paid_at?->toDateTimeString(),
                     'payment_reference' => $invoice->payment_reference,
+                    'automatic_reminders_sent' => (int) $invoice->automatic_reminders_sent,
+                    'last_automatic_reminder_sent_at' => $invoice->last_automatic_reminder_sent_at?->toDateTimeString(),
+                    'last_manual_reminder_sent_at' => $invoice->last_manual_reminder_sent_at?->toDateTimeString(),
                     'creator' => $invoice->creator?->name,
                     'created_at' => $invoice->created_at?->toDateTimeString(),
                 ]);
@@ -121,11 +145,36 @@ class DashboardController extends Controller
             ];
         }
 
+        if ($canManageUsers) {
+            $userStats = [
+                'total_users' => User::count(),
+                'staff_users' => User::query()
+                    ->whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_CUSTOMER_REP, 'admin', 'staff'])
+                    ->count(),
+                'customer_users' => User::query()
+                    ->where(function ($query): void {
+                        $query->whereNull('role')->orWhere('role', 'user');
+                    })
+                    ->count(),
+                'verified_users' => User::whereNotNull('email_verified_at')->count(),
+            ];
+        }
+
+        if ($canManageWaitlist) {
+            $waitlistStats = [
+                'total_waitlists' => Waitlist::count(),
+                'joined_today' => Waitlist::whereDate('created_at', now()->toDateString())->count(),
+                'joined_last_7_days' => Waitlist::where('created_at', '>=', now()->subDays(7)->startOfDay())->count(),
+            ];
+        }
+
         return Inertia::render('Dashboard', [
             'isStaff' => true,
             'permissions' => [
                 'can_manage_invoices' => $canManageInvoices,
                 'can_manage_settings' => $canManageSettings,
+                'can_manage_users' => $canManageUsers,
+                'can_manage_waitlist' => $canManageWaitlist,
             ],
             'platformSettings' => $settings,
             'invoices' => $invoices,
@@ -134,6 +183,8 @@ class DashboardController extends Controller
             'customers' => $customers,
             'supportedCurrencies' => ['NGN', 'USD', 'EUR', 'GBP'],
             'defaultCurrency' => config('bellah.invoice.currency', 'NGN'),
+            'waitlistStats' => $waitlistStats,
+            'userStats' => $userStats,
         ]);
     }
 }

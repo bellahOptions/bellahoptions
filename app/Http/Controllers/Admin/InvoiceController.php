@@ -7,15 +7,84 @@ use App\Http\Requests\Admin\MarkInvoicePaidRequest;
 use App\Http\Requests\Admin\StoreInvoiceRequest;
 use App\Mail\InvoiceIssuedMail;
 use App\Mail\InvoicePaidReceiptMail;
+use App\Mail\InvoiceReminderMail;
 use App\Models\Customer;
 use App\Models\Invoice;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Inertia;
+use Inertia\Response;
 use Throwable;
 
 class InvoiceController extends Controller
 {
+    public function index(Request $request): Response
+    {
+        abort_unless((bool) $request->user()?->canManageInvoices(), 403);
+
+        $search = trim((string) $request->query('search', ''));
+        $status = trim((string) $request->query('status', ''));
+
+        $query = Invoice::query()
+            ->with('creator:id,name')
+            ->latest('id');
+
+        if ($search !== '') {
+            $query->where(function ($searchQuery) use ($search): void {
+                $like = '%'.$search.'%';
+
+                $searchQuery
+                    ->where('invoice_number', 'like', $like)
+                    ->orWhere('customer_name', 'like', $like)
+                    ->orWhere('customer_email', 'like', $like)
+                    ->orWhere('title', 'like', $like);
+            });
+        }
+
+        if (in_array($status, ['sent', 'paid'], true)) {
+            $query->where('status', $status);
+        }
+
+        $invoices = $query
+            ->paginate(20)
+            ->through(fn (Invoice $invoice): array => $this->mapInvoice($invoice))
+            ->withQueryString();
+
+        return Inertia::render('Admin/Invoices/Index', [
+            'filters' => [
+                'search' => $search,
+                'status' => $status,
+            ],
+            'permissions' => [
+                'can_delete_invoices' => (bool) $request->user()?->isSuperAdmin(),
+            ],
+            'stats' => [
+                'total_invoices' => Invoice::count(),
+                'pending_invoices' => Invoice::where('status', 'sent')->count(),
+                'paid_invoices' => Invoice::where('status', 'paid')->count(),
+                'pending_total' => Invoice::where('status', 'sent')->sum('amount'),
+                'paid_total' => Invoice::where('status', 'paid')->sum('amount'),
+            ],
+            'invoices' => $invoices,
+        ]);
+    }
+
+    public function show(Request $request, Invoice $invoice): Response
+    {
+        abort_unless((bool) $request->user()?->canManageInvoices(), 403);
+
+        $invoice->load('creator:id,name', 'customer:id,name,first_name,last_name,email,occupation,phone,company,address,notes');
+
+        return Inertia::render('Admin/Invoices/Show', [
+            'permissions' => [
+                'can_delete_invoices' => (bool) $request->user()?->isSuperAdmin(),
+            ],
+            'invoice' => $this->mapInvoice($invoice, true),
+        ]);
+    }
+
     public function store(StoreInvoiceRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -81,6 +150,33 @@ class InvoiceController extends Controller
         return back()->with('success', "Invoice {$invoice->invoice_number} resent to {$invoice->customer_email}.");
     }
 
+    public function sendReminder(Invoice $invoice): RedirectResponse
+    {
+        if ($invoice->status === 'paid') {
+            return back()->with('success', "Invoice {$invoice->invoice_number} is already paid.");
+        }
+
+        $reminderNumber = max(1, (int) $invoice->automatic_reminders_sent);
+
+        try {
+            Mail::to($invoice->customer_email)->send(new InvoiceReminderMail($invoice, false, $reminderNumber));
+
+            $invoice->update([
+                'last_manual_reminder_sent_at' => now(),
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('Manual invoice reminder failed.', [
+                'invoice_id' => $invoice->id,
+                'customer_email' => $invoice->customer_email,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('error', 'Invoice reminder failed. Check mail configuration.');
+        }
+
+        return back()->with('success', "Reminder sent to {$invoice->customer_email}.");
+    }
+
     public function markPaid(MarkInvoicePaidRequest $request, Invoice $invoice): RedirectResponse
     {
         if ($invoice->status === 'paid') {
@@ -106,6 +202,18 @@ class InvoiceController extends Controller
         }
 
         return back()->with('success', "Invoice {$invoice->invoice_number} marked as paid and receipt emailed.");
+    }
+
+    public function destroy(Request $request, Invoice $invoice): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
+
+        $invoiceNumber = $invoice->invoice_number;
+        $invoice->delete();
+
+        return redirect()
+            ->route('admin.invoices.index')
+            ->with('success', "Invoice {$invoiceNumber} has been deleted.");
     }
 
     /**
@@ -184,5 +292,44 @@ class InvoiceController extends Controller
         } while (Invoice::query()->where('invoice_number', $number)->exists());
 
         return $number;
+    }
+
+    private function mapInvoice(Invoice $invoice, bool $withRelations = false): array
+    {
+        return [
+            'id' => $invoice->id,
+            'invoice_number' => $invoice->invoice_number,
+            'customer_id' => $invoice->customer_id,
+            'customer_name' => $invoice->customer_name,
+            'customer_email' => $invoice->customer_email,
+            'customer_occupation' => $invoice->customer_occupation,
+            'title' => $invoice->title,
+            'description' => $invoice->description,
+            'amount' => (string) $invoice->amount,
+            'currency' => $invoice->currency,
+            'status' => $invoice->status,
+            'due_date' => $invoice->due_date?->toDateString(),
+            'issued_at' => $invoice->issued_at?->toDateTimeString(),
+            'paid_at' => $invoice->paid_at?->toDateTimeString(),
+            'payment_reference' => $invoice->payment_reference,
+            'automatic_reminders_sent' => (int) $invoice->automatic_reminders_sent,
+            'last_automatic_reminder_sent_at' => $invoice->last_automatic_reminder_sent_at?->toDateTimeString(),
+            'last_manual_reminder_sent_at' => $invoice->last_manual_reminder_sent_at?->toDateTimeString(),
+            'creator' => $invoice->creator?->name,
+            'created_at' => $invoice->created_at?->toDateTimeString(),
+            'updated_at' => $invoice->updated_at?->toDateTimeString(),
+            'customer' => $withRelations && $invoice->relationLoaded('customer') && $invoice->customer ? [
+                'id' => $invoice->customer->id,
+                'name' => $invoice->customer->name,
+                'first_name' => $invoice->customer->first_name,
+                'last_name' => $invoice->customer->last_name,
+                'email' => $invoice->customer->email,
+                'occupation' => $invoice->customer->occupation,
+                'phone' => $invoice->customer->phone,
+                'company' => $invoice->customer->company,
+                'address' => $invoice->customer->address,
+                'notes' => $invoice->customer->notes,
+            ] : null,
+        ];
     }
 }

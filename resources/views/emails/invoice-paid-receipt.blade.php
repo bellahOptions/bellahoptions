@@ -1,3 +1,8 @@
+@php
+    $isNaira = strtoupper((string) $invoice->currency) === 'NGN';
+    $currencyPrefix = $isNaira ? '&#8358;' : strtoupper((string) $invoice->currency).' ';
+    $formattedAmount = number_format((float) $invoice->amount, 2);
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,7 +30,7 @@
                                 <tr>
                                     <td style="padding:16px 18px; font-size:14px; line-height:1.8; color:#134e4a;">
                                         <strong style="color:#042f2e;">Invoice:</strong> {{ $invoice->invoice_number }}<br>
-                                        <strong style="color:#042f2e;">Amount Paid:</strong> {{ number_format((float) $invoice->amount, 2) }} {{ strtoupper($invoice->currency) }}<br>
+                                        <strong style="color:#042f2e;">Amount Paid:</strong> {!! $currencyPrefix !!}{{ $formattedAmount }}<br>
                                         <strong style="color:#042f2e;">Payment Reference:</strong> {{ $invoice->payment_reference ?: 'N/A' }}<br>
                                         <strong style="color:#042f2e;">Paid At:</strong> {{ $invoice->paid_at?->format('Y-m-d H:i:s') }}
                                     </td>

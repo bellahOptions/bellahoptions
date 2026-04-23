@@ -58,4 +58,14 @@ class User extends Authenticatable
     {
         return $this->isSuperAdmin();
     }
+
+    public function canManageUsers(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    public function canManageWaitlist(): bool
+    {
+        return $this->isSuperAdmin() || $this->isCustomerRep();
+    }
 }

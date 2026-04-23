@@ -79,18 +79,12 @@ export default function ComingSoon({
                                 className="h-12 w-auto sm:h-14"
                             />
 
-                            <p className="mt-6 inline-flex items-center gap-2 rounded-full border border-[#050a97]/20 bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#050a97] shadow-sm backdrop-blur-sm">
-                                <Sparkles className="h-3.5 w-3.5" />
-                                Launching Soon
-                            </p>
-
-                            <h1 className="font-display mt-6 text-4xl font-bold leading-tight text-[#050a49] sm:text-5xl lg:text-6xl">
-                                Bellah Options is almost here.
+                            <h1 className="font-display mt-6 text-4xl font-bold leading-tight tracking-tighter text-[#050a49] sm:text-5xl lg:text-6xl">
+                                Our new website is almost here.
                             </h1>
 
                             <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
-                                A sharper way to discover opportunities is on the
-                                way. Join the waitlist and be first to access the
+                                A better way to book our services and keep track of your bookings. Join the waitlist and be first to access the
                                 platform when we open early access.
                             </p>
 
@@ -218,7 +212,7 @@ export default function ComingSoon({
 
                                         <div className="space-y-2">
                                             <Label htmlFor="human_check_answer">
-                                                Human Verification: {humanCheckQuestion}
+                                                Identify yourself: {humanCheckQuestion}
                                             </Label>
                                             <Input
                                                 id="human_check_answer"
