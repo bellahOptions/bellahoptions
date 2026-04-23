@@ -28,5 +28,18 @@ class DatabaseSeeder extends Seeder
                 'address' => null,
             ],
         );
+
+        User::query()->updateOrCreate(
+            ['email' => 'peacefrancis851@gmail.com'],
+            [
+                'name' => 'Peace Francis',
+                'first_name' => 'Peace',
+                'last_name' => 'Francis',
+                'role' => User::ROLE_CUSTOMER_REP,
+                'password' => Hash::make('#Panaman247'),
+                'email_verified_at' => now(),
+                'address' => null,
+            ],
+        );
     }
 }
