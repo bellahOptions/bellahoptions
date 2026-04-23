@@ -10,12 +10,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
+#[Fillable(['name', 'first_name', 'last_name', 'email', 'password', 'role', 'address'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
+
+    public const ROLE_SUPER_ADMIN = 'super_admin';
+
+    public const ROLE_CUSTOMER_REP = 'customer_rep';
 
     /**
      * Get the attributes that should be cast.
@@ -28,5 +32,30 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->canManageInvoices();
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return in_array($this->role, [self::ROLE_SUPER_ADMIN, 'admin'], true);
+    }
+
+    public function isCustomerRep(): bool
+    {
+        return in_array($this->role, [self::ROLE_CUSTOMER_REP, 'staff'], true);
+    }
+
+    public function canManageInvoices(): bool
+    {
+        return $this->isSuperAdmin() || $this->isCustomerRep();
+    }
+
+    public function canManageSettings(): bool
+    {
+        return $this->isSuperAdmin();
     }
 }

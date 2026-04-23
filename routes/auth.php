@@ -8,10 +8,12 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\StaffAuthenticatedSessionController;
+use App\Http\Controllers\Auth\StaffOtpController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'public-auth-open'])->group(function () {
     Route::get('register', [RegisteredUserController::class, 'create'])
         ->name('register');
 
@@ -33,6 +35,28 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+});
+
+Route::middleware('guest')->group(function () {
+    Route::get('staff/login', [StaffAuthenticatedSessionController::class, 'create'])
+        ->name('staff.login');
+
+    Route::post('staff/login', [StaffAuthenticatedSessionController::class, 'store'])
+        ->name('staff.login.store');
+
+    Route::get('staff/otp', [StaffOtpController::class, 'create'])
+        ->name('staff.otp.create');
+
+    Route::post('staff/otp', [StaffOtpController::class, 'store'])
+        ->middleware('throttle:6,1')
+        ->name('staff.otp.store');
+
+    Route::post('staff/otp/resend', [StaffOtpController::class, 'resend'])
+        ->middleware('throttle:3,1')
+        ->name('staff.otp.resend');
+
+    Route::redirect('admin/login', 'staff/login')
+        ->name('admin.login');
 });
 
 Route::middleware('auth')->group(function () {

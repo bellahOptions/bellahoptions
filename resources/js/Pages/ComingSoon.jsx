@@ -14,11 +14,18 @@ import {
     CheckCircle2,
     Clock3,
     Mail,
+    ShieldCheck,
     Sparkles,
     User,
 } from 'lucide-react';
+import { useEffect } from 'react';
 
-export default function ComingSoon() {
+export default function ComingSoon({
+    occupations = [],
+    humanCheckQuestion = '',
+    humanCheckNonce = '',
+    formRenderedAt = 0,
+}) {
     const { flash } = usePage().props;
 
     const { data, setData, post, processing, errors, reset, clearErrors } =
@@ -26,7 +33,21 @@ export default function ComingSoon() {
             name: '',
             email: '',
             occupation: '',
+            human_check_answer: '',
+            human_check_nonce: humanCheckNonce,
+            form_rendered_at: formRenderedAt,
+            company_name: '',
         });
+
+    useEffect(() => {
+        setData((previous) => ({
+            ...previous,
+            human_check_nonce: humanCheckNonce,
+            form_rendered_at: formRenderedAt,
+            human_check_answer: '',
+            company_name: '',
+        }));
+    }, [formRenderedAt, humanCheckNonce, setData]);
 
     const submit = (event) => {
         event.preventDefault();
@@ -34,7 +55,7 @@ export default function ComingSoon() {
         post(route('waitlist.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                reset();
+                reset('name', 'email', 'occupation', 'human_check_answer', 'company_name');
                 clearErrors();
             },
         });
@@ -85,11 +106,11 @@ export default function ComingSoon() {
                                 </div>
                                 <div className="rounded-lg border border-[#050a97]/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
                                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                        Product Updates
+                                        Security First
                                     </p>
                                     <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                                        <Mail className="h-4 w-4 text-[#050a97]" />
-                                        Meaningful build updates only.
+                                        <ShieldCheck className="h-4 w-4 text-[#050a97]" />
+                                        Human verification enabled.
                                     </p>
                                 </div>
                             </div>
@@ -102,8 +123,7 @@ export default function ComingSoon() {
                                         Join the Waitlist
                                     </CardTitle>
                                     <CardDescription className="text-slate-600">
-                                        Save your spot and receive a beautifully
-                                        crafted confirmation email instantly.
+                                        Save your spot and receive a confirmation email instantly.
                                     </CardDescription>
                                 </CardHeader>
 
@@ -115,7 +135,23 @@ export default function ComingSoon() {
                                         </div>
                                     )}
 
+                                    {flash?.error && (
+                                        <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                            {flash.error}
+                                        </div>
+                                    )}
+
                                     <form onSubmit={submit} className="space-y-4">
+                                        <input
+                                            type="text"
+                                            name="company_name"
+                                            value={data.company_name}
+                                            onChange={(event) => setData('company_name', event.target.value)}
+                                            className="hidden"
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                            aria-hidden="true"
+                                        />
                                         <div className="space-y-2">
                                             <Label htmlFor="name">Full Name</Label>
                                             <div className="relative">
@@ -124,21 +160,14 @@ export default function ComingSoon() {
                                                     id="name"
                                                     name="name"
                                                     value={data.name}
-                                                    onChange={(event) =>
-                                                        setData(
-                                                            'name',
-                                                            event.target.value,
-                                                        )
-                                                    }
+                                                    onChange={(event) => setData('name', event.target.value)}
                                                     className="pl-10"
                                                     placeholder="Aisha Bello"
                                                     required
                                                 />
                                             </div>
                                             {errors.name && (
-                                                <p className="text-sm text-red-600">
-                                                    {errors.name}
-                                                </p>
+                                                <p className="text-sm text-red-600">{errors.name}</p>
                                             )}
                                         </div>
 
@@ -151,47 +180,58 @@ export default function ComingSoon() {
                                                     type="email"
                                                     name="email"
                                                     value={data.email}
-                                                    onChange={(event) =>
-                                                        setData(
-                                                            'email',
-                                                            event.target.value,
-                                                        )
-                                                    }
+                                                    onChange={(event) => setData('email', event.target.value)}
                                                     className="pl-10"
                                                     placeholder="you@example.com"
                                                     required
                                                 />
                                             </div>
                                             {errors.email && (
-                                                <p className="text-sm text-red-600">
-                                                    {errors.email}
-                                                </p>
+                                                <p className="text-sm text-red-600">{errors.email}</p>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label htmlFor="occupation">Occupation</Label>
                                             <div className="relative">
-                                                <BriefcaseBusiness className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                                                <Input
+                                                <BriefcaseBusiness className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                                <select
                                                     id="occupation"
                                                     name="occupation"
                                                     value={data.occupation}
-                                                    onChange={(event) =>
-                                                        setData(
-                                                            'occupation',
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                    className="pl-10"
-                                                    placeholder="Product Designer"
+                                                    onChange={(event) => setData('occupation', event.target.value)}
+                                                    className="h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#050a97] disabled:cursor-not-allowed disabled:opacity-50"
                                                     required
-                                                />
+                                                >
+                                                    <option value="">Select your occupation</option>
+                                                    {occupations.map((occupation) => (
+                                                        <option key={occupation} value={occupation}>
+                                                            {occupation}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </div>
                                             {errors.occupation && (
-                                                <p className="text-sm text-red-600">
-                                                    {errors.occupation}
-                                                </p>
+                                                <p className="text-sm text-red-600">{errors.occupation}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="human_check_answer">
+                                                Human Verification: {humanCheckQuestion}
+                                            </Label>
+                                            <Input
+                                                id="human_check_answer"
+                                                type="number"
+                                                min="0"
+                                                name="human_check_answer"
+                                                value={data.human_check_answer}
+                                                onChange={(event) => setData('human_check_answer', event.target.value)}
+                                                placeholder="Enter answer"
+                                                required
+                                            />
+                                            {errors.human_check_answer && (
+                                                <p className="text-sm text-red-600">{errors.human_check_answer}</p>
                                             )}
                                         </div>
 
@@ -201,14 +241,11 @@ export default function ComingSoon() {
                                             className="w-full bg-[#050a97] hover:bg-[#050a49] focus-visible:ring-[#050a97]"
                                             disabled={processing}
                                         >
-                                            {processing
-                                                ? 'Saving your spot...'
-                                                : 'Join Waitlist'}
+                                            {processing ? 'Saving your spot...' : 'Join Waitlist'}
                                         </Button>
 
                                         <p className="text-center text-xs leading-6 text-slate-500">
-                                            We only send launch-related updates.
-                                            No spam, ever.
+                                            We only send launch-related updates. No spam, ever.
                                         </p>
                                     </form>
                                 </CardContent>

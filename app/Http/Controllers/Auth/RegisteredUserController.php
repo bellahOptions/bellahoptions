@@ -32,15 +32,32 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255',
+            'first_name' => ['required_without:name', 'string', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
+            'last_name' => ['required_without:name', 'string', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $firstName = $request->string('first_name')->trim()->value();
+        $lastName = $request->string('last_name')->trim()->value();
+
+        if ($firstName === '' && $request->filled('name')) {
+            $nameParts = preg_split('/\s+/', trim((string) $request->name)) ?: [];
+            $firstName = $nameParts[0] ?? '';
+            $lastName = $lastName !== '' ? $lastName : (count($nameParts) > 1 ? implode(' ', array_slice($nameParts, 1)) : '');
+        }
+
+        $fullName = trim((string) ($request->name ?: "{$firstName} {$lastName}"));
+
         $user = User::create([
-            'name' => $request->name,
+            'name' => $fullName,
+            'first_name' => $firstName !== '' ? $firstName : $fullName,
+            'last_name' => $lastName !== '' ? $lastName : null,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => 'user',
+            'address' => null,
         ]);
 
         event(new Registered($user));
