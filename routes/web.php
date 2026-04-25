@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WaitlistController;
+use App\Http\Controllers\PagesController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [WaitlistController::class, 'create'])->name('waitlist.create');
@@ -14,6 +15,8 @@ Route::view('/terms-of-service', 'terms-of-service')->name('terms.show');
 Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');
+
+Route::get('/new-home', [PagesController::class, 'index'])->name('home');
 
 Route::get('/dashboard', AdminDashboardController::class)
     ->middleware(['auth', 'verified'])
@@ -46,5 +49,6 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
 
 require __DIR__.'/auth.php';

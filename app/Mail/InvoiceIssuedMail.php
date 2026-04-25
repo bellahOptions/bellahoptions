@@ -31,9 +31,9 @@ class InvoiceIssuedMail extends Mailable
         $bccEmail = (string) config('bellah.invoice.bcc_email', 'bellahoptions@gmail.com');
 
         return new Envelope(
-            subject: 'Your Bellah Options invoice '.$this->invoice->invoice_number,
+            subject: 'Customer Invoice: '.$this->invoice->invoice_number,
             from: new Address($senderEmail, $senderName),
-            bcc: [new Address($bccEmail)],
+            bcc: [new Address($bccEmail)],  
         );
     }
 

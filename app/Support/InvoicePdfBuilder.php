@@ -3,165 +3,146 @@
 namespace App\Support;
 
 use App\Models\Invoice;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class InvoicePdfBuilder
 {
     public function buildInvoice(Invoice $invoice): string
     {
         $companyName = (string) config('bellah.invoice.company_name', 'Bellah Options');
-        $submittedOn = $invoice->issued_at?->format('d/m/Y') ?? now()->format('d/m/Y');
-        $dueDate = $invoice->due_date?->format('d/m/Y') ?? $submittedOn;
+        $invoiceDate = $invoice->issued_at?->format('d/m/Y') ?? now()->format('d/m/Y');
+        $dueDate = $invoice->due_date?->format('d/m/Y') ?? $invoiceDate;
         $amount = (float) $invoice->amount;
-        $amountText = $this->formatCurrency($amount, (string) $invoice->currency);
-        $customerName = trim((string) $invoice->customer_name) !== '' ? (string) $invoice->customer_name : 'Client';
-        $customerEmail = trim((string) $invoice->customer_email) !== '' ? (string) $invoice->customer_email : 'N/A';
-        $projectTitle = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
+        $invoice->loadMissing('customer:id,address,company');
 
-        $commands = [
-            $this->setStrokeColor(0.86, 0.90, 0.93),
-            $this->drawRectangle(24, 24, 564, 794, 1.0),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(40, 792, $companyName, 22, 'F2'),
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(40, 774, 'Baba Ode, Onibukun Ota', 10),
-            $this->drawText(40, 760, 'Ogun State, NG (BN3668420)', 10),
-            $this->drawText(40, 746, '(234) 810 867 1804', 10),
+        $description = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
 
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(470, 792, 'Invoice', 22, 'F2'),
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(470, 774, 'Submitted on '.$submittedOn, 10),
-
-            $this->setStrokeColor(0.86, 0.90, 0.93),
-            $this->drawLine(40, 730, 572, 730, 1.0),
-
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(40, 706, 'Invoice for', 10),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(40, 690, $customerName, 12, 'F2'),
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(40, 674, $customerEmail, 10),
-
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(274, 706, 'Payable to', 10),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(274, 690, $companyName, 12, 'F2'),
-
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(470, 706, 'Invoice #', 10),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(470, 690, (string) $invoice->invoice_number, 12, 'F2'),
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(470, 672, 'Project', 10),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(470, 656, $this->truncate($projectTitle, 18), 11, 'F2'),
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(470, 638, 'Due date', 10),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(470, 622, $dueDate, 11, 'F2'),
-
-            $this->setStrokeColor(0.80, 0.86, 0.89),
-            $this->drawLine(40, 606, 572, 606, 1.0),
-
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(40, 588, 'Description', 10, 'F2'),
-            $this->drawText(314, 588, 'Qty', 10, 'F2'),
-            $this->drawText(372, 588, 'Unit price', 10, 'F2'),
-            $this->drawText(492, 588, 'Total price', 10, 'F2'),
-
-            $this->setStrokeColor(0.86, 0.90, 0.93),
-            $this->drawLine(40, 580, 572, 580, 0.8),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(40, 560, $this->truncate($projectTitle, 42), 11),
-            $this->drawText(322, 560, '1', 11),
-            $this->drawText(372, 560, $amountText, 11),
-            $this->drawText(492, 560, $amountText, 11, 'F2'),
-            $this->setStrokeColor(0.86, 0.90, 0.93),
-            $this->drawLine(40, 546, 572, 546, 0.8),
-
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(40, 512, 'Notes:', 11, 'F2'),
-        ];
-
-        foreach ($this->wrapText('Please make payment to the account below:', 44) as $index => $line) {
-            $commands[] = $this->setFillColor(0.07, 0.12, 0.18);
-            $commands[] = $this->drawText(40, 494 - ($index * 14), $line, 10);
+        if (filled($invoice->description)) {
+            $description .= ' - '.trim((string) $invoice->description);
         }
 
-        $commands[] = $this->setFillColor(0.37, 0.45, 0.52);
-        $commands[] = $this->drawText(40, 462, str_repeat('-', 50), 10);
-        $commands[] = $this->setFillColor(0.07, 0.12, 0.18);
-        $commands[] = $this->drawText(40, 446, 'Account Number: 4210082961', 10);
-        $commands[] = $this->drawText(40, 432, 'Account Name: Bellah Options', 10);
-        $commands[] = $this->drawText(40, 418, 'Bank Name: Fidelity Bank', 10);
+        $customerAddress = trim((string) ($invoice->customer?->address ?? ''));
+        $customerCompany = trim((string) ($invoice->customer?->company ?? ''));
+        $customerEmail = trim((string) $invoice->customer_email);
+        $customerName = trim((string) $invoice->customer_name) !== '' ? trim((string) $invoice->customer_name) : 'Client';
 
-        $commands = array_merge($commands, [
-            $this->setStrokeColor(0.86, 0.90, 0.93),
-            $this->drawLine(340, 516, 572, 516, 0.8),
-            $this->drawLine(340, 488, 572, 488, 0.8),
-            $this->drawLine(340, 460, 572, 460, 0.8),
+        $recipientLines = array_values(array_filter([
+            $customerName,
+            $customerCompany !== '' ? 'ATTN: '.$customerCompany : null,
+            ...preg_split('/\r\n|\r|\n/', $customerAddress) ?: [],
+            $customerEmail !== '' ? $customerEmail : null,
+        ], static fn (?string $line): bool => filled($line)));
 
-            $this->setFillColor(0.37, 0.45, 0.52),
-            $this->drawText(340, 524, 'Subtotal', 10, 'F2'),
-            $this->drawText(340, 496, 'Discount', 10, 'F2'),
-            $this->drawText(340, 468, 'Total', 11, 'F2'),
+        $subtotal = $amount;
+        $vatRate = max(0, (float) config('bellah.invoice.vat_rate', 0));
+        $vatAmount = ($subtotal * $vatRate) / 100;
+        $creditAmount = 0.0;
+        $total = $subtotal + $vatAmount - $creditAmount;
+        $balance = $invoice->status === 'paid' ? 0.0 : $total;
 
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(502, 524, $amountText, 10, 'F2'),
-            $this->drawText(502, 496, $this->formatCurrency(0, (string) $invoice->currency), 10),
-            $this->drawText(502, 468, $amountText, 11, 'F2'),
+        $logoDataUri = $this->buildLogoDataUri(public_path('logo-06.svg'));
 
-            $this->setStrokeColor(0.86, 0.90, 0.93),
-            $this->drawLine(40, 384, 572, 384, 1.0),
-            $this->setFillColor(0.07, 0.12, 0.18),
-            $this->drawText(40, 364, "Ensure you've read and understood our Terms of Service before payment.", 10),
-        ]);
+        $html = view('pdfs.invoice', [
+            'invoice' => $invoice,
+            'companyName' => $companyName,
+            'invoiceDate' => $invoiceDate,
+            'dueDate' => $dueDate,
+            'logoDataUri' => $logoDataUri,
+            'statusLabel' => $invoice->status === 'paid' ? 'PAID' : 'UNPAID',
+            'recipientLines' => $recipientLines,
+            'description' => $description,
+            'subtotal' => $this->formatCurrency($subtotal, (string) $invoice->currency),
+            'vatRate' => $vatRate,
+            'vatAmount' => $this->formatCurrency($vatAmount, (string) $invoice->currency),
+            'credit' => $this->formatCurrency($creditAmount, (string) $invoice->currency),
+            'total' => $this->formatCurrency($total, (string) $invoice->currency),
+            'balance' => $this->formatCurrency($balance, (string) $invoice->currency),
+            'generatedAt' => now()->format('d/m/Y'),
+        ])->render();
 
-        return $this->buildDocument($commands);
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new Dompdf($options);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->loadHtml($html);
+        $dompdf->render();
+
+        return $dompdf->output();
     }
 
     public function buildReceipt(Invoice $invoice): string
     {
         $companyName = (string) config('bellah.invoice.company_name', 'Bellah Options');
-        $amountText = $this->formatCurrency((float) $invoice->amount, (string) $invoice->currency);
-        $paidDate = $invoice->paid_at?->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i');
+        $invoiceDate = $invoice->issued_at?->format('d/m/Y') ?? now()->format('d/m/Y');
+        $receiptDate = $invoice->paid_at?->format('d/m/Y') ?? now()->format('d/m/Y');
+        $dueDate = $invoice->due_date?->format('d/m/Y') ?? $invoiceDate;
+        $amount = (float) $invoice->amount;
+        $invoice->loadMissing('customer:id,address,company');
 
-        $commands = [
-            $this->setStrokeColor(0.84, 0.91, 0.90),
-            $this->drawRectangle(24, 24, 564, 794, 1.0),
-            $this->setFillColor(0.02, 0.25, 0.23),
-            $this->drawText(40, 792, $companyName.' Payment Receipt', 21, 'F2'),
-            $this->setFillColor(0.33, 0.43, 0.42),
-            $this->drawText(40, 772, 'Invoice #'.$invoice->invoice_number, 11),
-            $this->drawText(40, 756, 'Receipt Date: '.$paidDate, 11),
+        $description = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
 
-            $this->setStrokeColor(0.84, 0.91, 0.90),
-            $this->drawLine(40, 736, 572, 736, 1.0),
+        if (filled($invoice->description)) {
+            $description .= ' - '.trim((string) $invoice->description);
+        }
 
-            $this->setFillColor(0.33, 0.43, 0.42),
-            $this->drawText(40, 710, 'Customer', 10, 'F2'),
-            $this->setFillColor(0.05, 0.18, 0.17),
-            $this->drawText(40, 694, (string) $invoice->customer_name, 11),
-            $this->drawText(40, 678, (string) $invoice->customer_email, 10),
+        $customerAddress = trim((string) ($invoice->customer?->address ?? ''));
+        $customerCompany = trim((string) ($invoice->customer?->company ?? ''));
+        $customerEmail = trim((string) $invoice->customer_email);
+        $customerName = trim((string) $invoice->customer_name) !== '' ? trim((string) $invoice->customer_name) : 'Client';
 
-            $this->setFillColor(0.33, 0.43, 0.42),
-            $this->drawText(40, 648, 'Payment Summary', 10, 'F2'),
-            $this->setStrokeColor(0.84, 0.91, 0.90),
-            $this->drawLine(40, 640, 572, 640, 0.8),
+        $recipientLines = array_values(array_filter([
+            $customerName,
+            $customerCompany !== '' ? 'ATTN: '.$customerCompany : null,
+            ...preg_split('/\r\n|\r|\n/', $customerAddress) ?: [],
+            $customerEmail !== '' ? $customerEmail : null,
+        ], static fn (?string $line): bool => filled($line)));
 
-            $this->setFillColor(0.05, 0.18, 0.17),
-            $this->drawText(40, 620, 'Description: '.$this->truncate((string) $invoice->title, 58), 11),
-            $this->drawText(40, 604, 'Amount Paid: '.$amountText, 11, 'F2'),
-            $this->drawText(40, 588, 'Payment Reference: '.((string) ($invoice->payment_reference ?: 'N/A')), 11),
+        $subtotal = $amount;
+        $vatRate = max(0, (float) config('bellah.invoice.vat_rate', 0));
+        $vatAmount = ($subtotal * $vatRate) / 100;
+        $creditAmount = 0.0;
+        $total = $subtotal + $vatAmount - $creditAmount;
+        $paidAmount = $invoice->status === 'paid' ? $total : 0.0;
+        $balance = max(0, $total - $paidAmount);
+        $paymentReference = trim((string) ($invoice->payment_reference ?: 'N/A'));
+        $logoDataUri = $this->buildLogoDataUri(public_path('logo-06.svg'));
 
-            $this->setStrokeColor(0.84, 0.91, 0.90),
-            $this->drawLine(40, 562, 572, 562, 1.0),
-            $this->setFillColor(0.05, 0.18, 0.17),
-            $this->drawText(40, 540, 'Thank you for your payment.', 11),
-            $this->drawText(40, 524, 'Issued by '.$companyName, 10),
-        ];
+        $html = view('pdfs.receipt', [
+            'invoice' => $invoice,
+            'companyName' => $companyName,
+            'invoiceDate' => $invoiceDate,
+            'receiptDate' => $receiptDate,
+            'dueDate' => $dueDate,
+            'logoDataUri' => $logoDataUri,
+            'statusLabel' => 'PAID',
+            'recipientLines' => $recipientLines,
+            'description' => $description,
+            'subtotal' => $this->formatCurrency($subtotal, (string) $invoice->currency),
+            'vatRate' => $vatRate,
+            'vatAmount' => $this->formatCurrency($vatAmount, (string) $invoice->currency),
+            'credit' => $this->formatCurrency($creditAmount, (string) $invoice->currency),
+            'total' => $this->formatCurrency($total, (string) $invoice->currency),
+            'paidAmount' => $this->formatCurrency($paidAmount, (string) $invoice->currency),
+            'balance' => $this->formatCurrency($balance, (string) $invoice->currency),
+            'paymentReference' => $paymentReference,
+            'generatedAt' => now()->format('d/m/Y'),
+        ])->render();
 
-        return $this->buildDocument($commands);
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', false);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new Dompdf($options);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->loadHtml($html);
+        $dompdf->render();
+
+        return $dompdf->output();
     }
 
     /**
@@ -257,7 +238,15 @@ class InvoicePdfBuilder
 
     private function formatCurrency(float $amount, string $currency): string
     {
-        return strtoupper(trim($currency)).' '.number_format($amount, 2);
+        $code = strtoupper(trim($currency));
+
+        return match ($code) {
+            'NGN' => 'N'.number_format($amount, 2),
+            'USD' => '$'.number_format($amount, 2),
+            'EUR' => 'EUR '.number_format($amount, 2),
+            'GBP' => 'GBP '.number_format($amount, 2),
+            default => $code.' '.number_format($amount, 2),
+        };
     }
 
     private function truncate(string $value, int $maxLength): string
@@ -275,5 +264,20 @@ class InvoicePdfBuilder
         $value = preg_replace('/[^\x20-\x7E]/', '?', $value) ?? '';
 
         return str_replace(['\\', '(', ')'], ['\\\\', '\\(', '\\)'], $value);
+    }
+
+    private function buildLogoDataUri(string $logoPath): ?string
+    {
+        if (! is_file($logoPath) || ! is_readable($logoPath)) {
+            return null;
+        }
+
+        $logoContents = file_get_contents($logoPath);
+
+        if ($logoContents === false) {
+            return null;
+        }
+
+        return 'data:image/svg+xml;base64,'.base64_encode($logoContents);
     }
 }

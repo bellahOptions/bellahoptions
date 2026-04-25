@@ -60,7 +60,7 @@ class WaitlistController extends Controller
 
         $request->session()->forget('waitlist_human_check');
 
-        return back()->with('success', 'THanks for joining the waitlist! We will notify you when we launch.')->withInput();
+        return back()->with('success', 'Thanks for joining the waitlist! We will notify you when we launch.')->withInput();
     }
 
     /**

@@ -16,9 +16,8 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; border:1px solid #d9e2ec; border-radius:14px; overflow:hidden; background:#ffffff;">
                     <tr>
-                        <td style="background:#7c2d12; color:#ffffff; padding:20px 24px;">
-                            <p style="margin:0; font-size:12px; text-transform:uppercase; letter-spacing:0.1em; color:#fed7aa;">Bellah Options</p>
-                            <h1 style="margin:8px 0 0; font-size:24px; line-height:1.25;">Payment Reminder: #{{ $invoice->invoice_number }}</h1>
+                        <td style="background:#fdfdfd; color:#ffffff; padding:20px 24px;">
+                            <img src="https://i.postimg.cc/6p6BMwX0/logo-06.png" alt="Bellah Options Logo" height="30px" style="display:flex; justify-content: center; flex-direction: row; max-width:120px; margin:12px auto;">
                         </td>
                     </tr>
 
@@ -29,7 +28,7 @@
                                 This is a reminder that your invoice <strong>#{{ $invoice->invoice_number }}</strong> is still pending payment.
                             </p>
 
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #fbd38d; border-radius:10px; background:#fffaf0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #0b07ed; border-radius:10px; background:#f5f5fc;">
                                 <tr>
                                     <td style="padding:14px 16px;">
                                         <p style="margin:0 0 4px;"><strong>Invoice Title:</strong> {{ $invoice->title }}</p>
