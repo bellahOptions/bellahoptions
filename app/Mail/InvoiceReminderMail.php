@@ -32,7 +32,6 @@ class InvoiceReminderMail extends Mailable
     {
         $senderEmail = (string) config('bellah.invoice.sender_email', 'billing@bellahoptions.com');
         $senderName = (string) config('bellah.invoice.company_name', 'Bellah Options');
-        $bccEmail = (string) config('bellah.invoice.bcc_email', 'bellahoptions@gmail.com');
         $prefix = $this->isAutomatic
             ? sprintf('Reminder %d/13', max(1, $this->reminderNumber))
             : 'Payment Reminder';
@@ -40,7 +39,6 @@ class InvoiceReminderMail extends Mailable
         return new Envelope(
             subject: sprintf('%s: Invoice %s is still unpaid', $prefix, $this->invoice->invoice_number),
             from: new Address($senderEmail, $senderName),
-            bcc: [new Address($bccEmail)],
         );
     }
 

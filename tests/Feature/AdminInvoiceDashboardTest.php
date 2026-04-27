@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\InvoiceIssuedAdminAlertMail;
 use App\Mail\InvoiceIssuedMail;
 use App\Mail\InvoicePaidReceiptMail;
 use App\Models\Customer;
@@ -75,6 +76,8 @@ class AdminInvoiceDashboardTest extends TestCase
 
     public function test_staff_user_can_create_invoice_and_email_customer(): void
     {
+        config()->set('bellah.invoice.admin_notification_emails', ['ops@bellahoptions.com']);
+
         Mail::fake();
 
         $staff = User::factory()->create([
@@ -101,7 +104,13 @@ class AdminInvoiceDashboardTest extends TestCase
 
         Mail::assertSent(InvoiceIssuedMail::class, function (InvoiceIssuedMail $mail): bool {
             return $mail->hasTo('mary@example.com')
+                && $mail->hasFrom('billing@bellahoptions.com')
                 && count($mail->attachments()) > 0;
+        });
+
+        Mail::assertSent(InvoiceIssuedAdminAlertMail::class, function (InvoiceIssuedAdminAlertMail $mail): bool {
+            return $mail->hasTo('ops@bellahoptions.com')
+                && $mail->invoice->customer_email === 'mary@example.com';
         });
     }
 
@@ -167,6 +176,7 @@ class AdminInvoiceDashboardTest extends TestCase
 
         Mail::assertSent(InvoicePaidReceiptMail::class, function (InvoicePaidReceiptMail $mail): bool {
             return $mail->hasTo('john@example.com')
+                && $mail->hasFrom('billing@bellahoptions.com')
                 && count($mail->attachments()) > 0;
         });
     }
@@ -239,6 +249,36 @@ class AdminInvoiceDashboardTest extends TestCase
             'customer_email' => 'autosave@example.com',
             'customer_name' => 'Auto Save Person',
         ]);
+    }
+
+    public function test_duplicate_invoice_trigger_with_same_payload_is_blocked_temporarily(): void
+    {
+        Mail::fake();
+
+        $staff = User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $payload = [
+            'customer_name' => 'Rapid Trigger',
+            'customer_email' => 'rapid-trigger@example.com',
+            'customer_occupation' => 'Data Analyst',
+            'title' => 'Rapid Submission Test',
+            'description' => 'Checks duplicate-trigger protection for invoice sending.',
+            'amount' => '18000.00',
+            'currency' => 'NGN',
+            'due_date' => now()->addDays(5)->toDateString(),
+        ];
+
+        $this->actingAs($staff)->from(route('dashboard'))->post(route('admin.invoices.store'), $payload)
+            ->assertRedirect(route('dashboard'));
+
+        $this->actingAs($staff)->from(route('dashboard'))->post(route('admin.invoices.store'), $payload)
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('invoices', 1);
+        Mail::assertSent(InvoiceIssuedMail::class, 1);
     }
 
     public function test_staff_customer_search_scans_customers_and_non_staff_users(): void

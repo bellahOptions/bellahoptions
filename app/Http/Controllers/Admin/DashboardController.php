@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AppSetting;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Waitlist;
 use Illuminate\Http\Request;
@@ -47,6 +48,40 @@ class DashboardController extends Controller
         ];
 
         if (! $user->isStaff()) {
+            $clientOrders = ServiceOrder::query()
+                ->with([
+                    'invoice:id,invoice_number,amount,currency,status,payment_reference,due_date,paid_at',
+                    'updates' => static fn ($query) => $query->where('is_public', true)->latest('id'),
+                ])
+                ->where('user_id', $user->id)
+                ->latest('id')
+                ->limit(25)
+                ->get();
+
+            $clientInvoices = $clientOrders
+                ->filter(fn (ServiceOrder $order): bool => $order->invoice !== null)
+                ->map(fn (ServiceOrder $order): array => [
+                    'id' => $order->invoice?->id,
+                    'invoice_number' => $order->invoice?->invoice_number,
+                    'title' => $order->service_name.' - '.$order->package_name,
+                    'amount' => (string) ($order->invoice?->amount ?? 0),
+                    'currency' => $order->invoice?->currency,
+                    'status' => $order->invoice?->status,
+                    'due_date' => $order->invoice?->due_date?->toDateString(),
+                    'paid_at' => $order->invoice?->paid_at?->toDateTimeString(),
+                    'payment_reference' => $order->invoice?->payment_reference,
+                    'service_order_uuid' => $order->uuid,
+                ])
+                ->values();
+
+            $clientOrderStats = [
+                'total_orders' => $clientOrders->count(),
+                'active_orders' => $clientOrders->whereNotIn('order_status', ['completed', 'cancelled'])->count(),
+                'completed_orders' => $clientOrders->where('order_status', 'completed')->count(),
+                'pending_payments' => $clientOrders->where('payment_status', '!=', 'paid')->count(),
+                'paid_orders' => $clientOrders->where('payment_status', 'paid')->count(),
+            ];
+
             return Inertia::render('Dashboard', [
                 'isStaff' => false,
                 'permissions' => [
@@ -71,6 +106,28 @@ class DashboardController extends Controller
                 'defaultCurrency' => config('bellah.invoice.currency', 'NGN'),
                 'waitlistStats' => $waitlistStats,
                 'userStats' => $userStats,
+                'clientOrders' => $clientOrders->map(fn (ServiceOrder $order): array => [
+                    'uuid' => $order->uuid,
+                    'service_name' => $order->service_name,
+                    'package_name' => $order->package_name,
+                    'amount' => (string) $order->amount,
+                    'currency' => $order->currency,
+                    'payment_status' => $order->payment_status,
+                    'order_status' => $order->order_status,
+                    'progress_percent' => (int) $order->progress_percent,
+                    'project_summary' => $order->project_summary,
+                    'created_at' => $order->created_at?->toDateTimeString(),
+                    'paid_at' => $order->paid_at?->toDateTimeString(),
+                    'invoice_number' => $order->invoice?->invoice_number,
+                    'updates' => $order->updates->take(5)->map(fn ($update): array => [
+                        'status' => $update->status,
+                        'progress_percent' => (int) $update->progress_percent,
+                        'note' => $update->note,
+                        'created_at' => $update->created_at?->toDateTimeString(),
+                    ])->values(),
+                ])->values(),
+                'clientOrderStats' => $clientOrderStats,
+                'clientInvoices' => $clientInvoices,
             ]);
         }
 

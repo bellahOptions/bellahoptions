@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Waitlist;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Address;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -23,8 +24,12 @@ class WaitlistAdminAlertMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $senderEmail = (string) config('bellah.marketing.sender_email', 'sales@bellahoptions.com');
+        $senderName = (string) config('bellah.marketing.sender_name', 'Bellah Options');
+
         return new Envelope(
             subject: 'New Bellah Options waitlist signup',
+            from: new Address($senderEmail, $senderName),
         );
     }
 

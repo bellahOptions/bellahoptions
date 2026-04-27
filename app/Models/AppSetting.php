@@ -5,12 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 #[Fillable(['key', 'value'])]
 class AppSetting extends Model
 {
     public static function getValue(string $key, ?string $default = null): ?string
     {
+        if (! Schema::hasTable('app_settings')) {
+            return $default;
+        }
+
         $cacheKey = self::cacheKey($key);
 
         $cached = Cache::rememberForever($cacheKey, function () use ($key) {
@@ -33,6 +38,10 @@ class AppSetting extends Model
 
     public static function setValue(string $key, string $value): void
     {
+        if (! Schema::hasTable('app_settings')) {
+            return;
+        }
+
         static::query()->updateOrCreate(
             ['key' => $key],
             ['value' => $value],

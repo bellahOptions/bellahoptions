@@ -28,12 +28,10 @@ class InvoicePaidReceiptMail extends Mailable
     {
         $senderEmail = (string) config('bellah.invoice.sender_email', 'billing@bellahoptions.com');
         $senderName = (string) config('bellah.invoice.company_name', 'Bellah Options');
-        $bccEmail = (string) config('bellah.invoice.bcc_email', 'bellahoptions@gmail.com');
 
         return new Envelope(
             subject: 'Payment receipt for invoice '.$this->invoice->invoice_number,
             from: new Address($senderEmail, $senderName),
-            bcc: [new Address($bccEmail)],
         );
     }
 

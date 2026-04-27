@@ -15,6 +15,9 @@ export default function Dashboard({
     defaultCurrency = 'NGN',
     waitlistStats = {},
     userStats = {},
+    clientOrders = [],
+    clientOrderStats = {},
+    clientInvoices = [],
 }) {
     const { flash, auth } = usePage().props;
     const user = auth?.user;
@@ -248,22 +251,173 @@ export default function Dashboard({
                     )}
 
                     {!isStaff && (
-                        <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
-                            <h3 className="text-xl font-semibold text-gray-900 sm:text-2xl">
-                                Welcome, {user?.first_name || user?.name}
-                            </h3>
-                            <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600">
-                                Your account is active.
-                            </p>
-                            <div className="mt-6">
-                                <Link
-                                    href={route('staff.login')}
-                                    className="inline-flex items-center rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
-                                >
-                                    Staff portal login
-                                </Link>
-                            </div>
-                        </section>
+                        <>
+                            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
+                                <h3 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                                    Welcome, {user?.first_name || user?.name}
+                                </h3>
+                                <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600">
+                                    Track your service jobs, review payment status, and monitor progress updates from the Bellah team.
+                                </p>
+                                <div className="mt-6 flex flex-wrap gap-3">
+                                    <Link
+                                        href={route('services')}
+                                        className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                                    >
+                                        Order New Service
+                                    </Link>
+                                    <Link
+                                        href={route('staff.login')}
+                                        className="inline-flex items-center rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
+                                    >
+                                        Staff portal login
+                                    </Link>
+                                </div>
+                            </section>
+
+                            <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
+                                <MetricCard
+                                    label="Total Jobs"
+                                    value={clientOrderStats.total_orders ?? 0}
+                                />
+                                <MetricCard
+                                    label="Active Jobs"
+                                    value={clientOrderStats.active_orders ?? 0}
+                                />
+                                <MetricCard
+                                    label="Completed Jobs"
+                                    value={clientOrderStats.completed_orders ?? 0}
+                                />
+                                <MetricCard
+                                    label="Pending Payments"
+                                    value={clientOrderStats.pending_payments ?? 0}
+                                />
+                                <MetricCard
+                                    label="Paid Jobs"
+                                    value={clientOrderStats.paid_orders ?? 0}
+                                />
+                            </section>
+
+                            <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+                                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900">Your Service Jobs</h3>
+                                    <p className="mt-1 text-sm text-gray-600">
+                                        Follow work stages and open each job for detailed updates.
+                                    </p>
+
+                                    <div className="mt-5 space-y-4">
+                                        {clientOrders.length === 0 && (
+                                            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                                                No service jobs yet.
+                                            </div>
+                                        )}
+
+                                        {clientOrders.map((order) => (
+                                            <article key={order.uuid} className="rounded-lg border border-gray-200 p-4">
+                                                <div className="flex flex-wrap items-start justify-between gap-3">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-gray-900">{order.service_name}</p>
+                                                        <p className="text-xs text-gray-500">{order.package_name}</p>
+                                                    </div>
+                                                    <span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                                        order.payment_status === 'paid'
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-amber-100 text-amber-700'
+                                                    }`}>
+                                                        {String(order.payment_status || '').toUpperCase()}
+                                                    </span>
+                                                </div>
+
+                                                <p className="mt-3 text-sm text-gray-700">
+                                                    {formatMoney(order.amount, order.currency)}
+                                                </p>
+
+                                                <div className="mt-3">
+                                                    <div className="flex items-center justify-between text-xs text-gray-600">
+                                                        <span>{formatOrderStatus(order.order_status)}</span>
+                                                        <span>{order.progress_percent}%</span>
+                                                    </div>
+                                                    <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
+                                                        <div
+                                                            className="h-2 rounded-full bg-indigo-600"
+                                                            style={{ width: `${Math.max(0, Math.min(100, Number(order.progress_percent || 0)))}%` }}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    <Link
+                                                        href={route('orders.show', order.uuid)}
+                                                        className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        View Progress
+                                                    </Link>
+                                                    {order.payment_status !== 'paid' && (
+                                                        <Link
+                                                            href={route('orders.payment.show', order.uuid)}
+                                                            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                        >
+                                                            Complete Payment
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            </article>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900">Invoices & Payments</h3>
+                                    <p className="mt-1 text-sm text-gray-600">
+                                        Review invoice status and payment references for your jobs.
+                                    </p>
+
+                                    <div className="mt-5 space-y-3">
+                                        {clientInvoices.length === 0 && (
+                                            <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                                                No invoices available yet.
+                                            </div>
+                                        )}
+
+                                        {clientInvoices.map((invoice) => (
+                                            <article key={`client-invoice-${invoice.id}`} className="rounded-lg border border-gray-200 p-4">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-gray-900">#{invoice.invoice_number}</p>
+                                                        <p className="text-xs text-gray-500">{invoice.title}</p>
+                                                    </div>
+                                                    <span className={`inline-flex rounded-full px-2 py-1 text-[11px] font-semibold ${
+                                                        invoice.status === 'paid'
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-amber-100 text-amber-700'
+                                                    }`}>
+                                                        {String(invoice.status || '').toUpperCase()}
+                                                    </span>
+                                                </div>
+                                                <p className="mt-3 text-sm text-gray-700">
+                                                    {formatMoney(invoice.amount, invoice.currency)}
+                                                </p>
+                                                {invoice.payment_reference && (
+                                                    <p className="mt-1 text-xs text-gray-500">
+                                                        Ref: {invoice.payment_reference}
+                                                    </p>
+                                                )}
+                                                {invoice.service_order_uuid && invoice.status !== 'paid' && (
+                                                    <div className="mt-3">
+                                                        <Link
+                                                            href={route('orders.payment.show', invoice.service_order_uuid)}
+                                                            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                        >
+                                                            Pay Invoice
+                                                        </Link>
+                                                    </div>
+                                                )}
+                                            </article>
+                                        ))}
+                                    </div>
+                                </div>
+                            </section>
+                        </>
                     )}
 
                     {isStaff && (
@@ -1105,4 +1259,17 @@ function formatMoney(amount, currency = 'NGN') {
     }
 
     return `${normalizedCurrency} ${formattedAmount}`;
+}
+
+function formatOrderStatus(status) {
+    const labels = {
+        awaiting_payment: 'Awaiting Payment',
+        queued: 'Queued',
+        in_progress: 'In Progress',
+        in_review: 'In Review',
+        completed: 'Completed',
+        cancelled: 'Cancelled',
+    };
+
+    return labels[status] || String(status || '').replaceAll('_', ' ');
 }

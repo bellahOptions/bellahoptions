@@ -1,0 +1,82 @@
+<?php
+
+namespace App\Support;
+
+class ServiceOrderCatalog
+{
+    /**
+     * @return array<string, mixed>
+     */
+    public function all(): array
+    {
+        /** @var array<string, array<string, mixed>> $services */
+        $services = (array) config('service_orders.services', []);
+        $overrides = PlatformSettings::servicePriceOverrides();
+
+        foreach ($overrides as $serviceSlug => $packagePrices) {
+            if (! isset($services[$serviceSlug]) || ! is_array($packagePrices)) {
+                continue;
+            }
+
+            foreach ($packagePrices as $packageCode => $overridePrice) {
+                if (! isset($services[$serviceSlug]['packages'][$packageCode]) || ! is_numeric($overridePrice)) {
+                    continue;
+                }
+
+                $resolvedPrice = round((float) $overridePrice, 2);
+
+                if ($resolvedPrice <= 0) {
+                    continue;
+                }
+
+                $services[$serviceSlug]['packages'][$packageCode]['price'] = $resolvedPrice;
+            }
+        }
+
+        return $services;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function service(string $serviceSlug): ?array
+    {
+        $services = $this->all();
+
+        return isset($services[$serviceSlug]) && is_array($services[$serviceSlug])
+            ? $services[$serviceSlug]
+            : null;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function package(string $serviceSlug, string $packageCode): ?array
+    {
+        $service = $this->service($serviceSlug);
+
+        if (! is_array($service)) {
+            return null;
+        }
+
+        $packages = (array) ($service['packages'] ?? []);
+
+        return isset($packages[$packageCode]) && is_array($packages[$packageCode])
+            ? $packages[$packageCode]
+            : null;
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public function packageCodes(string $serviceSlug): array
+    {
+        $service = $this->service($serviceSlug);
+
+        if (! is_array($service)) {
+            return [];
+        }
+
+        return array_values(array_keys((array) ($service['packages'] ?? [])));
+    }
+}

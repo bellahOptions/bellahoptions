@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -31,6 +32,16 @@ class AppServiceProvider extends ServiceProvider
             return [
                 Limit::perMinute(4)->by($request->ip()),
                 Limit::perHour(20)->by($request->ip()),
+            ];
+        });
+
+        RateLimiter::for('contact-form', function (Request $request): array {
+            $email = Str::lower(trim((string) $request->input('email', 'guest')));
+
+            return [
+                Limit::perMinute(3)->by($request->ip()),
+                Limit::perHour(12)->by($request->ip()),
+                Limit::perDay(6)->by($request->ip().'|'.$email),
             ];
         });
     }

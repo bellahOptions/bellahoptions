@@ -5,18 +5,47 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\WaitlistController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SeoController;
+use App\Http\Controllers\ServiceOrderController;
+use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [WaitlistController::class, 'create'])->name('waitlist.create');
+Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
+Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
+Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
+
+Route::get('/', [PagesController::class, 'index'])->name('home');
+Route::redirect('/services', '/')->name('services');
+Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
+Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux'])
+    ->name('orders.create');
+Route::post('/order/{serviceSlug}', [ServiceOrderController::class, 'store'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux'])
+    ->middleware('throttle:contact-form')
+    ->name('orders.store');
+Route::get('/orders/{serviceOrder}/payment', [ServiceOrderController::class, 'payment'])->name('orders.payment.show');
+Route::post('/orders/{serviceOrder}/payment/initialize', [ServiceOrderController::class, 'initializePayment'])->name('orders.payment.initialize');
+Route::get('/orders/payment/callback', [ServiceOrderController::class, 'paymentCallback'])->name('orders.payment.callback');
+Route::get('/orders/{serviceOrder}', [ServiceOrderController::class, 'show'])->name('orders.show');
+Route::post('/webhooks/paystack', [ServiceOrderController::class, 'webhook'])
+    ->middleware('throttle:40,1')
+    ->name('webhooks.paystack');
+Route::redirect('/smm-form', '/order/social-media-design')->name('orders.smm-form');
+Route::redirect('/about-us', '/')->name('about');
+Route::redirect('/gallery', '/')->name('gallery');
+Route::get('/contact-us', fn () => redirect()->route('home'))->name('contact');
+Route::post('/contact-us', fn () => redirect()->route('home'))->name('contact.submit');
+
+Route::get('/waitlist', [WaitlistController::class, 'create'])->name('waitlist.create');
 Route::view('/terms-of-service', 'terms-of-service')->name('terms.show');
 Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');
 
-Route::get('/new-home', [PagesController::class, 'index'])->name('home');
+Route::get('/new-home', [PagesController::class, 'index'])->name('home.new');
 
 Route::get('/dashboard', AdminDashboardController::class)
     ->middleware(['auth', 'verified'])
@@ -31,11 +60,19 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
     Route::post('/admin/invoices/{invoice}/resend', [InvoiceController::class, 'resend'])->name('admin.invoices.resend');
     Route::post('/admin/invoices/{invoice}/remind', [InvoiceController::class, 'sendReminder'])->name('admin.invoices.remind');
     Route::patch('/admin/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('admin.invoices.mark-paid');
+    Route::post('/admin/service-orders/{serviceOrder}/updates', [ServiceOrderController::class, 'storeUpdate'])
+        ->name('admin.service-orders.updates.store');
 });
 
 Route::middleware(['auth', 'verified', 'super-admin'])->group(function (): void {
     Route::get('/admin/settings', [SettingController::class, 'edit'])->name('admin.settings.edit');
     Route::patch('/admin/settings', [SettingController::class, 'update'])->name('admin.settings.update');
+    Route::post('/admin/settings/discount-codes', [SettingController::class, 'storeDiscount'])->name('admin.settings.discounts.store');
+    Route::patch('/admin/settings/discount-codes/{discountCode}/status', [SettingController::class, 'toggleDiscountStatus'])->name('admin.settings.discounts.status');
+    Route::delete('/admin/settings/discount-codes/{discountCode}', [SettingController::class, 'destroyDiscount'])->name('admin.settings.discounts.destroy');
+    Route::post('/admin/settings/subscription-plans', [SettingController::class, 'storeSubscriptionPlan'])->name('admin.settings.subscription-plans.store');
+    Route::patch('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'updateSubscriptionPlan'])->name('admin.settings.subscription-plans.update');
+    Route::delete('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'destroySubscriptionPlan'])->name('admin.settings.subscription-plans.destroy');
     Route::delete('/admin/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('admin.invoices.destroy');
 
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');

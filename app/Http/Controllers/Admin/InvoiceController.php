@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MarkInvoicePaidRequest;
 use App\Http\Requests\Admin\StoreInvoiceRequest;
+use App\Mail\InvoiceIssuedAdminAlertMail;
 use App\Mail\InvoiceIssuedMail;
 use App\Mail\InvoicePaidReceiptMail;
 use App\Mail\InvoiceReminderMail;
@@ -12,8 +13,10 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -97,37 +100,64 @@ class InvoiceController extends Controller
         }
 
         $customerName = $customer?->name;
+        $invoice = null;
 
         if ($customer && blank($customerName)) {
             $customerName = trim("{$customer->first_name} {$customer->last_name}");
         }
 
-        $invoice = Invoice::create([
-            'invoice_number' => $this->generateInvoiceNumber(),
-            'customer_id' => $customer?->id,
-            'customer_name' => $customerName ?: $data['customer_name'],
-            'customer_email' => $customer?->email ?? strtolower($data['customer_email']),
-            'customer_occupation' => $customer?->occupation ?? ($data['customer_occupation'] ?? null),
-            'title' => $data['title'],
-            'description' => $data['description'] ?? null,
-            'amount' => $data['amount'],
-            'currency' => strtoupper($data['currency']),
-            'due_date' => $data['due_date'] ?? null,
-            'status' => 'sent',
-            'issued_at' => now(),
-            'created_by' => $request->user()->id,
-        ]);
+        $customerEmail = $customer?->email ?? strtolower((string) $data['customer_email']);
+        $guardKey = $this->makeInvoiceTriggerGuardKey(
+            'issue',
+            (int) $request->user()->id,
+            $customerEmail,
+            (string) $data['title'],
+            (string) $data['amount'],
+            strtoupper((string) $data['currency']),
+        );
+
+        if (! Cache::add($guardKey, now()->timestamp, now()->addSeconds(12))) {
+            return back()->with('error', 'Duplicate invoice trigger detected. Please wait a moment before trying again.');
+        }
 
         try {
+            $invoice = Invoice::create([
+                'invoice_number' => $this->generateInvoiceNumber(),
+                'customer_id' => $customer?->id,
+                'customer_name' => $customerName ?: $data['customer_name'],
+                'customer_email' => $customerEmail,
+                'customer_occupation' => $customer?->occupation ?? ($data['customer_occupation'] ?? null),
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+                'amount' => $data['amount'],
+                'currency' => strtoupper($data['currency']),
+                'due_date' => $data['due_date'] ?? null,
+                'status' => 'sent',
+                'issued_at' => now(),
+                'created_by' => $request->user()->id,
+            ]);
+
             Mail::to($invoice->customer_email)->send(new InvoiceIssuedMail($invoice));
         } catch (Throwable $exception) {
+            Cache::forget($guardKey);
+
             Log::warning('Invoice email failed.', [
+                'invoice_id' => $invoice->id ?? null,
+                'customer_email' => $customerEmail,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('error', 'Invoice creation succeeded, but email delivery failed.');
+        }
+
+        try {
+            $this->sendInvoiceIssuedAdminAlert($invoice, 'issued');
+        } catch (Throwable $exception) {
+            Log::warning('Invoice admin alert failed.', [
                 'invoice_id' => $invoice->id,
                 'customer_email' => $invoice->customer_email,
                 'error' => $exception->getMessage(),
             ]);
-
-            return back()->with('success', "Invoice {$invoice->invoice_number} created, but email delivery failed.");
         }
 
         return back()->with('success', "Invoice {$invoice->invoice_number} created and emailed successfully.");
@@ -135,16 +165,34 @@ class InvoiceController extends Controller
 
     public function resend(Invoice $invoice): RedirectResponse
     {
+        $guardKey = $this->makeInvoiceTriggerGuardKey('resend', (string) $invoice->id);
+
+        if (! Cache::add($guardKey, now()->timestamp, now()->addSeconds(12))) {
+            return back()->with('error', 'Duplicate resend trigger detected. Please wait a moment before trying again.');
+        }
+
         try {
             Mail::to($invoice->customer_email)->send(new InvoiceIssuedMail($invoice));
         } catch (Throwable $exception) {
+            Cache::forget($guardKey);
+
             Log::warning('Invoice resend failed.', [
                 'invoice_id' => $invoice->id,
                 'customer_email' => $invoice->customer_email,
                 'error' => $exception->getMessage(),
             ]);
 
-            return back()->with('success', 'Invoice resend failed. Check mail configuration.');
+            return back()->with('error', 'Invoice resend failed. Check mail configuration.');
+        }
+
+        try {
+            $this->sendInvoiceIssuedAdminAlert($invoice, 'resent');
+        } catch (Throwable $exception) {
+            Log::warning('Invoice resend admin alert failed.', [
+                'invoice_id' => $invoice->id,
+                'customer_email' => $invoice->customer_email,
+                'error' => $exception->getMessage(),
+            ]);
         }
 
         return back()->with('success', "Invoice {$invoice->invoice_number} resent to {$invoice->customer_email}.");
@@ -157,13 +205,23 @@ class InvoiceController extends Controller
         }
 
         $reminderNumber = max(1, (int) $invoice->automatic_reminders_sent);
+        $trackingUpdated = false;
 
         try {
             Mail::to($invoice->customer_email)->send(new InvoiceReminderMail($invoice, false, $reminderNumber));
 
-            $invoice->update([
-                'last_manual_reminder_sent_at' => now(),
-            ]);
+            if (Schema::hasColumn('invoices', 'last_manual_reminder_sent_at')) {
+                $invoice->update([
+                    'last_manual_reminder_sent_at' => now(),
+                ]);
+
+                $trackingUpdated = true;
+            } else {
+                Log::warning('Manual reminder timestamp column is missing on invoices table.', [
+                    'invoice_id' => $invoice->id,
+                    'invoice_number' => $invoice->invoice_number,
+                ]);
+            }
         } catch (Throwable $exception) {
             Log::warning('Manual invoice reminder failed.', [
                 'invoice_id' => $invoice->id,
@@ -172,6 +230,10 @@ class InvoiceController extends Controller
             ]);
 
             return back()->with('error', 'Invoice reminder failed. Check mail configuration.');
+        }
+
+        if (! $trackingUpdated) {
+            return back()->with('success', "Reminder sent to {$invoice->customer_email}, but reminder tracking is unavailable until migrations are synced.");
         }
 
         return back()->with('success', "Reminder sent to {$invoice->customer_email}.");
@@ -268,6 +330,35 @@ class InvoiceController extends Controller
         $lastName = $parts !== [] ? implode(' ', $parts) : null;
 
         return [$firstName, $lastName];
+    }
+
+    private function sendInvoiceIssuedAdminAlert(Invoice $invoice, string $action): void
+    {
+        $adminRecipients = $this->invoiceAdminRecipients();
+
+        if ($adminRecipients === []) {
+            return;
+        }
+
+        Mail::to($adminRecipients)->send(new InvoiceIssuedAdminAlertMail($invoice, $action));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function invoiceAdminRecipients(): array
+    {
+        $rawRecipients = (array) config('bellah.invoice.admin_notification_emails', []);
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn (mixed $email): string => strtolower(trim((string) $email)),
+            $rawRecipients,
+        ))));
+    }
+
+    private function makeInvoiceTriggerGuardKey(string ...$parts): string
+    {
+        return 'invoice:trigger:'.hash('sha256', implode('|', $parts));
     }
 
     private function generateInvoiceNumber(): string

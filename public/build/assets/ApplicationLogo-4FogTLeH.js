@@ -1,1 +1,0 @@
-import{t as e}from"./app-CuIU6inA.js";var t=e();function n(e){return(0,t.jsx)(`img`,{...e,src:`/logo-06.svg`,alt:`Bellah Options`})}export{n as t};

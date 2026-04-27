@@ -5,6 +5,8 @@ namespace App\Support;
 use App\Models\Invoice;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class InvoicePdfBuilder
 {
@@ -61,17 +63,27 @@ class InvoicePdfBuilder
             'generatedAt' => now()->format('d/m/Y'),
         ])->render();
 
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', false);
-        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdfDocument = $this->renderWithDompdf($html);
 
-        $dompdf = new Dompdf($options);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->loadHtml($html);
-        $dompdf->render();
+        if ($dompdfDocument !== null) {
+            return $dompdfDocument;
+        }
 
-        return $dompdf->output();
+        return $this->buildPlainFallbackPdf('INVOICE', [
+            'Invoice Number: '.$invoice->invoice_number,
+            'Client: '.$customerName,
+            'Client Email: '.($customerEmail !== '' ? $customerEmail : 'N/A'),
+            'Issue Date: '.$invoiceDate,
+            'Due Date: '.$dueDate,
+            'Status: '.($invoice->status === 'paid' ? 'PAID' : 'UNPAID'),
+            'Description: '.$description,
+            'Subtotal: '.$this->formatCurrency($subtotal, (string) $invoice->currency),
+            'VAT ('.$vatRate.'%): '.$this->formatCurrency($vatAmount, (string) $invoice->currency),
+            'Credit: '.$this->formatCurrency($creditAmount, (string) $invoice->currency),
+            'Total: '.$this->formatCurrency($total, (string) $invoice->currency),
+            'Balance: '.$this->formatCurrency($balance, (string) $invoice->currency),
+            'Generated At: '.now()->format('d/m/Y H:i'),
+        ]);
     }
 
     public function buildReceipt(Invoice $invoice): string
@@ -132,17 +144,87 @@ class InvoicePdfBuilder
             'generatedAt' => now()->format('d/m/Y'),
         ])->render();
 
-        $options = new Options();
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', false);
-        $options->set('defaultFont', 'DejaVu Sans');
+        $dompdfDocument = $this->renderWithDompdf($html);
 
-        $dompdf = new Dompdf($options);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->loadHtml($html);
-        $dompdf->render();
+        if ($dompdfDocument !== null) {
+            return $dompdfDocument;
+        }
 
-        return $dompdf->output();
+        return $this->buildPlainFallbackPdf('RECEIPT', [
+            'Invoice Number: '.$invoice->invoice_number,
+            'Client: '.$customerName,
+            'Client Email: '.($customerEmail !== '' ? $customerEmail : 'N/A'),
+            'Invoice Date: '.$invoiceDate,
+            'Receipt Date: '.$receiptDate,
+            'Due Date: '.$dueDate,
+            'Payment Reference: '.$paymentReference,
+            'Description: '.$description,
+            'Subtotal: '.$this->formatCurrency($subtotal, (string) $invoice->currency),
+            'VAT ('.$vatRate.'%): '.$this->formatCurrency($vatAmount, (string) $invoice->currency),
+            'Credit: '.$this->formatCurrency($creditAmount, (string) $invoice->currency),
+            'Total: '.$this->formatCurrency($total, (string) $invoice->currency),
+            'Paid: '.$this->formatCurrency($paidAmount, (string) $invoice->currency),
+            'Balance: '.$this->formatCurrency($balance, (string) $invoice->currency),
+            'Generated At: '.now()->format('d/m/Y H:i'),
+        ]);
+    }
+
+    private function renderWithDompdf(string $html): ?string
+    {
+        if (! class_exists(Dompdf::class) || ! class_exists(Options::class)) {
+            Log::warning('Dompdf dependency is unavailable. Using fallback PDF generator.');
+
+            return null;
+        }
+
+        try {
+            $options = new Options();
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isRemoteEnabled', false);
+            $options->set('defaultFont', 'DejaVu Sans');
+
+            $dompdf = new Dompdf($options);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->loadHtml($html);
+            $dompdf->render();
+
+            return $dompdf->output();
+        } catch (Throwable $exception) {
+            Log::warning('Dompdf rendering failed. Using fallback PDF generator.', [
+                'error' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    /**
+     * @param  list<string>  $lines
+     */
+    private function buildPlainFallbackPdf(string $title, array $lines): string
+    {
+        $commands = [];
+
+        $commands[] = $this->drawText(42, 800, 'BELLAH OPTIONS', 16, 'F2');
+        $commands[] = $this->drawText(42, 778, $title, 12, 'F2');
+        $commands[] = $this->drawText(42, 760, str_repeat('-', 80), 9, 'F1');
+
+        $y = 740.0;
+
+        foreach ($lines as $line) {
+            foreach ($this->wrapText($line, 88) as $wrappedLine) {
+                if ($y < 58) {
+                    break 2;
+                }
+
+                $commands[] = $this->drawText(42, $y, $wrappedLine, 10, 'F1');
+                $y -= 14;
+            }
+        }
+
+        $commands[] = $this->drawText(42, max($y - 8, 36), 'Generated by Bellah Options', 8, 'F1');
+
+        return $this->buildDocument($commands);
     }
 
     /**

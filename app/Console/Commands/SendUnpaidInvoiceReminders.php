@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class SendUnpaidInvoiceReminders extends Command
@@ -31,6 +32,26 @@ class SendUnpaidInvoiceReminders extends Command
     public function handle(): int
     {
         $cutoff = now()->subDay();
+        $hasReminderCounter = Schema::hasColumn('invoices', 'automatic_reminders_sent');
+        $hasLastReminderStamp = Schema::hasColumn('invoices', 'last_automatic_reminder_sent_at');
+
+        if (! $hasReminderCounter || ! $hasLastReminderStamp) {
+            $missingColumns = array_values(array_filter([
+                ! $hasReminderCounter ? 'automatic_reminders_sent' : null,
+                ! $hasLastReminderStamp ? 'last_automatic_reminder_sent_at' : null,
+            ]));
+
+            $this->warn(sprintf(
+                'Skipping automatic reminders: missing invoices column(s): %s',
+                implode(', ', $missingColumns),
+            ));
+
+            Log::warning('Automatic invoice reminder skipped due to missing reminder tracking columns.', [
+                'missing_columns' => $missingColumns,
+            ]);
+
+            return self::SUCCESS;
+        }
 
         $invoices = Invoice::query()
             ->where('status', 'sent')
@@ -92,10 +113,19 @@ class SendUnpaidInvoiceReminders extends Command
                     new InvoiceReminderMail($invoice, true, $reminderNumber),
                 );
 
-                $invoice->update([
-                    'automatic_reminders_sent' => $reminderNumber,
-                    'last_automatic_reminder_sent_at' => now(),
-                ]);
+                try {
+                    $invoice->update([
+                        'automatic_reminders_sent' => $reminderNumber,
+                        'last_automatic_reminder_sent_at' => now(),
+                    ]);
+                } catch (Throwable $trackingException) {
+                    Log::warning('Automatic reminder email sent, but tracking update failed.', [
+                        'invoice_id' => $invoice->id,
+                        'invoice_number' => $invoice->invoice_number,
+                        'customer_email' => $invoice->customer_email,
+                        'error' => $trackingException->getMessage(),
+                    ]);
+                }
 
                 $sentCount++;
             } catch (Throwable $exception) {
