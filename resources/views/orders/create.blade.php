@@ -103,15 +103,76 @@
                     </div>
                 </div>
 
-                @if ($serviceSlug === 'social-media-design')
-                    <div class="grid-2" style="gap:0.8rem;">
-                        <div class="field">
-                            <label for="primary_platforms">Primary Platforms</label>
-                            <input id="primary_platforms" name="primary_platforms" type="text" maxlength="255" placeholder="Instagram, LinkedIn, Facebook" value="{{ old('primary_platforms') }}">
-                        </div>
-                        <div class="field">
-                            <label for="monthly_design_volume">Estimated Monthly Design Volume</label>
-                            <input id="monthly_design_volume" name="monthly_design_volume" type="number" min="1" max="200" value="{{ old('monthly_design_volume') }}">
+                @if (! empty($serviceIntakeFields))
+                    <div class="card soft" style="padding:0.9rem;">
+                        <h3 style="font-size:1rem; margin-bottom:0.45rem;">Service-Specific Brief</h3>
+                        <p class="small" style="margin-bottom:0.75rem;">Tell us more about this service so we can tailor your onboarding and delivery.</p>
+
+                        <div class="grid-2" style="gap:0.8rem;">
+                            @foreach ($serviceIntakeFields as $field)
+                                @php
+                                    $fieldName = (string) ($field['name'] ?? '');
+                                    $fieldType = (string) ($field['type'] ?? 'text');
+                                    $fieldLabel = (string) ($field['label'] ?? ucfirst(str_replace('_', ' ', $fieldName)));
+                                    $fieldRequired = (bool) ($field['required'] ?? false);
+                                    $fieldPlaceholder = (string) ($field['placeholder'] ?? '');
+                                    $fieldMax = (int) ($field['max'] ?? ($fieldType === 'textarea' ? 2500 : 255));
+                                    $fieldRows = (int) ($field['rows'] ?? 3);
+                                    $fieldOptions = (array) ($field['options'] ?? []);
+                                    $isLongField = in_array($fieldType, ['textarea'], true);
+                                @endphp
+
+                                @continue($fieldName === '')
+
+                                <div class="field" style="{{ $isLongField ? 'grid-column:1 / -1;' : '' }}">
+                                    <label for="{{ $fieldName }}">
+                                        {{ $fieldLabel }}
+                                        @if ($fieldRequired)
+                                            <span style="color:#b91c1c;">*</span>
+                                        @endif
+                                    </label>
+
+                                    @if ($fieldType === 'textarea')
+                                        <textarea
+                                            id="{{ $fieldName }}"
+                                            name="{{ $fieldName }}"
+                                            rows="{{ $fieldRows }}"
+                                            maxlength="{{ $fieldMax }}"
+                                            placeholder="{{ $fieldPlaceholder }}"
+                                            {{ $fieldRequired ? 'required' : '' }}
+                                        >{{ old($fieldName) }}</textarea>
+                                    @elseif ($fieldType === 'select')
+                                        <select id="{{ $fieldName }}" name="{{ $fieldName }}" {{ $fieldRequired ? 'required' : '' }}>
+                                            <option value="">Select an option</option>
+                                            @foreach ($fieldOptions as $optionValue => $optionLabel)
+                                                @php
+                                                    $resolvedValue = is_int($optionValue) ? (string) $optionLabel : (string) $optionValue;
+                                                    $resolvedLabel = is_int($optionValue) ? (string) $optionLabel : (string) $optionLabel;
+                                                @endphp
+                                                <option value="{{ $resolvedValue }}" @selected(old($fieldName) === $resolvedValue)>
+                                                    {{ $resolvedLabel }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    @else
+                                        <input
+                                            id="{{ $fieldName }}"
+                                            name="{{ $fieldName }}"
+                                            type="{{ $fieldType === 'number' ? 'number' : ($fieldType === 'url' ? 'url' : 'text') }}"
+                                            @if ($fieldType === 'number' && isset($field['min'])) min="{{ (int) $field['min'] }}" @endif
+                                            @if ($fieldType === 'number' && isset($field['max'])) max="{{ (int) $field['max'] }}" @endif
+                                            @if ($fieldType !== 'number') maxlength="{{ $fieldMax }}" @endif
+                                            placeholder="{{ $fieldPlaceholder }}"
+                                            value="{{ old($fieldName) }}"
+                                            {{ $fieldRequired ? 'required' : '' }}
+                                        >
+                                    @endif
+
+                                    @if (! empty($field['hint']))
+                                        <p class="small" style="margin-top:0.35rem;">{{ $field['hint'] }}</p>
+                                    @endif
+                                </div>
+                            @endforeach
                         </div>
                     </div>
                 @endif

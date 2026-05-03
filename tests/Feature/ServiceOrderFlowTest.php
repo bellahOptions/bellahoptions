@@ -2,20 +2,37 @@
 
 namespace Tests\Feature;
 
+use App\Mail\ServiceOrderSubmittedAdminAlertMail;
 use App\Models\DiscountCode;
 use App\Models\Invoice;
 use App\Models\ServiceOrder;
 use App\Models\User;
+use App\Support\PlatformSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 
 class ServiceOrderFlowTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Mail::fake();
+    }
+
+    public function test_order_root_route_redirects_to_services_page(): void
+    {
+        $this->get('/order')->assertRedirect(route('services'));
+    }
+
     public function test_guest_can_create_social_media_order_and_get_payment_redirect(): void
     {
+        config()->set('bellah.orders.admin_notification_emails', ['ops@bellahoptions.com']);
+
         $this->get(route('orders.create', 'social-media-design'));
 
         $guard = session('service_order_guard');
@@ -32,6 +49,7 @@ class ServiceOrderFlowTest extends TestCase
             'business_website' => 'https://adalabs.test',
             'primary_platforms' => 'Instagram, LinkedIn',
             'monthly_design_volume' => 12,
+            'posting_frequency' => '3-4-times-weekly',
             'timeline_preference' => 'Start next week',
             'project_summary' => 'We need monthly social media design support for product campaigns and launch storytelling.',
             'project_goals' => 'Increase consistency and conversion from social channels.',
@@ -62,6 +80,11 @@ class ServiceOrderFlowTest extends TestCase
             'customer_email' => 'ada@example.com',
             'status' => 'sent',
         ]);
+
+        Mail::assertSent(ServiceOrderSubmittedAdminAlertMail::class, function (ServiceOrderSubmittedAdminAlertMail $mail) use ($order): bool {
+            return $mail->order->id === $order->id
+                && $mail->hasTo('ops@bellahoptions.com');
+        });
     }
 
     public function test_discount_link_auto_applies_on_service_order_checkout(): void
@@ -93,6 +116,9 @@ class ServiceOrderFlowTest extends TestCase
             'position' => 'Founder',
             'project_summary' => 'Need monthly social media design support for launch and promotional campaign visuals.',
             'discount_code' => 'START20',
+            'primary_platforms' => 'Instagram, LinkedIn',
+            'monthly_design_volume' => 8,
+            'posting_frequency' => 'weekly',
             'order_nonce' => $guard['nonce'],
             'order_rendered_at' => $guard['issued_at'],
             'website' => '',
@@ -133,6 +159,10 @@ class ServiceOrderFlowTest extends TestCase
             'phone' => '+2348108671804',
             'business_name' => 'Grace Studios',
             'position' => 'Creative Director',
+            'design_asset_types' => 'Campaign posters, social ad creatives, and rollout announcement banners.',
+            'usage_channels' => 'Instagram, print handbills, website.',
+            'existing_brand_assets' => 'partial',
+            'print_required' => 'yes',
             'project_summary' => 'We need design assets for product posters and launch communication campaigns.',
             'order_nonce' => $guard['nonce'],
             'order_rendered_at' => $guard['issued_at'],
@@ -157,6 +187,98 @@ class ServiceOrderFlowTest extends TestCase
             'id' => $order->id,
             'user_id' => User::query()->where('email', 'grace@example.com')->value('id'),
             'wants_account' => 1,
+        ]);
+    }
+
+    public function test_order_form_renders_service_specific_fields_per_service_type(): void
+    {
+        $this->get(route('orders.create', 'social-media-design'))
+            ->assertOk()
+            ->assertSee('name="posting_frequency"', false)
+            ->assertDontSee('name="app_platforms"', false);
+
+        $this->get(route('orders.create', 'web-design'))
+            ->assertOk()
+            ->assertSee('name="key_features"', false)
+            ->assertDontSee('name="posting_frequency"', false);
+
+        $this->get(route('orders.create', 'mobile-app-development'))
+            ->assertOk()
+            ->assertSee('name="app_platforms"', false)
+            ->assertDontSee('name="design_system_need"', false);
+    }
+
+    public function test_web_design_order_requires_web_specific_brief_fields(): void
+    {
+        $this->get(route('orders.create', 'web-design'));
+
+        $guard = session('service_order_guard');
+        $guard['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['service_order_guard' => $guard]);
+
+        $response = $this->post(route('orders.store', 'web-design'), [
+            'service_package' => 'starter',
+            'full_name' => 'Maya Operator',
+            'email' => 'maya@example.com',
+            'phone' => '+2348108671804',
+            'business_name' => 'Maya Ventures',
+            'project_summary' => 'We need a conversion-first website to position our offer and support online sales.',
+            'website_type' => 'business-site',
+            'required_pages' => 'Home, About, Services, Contact',
+            'content_ready' => 'partial',
+            'domain_hosting_status' => 'domain-only',
+            'order_nonce' => $guard['nonce'],
+            'order_rendered_at' => $guard['issued_at'],
+            'website' => '',
+            'company_name' => '',
+        ]);
+
+        $response->assertSessionHasErrors('key_features');
+    }
+
+    public function test_order_invoice_amount_uses_super_admin_service_price_override(): void
+    {
+        PlatformSettings::setServicePriceOverrides([
+            'social-media-design' => [
+                'starter' => 45555,
+            ],
+        ]);
+
+        $this->get(route('orders.create', 'social-media-design'));
+
+        $guard = session('service_order_guard');
+        $guard['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['service_order_guard' => $guard]);
+
+        $response = $this->post(route('orders.store', 'social-media-design'), [
+            'service_package' => 'starter',
+            'full_name' => 'Override Tester',
+            'email' => 'override@example.com',
+            'phone' => '+2348108671804',
+            'business_name' => 'Override Studio',
+            'project_summary' => 'Need social media design support and we want current admin-updated package pricing applied.',
+            'primary_platforms' => 'Instagram',
+            'monthly_design_volume' => 10,
+            'posting_frequency' => 'weekly',
+            'order_nonce' => $guard['nonce'],
+            'order_rendered_at' => $guard['issued_at'],
+            'website' => '',
+            'company_name' => '',
+        ]);
+
+        $order = ServiceOrder::query()->latest('id')->first();
+        $this->assertNotNull($order);
+        $response->assertRedirect(route('orders.payment.show', $order));
+
+        $this->assertDatabaseHas('service_orders', [
+            'id' => $order->id,
+            'base_amount' => 45555.00,
+            'amount' => 45555.00,
+        ]);
+
+        $this->assertDatabaseHas('invoices', [
+            'id' => $order->invoice_id,
+            'amount' => 45555.00,
         ]);
     }
 

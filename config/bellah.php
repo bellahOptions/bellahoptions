@@ -31,4 +31,11 @@ return [
             env('BELLAH_WAITLIST_ADMIN_EMAILS', 'bellahoptions@gmail.com'),
         )),
     ],
+
+    'orders' => [
+        'admin_notification_emails' => $normalizeEmails((string) env(
+            'BELLAH_ORDER_ADMIN_NOTIFICATION_EMAILS',
+            (string) env('BELLAH_INVOICE_ADMIN_NOTIFICATION_EMAILS', env('BELLAH_WAITLIST_ADMIN_EMAILS', 'bellahoptions@gmail.com')),
+        )),
+    ],
 ];

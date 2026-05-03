@@ -41,7 +41,12 @@ export default function Events({ events = [] }) {
                                                     <p className="flex items-center gap-2"><MapPinIcon className="h-5 w-5 text-[#000285]" />{event.location}</p>
                                                 </div>
                                                 {event.registration_url && (
-                                                    <a href={event.registration_url} className="mt-6 inline-flex items-center gap-2 rounded-md bg-[#000285] px-5 py-3 text-sm font-black text-white">
+                                                    <a
+                                                        href={event.registration_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="mt-6 inline-flex items-center gap-2 rounded-md bg-[#000285] px-5 py-3 text-sm font-black text-white"
+                                                    >
                                                         Register
                                                         <ArrowRightIcon className="h-4 w-4" />
                                                     </a>

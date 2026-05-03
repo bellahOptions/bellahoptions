@@ -49,6 +49,21 @@
         <div class="card reveal">
             <h2 style="font-size:1.3rem;">Invoice & Updates</h2>
 
+            @if (! empty($serviceBriefData))
+                <div class="card soft" style="margin-top:0.8rem; padding:0.8rem;">
+                    <p style="font-weight:700; color:var(--navy); margin-bottom:0.3rem;">Submitted Service Brief</p>
+                    <ul style="margin:0; padding-left:1rem; display:grid; gap:0.3rem;">
+                        @foreach ($serviceBriefData as $key => $value)
+                            @continue($value === null || $value === '')
+                            <li>
+                                <strong>{{ $serviceBriefLabels[$key] ?? ucfirst(str_replace('_', ' ', (string) $key)) }}:</strong>
+                                {{ is_array($value) ? implode(', ', $value) : (string) $value }}
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if ($order->invoice)
                 <div class="card soft" style="margin-top:0.8rem; padding:0.8rem;">
                     <p><strong>Invoice Number:</strong> {{ $order->invoice->invoice_number }}</p>

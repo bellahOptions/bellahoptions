@@ -16,7 +16,7 @@ Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
 
-Route::get('/', [PagesController::class, 'index'])->name('home');
+Route::get('/', [PagesController::class, 'welcomePage'])->name('home');
 Route::get('/welcome', [PagesController::class, 'welcomePage'])->name('welcome');
 Route::get('/about-bellah-options', [PagesController::class, 'aboutPage'])->name('about');
 Route::get('/services', [PagesController::class, 'servicesPage'])->name('services');
@@ -26,6 +26,7 @@ Route::get('/blog/{blogPost:slug}', [PagesController::class, 'blogShowPage'])->n
 Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contact');
 Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
+Route::get('/order', fn () => redirect()->route('services'))->name('orders.index');
 Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
     ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux'])
     ->name('orders.create');

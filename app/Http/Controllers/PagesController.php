@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\BlogPost;
 use App\Models\GalleryProject;
 use App\Models\SlideShow;
+use App\Support\PublicContentSecurity;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
 use Inertia\Inertia;
@@ -22,7 +23,17 @@ class PagesController extends Controller
         return Inertia::render('Welcome', [
             'slideShows' => SlideShow::query()
                 ->latest('id')
-                ->get(['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text']),
+                ->get(['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'])
+                ->map(fn (SlideShow $slide): array => [
+                    'id' => $slide->id,
+                    'slide_title' => $slide->slide_title,
+                    'text' => $slide->text,
+                    'slide_image' => $this->publicAssetUrl($slide->slide_image),
+                    'slide_link' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($slide->slide_link),
+                    'slide_link_text' => $slide->slide_link_text,
+                ])
+                ->filter(fn (array $slide): bool => $slide['slide_image'] !== null)
+                ->values(),
             'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),
         ]);
     }
@@ -65,8 +76,8 @@ class PagesController extends Controller
                 'title' => $project->title,
                 'category' => $project->category ?: 'Creative Work',
                 'description' => $project->description ?: '',
-                'image' => $this->publicAssetUrl((string) $project->image_path),
-                'project_url' => $project->project_url,
+                'image' => $this->publicAssetUrl($project->image_path) ?? '/logo-07.svg',
+                'project_url' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($project->project_url),
                 'source' => 'uploaded',
             ])
             ->values();
@@ -134,8 +145,8 @@ class PagesController extends Controller
                     'description' => $event->description ?: '',
                     'event_date' => $event->event_date?->toFormattedDateString(),
                     'location' => $event->location ?: 'To be announced',
-                    'image' => $event->image_path ? $this->publicAssetUrl((string) $event->image_path) : null,
-                    'registration_url' => $event->registration_url,
+                    'image' => $event->image_path ? $this->publicAssetUrl($event->image_path) : null,
+                    'registration_url' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($event->registration_url),
                 ])
                 ->values(),
         ]);
@@ -204,13 +215,15 @@ class PagesController extends Controller
         ];
     }
 
-    private function publicAssetUrl(string $path): string
+    private function publicAssetUrl(?string $path): ?string
     {
-        if (preg_match('/^https?:\/\//i', $path)) {
-            return $path;
+        $sanitized = PublicContentSecurity::sanitizeRelativePathOrHttpUrl($path);
+
+        if ($sanitized === null) {
+            return null;
         }
 
-        return str_starts_with($path, '/') ? $path : '/'.$path;
+        return $sanitized;
     }
 
     /**
@@ -226,7 +239,7 @@ class PagesController extends Controller
             'category' => $post->category ?: 'Brand Growth',
             'author_name' => $post->author_name ?: 'Bellah Options',
             'published_at' => $post->published_at?->toFormattedDateString(),
-            'cover_image' => $post->cover_image ? $this->publicAssetUrl((string) $post->cover_image) : null,
+            'cover_image' => $post->cover_image ? $this->publicAssetUrl($post->cover_image) : null,
             'url' => route('blog.show', $post),
         ];
     }

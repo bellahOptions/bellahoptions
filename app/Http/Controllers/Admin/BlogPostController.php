@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\BlogPost;
+use App\Support\PublicContentSecurity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -67,7 +68,18 @@ class BlogPostController extends Controller
             ],
             'excerpt' => ['nullable', 'string', 'max:260'],
             'body' => ['nullable', 'string'],
-            'cover_image' => ['nullable', 'string', 'max:255'],
+            'cover_image' => [
+                'nullable',
+                'string',
+                'max:255',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || PublicContentSecurity::isSafeRelativePathOrHttpUrl($value)) {
+                        return;
+                    }
+
+                    $fail('Cover image must be a valid http(s) URL or a safe public path starting with "/".');
+                },
+            ],
             'category' => ['nullable', 'string', 'max:80'],
             'author_name' => ['nullable', 'string', 'max:120'],
             'is_published' => ['boolean'],
@@ -75,6 +87,17 @@ class BlogPostController extends Controller
             'position' => ['nullable', 'integer', 'min:0'],
         ]);
 
-        return $data;
+        return [
+            ...$data,
+            'title' => trim((string) $data['title']),
+            'slug' => Str::slug((string) $data['slug']),
+            'excerpt' => PublicContentSecurity::normalizeNullableText($data['excerpt'] ?? null),
+            'body' => PublicContentSecurity::normalizeNullableText($data['body'] ?? null),
+            'cover_image' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($data['cover_image'] ?? null),
+            'category' => PublicContentSecurity::normalizeNullableText($data['category'] ?? null),
+            'author_name' => PublicContentSecurity::normalizeNullableText($data['author_name'] ?? null),
+            'published_at' => $data['published_at'] ?? null,
+            'position' => (int) ($data['position'] ?? 0),
+        ];
     }
 }

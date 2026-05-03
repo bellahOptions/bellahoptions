@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceOrderRequest;
 use App\Http\Requests\StoreServiceOrderUpdateRequest;
+use App\Mail\ServiceOrderSubmittedAdminAlertMail;
 use App\Models\Customer;
 use App\Models\DiscountCode;
 use App\Models\Invoice;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -48,6 +50,7 @@ class ServiceOrderController extends Controller
         return view('orders.create', [
             'serviceSlug' => $serviceSlug,
             'service' => $service,
+            'serviceIntakeFields' => $catalog->intakeFields($serviceSlug),
             'formGuard' => $request->session()->get('service_order_guard'),
             'isAuthenticated' => $request->user() !== null,
             'discountCode' => $discount?->code,
@@ -155,11 +158,7 @@ class ServiceOrderController extends Controller
                 'preferred_style' => $payload['preferred_style'] ?? null,
                 'deliverables' => $payload['deliverables'] ?? null,
                 'additional_details' => $payload['additional_details'] ?? null,
-                'brief_payload' => [
-                    'timeline_preference' => $payload['timeline_preference'] ?? null,
-                    'primary_platforms' => $payload['primary_platforms'] ?? null,
-                    'monthly_design_volume' => isset($payload['monthly_design_volume']) ? (int) $payload['monthly_design_volume'] : null,
-                ],
+                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog),
                 'wants_account' => (bool) ($payload['create_account'] ?? false),
                 'created_by_ip' => $request->ip(),
                 'user_agent' => Str::limit((string) $request->userAgent(), 1000),
@@ -214,6 +213,17 @@ class ServiceOrderController extends Controller
         $request->session()->forget('service_order_guard');
         $request->session()->forget('checkout_discount_code');
         $request->session()->put('service_order_access.'.$order->uuid, true);
+
+        try {
+            $this->sendOrderSubmittedAdminAlert($order->fresh('invoice'));
+        } catch (Throwable $exception) {
+            Log::warning('Service order admin alert email failed.', [
+                'service_order_id' => $order->id,
+                'service_slug' => $serviceSlug,
+                'email' => $payload['email'] ?? null,
+                'error' => $exception->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('orders.payment.show', $order)
@@ -387,7 +397,7 @@ class ServiceOrderController extends Controller
         }
     }
 
-    public function show(Request $request, ServiceOrder $serviceOrder): View
+    public function show(Request $request, ServiceOrder $serviceOrder, ServiceOrderCatalog $catalog): View
     {
         $this->authorizeOrderAccess($request, $serviceOrder);
 
@@ -398,6 +408,8 @@ class ServiceOrderController extends Controller
 
         return view('orders.show', [
             'order' => $serviceOrder,
+            'serviceBriefLabels' => $catalog->intakeFieldLabels((string) $serviceOrder->service_slug),
+            'serviceBriefData' => (array) data_get($serviceOrder->brief_payload, 'service_specific', []),
         ]);
     }
 
@@ -624,5 +636,59 @@ class ServiceOrderController extends Controller
         } while (Invoice::query()->where('invoice_number', $number)->exists());
 
         return $number;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function serviceBriefPayload(array $payload, string $serviceSlug, ServiceOrderCatalog $catalog): array
+    {
+        $serviceSpecific = [];
+
+        foreach ($catalog->intakeFields($serviceSlug) as $field) {
+            $name = (string) ($field['name'] ?? '');
+
+            if ($name === '' || ! array_key_exists($name, $payload)) {
+                continue;
+            }
+
+            $value = $payload[$name];
+
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $serviceSpecific[$name] = $value;
+        }
+
+        return array_filter([
+            'timeline_preference' => $payload['timeline_preference'] ?? null,
+            'service_specific' => $serviceSpecific !== [] ? $serviceSpecific : null,
+        ], static fn (mixed $value): bool => $value !== null && $value !== []);
+    }
+
+    private function sendOrderSubmittedAdminAlert(ServiceOrder $order): void
+    {
+        $adminRecipients = $this->orderAdminRecipients();
+
+        if ($adminRecipients === []) {
+            return;
+        }
+
+        Mail::to($adminRecipients)->send(new ServiceOrderSubmittedAdminAlertMail($order));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function orderAdminRecipients(): array
+    {
+        $rawRecipients = (array) config('bellah.orders.admin_notification_emails', []);
+
+        return array_values(array_unique(array_filter(array_map(
+            static fn (mixed $email): string => strtolower(trim((string) $email)),
+            $rawRecipients,
+        ))));
     }
 }

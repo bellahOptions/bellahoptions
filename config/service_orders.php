@@ -5,6 +5,56 @@ return [
         'social-media-design' => [
             'name' => 'Social Media Design Subscription',
             'description' => 'Monthly social media design subscription for consistent brand presence.',
+            'intake' => [
+                [
+                    'name' => 'primary_platforms',
+                    'label' => 'Primary Platforms',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 255,
+                    'placeholder' => 'Instagram, LinkedIn, Facebook',
+                    'hint' => 'List the platforms where designs will be published.',
+                ],
+                [
+                    'name' => 'monthly_design_volume',
+                    'label' => 'Monthly Design Volume',
+                    'type' => 'number',
+                    'required' => true,
+                    'min' => 1,
+                    'max' => 200,
+                    'placeholder' => '12',
+                    'hint' => 'Estimated number of design assets you need each month.',
+                ],
+                [
+                    'name' => 'posting_frequency',
+                    'label' => 'Posting Frequency',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'daily' => 'Daily',
+                        '3-4-times-weekly' => '3-4 times weekly',
+                        'weekly' => 'Weekly',
+                        'bi-weekly' => 'Bi-weekly',
+                    ],
+                ],
+                [
+                    'name' => 'content_pillars',
+                    'label' => 'Content Pillars',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'max' => 1200,
+                    'rows' => 3,
+                    'placeholder' => 'Educational, behind-the-scenes, promotions, testimonials...',
+                ],
+                [
+                    'name' => 'brand_voice',
+                    'label' => 'Preferred Brand Voice',
+                    'type' => 'text',
+                    'required' => false,
+                    'max' => 180,
+                    'placeholder' => 'Friendly, premium, bold, playful...',
+                ],
+            ],
             'packages' => [
                 'starter' => [
                     'name' => 'Starter Pack',
@@ -26,6 +76,63 @@ return [
         'graphic-design' => [
             'name' => 'Graphic Design',
             'description' => 'Design support for campaign creatives, print work, and visual assets.',
+            'intake' => [
+                [
+                    'name' => 'design_asset_types',
+                    'label' => 'Design Asset Types Needed',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1400,
+                    'rows' => 4,
+                    'placeholder' => 'Flyers, ad creatives, brochures, social posts...',
+                ],
+                [
+                    'name' => 'usage_channels',
+                    'label' => 'Usage Channels',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 255,
+                    'placeholder' => 'Instagram, print, billboard, website...',
+                ],
+                [
+                    'name' => 'asset_dimensions',
+                    'label' => 'Asset Dimensions / Sizes',
+                    'type' => 'text',
+                    'required' => false,
+                    'max' => 255,
+                    'placeholder' => '1080x1080, A4, 1920x1080...',
+                ],
+                [
+                    'name' => 'existing_brand_assets',
+                    'label' => 'Do You Have Existing Brand Assets?',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'yes' => 'Yes, complete brand kit',
+                        'partial' => 'Partially',
+                        'no' => 'No, we need support',
+                    ],
+                ],
+                [
+                    'name' => 'print_required',
+                    'label' => 'Do You Need Print-Ready Files?',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'yes' => 'Yes',
+                        'no' => 'No',
+                    ],
+                ],
+                [
+                    'name' => 'print_specifications',
+                    'label' => 'Print Specifications',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'max' => 1000,
+                    'rows' => 3,
+                    'placeholder' => 'Bleed, color profile, paper size, printer requirements...',
+                ],
+            ],
             'packages' => [
                 'basic' => [
                     'name' => 'Basic',
@@ -47,6 +154,53 @@ return [
         'brand-design' => [
             'name' => 'Brand Design',
             'description' => 'Logo systems and complete identity development for ambitious brands.',
+            'intake' => [
+                [
+                    'name' => 'brand_stage',
+                    'label' => 'Brand Stage',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'new-brand' => 'New brand',
+                        'rebrand' => 'Rebrand',
+                        'refresh' => 'Brand refresh',
+                    ],
+                ],
+                [
+                    'name' => 'industry',
+                    'label' => 'Industry / Niche',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 160,
+                    'placeholder' => 'Fintech, fashion, healthcare...',
+                ],
+                [
+                    'name' => 'brand_personality',
+                    'label' => 'Brand Personality',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1200,
+                    'rows' => 4,
+                    'placeholder' => 'How should the brand feel to your audience?',
+                ],
+                [
+                    'name' => 'logo_usage',
+                    'label' => 'Where Will the Logo Be Used?',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 255,
+                    'placeholder' => 'Web, social, packaging, signage...',
+                ],
+                [
+                    'name' => 'competitor_examples',
+                    'label' => 'Competitor or Inspiration Examples',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'max' => 1200,
+                    'rows' => 3,
+                    'placeholder' => 'Share competitors or references you like/dislike.',
+                ],
+            ],
             'packages' => [
                 'logo-design' => [
                     'name' => 'Logo Design',
@@ -68,6 +222,68 @@ return [
         'web-design' => [
             'name' => 'Web Design (Full Stack)',
             'description' => 'Full-stack web products from UX and frontend to backend integrations.',
+            'intake' => [
+                [
+                    'name' => 'website_type',
+                    'label' => 'Website Type',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'business-site' => 'Business website',
+                        'ecommerce' => 'E-commerce',
+                        'landing-page' => 'Landing page',
+                        'web-app' => 'Web app / dashboard',
+                    ],
+                ],
+                [
+                    'name' => 'current_website',
+                    'label' => 'Current Website (if any)',
+                    'type' => 'url',
+                    'required' => false,
+                    'max' => 255,
+                    'placeholder' => 'https://your-site.com',
+                ],
+                [
+                    'name' => 'required_pages',
+                    'label' => 'Required Pages',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1200,
+                    'rows' => 3,
+                    'placeholder' => 'Home, About, Services, Contact, Checkout...',
+                ],
+                [
+                    'name' => 'key_features',
+                    'label' => 'Key Features Needed',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1600,
+                    'rows' => 4,
+                    'placeholder' => 'Payments, booking, CMS, client portal, integrations...',
+                ],
+                [
+                    'name' => 'content_ready',
+                    'label' => 'Is Content Ready?',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'yes' => 'Yes, content is ready',
+                        'partial' => 'Partially ready',
+                        'no' => 'No, we need guidance',
+                    ],
+                ],
+                [
+                    'name' => 'domain_hosting_status',
+                    'label' => 'Domain & Hosting Status',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'ready' => 'Already set up',
+                        'domain-only' => 'Domain purchased only',
+                        'none' => 'Not available yet',
+                    ],
+                ],
+            ],
             'packages' => [
                 'starter' => [
                     'name' => 'Starter',
@@ -89,6 +305,62 @@ return [
         'mobile-app-development' => [
             'name' => 'Mobile App Development',
             'description' => 'Mobile app product development for launch and long-term scale.',
+            'intake' => [
+                [
+                    'name' => 'app_platforms',
+                    'label' => 'Target Platforms',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'ios' => 'iOS only',
+                        'android' => 'Android only',
+                        'both' => 'iOS and Android',
+                    ],
+                ],
+                [
+                    'name' => 'app_type',
+                    'label' => 'App Type',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 180,
+                    'placeholder' => 'Marketplace, social app, booking app...',
+                ],
+                [
+                    'name' => 'core_features',
+                    'label' => 'Core Features',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1800,
+                    'rows' => 4,
+                    'placeholder' => 'User auth, chat, payment, notifications, analytics...',
+                ],
+                [
+                    'name' => 'integration_requirements',
+                    'label' => '3rd-party Integrations',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'max' => 1400,
+                    'rows' => 3,
+                    'placeholder' => 'Paystack, Firebase, CRM, maps APIs...',
+                ],
+                [
+                    'name' => 'launch_timeline',
+                    'label' => 'Target Launch Timeline',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 120,
+                    'placeholder' => 'e.g. 10-12 weeks',
+                ],
+                [
+                    'name' => 'existing_product_links',
+                    'label' => 'Existing Product Links',
+                    'type' => 'textarea',
+                    'required' => false,
+                    'max' => 700,
+                    'rows' => 2,
+                    'placeholder' => 'Figma, Notion, prototype links...',
+                ],
+            ],
             'packages' => [
                 'mvp' => [
                     'name' => 'MVP Build',
@@ -110,6 +382,68 @@ return [
         'ui-ux' => [
             'name' => 'UI/UX Design',
             'description' => 'UX strategy, wireframes, and polished interface systems.',
+            'intake' => [
+                [
+                    'name' => 'product_type',
+                    'label' => 'Product Type',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 160,
+                    'placeholder' => 'SaaS, fintech app, e-commerce, portal...',
+                ],
+                [
+                    'name' => 'ux_stage',
+                    'label' => 'Current UX Stage',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'idea' => 'Idea stage',
+                        'mvp' => 'MVP in progress',
+                        'existing-product' => 'Existing product redesign',
+                    ],
+                ],
+                [
+                    'name' => 'user_flows',
+                    'label' => 'Priority User Flows',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1500,
+                    'rows' => 4,
+                    'placeholder' => 'Signup, onboarding, checkout, dashboard actions...',
+                ],
+                [
+                    'name' => 'research_available',
+                    'label' => 'Do You Have Existing User Research?',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'yes' => 'Yes',
+                        'partial' => 'Partially',
+                        'no' => 'No',
+                    ],
+                ],
+                [
+                    'name' => 'design_system_need',
+                    'label' => 'Need a Design System?',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'yes' => 'Yes',
+                        'no' => 'No',
+                    ],
+                ],
+                [
+                    'name' => 'prototype_fidelity',
+                    'label' => 'Preferred Prototype Fidelity',
+                    'type' => 'select',
+                    'required' => true,
+                    'options' => [
+                        'low' => 'Low-fidelity wireframes',
+                        'mid' => 'Mid-fidelity',
+                        'high' => 'High-fidelity interactive',
+                    ],
+                ],
+            ],
             'packages' => [
                 'sprint' => [
                     'name' => 'Design Sprint',

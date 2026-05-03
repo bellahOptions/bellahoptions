@@ -47,6 +47,10 @@ function slideImageSrc(path) {
     return path.startsWith("/") ? path : `/${path}`;
 }
 
+function isExternalUrl(url) {
+    return /^https?:\/\//i.test(url || "");
+}
+
 export default function Slider({ slides = [] }) {
     const resolvedSlides = Array.isArray(slides) && slides.length > 0
         ? slides
@@ -97,12 +101,23 @@ export default function Slider({ slides = [] }) {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ duration: 0.45, delay: 0.32 }}
                                 >
-                                    <Link
-                                        href={slide.slide_link}
-                                        className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
-                                    >
-                                        {slide.slide_link_text || "Learn More"}
-                                    </Link>
+                                    {isExternalUrl(slide.slide_link) ? (
+                                        <a
+                                            href={slide.slide_link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                                        >
+                                            {slide.slide_link_text || "Learn More"}
+                                        </a>
+                                    ) : (
+                                        <Link
+                                            href={slide.slide_link}
+                                            className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                                        >
+                                            {slide.slide_link_text || "Learn More"}
+                                        </Link>
+                                    )}
                                 </motion.div>
                             )}
                         </motion.div>

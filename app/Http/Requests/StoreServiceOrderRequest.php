@@ -22,7 +22,7 @@ class StoreServiceOrderRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        $this->merge([
+        $payload = [
             'full_name' => trim((string) $this->input('full_name')),
             'email' => strtolower(trim((string) $this->input('email'))),
             'phone' => trim((string) $this->input('phone')),
@@ -38,12 +38,30 @@ class StoreServiceOrderRequest extends FormRequest
             'deliverables' => trim((string) $this->input('deliverables')),
             'additional_details' => trim((string) $this->input('additional_details')),
             'timeline_preference' => trim((string) $this->input('timeline_preference')),
-            'primary_platforms' => trim((string) $this->input('primary_platforms')),
             'website' => trim((string) $this->input('website')),
             'company_name' => trim((string) $this->input('company_name')),
             'order_nonce' => trim((string) $this->input('order_nonce')),
             'create_account' => $this->boolean('create_account'),
-        ]);
+        ];
+
+        foreach ($this->serviceIntakeFields() as $field) {
+            $name = (string) ($field['name'] ?? '');
+            $type = (string) ($field['type'] ?? 'text');
+
+            if ($name === '') {
+                continue;
+            }
+
+            if ($type === 'number') {
+                $payload[$name] = $this->input($name);
+
+                continue;
+            }
+
+            $payload[$name] = trim((string) $this->input($name));
+        }
+
+        $this->merge($payload);
     }
 
     /**
@@ -51,7 +69,7 @@ class StoreServiceOrderRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'full_name' => ['required', 'string', 'min:3', 'max:120', "regex:/^[\\pL\\s\\-\\.'`]+$/u"],
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'phone' => ['required', 'string', 'min:7', 'max:30', 'regex:/^[+0-9()\-\s]+$/'],
@@ -67,8 +85,6 @@ class StoreServiceOrderRequest extends FormRequest
             'deliverables' => ['nullable', 'string', 'max:1500'],
             'additional_details' => ['nullable', 'string', 'max:2000'],
             'timeline_preference' => ['nullable', 'string', 'max:120'],
-            'primary_platforms' => ['nullable', 'string', 'max:255'],
-            'monthly_design_volume' => ['nullable', 'integer', 'min:1', 'max:200'],
             'create_account' => ['boolean'],
             'password' => [
                 Rule::requiredIf(fn (): bool => $this->boolean('create_account') && $this->user() === null),
@@ -80,7 +96,7 @@ class StoreServiceOrderRequest extends FormRequest
             'order_rendered_at' => ['required', 'integer', 'min:1'],
             'website' => ['nullable', 'string', 'max:0'],
             'company_name' => ['nullable', 'string', 'max:0'],
-        ];
+        ], $this->serviceSpecificRules());
     }
 
     /**
@@ -162,8 +178,72 @@ class StoreServiceOrderRequest extends FormRequest
      */
     private function allowedPackageCodes(): array
     {
-        $serviceSlug = trim((string) $this->route('serviceSlug'));
+        $serviceSlug = $this->serviceSlug();
 
         return app(ServiceOrderCatalog::class)->packageCodes($serviceSlug);
+    }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    private function serviceSpecificRules(): array
+    {
+        $rules = [];
+
+        foreach ($this->serviceIntakeFields() as $field) {
+            $name = (string) ($field['name'] ?? '');
+            $type = (string) ($field['type'] ?? 'text');
+            $required = (bool) ($field['required'] ?? false);
+
+            if ($name === '') {
+                continue;
+            }
+
+            $fieldRules = [
+                Rule::requiredIf($required),
+                'nullable',
+            ];
+
+            if ($type === 'number') {
+                $fieldRules[] = 'integer';
+                $fieldRules[] = 'min:'.((int) ($field['min'] ?? 0));
+                $fieldRules[] = 'max:'.((int) ($field['max'] ?? 1000000));
+            } else {
+                $fieldRules[] = 'string';
+                $fieldRules[] = 'max:'.((int) ($field['max'] ?? ($type === 'textarea' ? 2500 : 255)));
+
+                if ($type === 'url') {
+                    $fieldRules[] = 'url:http,https';
+                }
+
+                if ($type === 'select') {
+                    $options = (array) ($field['options'] ?? []);
+                    $allowedValues = array_is_list($options)
+                        ? $options
+                        : array_keys($options);
+
+                    if ($allowedValues !== []) {
+                        $fieldRules[] = Rule::in($allowedValues);
+                    }
+                }
+            }
+
+            $rules[$name] = $fieldRules;
+        }
+
+        return $rules;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function serviceIntakeFields(): array
+    {
+        return app(ServiceOrderCatalog::class)->intakeFields($this->serviceSlug());
+    }
+
+    private function serviceSlug(): string
+    {
+        return trim((string) $this->route('serviceSlug'));
     }
 }
