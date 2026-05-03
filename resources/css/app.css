@@ -61,6 +61,36 @@ body {
     }
 }
 
+@keyframes hash-loader-first {
+    0%,
+    100% {
+        transform: rotate(45deg) translateY(-7px);
+    }
+
+    50% {
+        transform: rotate(45deg) translateY(7px);
+    }
+}
+
+@keyframes hash-loader-second {
+    0%,
+    100% {
+        transform: rotate(-45deg) translateY(7px);
+    }
+
+    50% {
+        transform: rotate(-45deg) translateY(-7px);
+    }
+}
+
+.animate-hash-loader-first {
+    animation: hash-loader-first 1.1s ease-in-out infinite;
+}
+
+.animate-hash-loader-second {
+    animation: hash-loader-second 1.1s ease-in-out infinite;
+}
+
 /* Marketing Theme (moved from layouts/marketing.blade.php) */
         :root {
             --ink: #111827;
@@ -93,11 +123,18 @@ body {
 
   }
 
-  .animate-scroll:hover {
+.animate-scroll:hover {
 
     animation-play-state: paused;
 
   }
+
+@media (max-width: 767px) {
+    .swiper-button-next,
+    .swiper-button-prev {
+        display: none !important;
+    }
+}
 
   
 body.marketing-ui * {

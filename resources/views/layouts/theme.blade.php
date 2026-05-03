@@ -7,6 +7,8 @@
 
         <title>Bellah Options</title>
 
+        @include('partials.public-head-tags')
+
         <!-- Styles -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>

@@ -19,8 +19,12 @@ Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
 Route::get('/', [PagesController::class, 'index'])->name('home');
 Route::get('/welcome', [PagesController::class, 'welcomePage'])->name('welcome');
 Route::get('/about-bellah-options', [PagesController::class, 'aboutPage'])->name('about');
-
-Route::redirect('/services', '/')->name('services');
+Route::get('/services', [PagesController::class, 'servicesPage'])->name('services');
+Route::get('/gallery', [PagesController::class, 'galleryPage'])->name('gallery');
+Route::get('/blog', [PagesController::class, 'blogPage'])->name('blog');
+Route::get('/blog/{blogPost:slug}', [PagesController::class, 'blogShowPage'])->name('blog.show');
+Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contact');
+Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
 Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
     ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux'])
@@ -37,9 +41,7 @@ Route::post('/webhooks/paystack', [ServiceOrderController::class, 'webhook'])
     ->middleware('throttle:40,1')
     ->name('webhooks.paystack');
 Route::redirect('/smm-form', '/order/social-media-design')->name('orders.smm-form');
-Route::redirect('/about-us', '/')->name('about');
-Route::redirect('/gallery', '/')->name('gallery');
-Route::get('/contact-us', fn () => redirect()->route('home'))->name('contact');
+Route::redirect('/about-us', '/about-bellah-options')->name('about.legacy');
 Route::post('/contact-us', fn () => redirect()->route('home'))->name('contact.submit');
 
 Route::get('/waitlist', [WaitlistController::class, 'create'])->name('waitlist.create');

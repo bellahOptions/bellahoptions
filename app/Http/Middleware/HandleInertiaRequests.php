@@ -46,6 +46,8 @@ class HandleInertiaRequests extends Middleware
                     'is_super_admin' => $user->isSuperAdmin(),
                     'can_manage_invoices' => $user->canManageInvoices(),
                     'can_manage_settings' => $user->canManageSettings(),
+                    'can_manage_slides' => $user->canManageSlides(),
+                    'can_manage_public_content' => $user->canManagePublicContent(),
                     'can_manage_users' => $user->canManageUsers(),
                     'can_manage_waitlist' => $user->canManageWaitlist(),
                 ] : null,

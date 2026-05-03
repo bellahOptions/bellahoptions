@@ -6,6 +6,16 @@
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
+        @php
+            $routeMiddleware = collect(request()->route()?->gatherMiddleware() ?? []);
+            $isAuthenticatedRoute = $routeMiddleware->contains(fn ($middleware) => $middleware === 'auth' || str_starts_with($middleware, 'auth:'));
+            $isAdminRoute = request()->is('admin', 'admin/*', 'staff', 'staff/*');
+        @endphp
+
+        @unless ($isAuthenticatedRoute || $isAdminRoute)
+            @include('partials.public-head-tags')
+        @endunless
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />

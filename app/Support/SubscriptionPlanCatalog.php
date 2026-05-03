@@ -17,6 +17,7 @@ class SubscriptionPlanCatalog
         $plans = SubscriptionPlan::query()
             ->where('is_active', true)
             ->where('show_on_homepage', true)
+            ->where('is_homepage_featured', true)
             ->orderByDesc('is_homepage_featured')
             ->orderBy('position')
             ->orderBy('id')

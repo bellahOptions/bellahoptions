@@ -427,13 +427,6 @@ class SettingController extends Controller
 
     private function synchronizeExclusivePlanFlags(SubscriptionPlan $plan): void
     {
-        if ($plan->is_homepage_featured) {
-            SubscriptionPlan::query()
-                ->whereKeyNot($plan->id)
-                ->where('is_homepage_featured', true)
-                ->update(['is_homepage_featured' => false]);
-        }
-
         if ($plan->is_recommended) {
             SubscriptionPlan::query()
                 ->whereKeyNot($plan->id)

@@ -8,6 +8,8 @@
         <title>@yield('title', 'Bellah Options')</title>
         <meta name="description" content="@yield('description', 'Bellah Options service portal')">
 
+        @include('partials.public-head-tags')
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="marketing-ui site-body">

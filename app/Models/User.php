@@ -59,6 +59,16 @@ class User extends Authenticatable
         return $this->isSuperAdmin();
     }
 
+    public function canManageSlides(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
+    public function canManagePublicContent(): bool
+    {
+        return $this->isSuperAdmin();
+    }
+
     public function canManageUsers(): bool
     {
         return $this->isSuperAdmin();
