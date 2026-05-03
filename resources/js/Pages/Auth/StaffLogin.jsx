@@ -23,7 +23,7 @@ export default function StaffLogin({ status }) {
             <Head title="Staff Login" />
 
             <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-emerald-700">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
                     Staff Portal
                 </p>
                 <h2 className="mt-2 text-3xl font-semibold text-slate-900">
@@ -35,7 +35,7 @@ export default function StaffLogin({ status }) {
             </div>
 
             {status && (
-                <div className="mt-5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
                     {status}
                 </div>
             )}
@@ -56,7 +56,7 @@ export default function StaffLogin({ status }) {
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-600 focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="username"
                         onChange={(event) => setData('email', event.target.value)}
                         required
@@ -73,7 +73,7 @@ export default function StaffLogin({ status }) {
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-emerald-600 focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="current-password"
                         onChange={(event) => setData('password', event.target.value)}
                         required
@@ -84,14 +84,14 @@ export default function StaffLogin({ status }) {
                 <button
                     type="submit"
                     disabled={processing}
-                    className="w-full rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {processing ? 'Signing in...' : 'Enter Staff Dashboard'}
                 </button>
 
                 <p className="text-sm text-slate-600">
                     Need user login instead?{' '}
-                    <Link href={route('login')} className="font-semibold text-cyan-700 hover:text-cyan-800">
+                    <Link href={route('login')} className="font-semibold text-blue-700 hover:text-blue-800">
                         Go to user login
                     </Link>
                 </p>

@@ -28,14 +28,14 @@ export default function Register() {
             <Head title="Create Account" />
 
             <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-cyan-700">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
                     Join Bellah Options
                 </p>
                 <h2 className="mt-2 text-3xl font-semibold text-slate-900">
                     Create your account
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Register to access the client experience while staff operations remain on the dedicated portal.
+                    Register to access your Bellah Options client experience.
                 </p>
             </div>
 
@@ -49,7 +49,7 @@ export default function Register() {
                             id="first_name"
                             name="first_name"
                             value={data.first_name}
-                            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-cyan-600 focus:outline-none"
+                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                             autoComplete="given-name"
                             onChange={(event) => setData('first_name', event.target.value)}
                             required
@@ -65,7 +65,7 @@ export default function Register() {
                             id="last_name"
                             name="last_name"
                             value={data.last_name}
-                            className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-cyan-600 focus:outline-none"
+                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                             autoComplete="family-name"
                             onChange={(event) => setData('last_name', event.target.value)}
                             required
@@ -83,7 +83,7 @@ export default function Register() {
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-cyan-600 focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="username"
                         onChange={(event) => setData('email', event.target.value)}
                         required
@@ -100,7 +100,7 @@ export default function Register() {
                         type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-cyan-600 focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="new-password"
                         onChange={(event) => setData('password', event.target.value)}
                         required
@@ -117,7 +117,7 @@ export default function Register() {
                         type="password"
                         name="password_confirmation"
                         value={data.password_confirmation}
-                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm focus:border-cyan-600 focus:outline-none"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="new-password"
                         onChange={(event) => setData('password_confirmation', event.target.value)}
                         required
@@ -128,14 +128,14 @@ export default function Register() {
                 <button
                     type="submit"
                     disabled={processing}
-                    className="w-full rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {processing ? 'Creating account...' : 'Create Account'}
                 </button>
 
                 <p className="text-sm text-slate-600">
                     Already registered?{' '}
-                    <Link href={route('login')} className="font-semibold text-cyan-700 hover:text-cyan-800">
+                    <Link href={route('login')} className="font-semibold text-blue-700 hover:text-blue-800">
                         Sign in
                     </Link>
                 </p>
