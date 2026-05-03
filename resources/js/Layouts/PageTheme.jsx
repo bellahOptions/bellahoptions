@@ -40,10 +40,10 @@ const footerServices = [
 ];
 
 const socialLinks = [
-    { label: "Facebook", href: "#", icon: FaFacebookF },
-    { label: "Twitter / X", href: "#", icon: FaXTwitter },
-    { label: "Instagram", href: "#", icon: FaInstagram },
-    { label: "LinkedIn", href: "#", icon: FaLinkedinIn },
+    { label: "Find Bellah Options on Facebook", href: "https://www.facebook.com/search/top?q=Bellah%20Options", icon: FaFacebookF },
+    { label: "Find Bellah Options on X", href: "https://x.com/search?q=%22Bellah%20Options%22&src=typed_query", icon: FaXTwitter },
+    { label: "Find Bellah Options on Instagram", href: "https://www.instagram.com/explore/search/keyword/?q=bellah%20options", icon: FaInstagram },
+    { label: "Find Bellah Options on LinkedIn", href: "https://www.linkedin.com/search/results/all/?keywords=Bellah%20Options", icon: FaLinkedinIn },
 ];
 
 function FooterLink({ href, children }) {
@@ -108,6 +108,8 @@ export default function PageTheme({ children }) {
                                 <a
                                     key={s.label}
                                     href={s.href}
+                                    target="_blank"
+                                    rel="noreferrer"
                                     aria-label={s.label}
                                     className="flex h-6 w-6 items-center justify-center rounded bg-white/10 text-white transition hover:bg-white/20"
                                 >
@@ -281,6 +283,8 @@ export default function PageTheme({ children }) {
                                     <a
                                         key={social.label}
                                         href={social.href}
+                                        target="_blank"
+                                        rel="noreferrer"
                                         aria-label={social.label}
                                         className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-blue-200 transition hover:bg-white/20 hover:text-white"
                                     >
