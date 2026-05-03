@@ -17,6 +17,9 @@ Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
 
 Route::get('/', [PagesController::class, 'index'])->name('home');
+Route::get('/welcome', [PagesController::class, 'welcomePage'])->name('welcome');
+Route::get('/about-bellah-options', [PagesController::class, 'aboutPage'])->name('about');
+
 Route::redirect('/services', '/')->name('services');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
 Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
@@ -89,3 +92,4 @@ Route::middleware('auth')->group(function () {
 
 
 require __DIR__.'/auth.php';
+require __DIR__.'/admin.php';

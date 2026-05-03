@@ -13,7 +13,10 @@ export default {
     theme: {
         extend: {
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: 'DM Sans',
+            },
+            color:{
+                bellahBlue: '#000285',
             },
         },
     },

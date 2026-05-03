@@ -63,6 +63,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                                 Settings
                                             </NavLink>
                                         )}
+
+                                        <NavLink
+                                                href={route('admin.slides.index')}
+                                                active={route().current('admin.slides.*')}
+                                            > 
+                                                Slides
+                                            </NavLink>
                                     </>
                                 )}
                             </div>

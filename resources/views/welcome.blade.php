@@ -1,1 +1,1 @@
-@extends('app')
+@extends('layouts.theme')

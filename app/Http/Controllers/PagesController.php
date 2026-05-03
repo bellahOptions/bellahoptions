@@ -10,4 +10,14 @@ class PagesController extends Controller
     {
         return Inertia::render('Home');
     }
+
+    public function welcomePage()
+    {
+        return Inertia::render('Welcome');
+    }
+
+    public function aboutPage()
+    {
+        return Inertia::render('About');
+    }
 }
