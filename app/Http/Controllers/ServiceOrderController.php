@@ -10,8 +10,10 @@ use App\Models\DiscountCode;
 use App\Models\Invoice;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
+use App\Services\FlutterwaveService;
 use App\Models\User;
 use App\Services\PaystackService;
+use App\Support\VisitorLocalization;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\JsonResponse;
@@ -31,15 +33,39 @@ class ServiceOrderController extends Controller
 {
     public function create(Request $request, string $serviceSlug, ServiceOrderCatalog $catalog): View
     {
+        $localization = app(VisitorLocalization::class)->resolve($request);
         $service = $catalog->service($serviceSlug);
         abort_unless(is_array($service), 404);
 
+        $checkoutServiceSlugs = $this->checkoutServiceSlugs();
+        $checkoutServices = [];
+        $checkoutCreateRoutes = [];
+        $checkoutStoreRoutes = [];
+        foreach ($checkoutServiceSlugs as $slug) {
+            $serviceEntry = $catalog->service($slug);
+            if (! is_array($serviceEntry)) {
+                continue;
+            }
+
+            $checkoutServices[$slug] = $this->localizeServicePackages(
+                $serviceEntry,
+                (string) $localization['currency'],
+            );
+            $checkoutCreateRoutes[$slug] = route('orders.create', ['serviceSlug' => $slug]);
+            $checkoutStoreRoutes[$slug] = route('orders.store', ['serviceSlug' => $slug]);
+        }
+
+        $selectedServiceSlug = trim((string) $request->query('service', $serviceSlug));
+        if (! isset($checkoutServices[$selectedServiceSlug])) {
+            $selectedServiceSlug = $serviceSlug;
+        }
+
         $selectedPackageCode = trim((string) $request->query('package', ''));
-        if ($selectedPackageCode !== '' && ! is_array($catalog->package($serviceSlug, $selectedPackageCode))) {
+        if ($selectedPackageCode !== '' && ! is_array($catalog->package($selectedServiceSlug, $selectedPackageCode))) {
             $selectedPackageCode = '';
         }
 
-        $discount = $this->resolveCheckoutDiscountCandidate($request, $serviceSlug);
+        $discount = $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
 
         $request->session()->put('service_order_guard', [
             'issued_at' => now()->timestamp,
@@ -55,7 +81,12 @@ class ServiceOrderController extends Controller
             'isAuthenticated' => $request->user() !== null,
             'discountCode' => $discount?->code,
             'discountSummary' => $discount ? $this->discountSummary($discount) : null,
+            'checkoutServices' => $checkoutServices,
+            'checkoutCreateRoutes' => $checkoutCreateRoutes,
+            'checkoutStoreRoutes' => $checkoutStoreRoutes,
+            'selectedServiceSlug' => $selectedServiceSlug,
             'selectedPackageCode' => $selectedPackageCode !== '' ? $selectedPackageCode : null,
+            'visitorLocalization' => $localization,
         ]);
     }
 
@@ -68,6 +99,7 @@ class ServiceOrderController extends Controller
         abort_unless(is_array($service), 404);
 
         $payload = $request->validated();
+        $localization = app(VisitorLocalization::class)->resolve($request);
         $packageCode = (string) $payload['service_package'];
         $package = $catalog->package($serviceSlug, $packageCode);
 
@@ -88,10 +120,12 @@ class ServiceOrderController extends Controller
         $creator = $user ?? $this->resolveSystemUser();
         $customer = $this->resolveOrCreateCustomer($payload, $creator->id);
 
-        $currency = strtoupper((string) config('bellah.invoice.currency', 'NGN'));
-        $baseAmount = round((float) ($package['price'] ?? 0), 2);
+        $currency = strtoupper((string) ($localization['currency'] ?? 'NGN'));
+        $baseAmountNgn = round((float) ($package['price'] ?? 0), 2);
+        $baseAmount = $this->convertAmountFromNgn($baseAmountNgn, $currency);
+        $requiresConsultation = $baseAmount <= 0;
 
-        if ($baseAmount <= 0) {
+        if ($baseAmountNgn < 0) {
             throw ValidationException::withMessages([
                 'service_package' => 'The selected package is currently unavailable. Please choose another package.',
             ]);
@@ -104,12 +138,12 @@ class ServiceOrderController extends Controller
 
         $discount = null;
         $discountAmount = 0.0;
-        $finalAmount = $baseAmount;
+        $finalAmount = $requiresConsultation ? 0.0 : $baseAmount;
 
         DB::beginTransaction();
 
         try {
-            if ($submittedDiscountCode !== '') {
+            if ($submittedDiscountCode !== '' && ! $requiresConsultation) {
                 $discount = DiscountCode::query()
                     ->whereRaw('UPPER(code) = ?', [$submittedDiscountCode])
                     ->lockForUpdate()
@@ -143,9 +177,10 @@ class ServiceOrderController extends Controller
                 'discount_value' => $discount?->discount_value,
                 'discount_amount' => $discountAmount,
                 'amount' => $finalAmount,
-                'payment_status' => 'pending',
-                'order_status' => 'awaiting_payment',
-                'progress_percent' => 5,
+                'payment_provider' => (string) ($localization['payment_processor'] ?? 'paystack'),
+                'payment_status' => $requiresConsultation ? 'not_required' : 'pending',
+                'order_status' => $requiresConsultation ? 'pending_consultation' : 'awaiting_payment',
+                'progress_percent' => $requiresConsultation ? 10 : 5,
                 'full_name' => (string) $payload['full_name'],
                 'email' => (string) $payload['email'],
                 'phone' => (string) $payload['phone'],
@@ -177,6 +212,7 @@ class ServiceOrderController extends Controller
                 'due_date' => now()->addDays(7)->toDateString(),
                 'status' => 'sent',
                 'issued_at' => now(),
+                'paid_at' => null,
                 'created_by' => $creator->id,
             ]);
 
@@ -190,9 +226,11 @@ class ServiceOrderController extends Controller
 
             ServiceOrderUpdate::create([
                 'service_order_id' => $order->id,
-                'status' => 'submitted',
-                'progress_percent' => 5,
-                'note' => 'Order was submitted successfully and is awaiting payment confirmation.',
+                'status' => $requiresConsultation ? 'pending_consultation' : 'submitted',
+                'progress_percent' => $requiresConsultation ? 10 : 5,
+                'note' => $requiresConsultation
+                    ? 'Order was submitted successfully. Our team will contact you with a consultation quote.'
+                    : 'Order was submitted successfully and is awaiting payment confirmation.',
                 'is_public' => true,
                 'created_by' => $creator->id,
             ]);
@@ -225,6 +263,12 @@ class ServiceOrderController extends Controller
             ]);
         }
 
+        if ($requiresConsultation) {
+            return redirect()
+                ->route('orders.show', $order)
+                ->with('success', 'Order submitted successfully. Our team will contact you to finalize consultation scope and pricing.');
+        }
+
         return redirect()
             ->route('orders.payment.show', $order)
             ->with('success', 'Order created successfully. Please complete payment to start your project.');
@@ -236,36 +280,67 @@ class ServiceOrderController extends Controller
 
         return view('orders.payment', [
             'order' => $serviceOrder->load('invoice'),
-            'canPay' => $serviceOrder->payment_status !== 'paid',
+            'canPay' => (float) $serviceOrder->amount > 0 && ! in_array((string) $serviceOrder->payment_status, ['paid', 'not_required'], true),
+            'paymentProvider' => strtolower(trim((string) $serviceOrder->payment_provider)) ?: 'paystack',
         ]);
     }
 
-    public function initializePayment(Request $request, ServiceOrder $serviceOrder, PaystackService $paystackService): RedirectResponse
+    public function initializePayment(
+        Request $request,
+        ServiceOrder $serviceOrder,
+        PaystackService $paystackService,
+        FlutterwaveService $flutterwaveService
+    ): RedirectResponse
     {
         $this->authorizeOrderAccess($request, $serviceOrder);
 
         if ($serviceOrder->payment_status === 'paid') {
             return redirect()->route('orders.show', $serviceOrder)->with('success', 'This order has already been paid.');
         }
+        if ((float) $serviceOrder->amount <= 0 || (string) $serviceOrder->payment_status === 'not_required') {
+            return redirect()->route('orders.show', $serviceOrder)->with('success', 'This order does not require online payment.');
+        }
 
         $reference = $serviceOrder->paystack_reference ?: strtoupper('BO-'.$serviceOrder->id.'-'.now()->timestamp.'-'.Str::random(6));
+        $provider = strtolower(trim((string) ($serviceOrder->payment_provider ?: 'paystack')));
+        $callbackUrl = route('orders.payment.callback', ['provider' => $provider]);
 
         try {
-            $payment = $paystackService->initialize(
-                $serviceOrder->email,
-                (int) round((float) $serviceOrder->amount * 100),
-                $reference,
-                route('orders.payment.callback'),
-                [
-                    'service_order_uuid' => $serviceOrder->uuid,
-                    'service' => $serviceOrder->service_name,
-                    'package' => $serviceOrder->package_name,
-                    'invoice_number' => $serviceOrder->invoice?->invoice_number,
-                ],
-            );
+            if ($provider === 'flutterwave') {
+                $payment = $flutterwaveService->initialize(
+                    $serviceOrder->email,
+                    (float) $serviceOrder->amount,
+                    $reference,
+                    $callbackUrl,
+                    (string) $serviceOrder->currency,
+                    [
+                        'service_order_uuid' => $serviceOrder->uuid,
+                        'service' => $serviceOrder->service_name,
+                        'package' => $serviceOrder->package_name,
+                        'invoice_number' => $serviceOrder->invoice?->invoice_number,
+                        'phone' => $serviceOrder->phone,
+                        'customer_name' => $serviceOrder->full_name,
+                    ],
+                );
+            } else {
+                $payment = $paystackService->initialize(
+                    $serviceOrder->email,
+                    (int) round((float) $serviceOrder->amount * 100),
+                    $reference,
+                    $callbackUrl,
+                    (string) $serviceOrder->currency,
+                    [
+                        'service_order_uuid' => $serviceOrder->uuid,
+                        'service' => $serviceOrder->service_name,
+                        'package' => $serviceOrder->package_name,
+                        'invoice_number' => $serviceOrder->invoice?->invoice_number,
+                    ],
+                );
+            }
         } catch (Throwable $exception) {
-            Log::warning('Paystack initialization failed.', [
+            Log::warning('Payment initialization failed.', [
                 'order_id' => $serviceOrder->id,
+                'provider' => $provider,
                 'reference' => $reference,
                 'error' => $exception->getMessage(),
             ]);
@@ -275,16 +350,67 @@ class ServiceOrderController extends Controller
 
         $serviceOrder->update([
             'paystack_reference' => $payment['reference'],
-            'paystack_access_code' => $payment['access_code'],
+            'paystack_access_code' => (string) ($payment['access_code'] ?? ''),
             'payment_status' => 'processing',
         ]);
 
         return redirect()->away($payment['authorization_url']);
     }
 
-    public function paymentCallback(Request $request, PaystackService $paystackService): RedirectResponse
+    /**
+     * @return array<int, string>
+     */
+    private function checkoutServiceSlugs(): array
     {
-        $reference = trim((string) $request->query('reference', ''));
+        return [
+            'social-media-design',
+            'web-design',
+            'graphic-design',
+            'special-service',
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $serviceEntry
+     * @return array<string, mixed>
+     */
+    private function localizeServicePackages(array $serviceEntry, string $currency): array
+    {
+        $packages = (array) ($serviceEntry['packages'] ?? []);
+        $localizedPackages = [];
+
+        foreach ($packages as $packageCode => $package) {
+            if (! is_string($packageCode) || ! is_array($package)) {
+                continue;
+            }
+
+            $priceNgn = round((float) ($package['price'] ?? 0), 2);
+            $localizedPackages[$packageCode] = [
+                ...$package,
+                'price' => $this->convertAmountFromNgn($priceNgn, $currency),
+                'base_price_ngn' => $priceNgn,
+            ];
+        }
+
+        return [
+            ...$serviceEntry,
+            'packages' => $localizedPackages,
+        ];
+    }
+
+    private function convertAmountFromNgn(float $amountNgn, string $currency): float
+    {
+        return app(VisitorLocalization::class)->convertFromNgn($amountNgn, $currency);
+    }
+
+    public function paymentCallback(
+        Request $request,
+        PaystackService $paystackService,
+        FlutterwaveService $flutterwaveService
+    ): RedirectResponse
+    {
+        $provider = strtolower(trim((string) $request->query('provider', 'paystack')));
+        $reference = trim((string) $request->query($provider === 'flutterwave' ? 'tx_ref' : 'reference', ''));
 
         if ($reference === '') {
             return redirect()->route('home')->with('error', 'Missing payment reference.');
@@ -299,17 +425,25 @@ class ServiceOrderController extends Controller
         $request->session()->put('service_order_access.'.$serviceOrder->uuid, true);
 
         try {
-            $verification = $paystackService->verify($reference);
+            $verification = $provider === 'flutterwave'
+                ? $flutterwaveService->verify($reference)
+                : $paystackService->verify($reference);
             $data = (array) ($verification['data'] ?? []);
 
-            $status = (string) ($data['status'] ?? '');
-            $amount = (int) ($data['amount'] ?? 0);
-            $currency = strtoupper((string) ($data['currency'] ?? ''));
+            $status = strtolower(trim((string) ($data['status'] ?? '')));
+            $amount = $provider === 'flutterwave'
+                ? (float) ($data['amount'] ?? 0)
+                : ((int) ($data['amount'] ?? 0) / 100);
+            $currency = strtoupper((string) ($data['currency'] ?? ($data['currency_code'] ?? '')));
 
-            $expectedAmount = (int) round((float) $serviceOrder->amount * 100);
+            $expectedAmount = round((float) $serviceOrder->amount, 2);
             $expectedCurrency = strtoupper((string) $serviceOrder->currency);
 
-            if ($status === 'success' && $amount >= $expectedAmount && $currency === $expectedCurrency) {
+            $isSuccess = $provider === 'flutterwave'
+                ? in_array($status, ['successful', 'completed', 'success'], true)
+                : $status === 'success';
+
+            if ($isSuccess && $amount >= $expectedAmount && $currency === $expectedCurrency) {
                 $this->markOrderPaid($serviceOrder, $reference, $data);
 
                 return redirect()->route('orders.show', $serviceOrder)->with('success', 'Payment confirmed successfully.');
@@ -321,8 +455,9 @@ class ServiceOrderController extends Controller
 
             return redirect()->route('orders.payment.show', $serviceOrder)->with('error', 'Payment could not be verified. Please try again.');
         } catch (Throwable $exception) {
-            Log::warning('Paystack callback verification failed.', [
+            Log::warning('Payment callback verification failed.', [
                 'order_id' => $serviceOrder->id,
+                'provider' => $provider,
                 'reference' => $reference,
                 'error' => $exception->getMessage(),
             ]);
@@ -388,6 +523,58 @@ class ServiceOrderController extends Controller
             return response()->json(['message' => 'Verification failed.'], 422);
         } catch (Throwable $exception) {
             Log::warning('Paystack webhook verification failed.', [
+                'order_id' => $serviceOrder->id,
+                'reference' => $reference,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Verification failed.'], 500);
+        }
+    }
+
+    public function flutterwaveWebhook(Request $request, FlutterwaveService $flutterwaveService): JsonResponse
+    {
+        $payload = (array) $request->json()->all();
+        $signature = trim((string) $request->header('verif-hash', ''));
+        $secret = trim((string) config('services.flutterwave.webhook_hash', ''));
+
+        if ($signature === '' || $secret === '' || ! hash_equals($secret, $signature)) {
+            return response()->json(['message' => 'Invalid webhook signature.'], 401);
+        }
+
+        $reference = trim((string) data_get($payload, 'data.tx_ref', ''));
+        if ($reference === '') {
+            return response()->json(['message' => 'Missing reference.'], 400);
+        }
+
+        $serviceOrder = ServiceOrder::query()->with('invoice')->where('paystack_reference', $reference)->first();
+        if (! $serviceOrder) {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        if ($serviceOrder->payment_status === 'paid') {
+            return response()->json(['message' => 'Already processed.']);
+        }
+
+        try {
+            $verification = $flutterwaveService->verify($reference);
+            $data = (array) ($verification['data'] ?? []);
+
+            $status = strtolower(trim((string) ($data['status'] ?? '')));
+            $amount = (float) ($data['amount'] ?? 0);
+            $currency = strtoupper((string) ($data['currency'] ?? ($data['currency_code'] ?? '')));
+            $expectedAmount = round((float) $serviceOrder->amount, 2);
+            $expectedCurrency = strtoupper((string) $serviceOrder->currency);
+
+            if (in_array($status, ['successful', 'completed', 'success'], true) && $amount >= $expectedAmount && $currency === $expectedCurrency) {
+                $this->markOrderPaid($serviceOrder, $reference, $data);
+
+                return response()->json(['message' => 'Payment recorded.']);
+            }
+
+            return response()->json(['message' => 'Verification failed.'], 422);
+        } catch (Throwable $exception) {
+            Log::warning('Flutterwave webhook verification failed.', [
                 'order_id' => $serviceOrder->id,
                 'reference' => $reference,
                 'error' => $exception->getMessage(),

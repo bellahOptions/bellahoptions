@@ -32,7 +32,6 @@ class SettingController extends Controller
         return Inertia::render('Admin/Settings', [
             'settings' => [
                 'maintenance_mode' => AppSetting::getBool('maintenance_mode'),
-                'coming_soon_mode' => AppSetting::getBool('coming_soon_mode'),
                 'website_uri' => PlatformSettings::siteUrl(),
                 'contact_phone' => $contactInfo['phone'],
                 'contact_email' => $contactInfo['email'],
@@ -115,7 +114,6 @@ class SettingController extends Controller
         $payload = $request->validated();
 
         AppSetting::setBool('maintenance_mode', (bool) $payload['maintenance_mode']);
-        AppSetting::setBool('coming_soon_mode', (bool) $payload['coming_soon_mode']);
         PlatformSettings::setSiteUrl((string) $payload['website_uri']);
 
         PlatformSettings::setContactInfo([

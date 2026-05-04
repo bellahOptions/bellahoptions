@@ -30,9 +30,18 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $visitorLocalization = (array) $request->attributes->get('visitor_localization', []);
 
         return [
             ...parent::share($request),
+            'localization' => [
+                'country_code' => (string) ($visitorLocalization['country_code'] ?? 'NG'),
+                'country' => (string) ($visitorLocalization['country'] ?? 'Nigeria'),
+                'locale' => (string) ($visitorLocalization['locale'] ?? 'en_NG'),
+                'language' => (string) ($visitorLocalization['language'] ?? 'en'),
+                'currency' => (string) ($visitorLocalization['currency'] ?? 'NGN'),
+                'payment_processor' => (string) ($visitorLocalization['payment_processor'] ?? 'paystack'),
+            ],
             'auth' => [
                 'user' => $user ? [
                     'id' => $user->id,

@@ -39,7 +39,7 @@
             </div>
 
             <div class="btn-row" style="margin-top:0.9rem;">
-                @if ($order->payment_status !== 'paid')
+                @if ($order->payment_status !== 'paid' && $order->payment_status !== 'not_required' && (float) $order->amount > 0)
                     <a class="btn" href="{{ route('orders.payment.show', $order) }}">Complete Payment</a>
                 @endif
                 <a class="btn-outline" href="{{ route('services') }}">Order Another Service</a>

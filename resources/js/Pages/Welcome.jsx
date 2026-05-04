@@ -75,6 +75,41 @@ const services = [
     },
 ];
 
+const serviceSamples = [
+    {
+        title: "Brand Identity System",
+        service: "Brand Design",
+        image: "/Wingram-07.png",
+        summary: "Wingram brand identity built for consistency across digital and print touchpoints.",
+        href: "https://www.behance.net/gallery/233003719/Brand-Identity-System-for-Wingram-by-Bellah-Options",
+        icon: CheckBadgeIcon,
+    },
+    {
+        title: "Social Campaign Creatives",
+        service: "Graphic Design",
+        image: "/terranize.PNG",
+        summary: "Campaign visuals designed to improve attention and message clarity.",
+        href: "https://www.behance.net/gallery/216593821/Social-Media-Designs-for-SavingsBox",
+        icon: MegaphoneIcon,
+    },
+    {
+        title: "Live Website Samples",
+        service: "Web Design",
+        image: "/t-site.PNG",
+        summary: "Responsive website projects built for strong messaging and conversion paths.",
+        href: "/web-design-samples",
+        icon: CodeBracketIcon,
+    },
+    {
+        title: "App Experience Reimagined",
+        service: "UI/UX Design",
+        image: "/perkpay.PNG",
+        summary: "Product interface direction focused on usability and visual confidence.",
+        href: "https://www.behance.net/gallery/240637753/CDCare-App-Reimagined",
+        icon: RectangleGroupIcon,
+    },
+];
+
 const strengths = [
     {
         title: "Purposeful visuals",
@@ -205,7 +240,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [] }) {
                                         <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
                                     </Link>
                                     <Link
-                                        href="/order/brand-design"
+                                        href="/order/social-media-design"
                                         className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-black text-gray-900 transition hover:border-[#000285] hover:text-[#000285]"
                                     >
                                         Start a Project
@@ -438,6 +473,72 @@ export default function Welcome({ slideShows = [], featuredPlans = [] }) {
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                            <div className="mx-auto max-w-3xl text-center">
+                                <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">
+                                    Service Samples
+                                </p>
+                                <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
+                                    Samples from projects we have rendered across key service areas.
+                                </h2>
+                                <p className="mt-4 text-base leading-8 text-gray-600">
+                                    Quick previews from branding, graphic design, web design, and UI/UX work done by Bellah Options.
+                                </p>
+                            </div>
+
+                            <Stagger className="mt-10 grid gap-5 sm:grid-cols-2">
+                                {serviceSamples.map((sample) => {
+                                    const Icon = sample.icon;
+                                    const isExternal = sample.href.startsWith("http");
+
+                                    return (
+                                        <StaggerItem
+                                            as="article"
+                                            key={sample.title}
+                                            className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200"
+                                        >
+                                            <div className="aspect-[16/10] overflow-hidden bg-blue-50">
+                                                <img
+                                                    src={sample.image}
+                                                    alt={sample.title}
+                                                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                                                />
+                                            </div>
+                                            <div className="p-6">
+                                                <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#000285]">
+                                                    <Icon className="h-4 w-4" />
+                                                    {sample.service}
+                                                </div>
+                                                <h3 className="mt-3 text-2xl font-black text-gray-950">{sample.title}</h3>
+                                                <p className="mt-3 text-sm leading-6 text-gray-600">{sample.summary}</p>
+                                                {isExternal ? (
+                                                    <a
+                                                        href={sample.href}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                        className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
+                                                    >
+                                                        View Sample
+                                                        <ArrowRightIcon className="h-4 w-4" />
+                                                    </a>
+                                                ) : (
+                                                    <Link
+                                                        href={sample.href}
+                                                        className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
+                                                    >
+                                                        View Sample
+                                                        <ArrowRightIcon className="h-4 w-4" />
+                                                    </Link>
+                                                )}
+                                            </div>
+                                        </StaggerItem>
+                                    );
+                                })}
+                            </Stagger>
+                        </div>
+                    </RevealSection>
+
+                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
+                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
                                 <div className="lg:sticky lg:top-28">
                                     <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">
@@ -495,7 +596,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [] }) {
                                     </p>
                                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                         <Link
-                                            href="/order/brand-design"
+                                            href="/order/social-media-design"
                                             className="inline-flex items-center justify-center gap-3 rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
                                         >
                                             Start Your Project

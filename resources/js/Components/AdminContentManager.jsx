@@ -5,7 +5,12 @@ import { useState } from "react";
 function initialData(fields) {
     return fields.reduce((data, field) => ({
         ...data,
-        [field.name]: field.type === "checkbox" ? field.defaultValue ?? true : field.defaultValue ?? "",
+        [field.name]:
+            field.type === "checkbox"
+                ? field.defaultValue ?? true
+                : field.type === "file"
+                    ? null
+                    : field.defaultValue ?? "",
     }), {});
 }
 
@@ -21,6 +26,7 @@ export default function AdminContentManager({ title, description, routeBase, fie
 
         createForm.post(route(`${routeBase}.store`), {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: () => createForm.reset(),
         });
     };
@@ -30,7 +36,7 @@ export default function AdminContentManager({ title, description, routeBase, fie
         editForm.clearErrors();
         editForm.setData(fields.reduce((data, field) => ({
             ...data,
-            [field.name]: normalizeValue(item[field.name], field),
+            [field.name]: field.type === "file" ? null : normalizeValue(item[field.name], field),
         }), {}));
     };
 
@@ -45,6 +51,7 @@ export default function AdminContentManager({ title, description, routeBase, fie
 
         editForm.put(route(`${routeBase}.update`, item.id), {
             preserveScroll: true,
+            forceFormData: true,
             onSuccess: cancelEditing,
         });
     };
@@ -206,6 +213,18 @@ function InputField({ field, form }) {
                 />
                 Visible on public website
             </label>
+        );
+    }
+
+    if (field.type === "file") {
+        return (
+            <input
+                type="file"
+                accept={field.accept || "image/*"}
+                onChange={(event) => form.setData(field.name, event.target.files?.[0] || null)}
+                className={common}
+                required={field.required}
+            />
         );
     }
 

@@ -13,7 +13,7 @@ const fallbackSlides = [
         text: "Get creative social media designs to power your online presence and drive sales.",
         slide_image:
             "https://img.freepik.com/premium-photo/abstract-dark-blue-background-silk-satin-navy-blue-color-elegant-background-with-space-design-soft-wavy-folds_728202-5520.jpg?w=360",
-        slide_link: "https://wa.link/tos8io",
+        slide_link: "/order/social-media-design",
         slide_link_text: "Get Started",
     },
     {
@@ -21,7 +21,7 @@ const fallbackSlides = [
         slide_title: "Automate your process",
         text: "Your website should work for you even when you are not online",
         slide_image: "https://cdn.wallpapersafari.com/10/34/xwEKsq.jpg",
-        slide_link: "https://wa.link/tos8io",
+        slide_link: "/order/web-design",
         slide_link_text: "Create your Website",
     },
     {
@@ -30,8 +30,8 @@ const fallbackSlides = [
         text: "Your subtext here",
         slide_image:
             "https://media.istockphoto.com/id/1807779771/vector/abstract-dark-blue-vector-background.jpg?s=612x612&w=0&k=20&c=7iEsr6VR1PwHxzQyZVUAJw9cSGPtWOcRjyXBkbH6mCI=",
-        slide_link: "https://wa.link/tos8io",
-        slide_link_text: "https://wa.link/tos8io",
+        slide_link: "/order/brand-design",
+        slide_link_text: "Start a Project",
     },
 ];
 

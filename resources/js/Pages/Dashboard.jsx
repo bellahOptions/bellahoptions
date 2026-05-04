@@ -1,6 +1,9 @@
 import Modal from '@/Components/Modal';
+import { Badge } from '@/Components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { CreditCard, FolderKanban, LayoutDashboard, PlusCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function Dashboard({
@@ -18,6 +21,9 @@ export default function Dashboard({
     clientOrders = [],
     clientOrderStats = {},
     clientInvoices = [],
+    orderServices = {},
+    orderCurrency = 'NGN',
+    orderLocale = 'en_NG',
 }) {
     const { flash, auth } = usePage().props;
     const user = auth?.user;
@@ -71,8 +77,46 @@ export default function Dashboard({
     const [customerSearchError, setCustomerSearchError] = useState('');
     const [isCustomerSearchFocused, setIsCustomerSearchFocused] = useState(false);
     const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
+    const serviceEntries = Object.entries(orderServices || {});
+    const [selectedOrderService, setSelectedOrderService] = useState(serviceEntries[0]?.[0] || 'social-media-design');
+    const [selectedOrderPackage, setSelectedOrderPackage] = useState('');
+    const [activeClientPanel, setActiveClientPanel] = useState('overview');
     const shouldShowCustomerSearchDropdown =
         isCustomerSearchFocused && customerSearchQuery.trim().length >= 2;
+
+    const selectedOrderServiceData = orderServices?.[selectedOrderService] || null;
+    const selectedOrderPackages = Object.entries(selectedOrderServiceData?.packages || {});
+
+    useEffect(() => {
+        if (!selectedOrderService && serviceEntries.length > 0) {
+            setSelectedOrderService(serviceEntries[0][0]);
+        }
+    }, [selectedOrderService, serviceEntries]);
+
+    useEffect(() => {
+        if (selectedOrderPackages.length === 0) {
+            setSelectedOrderPackage('');
+
+            return;
+        }
+
+        const hasSelected = selectedOrderPackages.some(([packageCode]) => packageCode === selectedOrderPackage);
+        if (!hasSelected) {
+            setSelectedOrderPackage(selectedOrderPackages[0][0]);
+        }
+    }, [selectedOrderPackage, selectedOrderPackages]);
+
+    const orderStartHref = route('orders.create', {
+        serviceSlug: selectedOrderService || serviceEntries[0]?.[0] || 'social-media-design',
+        service: selectedOrderService || serviceEntries[0]?.[0] || 'social-media-design',
+        ...(selectedOrderPackage ? { package: selectedOrderPackage } : {}),
+    });
+    const clientNavItems = [
+        { key: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { key: 'new-order', label: 'New Order', icon: PlusCircle },
+        { key: 'orders', label: 'Orders', icon: FolderKanban },
+        { key: 'invoices', label: 'Invoices', icon: CreditCard },
+    ];
 
     useEffect(() => {
         if (!canManageInvoices || !isCustomerSearchFocused) {
@@ -252,54 +296,216 @@ export default function Dashboard({
 
                     {!isStaff && (
                         <>
-                            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-8">
-                                <h3 className="text-xl font-semibold text-gray-900 sm:text-2xl">
+                            <section className="rounded-2xl border border-blue-100 bg-gradient-to-r from-white via-blue-50 to-indigo-50 p-5 shadow-sm sm:p-8">
+                                <h3 className="text-xl font-black text-gray-900 sm:text-2xl">
                                     Welcome, {user?.first_name || user?.name}
                                 </h3>
                                 <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600">
                                     Track your service jobs, review payment status, and monitor progress updates from the Bellah team.
                                 </p>
-                                <div className="mt-6 flex flex-wrap gap-3">
+                                <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-base">Total Jobs</CardTitle>
+                                            <CardDescription>All submitted service requests.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-2xl font-black text-[#000285]">{clientOrderStats.total_orders ?? 0}</p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-base">Active Jobs</CardTitle>
+                                            <CardDescription>Projects currently in progress.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-2xl font-black text-[#000285]">{clientOrderStats.active_orders ?? 0}</p>
+                                        </CardContent>
+                                    </Card>
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-base">Pending Payments</CardTitle>
+                                            <CardDescription>Invoices awaiting payment.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <p className="text-2xl font-black text-[#000285]">{clientOrderStats.pending_payments ?? 0}</p>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                                <div className="mt-5 flex flex-wrap gap-3">
                                     <Link
-                                        href={route('services')}
-                                        className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                                        href={orderStartHref}
+                                        className="inline-flex items-center rounded-md bg-[#000285] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0010a3]"
                                     >
-                                        Order New Service
+                                        Start New Order
                                     </Link>
                                     <Link
-                                        href={route('staff.login')}
-                                        className="inline-flex items-center rounded-lg border border-cyan-200 bg-cyan-50 px-4 py-2 text-sm font-semibold text-cyan-700 hover:bg-cyan-100"
+                                        href={route('services')}
+                                        className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-[#000285] hover:bg-blue-50"
                                     >
-                                        Staff portal login
+                                        Explore Services
                                     </Link>
                                 </div>
                             </section>
 
-                            <section className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-5">
-                                <MetricCard
-                                    label="Total Jobs"
-                                    value={clientOrderStats.total_orders ?? 0}
-                                />
-                                <MetricCard
-                                    label="Active Jobs"
-                                    value={clientOrderStats.active_orders ?? 0}
-                                />
-                                <MetricCard
-                                    label="Completed Jobs"
-                                    value={clientOrderStats.completed_orders ?? 0}
-                                />
-                                <MetricCard
-                                    label="Pending Payments"
-                                    value={clientOrderStats.pending_payments ?? 0}
-                                />
-                                <MetricCard
-                                    label="Paid Jobs"
-                                    value={clientOrderStats.paid_orders ?? 0}
-                                />
+                            <section className="rounded-2xl border border-gray-200 bg-white p-2 shadow-sm sm:p-3">
+                                <div className="flex flex-wrap gap-2">
+                                    {clientNavItems.map((item) => {
+                                        const Icon = item.icon;
+                                        const isActive = activeClientPanel === item.key;
+
+                                        return (
+                                            <button
+                                                key={item.key}
+                                                type="button"
+                                                onClick={() => setActiveClientPanel(item.key)}
+                                                className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                                                    isActive
+                                                        ? 'bg-[#000285] text-white shadow-sm'
+                                                        : 'bg-blue-50 text-[#000285] hover:bg-blue-100'
+                                                }`}
+                                            >
+                                                <Icon className="h-4 w-4" />
+                                                {item.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </section>
 
-                            <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-                                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                            {activeClientPanel === 'overview' && (
+                                <section className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Recent Service Jobs</CardTitle>
+                                            <CardDescription>Follow your latest project activity and progress.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            {clientOrders.length === 0 && (
+                                                <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-500">
+                                                    No service jobs yet.
+                                                </div>
+                                            )}
+
+                                            {clientOrders.slice(0, 3).map((order) => (
+                                                <article key={`overview-order-${order.uuid}`} className="rounded-lg border border-gray-200 p-4">
+                                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-gray-900">{order.service_name}</p>
+                                                            <p className="text-xs text-gray-500">{order.package_name}</p>
+                                                        </div>
+                                                        <Badge variant={order.payment_status === 'paid' ? 'success' : 'warning'}>
+                                                            {String(order.payment_status || '').toUpperCase()}
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="mt-2 text-sm text-gray-700">{formatMoney(order.amount, order.currency)}</p>
+                                                    <div className="mt-3 h-2 w-full rounded-full bg-gray-200">
+                                                        <div
+                                                            className="h-2 rounded-full bg-[#000285]"
+                                                            style={{ width: `${Math.max(0, Math.min(100, Number(order.progress_percent || 0)))}%` }}
+                                                        />
+                                                    </div>
+                                                </article>
+                                            ))}
+                                        </CardContent>
+                                    </Card>
+
+                                    <Card>
+                                        <CardHeader>
+                                            <CardTitle>Quick Actions</CardTitle>
+                                            <CardDescription>Start new work or continue payment instantly.</CardDescription>
+                                        </CardHeader>
+                                        <CardContent className="space-y-3">
+                                            <Link
+                                                href={orderStartHref}
+                                                className="inline-flex w-full items-center justify-center rounded-md bg-[#000285] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0010a3]"
+                                            >
+                                                Start New Order
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveClientPanel('invoices')}
+                                                className="inline-flex w-full items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-[#000285] hover:bg-blue-100"
+                                            >
+                                                View Invoices
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setActiveClientPanel('orders')}
+                                                className="inline-flex w-full items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50"
+                                            >
+                                                View All Orders
+                                            </button>
+                                        </CardContent>
+                                    </Card>
+                                </section>
+                            )}
+
+                            {activeClientPanel === 'new-order' && (
+                                <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                                    <h3 className="text-lg font-semibold text-gray-900">Start New Order</h3>
+                                    <p className="mt-1 text-sm text-gray-600">
+                                        Place a new order directly from your dashboard by choosing a service and package.
+                                    </p>
+
+                                    {serviceEntries.length > 0 ? (
+                                        <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
+                                            <div>
+                                                <label className="mb-1 block text-sm font-medium text-gray-700">Service</label>
+                                                <select
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    value={selectedOrderService}
+                                                    onChange={(event) => setSelectedOrderService(event.target.value)}
+                                                >
+                                                    {serviceEntries.map(([serviceSlug, serviceData]) => (
+                                                        <option key={serviceSlug} value={serviceSlug}>
+                                                            {serviceData?.name || serviceSlug}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="mb-1 block text-sm font-medium text-gray-700">Package</label>
+                                                <select
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    value={selectedOrderPackage}
+                                                    onChange={(event) => setSelectedOrderPackage(event.target.value)}
+                                                >
+                                                    {selectedOrderPackages.map(([packageCode, packageData]) => (
+                                                        <option key={packageCode} value={packageCode}>
+                                                            {(packageData?.name || packageCode)} - {formatLocalizedMoney(packageData?.price || 0, orderCurrency, orderLocale)}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+
+                                            <div className="flex items-end">
+                                                <Link
+                                                    href={orderStartHref}
+                                                    className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                >
+                                                    Start Order
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="mt-5 rounded-lg border border-gray-200 bg-gray-50 px-4 py-4 text-sm text-gray-500">
+                                            Order services are temporarily unavailable.
+                                        </div>
+                                    )}
+
+                                    {selectedOrderServiceData && (
+                                        <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-4">
+                                            <p className="text-sm font-semibold text-gray-900">{selectedOrderServiceData.name}</p>
+                                            <p className="mt-1 text-sm text-gray-600">{selectedOrderServiceData.description}</p>
+                                        </div>
+                                    )}
+                                </section>
+                            )}
+
+                            {activeClientPanel === 'orders' && (
+                                <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                                     <h3 className="text-lg font-semibold text-gray-900">Your Service Jobs</h3>
                                     <p className="mt-1 text-sm text-gray-600">
                                         Follow work stages and open each job for detailed updates.
@@ -364,9 +570,11 @@ export default function Dashboard({
                                             </article>
                                         ))}
                                     </div>
-                                </div>
+                                </section>
+                            )}
 
-                                <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                            {activeClientPanel === 'invoices' && (
+                                <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                                     <h3 className="text-lg font-semibold text-gray-900">Invoices & Payments</h3>
                                     <p className="mt-1 text-sm text-gray-600">
                                         Review invoice status and payment references for your jobs.
@@ -415,8 +623,8 @@ export default function Dashboard({
                                             </article>
                                         ))}
                                     </div>
-                                </div>
-                            </section>
+                                </section>
+                            )}
                         </>
                     )}
 
@@ -1272,4 +1480,21 @@ function formatOrderStatus(status) {
     };
 
     return labels[status] || String(status || '').replaceAll('_', ' ');
+}
+
+function formatLocalizedMoney(amount, currency = 'NGN', locale = 'en_NG') {
+    const numeric = Number(amount || 0);
+    const normalizedCurrency = String(currency || 'NGN').toUpperCase();
+    const normalizedLocale = String(locale || 'en_NG').replace('_', '-');
+
+    try {
+        return new Intl.NumberFormat(normalizedLocale, {
+            style: 'currency',
+            currency: normalizedCurrency,
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2,
+        }).format(numeric);
+    } catch (error) {
+        return formatMoney(numeric, normalizedCurrency);
+    }
 }

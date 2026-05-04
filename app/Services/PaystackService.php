@@ -12,7 +12,14 @@ class PaystackService
      * @param  array<string, mixed>  $metadata
      * @return array{authorization_url: string, access_code: string, reference: string}
      */
-    public function initialize(string $email, int $amountInMinor, string $reference, string $callbackUrl, array $metadata = []): array
+    public function initialize(
+        string $email,
+        int $amountInMinor,
+        string $reference,
+        string $callbackUrl,
+        string $currency = 'NGN',
+        array $metadata = []
+    ): array
     {
         $response = Http::timeout(20)
             ->withToken($this->secretKey())
@@ -20,7 +27,7 @@ class PaystackService
                 'email' => $email,
                 'amount' => $amountInMinor,
                 'reference' => $reference,
-                'currency' => strtoupper((string) config('bellah.invoice.currency', 'NGN')),
+                'currency' => strtoupper(trim($currency)),
                 'callback_url' => $callbackUrl,
                 'metadata' => $metadata,
             ]);

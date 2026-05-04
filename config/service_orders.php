@@ -3,8 +3,8 @@
 return [
     'services' => [
         'social-media-design' => [
-            'name' => 'Social Media Design Subscription',
-            'description' => 'Monthly social media design subscription for consistent brand presence.',
+            'name' => 'Social Media Design',
+            'description' => 'Monthly social design support with content development and revision rounds.',
             'intake' => [
                 [
                     'name' => 'primary_platforms',
@@ -57,19 +57,19 @@ return [
             ],
             'packages' => [
                 'starter' => [
-                    'name' => 'Starter Pack',
-                    'price' => 30000,
-                    'description' => '5 social media designs per month and content support.',
+                    'name' => 'Starter Plan',
+                    'price' => 50000,
+                    'description' => '8 designs, content development service, and up to 5 iterations.',
                 ],
                 'standard' => [
-                    'name' => 'Standard Pack',
-                    'price' => 60000,
-                    'description' => '10 monthly designs with faster turnaround and priority support.',
+                    'name' => 'Standard Plan',
+                    'price' => 80000,
+                    'description' => '15 designs and everything in Starter Plan.',
                 ],
                 'business' => [
-                    'name' => 'Business Pack',
-                    'price' => 90000,
-                    'description' => '15 monthly designs, unlimited revisions, and account management.',
+                    'name' => 'Business Plan',
+                    'price' => 140000,
+                    'description' => '20 designs and everything in Starter and Standard plans.',
                 ],
             ],
         ],
@@ -134,20 +134,10 @@ return [
                 ],
             ],
             'packages' => [
-                'basic' => [
-                    'name' => 'Basic',
-                    'price' => 45000,
-                    'description' => 'Entry package for focused design requests.',
-                ],
-                'growth' => [
-                    'name' => 'Growth',
-                    'price' => 85000,
-                    'description' => 'Balanced package for recurring campaign design work.',
-                ],
-                'premium' => [
-                    'name' => 'Premium',
-                    'price' => 150000,
-                    'description' => 'High-output package with larger design bandwidth.',
+                'custom-quote' => [
+                    'name' => 'Custom Quote',
+                    'price' => 0,
+                    'description' => 'Pricing is custom based on design type, quantity, application, and size.',
                 ],
             ],
         ],
@@ -220,8 +210,8 @@ return [
             ],
         ],
         'web-design' => [
-            'name' => 'Web Design (Full Stack)',
-            'description' => 'Full-stack web products from UX and frontend to backend integrations.',
+            'name' => 'Web Design',
+            'description' => 'Website design and build services tailored by website type and scope.',
             'intake' => [
                 [
                     'name' => 'website_type',
@@ -229,10 +219,10 @@ return [
                     'type' => 'select',
                     'required' => true,
                     'options' => [
-                        'business-site' => 'Business website',
-                        'ecommerce' => 'E-commerce',
                         'landing-page' => 'Landing page',
-                        'web-app' => 'Web app / dashboard',
+                        'full-website' => 'Full website',
+                        'ecommerce' => 'E-commerce',
+                        'custom-web-app' => 'Custom web app',
                     ],
                 ],
                 [
@@ -244,13 +234,22 @@ return [
                     'placeholder' => 'https://your-site.com',
                 ],
                 [
+                    'name' => 'domain_preference',
+                    'label' => 'Preferred Domain Extension',
+                    'type' => 'text',
+                    'required' => false,
+                    'max' => 80,
+                    'placeholder' => '.com.ng, .org.ng, .com ...',
+                    'hint' => 'Additional fees may apply for non .com.ng or .org.ng domains.',
+                ],
+                [
                     'name' => 'required_pages',
-                    'label' => 'Required Pages',
+                    'label' => 'Required Pages / Modules',
                     'type' => 'textarea',
                     'required' => true,
                     'max' => 1200,
                     'rows' => 3,
-                    'placeholder' => 'Home, About, Services, Contact, Checkout...',
+                    'placeholder' => 'Home, About, Services, Blog, Contact, portal...',
                 ],
                 [
                     'name' => 'key_features',
@@ -259,7 +258,7 @@ return [
                     'required' => true,
                     'max' => 1600,
                     'rows' => 4,
-                    'placeholder' => 'Payments, booking, CMS, client portal, integrations...',
+                    'placeholder' => 'SEO/LLM, forms, appointment module, CRM, payment, portal...',
                 ],
                 [
                     'name' => 'content_ready',
@@ -285,20 +284,55 @@ return [
                 ],
             ],
             'packages' => [
-                'starter' => [
-                    'name' => 'Starter',
-                    'price' => 350000,
-                    'description' => 'Core full-stack website for early-stage businesses.',
+                'landing-page' => [
+                    'name' => 'Landing Page',
+                    'price' => 120000,
+                    'description' => '2 pages plus contact function, SEO/LLM, 1 form, editable content, annual hosting, and domain inclusive.',
                 ],
-                'business' => [
-                    'name' => 'Business',
-                    'price' => 700000,
-                    'description' => 'Expanded full-stack build with admin and integrations.',
+                'full-website' => [
+                    'name' => 'Full Website',
+                    'price' => 250000,
+                    'description' => 'Up to 10 pages, blog module, appointment feature, customer login, CRM, and full social media integration.',
                 ],
-                'enterprise' => [
-                    'name' => 'Enterprise',
-                    'price' => 1400000,
-                    'description' => 'Advanced architecture and custom workflows for scale.',
+                'ecommerce' => [
+                    'name' => 'E-commerce',
+                    'price' => 460000,
+                    'description' => 'Everything in Full Website plus payment module (optional), CRM, order management, and order tracking.',
+                ],
+                'custom-web-app' => [
+                    'name' => 'Custom Web App (Consultation)',
+                    'price' => 0,
+                    'description' => 'Custom web applications go through consultation and scope discovery before final pricing.',
+                ],
+            ],
+        ],
+        'special-service' => [
+            'name' => 'Special Service',
+            'description' => 'Special requests and mixed-scope projects handled through consultation.',
+            'intake' => [
+                [
+                    'name' => 'service_request_type',
+                    'label' => 'Special Service Type',
+                    'type' => 'text',
+                    'required' => true,
+                    'max' => 180,
+                    'placeholder' => 'Tell us the kind of special request you need.',
+                ],
+                [
+                    'name' => 'special_scope_details',
+                    'label' => 'Scope Details',
+                    'type' => 'textarea',
+                    'required' => true,
+                    'max' => 1600,
+                    'rows' => 4,
+                    'placeholder' => 'Describe your request, goals, and expected outcome.',
+                ],
+            ],
+            'packages' => [
+                'consultation' => [
+                    'name' => 'Consultation',
+                    'price' => 0,
+                    'description' => 'We review your request and provide scope, timeline, and a custom quote.',
                 ],
             ],
         ],

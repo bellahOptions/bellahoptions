@@ -260,7 +260,7 @@ function SlideFields({ form, className = '' }) {
                     type="text"
                     value={form.data.slide_link}
                     onChange={(event) => form.setData('slide_link', event.target.value)}
-                    placeholder="/services/web-design"
+                    placeholder="/order/web-design"
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                 />
             </Field>

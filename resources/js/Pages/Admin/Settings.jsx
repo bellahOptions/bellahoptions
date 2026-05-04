@@ -42,7 +42,6 @@ export default function Settings({
         errors,
     } = useForm({
         maintenance_mode: Boolean(settings?.maintenance_mode),
-        coming_soon_mode: Boolean(settings?.coming_soon_mode),
         website_uri: settings?.website_uri || '',
         contact_phone: settings?.contact_phone || '',
         contact_email: settings?.contact_email || '',
@@ -250,20 +249,7 @@ export default function Settings({
                                     />
                                     <span>
                                         <span className="block text-sm font-semibold text-gray-900">Maintenance Mode</span>
-                                        <span className="mt-1 block text-sm text-gray-600">Blocks visitor login and registration while maintenance is active.</span>
-                                    </span>
-                                </label>
-
-                                <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.coming_soon_mode}
-                                        onChange={(event) => setData('coming_soon_mode', event.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                                    />
-                                    <span>
-                                        <span className="block text-sm font-semibold text-gray-900">Coming Soon Mode</span>
-                                        <span className="mt-1 block text-sm text-gray-600">Keeps the app in pre-launch state and blocks public auth routes.</span>
+                                        <span className="mt-1 block text-sm text-gray-600">Blocks all public routes while maintenance is active. Staff can still access the staff portal.</span>
                                     </span>
                                 </label>
                             </div>
@@ -469,6 +455,7 @@ export default function Settings({
                                                     type="text"
                                                     value={slide.cta_url || ''}
                                                     onChange={(event) => updateSlide(index, 'cta_url', event.target.value)}
+                                                    placeholder="/order/brand-design"
                                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                                                 />
                                                 {errors[`home_slides.${index}.cta_url`] && (

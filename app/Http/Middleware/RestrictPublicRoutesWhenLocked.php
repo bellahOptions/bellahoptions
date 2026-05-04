@@ -14,10 +14,6 @@ class RestrictPublicRoutesWhenLocked
      * @var array<int, string>
      */
     private const ALLOWED_ROUTE_NAMES = [
-        'home',
-        'waitlist.create',
-        'waitlist.store',
-        'terms.show',
         'staff.login',
         'staff.login.store',
         'staff.otp.create',
@@ -25,9 +21,9 @@ class RestrictPublicRoutesWhenLocked
         'staff.otp.resend',
         'admin.login',
         'logout',
-        'seo.sitemap',
-        'seo.robots',
-        'seo.llms',
+        'webhooks.paystack',
+        'webhooks.flutterwave',
+        'orders.payment.callback',
     ];
 
     /**
@@ -41,10 +37,7 @@ class RestrictPublicRoutesWhenLocked
             return $next($request);
         }
 
-        $maintenanceMode = AppSetting::getBool('maintenance_mode');
-        $comingSoonMode = AppSetting::getBool('coming_soon_mode');
-
-        if (! $maintenanceMode && ! $comingSoonMode) {
+        if (! AppSetting::getBool('maintenance_mode')) {
             return $next($request);
         }
 
@@ -57,9 +50,7 @@ class RestrictPublicRoutesWhenLocked
             return $next($request);
         }
 
-        $message = $maintenanceMode
-            ? 'The website is in maintenance mode. Public access is temporarily disabled.'
-            : 'The website is currently in coming-soon mode. Public access is temporarily limited.';
+        $message = 'The website is currently in maintenance mode. Public access is temporarily disabled.';
 
         if ($request->expectsJson()) {
             return response()->json([
@@ -67,6 +58,6 @@ class RestrictPublicRoutesWhenLocked
             ], 503);
         }
 
-        return redirect()->route('home')->with('error', $message);
+        return redirect()->route('staff.login')->with('error', $message);
     }
 }

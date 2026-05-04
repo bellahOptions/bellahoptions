@@ -21,7 +21,6 @@ class UpdatePlatformSettingsRequest extends FormRequest
     {
         $this->merge([
             'maintenance_mode' => $this->boolean('maintenance_mode'),
-            'coming_soon_mode' => $this->boolean('coming_soon_mode'),
             'website_uri' => trim((string) $this->input('website_uri')),
             'contact_phone' => trim((string) $this->input('contact_phone')),
             'contact_email' => strtolower(trim((string) $this->input('contact_email'))),
@@ -43,7 +42,6 @@ class UpdatePlatformSettingsRequest extends FormRequest
     {
         return [
             'maintenance_mode' => ['required', 'boolean'],
-            'coming_soon_mode' => ['required', 'boolean'],
             'website_uri' => ['required', 'url:http,https', 'max:255'],
 
             'contact_phone' => ['required', 'string', 'min:7', 'max:40'],

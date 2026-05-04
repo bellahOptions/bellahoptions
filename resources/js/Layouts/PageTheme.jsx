@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { FaFacebookF, FaInstagram, FaLinkedinIn, FaXTwitter } from "react-icons/fa6";
+import { FaBehance, FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa6";
 import {
     ArrowUpIcon,
     Bars3Icon,
@@ -18,6 +18,7 @@ const navLinks = [
     { label: "About Us", href: "/about-bellah-options" },
     { label: "Services", href: "/services" },
     { label: "Gallery", href: "/gallery" },
+    { label: "Web Samples", href: "/web-design-samples" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
 ];
@@ -27,6 +28,7 @@ const quickLinks = [
     { label: "About Us", href: "/about-bellah-options" },
     { label: "Services", href: "/services" },
     { label: "Gallery", href: "/gallery" },
+    { label: "Web Samples", href: "/web-design-samples" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
     { label: "Contact", href: "/contact-us" },
@@ -40,10 +42,10 @@ const footerServices = [
 ];
 
 const socialLinks = [
-    { label: "Find Bellah Options on Facebook", href: "https://www.facebook.com/search/top?q=Bellah%20Options", icon: FaFacebookF },
-    { label: "Find Bellah Options on X", href: "https://x.com/search?q=%22Bellah%20Options%22&src=typed_query", icon: FaXTwitter },
-    { label: "Find Bellah Options on Instagram", href: "https://www.instagram.com/explore/search/keyword/?q=bellah%20options", icon: FaInstagram },
-    { label: "Find Bellah Options on LinkedIn", href: "https://www.linkedin.com/search/results/all/?keywords=Bellah%20Options", icon: FaLinkedinIn },
+    { label: "Find Bellah Options on Facebook", href: "https://www.facebook.com/BellahOptions/", icon: FaFacebookF },
+    { label: "Find Bellah Options on Behance", href: "https://www.behance.net/bellahoptionsNG", icon: FaBehance },
+    { label: "Find Bellah Options on Instagram", href: "https://www.instagram.com/bellahgroup/", icon: FaInstagram },
+    { label: "Find Bellah Options on LinkedIn", href: "https://ng.linkedin.com/company/bellahoptions", icon: FaLinkedinIn },
 ];
 
 function FooterLink({ href, children }) {
@@ -148,7 +150,7 @@ export default function PageTheme({ children }) {
                             Log In
                         </Link>
                         <Link
-                            href="/order/brand-design"
+                            href="/order/social-media-design"
                             className="group inline-flex items-center gap-2 rounded-lg bg-[#000285] px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-blue-800"
                         >
                             Get Started
@@ -190,7 +192,7 @@ export default function PageTheme({ children }) {
                         </div>
                         <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4">
                             <Link
-                                href="/order/brand-design"
+                                href="/order/social-media-design"
                                 className="flex items-center justify-center gap-2 rounded-lg bg-[#000285] px-5 py-3 text-sm font-black text-white"
                                 onClick={() => setIsMenuOpen(false)}
                             >
@@ -251,7 +253,7 @@ export default function PageTheme({ children }) {
                                 </div>
                             </div>
                             <Link
-                                href="/order/brand-design"
+                                href="/order/social-media-design"
                                 className="group inline-flex shrink-0 items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
                             >
                                 Start a Project

@@ -245,21 +245,21 @@ class PlatformSettings
                 'subtitle' => 'Logo suite, color strategy, and campaign templates for market visibility.',
                 'image' => '3.png',
                 'cta_label' => 'Explore Brand Design',
-                'cta_url' => '/services/brand-design',
+                'cta_url' => '/order/brand-design',
             ],
             [
                 'title' => 'Conversion Web Experience',
                 'subtitle' => 'Clean information architecture and persuasive interface for lead capture.',
                 'image' => 't-site.PNG',
                 'cta_label' => 'Explore Web Design',
-                'cta_url' => '/services/web-design',
+                'cta_url' => '/order/web-design',
             ],
             [
                 'title' => 'Social Media Campaign',
                 'subtitle' => 'Audience-specific content templates designed for reach and conversion.',
                 'image' => '23.jpeg',
                 'cta_label' => 'Explore Graphic Design',
-                'cta_url' => '/services/graphic-design',
+                'cta_url' => '/order/graphic-design',
             ],
         ];
     }

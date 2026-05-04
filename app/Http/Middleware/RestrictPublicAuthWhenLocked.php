@@ -21,17 +21,12 @@ class RestrictPublicAuthWhenLocked
             return $next($request);
         }
 
-        $maintenanceMode = AppSetting::getBool('maintenance_mode');
-        $comingSoonMode = AppSetting::getBool('coming_soon_mode');
-
-        if (! $maintenanceMode && ! $comingSoonMode) {
+        if (! AppSetting::getBool('maintenance_mode')) {
             return $next($request);
         }
 
-        $message = $maintenanceMode
-            ? 'The portal is temporarily in maintenance mode. Please check back later.'
-            : 'The portal is currently in coming-soon mode. New sign-ins and registrations are paused.';
+        $message = 'The portal is temporarily in maintenance mode. Please check back later.';
 
-        return redirect()->route('waitlist.create')->with('error', $message);
+        return redirect()->route('staff.login')->with('error', $message);
     }
 }

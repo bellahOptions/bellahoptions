@@ -72,16 +72,24 @@
                 <div class="status warning" style="margin-top:0;">{{ session('error') }}</div>
             @endif
 
-            <h2 style="font-size:1.3rem;">Paystack Payment</h2>
-            <p>All card and transfer details are handled securely on Paystack checkout.</p>
+            <h2 style="font-size:1.3rem;">{{ strtoupper((string) ($paymentProvider ?? 'paystack')) }} Payment</h2>
+            <p>
+                All card and transfer details are handled securely on
+                <strong>{{ strtoupper((string) ($paymentProvider ?? 'paystack')) }}</strong>
+                checkout based on your regional localization.
+            </p>
 
             @if ($canPay)
                 <form method="post" action="{{ route('orders.payment.initialize', $order) }}">
                     @csrf
-                    <button type="submit" class="btn" style="width:100%;">Pay Now With Paystack</button>
+                    <button type="submit" class="btn" style="width:100%;">
+                        Pay Now With {{ strtoupper((string) ($paymentProvider ?? 'paystack')) }}
+                    </button>
                 </form>
             @else
-                <div class="status success" style="margin-top:0;">Payment has been completed for this order.</div>
+                <div class="status success" style="margin-top:0;">
+                    {{ (string) $order->payment_status === 'not_required' ? 'This order is in consultation mode and does not require immediate online payment.' : 'Payment has been completed for this order.' }}
+                </div>
             @endif
 
             <div class="btn-row" style="margin-top:0.2rem;">

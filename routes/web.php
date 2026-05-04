@@ -21,6 +21,7 @@ Route::get('/welcome', [PagesController::class, 'welcomePage'])->name('welcome')
 Route::get('/about-bellah-options', [PagesController::class, 'aboutPage'])->name('about');
 Route::get('/services', [PagesController::class, 'servicesPage'])->name('services');
 Route::get('/gallery', [PagesController::class, 'galleryPage'])->name('gallery');
+Route::get('/web-design-samples', [PagesController::class, 'webDesignSamplesPage'])->name('web-design-samples');
 Route::get('/blog', [PagesController::class, 'blogPage'])->name('blog');
 Route::get('/blog/{blogPost:slug}', [PagesController::class, 'blogShowPage'])->name('blog.show');
 Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contact');
@@ -28,10 +29,10 @@ Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
 Route::get('/order', fn () => redirect()->route('services'))->name('orders.index');
 Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
-    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
     ->name('orders.create');
 Route::post('/order/{serviceSlug}', [ServiceOrderController::class, 'store'])
-    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
     ->middleware('throttle:contact-form')
     ->name('orders.store');
 Route::get('/orders/{serviceOrder}/payment', [ServiceOrderController::class, 'payment'])->name('orders.payment.show');
@@ -41,6 +42,9 @@ Route::get('/orders/{serviceOrder}', [ServiceOrderController::class, 'show'])->n
 Route::post('/webhooks/paystack', [ServiceOrderController::class, 'webhook'])
     ->middleware('throttle:40,1')
     ->name('webhooks.paystack');
+Route::post('/webhooks/flutterwave', [ServiceOrderController::class, 'flutterwaveWebhook'])
+    ->middleware('throttle:40,1')
+    ->name('webhooks.flutterwave');
 Route::redirect('/smm-form', '/order/social-media-design')->name('orders.smm-form');
 Route::redirect('/about-us', '/about-bellah-options')->name('about.legacy');
 Route::post('/contact-us', fn () => redirect()->route('home'))->name('contact.submit');

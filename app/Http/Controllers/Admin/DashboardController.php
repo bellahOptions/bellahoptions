@@ -9,6 +9,8 @@ use App\Models\Invoice;
 use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Models\Waitlist;
+use App\Support\ServiceOrderCatalog;
+use App\Support\VisitorLocalization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -16,7 +18,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(Request $request, ServiceOrderCatalog $catalog, VisitorLocalization $visitorLocalization): Response
     {
         $user = $request->user();
 
@@ -31,7 +33,6 @@ class DashboardController extends Controller
 
         $settings = [
             'maintenance_mode' => AppSetting::getBool('maintenance_mode'),
-            'coming_soon_mode' => AppSetting::getBool('coming_soon_mode'),
         ];
 
         $waitlistStats = [
@@ -48,6 +49,9 @@ class DashboardController extends Controller
         ];
 
         if (! $user->isStaff()) {
+            $localization = $visitorLocalization->resolve($request);
+            $currency = (string) ($localization['currency'] ?? 'NGN');
+
             $clientOrders = ServiceOrder::query()
                 ->with([
                     'invoice:id,invoice_number,amount,currency,status,payment_reference,due_date,paid_at',
@@ -128,6 +132,9 @@ class DashboardController extends Controller
                 ])->values(),
                 'clientOrderStats' => $clientOrderStats,
                 'clientInvoices' => $clientInvoices,
+                'orderServices' => $this->localizedDashboardOrderServices($catalog, $currency),
+                'orderCurrency' => $currency,
+                'orderLocale' => (string) ($localization['locale'] ?? 'en_NG'),
             ]);
         }
 
@@ -243,5 +250,50 @@ class DashboardController extends Controller
             'waitlistStats' => $waitlistStats,
             'userStats' => $userStats,
         ]);
+    }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    private function localizedDashboardOrderServices(ServiceOrderCatalog $catalog, string $currency): array
+    {
+        $serviceSlugs = [
+            'social-media-design',
+            'web-design',
+            'graphic-design',
+            'special-service',
+        ];
+
+        $services = [];
+        foreach ($serviceSlugs as $slug) {
+            $service = $catalog->service($slug);
+            if (! is_array($service)) {
+                continue;
+            }
+
+            $packages = [];
+            foreach ((array) ($service['packages'] ?? []) as $packageCode => $package) {
+                if (! is_string($packageCode) || ! is_array($package)) {
+                    continue;
+                }
+
+                $basePriceNgn = round((float) ($package['price'] ?? 0), 2);
+                $localizedPrice = app(VisitorLocalization::class)->convertFromNgn($basePriceNgn, $currency);
+
+                $packages[$packageCode] = [
+                    ...$package,
+                    'price' => $localizedPrice,
+                    'base_price_ngn' => $basePriceNgn,
+                ];
+            }
+
+            $services[$slug] = [
+                'name' => (string) ($service['name'] ?? ucfirst(str_replace('-', ' ', $slug))),
+                'description' => (string) ($service['description'] ?? ''),
+                'packages' => $packages,
+            ];
+        }
+
+        return $services;
     }
 }

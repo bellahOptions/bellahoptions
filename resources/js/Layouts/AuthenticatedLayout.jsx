@@ -48,7 +48,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: canManageSlides,
             },
             {
-                label: 'Gallery',
+                label: 'Projects',
                 href: route('admin.gallery.index'),
                 active: route().current('admin.gallery.*'),
                 show: canManagePublicContent,
