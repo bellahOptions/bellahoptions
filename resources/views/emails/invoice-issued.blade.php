@@ -2,6 +2,7 @@
     $isNaira = strtoupper((string) $invoice->currency) === 'NGN';
     $currencyPrefix = $isNaira ? '&#8358;' : strtoupper((string) $invoice->currency).' ';
     $formattedAmount = number_format((float) $invoice->amount, 2);
+    $orderCode = $invoice->serviceOrder?->order_code;
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -26,11 +27,17 @@
                             <p style="margin:0 0 12px;">Dear {{ $invoice->customer_name }},</p>
                             <p style="margin:0 0 12px;">We appreciate your trust in our services and we are committed to providing you with the best possible experience.</p>
                             <p style="margin:0 0 16px;">Your invoice number is <strong>#{{ $invoice->invoice_number }}</strong>.</p>
+                            @if ($orderCode)
+                                <p style="margin:0 0 16px;">Your order code is <strong>{{ $orderCode }}</strong>.</p>
+                            @endif
 
                             <p style="margin:0 0 10px; font-weight:700; color:#102a43;">Please see a list of things that are contained in the invoice:</p>
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d9e2ec; border-radius:10px; background:#fafaff;">
                                 <tr>
                                     <td style="padding:14px 16px;">
+                                        @if ($orderCode)
+                                            <p style="margin:0 0 4px;"><strong>Order Code:</strong> {{ $orderCode }}</p>
+                                        @endif
                                         <p style="margin:0 0 4px;"><strong>Service Title:</strong> {{ $invoice->title }}</p>
                                         <p style="margin:0;">- {!! $currencyPrefix !!}{{ $formattedAmount }}</p>
                                     </td>

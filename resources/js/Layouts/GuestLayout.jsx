@@ -2,15 +2,15 @@ import { Link } from '@inertiajs/react';
 
 const authHighlights = [
     {
-        title: 'Client-first workflow',
+        title: 'Stay in charger',
         text: 'Place service orders, track progress, and keep every update in one dashboard.',
     },
     {
-        title: 'Secure access',
-        text: 'Your account is protected with modern authentication and verification checks.',
+        title: 'Encryption',
+        text: 'Your account is protected with modern authentication and encryption.',
     },
     {
-        title: 'Built for growth',
+        title: 'Position your brand for growth',
         text: 'From social media designs to full websites, your account scales with your needs.',
     },
 ];
@@ -28,13 +28,10 @@ export default function GuestLayout({ children }) {
                         <div>
                             <Link href="/" className="inline-flex items-center gap-3">
                                 <img src="/logo-06.svg" alt="Bellah Options" className="h-10 w-auto" />
-                                <span className="text-xs font-black uppercase tracking-[0.2em] text-[#000285]">
-                                    Bellah Portal
-                                </span>
                             </Link>
 
                             <h1 className="mt-10 max-w-lg text-4xl font-black leading-tight text-gray-950">
-                                Welcome to your <span className="text-[#000285]">#yourBestOption</span> client portal.
+                                Welcome to <span className="text-[#000285]">#yourBestOption</span>.
                             </h1>
 
                             <p className="mt-5 max-w-lg text-sm leading-7 text-gray-600">
@@ -46,7 +43,7 @@ export default function GuestLayout({ children }) {
                             {authHighlights.map((item) => (
                                 <article
                                     key={item.title}
-                                    className="rounded-2xl border-l-4 border-[#000285] bg-white px-4 py-3 shadow-sm"
+                                    className="bg-white px-4 py-3 shadow-sm"
                                 >
                                     <p className="text-sm font-black text-gray-900">{item.title}</p>
                                     <p className="mt-1 text-sm leading-6 text-gray-600">{item.text}</p>

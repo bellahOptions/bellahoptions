@@ -1,6 +1,23 @@
 <?php
 
 return [
+    'logo_addons' => [
+        'starter' => [
+            'name' => 'Starter Logo Package',
+            'price' => 65000,
+            'description' => 'Logo design, brand style guide, color system, and logo system.',
+        ],
+        'startup' => [
+            'name' => 'Startup Brand Package',
+            'price' => 145000,
+            'description' => 'Everything in Starter, plus stationery design and mockups.',
+        ],
+        'big-business' => [
+            'name' => 'Big Business Brand Package',
+            'price' => 250000,
+            'description' => 'Everything in Startup, plus 1 roll-up banner, 150 business cards, 2 lanyards, and 2 ID cards.',
+        ],
+    ],
     'services' => [
         'social-media-design' => [
             'name' => 'Social Media Design',

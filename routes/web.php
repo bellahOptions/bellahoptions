@@ -12,6 +12,7 @@ use App\Http\Controllers\SeoController;
 use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
@@ -34,9 +35,11 @@ Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
     ->name('orders.create');
 Route::post('/order/{serviceSlug}', [ServiceOrderController::class, 'store'])
     ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
-    ->middleware('throttle:contact-form')
+    ->middleware('throttle:order-form')
     ->name('orders.store');
 Route::get('/orders/{serviceOrder}/payment', [ServiceOrderController::class, 'payment'])->name('orders.payment.show');
+Route::get('/orders/{orderReference}/payment/initialize', [ServiceOrderController::class, 'redirectBlockedPaymentInitialize'])
+    ->name('orders.payment.initialize.blocked');
 Route::post('/orders/{serviceOrder}/payment/initialize', [ServiceOrderController::class, 'initializePayment'])->name('orders.payment.initialize');
 Route::get('/orders/payment/callback', [ServiceOrderController::class, 'paymentCallback'])->name('orders.payment.callback');
 Route::get('/orders/{serviceOrder}', [ServiceOrderController::class, 'show'])->name('orders.show');
@@ -53,7 +56,9 @@ Route::post('/contact-us', [ContactController::class, 'store'])
     ->name('contact.submit');
 
 Route::get('/waitlist', [WaitlistController::class, 'create'])->name('waitlist.create');
-Route::view('/terms-of-service', 'terms-of-service')->name('terms.show');
+Route::get('/terms-of-service', fn () => Inertia::render('Legal/Terms'))->name('terms.show');
+Route::get('/privacy-policy', fn () => Inertia::render('Legal/Privacy'))->name('privacy.show');
+Route::get('/cookie-policy', fn () => Inertia::render('Legal/Cookies'))->name('cookies.show');
 Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');

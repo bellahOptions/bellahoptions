@@ -388,7 +388,7 @@ export default function Dashboard({
                                             )}
 
                                             {clientOrders.slice(0, 3).map((order) => (
-                                                <article key={`overview-order-${order.uuid}`} className="rounded-lg border border-gray-200 p-4">
+                                                <article key={`overview-order-${order.order_code || order.uuid}`} className="rounded-lg border border-gray-200 p-4">
                                                     <div className="flex flex-wrap items-start justify-between gap-3">
                                                         <div>
                                                             <p className="text-sm font-semibold text-gray-900">{order.service_name}</p>
@@ -519,7 +519,7 @@ export default function Dashboard({
                                         )}
 
                                         {clientOrders.map((order) => (
-                                            <article key={order.uuid} className="rounded-lg border border-gray-200 p-4">
+                                            <article key={order.order_code || order.uuid} className="rounded-lg border border-gray-200 p-4">
                                                 <div className="flex flex-wrap items-start justify-between gap-3">
                                                     <div>
                                                         <p className="text-sm font-semibold text-gray-900">{order.service_name}</p>
@@ -553,14 +553,14 @@ export default function Dashboard({
 
                                                 <div className="mt-3 flex flex-wrap gap-2">
                                                     <Link
-                                                        href={route('orders.show', order.uuid)}
+                                                        href={route('orders.show', order.order_code || order.uuid)}
                                                         className="rounded-md border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                                                     >
                                                         View Progress
                                                     </Link>
                                                     {order.payment_status !== 'paid' && (
                                                         <Link
-                                                            href={route('orders.payment.show', order.uuid)}
+                                                            href={route('orders.payment.show', order.order_code || order.uuid)}
                                                             className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                                                         >
                                                             Complete Payment
@@ -610,10 +610,10 @@ export default function Dashboard({
                                                         Ref: {invoice.payment_reference}
                                                     </p>
                                                 )}
-                                                {invoice.service_order_uuid && invoice.status !== 'paid' && (
+                                                {invoice.service_order_code && invoice.status !== 'paid' && (
                                                     <div className="mt-3">
                                                         <Link
-                                                            href={route('orders.payment.show', invoice.service_order_uuid)}
+                                                            href={route('orders.payment.show', invoice.service_order_code)}
                                                             className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
                                                         >
                                                             Pay Invoice

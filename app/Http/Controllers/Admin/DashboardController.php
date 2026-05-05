@@ -74,7 +74,7 @@ class DashboardController extends Controller
                     'due_date' => $order->invoice?->due_date?->toDateString(),
                     'paid_at' => $order->invoice?->paid_at?->toDateTimeString(),
                     'payment_reference' => $order->invoice?->payment_reference,
-                    'service_order_uuid' => $order->uuid,
+                    'service_order_code' => $order->order_code,
                 ])
                 ->values();
 
@@ -112,6 +112,7 @@ class DashboardController extends Controller
                 'userStats' => $userStats,
                 'clientOrders' => $clientOrders->map(fn (ServiceOrder $order): array => [
                     'uuid' => $order->uuid,
+                    'order_code' => $order->order_code,
                     'service_name' => $order->service_name,
                     'package_name' => $order->package_name,
                     'amount' => (string) $order->amount,

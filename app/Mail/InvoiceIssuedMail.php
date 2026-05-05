@@ -40,6 +40,8 @@ class InvoiceIssuedMail extends Mailable
      */
     public function content(): Content
     {
+        $this->invoice->loadMissing('serviceOrder');
+
         return new Content(
             view: 'emails.invoice-issued',
         );
@@ -50,6 +52,7 @@ class InvoiceIssuedMail extends Mailable
      */
     public function attachments(): array
     {
+        $this->invoice->loadMissing('serviceOrder');
         $filename = 'Bellah-Options-Invoice-'.$this->invoice->invoice_number.'.pdf';
 
         return [

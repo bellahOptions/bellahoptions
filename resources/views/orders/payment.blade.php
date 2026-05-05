@@ -8,7 +8,7 @@
     <div class="container reveal">
         <span class="eyebrow">Secure Checkout</span>
         <h1>Complete Payment For {{ $order->service_name }}</h1>
-        <p class="lead">Order ID: {{ $order->uuid }}</p>
+        <p class="lead">Order ID: {{ $order->order_code }}</p>
     </div>
 </section>
 

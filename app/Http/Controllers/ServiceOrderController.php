@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceOrderRequest;
 use App\Http\Requests\StoreServiceOrderUpdateRequest;
+use App\Mail\InvoiceIssuedMail;
+use App\Mail\ServiceOrderClientSummaryMail;
 use App\Mail\ServiceOrderSubmittedAdminAlertMail;
 use App\Models\Customer;
 use App\Models\DiscountCode;
@@ -26,12 +28,13 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
-use Illuminate\View\View;
+use Inertia\Inertia;
+use Inertia\Response;
 use Throwable;
 
 class ServiceOrderController extends Controller
 {
-    public function create(Request $request, string $serviceSlug, ServiceOrderCatalog $catalog): View
+    public function create(Request $request, string $serviceSlug, ServiceOrderCatalog $catalog): Response
     {
         $localization = app(VisitorLocalization::class)->resolve($request);
         $service = $catalog->service($serviceSlug);
@@ -39,8 +42,6 @@ class ServiceOrderController extends Controller
 
         $checkoutServiceSlugs = $this->checkoutServiceSlugs();
         $checkoutServices = [];
-        $checkoutCreateRoutes = [];
-        $checkoutStoreRoutes = [];
         foreach ($checkoutServiceSlugs as $slug) {
             $serviceEntry = $catalog->service($slug);
             if (! is_array($serviceEntry)) {
@@ -51,8 +52,6 @@ class ServiceOrderController extends Controller
                 $serviceEntry,
                 (string) $localization['currency'],
             );
-            $checkoutCreateRoutes[$slug] = route('orders.create', ['serviceSlug' => $slug]);
-            $checkoutStoreRoutes[$slug] = route('orders.store', ['serviceSlug' => $slug]);
         }
 
         $selectedServiceSlug = trim((string) $request->query('service', $serviceSlug));
@@ -65,6 +64,7 @@ class ServiceOrderController extends Controller
             $selectedPackageCode = '';
         }
 
+        $logoAddons = $this->localizeLogoAddons($catalog->logoAddons(), (string) $localization['currency']);
         $discount = $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
 
         $request->session()->put('service_order_guard', [
@@ -73,20 +73,21 @@ class ServiceOrderController extends Controller
             'service_slug' => $serviceSlug,
         ]);
 
-        return view('orders.create', [
+        return Inertia::render('Orders/Create', [
             'serviceSlug' => $serviceSlug,
-            'service' => $service,
-            'serviceIntakeFields' => $catalog->intakeFields($serviceSlug),
             'formGuard' => $request->session()->get('service_order_guard'),
             'isAuthenticated' => $request->user() !== null,
             'discountCode' => $discount?->code,
             'discountSummary' => $discount ? $this->discountSummary($discount) : null,
             'checkoutServices' => $checkoutServices,
-            'checkoutCreateRoutes' => $checkoutCreateRoutes,
-            'checkoutStoreRoutes' => $checkoutStoreRoutes,
+            'logoAddons' => $logoAddons,
             'selectedServiceSlug' => $selectedServiceSlug,
             'selectedPackageCode' => $selectedPackageCode !== '' ? $selectedPackageCode : null,
             'visitorLocalization' => $localization,
+            'profileDefaults' => [
+                'name' => $request->user()?->name,
+                'email' => $request->user()?->email,
+            ],
         ]);
     }
 
@@ -102,10 +103,18 @@ class ServiceOrderController extends Controller
         $localization = app(VisitorLocalization::class)->resolve($request);
         $packageCode = (string) $payload['service_package'];
         $package = $catalog->package($serviceSlug, $packageCode);
+        $logoAddonCode = trim((string) ($payload['logo_addon_package'] ?? ''));
+        $logoAddon = $logoAddonCode !== '' ? $catalog->logoAddon($logoAddonCode) : null;
 
         if (! is_array($package)) {
             throw ValidationException::withMessages([
                 'service_package' => 'The selected package is invalid.',
+            ]);
+        }
+
+        if ($logoAddonCode !== '' && ! is_array($logoAddon)) {
+            throw ValidationException::withMessages([
+                'logo_addon_package' => 'The selected logo package is invalid.',
             ]);
         }
 
@@ -121,7 +130,9 @@ class ServiceOrderController extends Controller
         $customer = $this->resolveOrCreateCustomer($payload, $creator->id);
 
         $currency = strtoupper((string) ($localization['currency'] ?? 'NGN'));
-        $baseAmountNgn = round((float) ($package['price'] ?? 0), 2);
+        $packageAmountNgn = round((float) ($package['price'] ?? 0), 2);
+        $logoAddonAmountNgn = round((float) ($logoAddon['price'] ?? 0), 2);
+        $baseAmountNgn = round($packageAmountNgn + $logoAddonAmountNgn, 2);
         $baseAmount = $this->convertAmountFromNgn($baseAmountNgn, $currency);
         $requiresConsultation = $baseAmount <= 0;
 
@@ -162,6 +173,7 @@ class ServiceOrderController extends Controller
 
             $order = ServiceOrder::create([
                 'uuid' => (string) Str::uuid(),
+                'order_code' => $this->generateOrderCode(),
                 'user_id' => $user?->id,
                 'customer_id' => $customer?->id,
                 'service_slug' => $serviceSlug,
@@ -193,7 +205,7 @@ class ServiceOrderController extends Controller
                 'preferred_style' => $payload['preferred_style'] ?? null,
                 'deliverables' => $payload['deliverables'] ?? null,
                 'additional_details' => $payload['additional_details'] ?? null,
-                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog),
+                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog, $logoAddonCode, $logoAddonAmountNgn, $logoAddon),
                 'wants_account' => (bool) ($payload['create_account'] ?? false),
                 'created_by_ip' => $request->ip(),
                 'user_agent' => Str::limit((string) $request->userAgent(), 1000),
@@ -206,7 +218,7 @@ class ServiceOrderController extends Controller
                 'customer_email' => (string) $payload['email'],
                 'customer_occupation' => $payload['position'] ?? null,
                 'title' => (string) ($service['name'] ?? 'Service').' - '.(string) ($package['name'] ?? 'Package'),
-                'description' => Str::limit((string) $payload['project_summary'], 500),
+                'description' => Str::limit($this->invoiceDescription($payload, $logoAddon), 500),
                 'amount' => $finalAmount,
                 'currency' => $currency,
                 'due_date' => now()->addDays(7)->toDateString(),
@@ -263,6 +275,17 @@ class ServiceOrderController extends Controller
             ]);
         }
 
+        try {
+            $this->sendServiceOrderClientEmails($order->fresh('invoice.serviceOrder'));
+        } catch (Throwable $exception) {
+            Log::warning('Service order client email sequence failed.', [
+                'service_order_id' => $order->id,
+                'service_slug' => $serviceSlug,
+                'email' => $payload['email'] ?? null,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
         if ($requiresConsultation) {
             return redirect()
                 ->route('orders.show', $order)
@@ -274,15 +297,24 @@ class ServiceOrderController extends Controller
             ->with('success', 'Order created successfully. Please complete payment to start your project.');
     }
 
-    public function payment(Request $request, ServiceOrder $serviceOrder): View
+    public function payment(Request $request, ServiceOrder $serviceOrder): Response
     {
         $this->authorizeOrderAccess($request, $serviceOrder);
 
-        return view('orders.payment', [
-            'order' => $serviceOrder->load('invoice'),
+        $serviceOrder->load('invoice');
+
+        return Inertia::render('Orders/Payment', [
+            'order' => $this->orderPayload($serviceOrder),
             'canPay' => (float) $serviceOrder->amount > 0 && ! in_array((string) $serviceOrder->payment_status, ['paid', 'not_required'], true),
             'paymentProvider' => strtolower(trim((string) $serviceOrder->payment_provider)) ?: 'paystack',
         ]);
+    }
+
+    public function redirectBlockedPaymentInitialize(string $orderReference): RedirectResponse
+    {
+        return redirect()
+            ->route('home')
+            ->with('error', 'You are not allowed to jump the order process. Please use the approved order sequence.');
     }
 
     public function initializePayment(
@@ -292,7 +324,11 @@ class ServiceOrderController extends Controller
         FlutterwaveService $flutterwaveService
     ): RedirectResponse
     {
-        $this->authorizeOrderAccess($request, $serviceOrder);
+        if (! $this->hasOrderAccess($request, $serviceOrder)) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'You are not allowed to jump the order process. Please use the approved order sequence.');
+        }
 
         if ($serviceOrder->payment_status === 'paid') {
             return redirect()->route('orders.show', $serviceOrder)->with('success', 'This order has already been paid.');
@@ -396,6 +432,30 @@ class ServiceOrderController extends Controller
     private function convertAmountFromNgn(float $amountNgn, string $currency): float
     {
         return app(VisitorLocalization::class)->convertFromNgn($amountNgn, $currency);
+    }
+
+    /**
+     * @param  array<string, array<string, mixed>>  $addons
+     * @return array<string, array<string, mixed>>
+     */
+    private function localizeLogoAddons(array $addons, string $currency): array
+    {
+        $localizedAddons = [];
+
+        foreach ($addons as $packageCode => $addon) {
+            if (! is_string($packageCode) || ! is_array($addon)) {
+                continue;
+            }
+
+            $priceNgn = round((float) ($addon['price'] ?? 0), 2);
+            $localizedAddons[$packageCode] = [
+                ...$addon,
+                'price' => $this->convertAmountFromNgn($priceNgn, $currency),
+                'base_price_ngn' => $priceNgn,
+            ];
+        }
+
+        return $localizedAddons;
     }
 
     public function paymentCallback(
@@ -579,7 +639,7 @@ class ServiceOrderController extends Controller
         }
     }
 
-    public function show(Request $request, ServiceOrder $serviceOrder, ServiceOrderCatalog $catalog): View
+    public function show(Request $request, ServiceOrder $serviceOrder, ServiceOrderCatalog $catalog): Response
     {
         $this->authorizeOrderAccess($request, $serviceOrder);
 
@@ -588,11 +648,62 @@ class ServiceOrderController extends Controller
             'updates' => static fn ($query) => $query->where('is_public', true)->latest('id'),
         ]);
 
-        return view('orders.show', [
-            'order' => $serviceOrder,
+        return Inertia::render('Orders/Show', [
+            'order' => $this->orderPayload($serviceOrder, true),
             'serviceBriefLabels' => $catalog->intakeFieldLabels((string) $serviceOrder->service_slug),
             'serviceBriefData' => (array) data_get($serviceOrder->brief_payload, 'service_specific', []),
         ]);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function orderPayload(ServiceOrder $order, bool $includeUpdates = false): array
+    {
+        $payload = [
+            'id' => $order->id,
+            'uuid' => $order->uuid,
+            'order_code' => $order->order_code,
+            'service_slug' => $order->service_slug,
+            'service_name' => $order->service_name,
+            'package_code' => $order->package_code,
+            'package_name' => $order->package_name,
+            'currency' => strtoupper((string) $order->currency),
+            'base_amount' => (float) ($order->base_amount ?? 0),
+            'discount_code' => $order->discount_code,
+            'discount_amount' => (float) ($order->discount_amount ?? 0),
+            'amount' => (float) $order->amount,
+            'logo_addon' => data_get($order->brief_payload, 'logo_addon'),
+            'payment_provider' => strtolower(trim((string) $order->payment_provider)) ?: 'paystack',
+            'payment_status' => (string) $order->payment_status,
+            'order_status' => (string) $order->order_status,
+            'progress_percent' => (int) $order->progress_percent,
+            'full_name' => $order->full_name,
+            'email' => $order->email,
+            'phone' => $order->phone,
+            'business_name' => $order->business_name,
+            'created_at' => $order->created_at?->toIso8601String(),
+            'paid_at' => $order->paid_at?->toIso8601String(),
+            'invoice' => $order->invoice ? [
+                'invoice_number' => $order->invoice->invoice_number,
+                'amount' => (float) $order->invoice->amount,
+                'currency' => strtoupper((string) $order->invoice->currency),
+                'status' => (string) $order->invoice->status,
+                'payment_reference' => $order->invoice->payment_reference,
+            ] : null,
+        ];
+
+        if ($includeUpdates) {
+            $payload['updates'] = $order->updates->map(fn (ServiceOrderUpdate $update): array => [
+                'id' => $update->id,
+                'status' => (string) $update->status,
+                'note' => $update->note,
+                'progress_percent' => (int) $update->progress_percent,
+                'created_at' => $update->created_at?->toIso8601String(),
+            ])->values();
+        }
+
+        return $payload;
     }
 
     public function storeUpdate(StoreServiceOrderUpdateRequest $request, ServiceOrder $serviceOrder): RedirectResponse
@@ -742,15 +853,18 @@ class ServiceOrderController extends Controller
 
     private function authorizeOrderAccess(Request $request, ServiceOrder $serviceOrder): void
     {
+        abort_unless($this->hasOrderAccess($request, $serviceOrder), 403);
+    }
+
+    private function hasOrderAccess(Request $request, ServiceOrder $serviceOrder): bool
+    {
         $user = $request->user();
 
         if ($user && ($user->isStaff() || $serviceOrder->user_id === $user->id)) {
-            return;
+            return true;
         }
 
-        $hasSessionAccess = (bool) $request->session()->get('service_order_access.'.$serviceOrder->uuid, false);
-
-        abort_unless($hasSessionAccess, 403);
+        return (bool) $request->session()->get('service_order_access.'.$serviceOrder->uuid, false);
     }
 
     /**
@@ -820,11 +934,27 @@ class ServiceOrderController extends Controller
         return $number;
     }
 
+    private function generateOrderCode(): string
+    {
+        do {
+            $orderCode = 'BO'.strtoupper(Str::random(6));
+        } while (ServiceOrder::query()->where('order_code', $orderCode)->exists());
+
+        return $orderCode;
+    }
+
     /**
      * @param  array<string, mixed>  $payload
      * @return array<string, mixed>
      */
-    private function serviceBriefPayload(array $payload, string $serviceSlug, ServiceOrderCatalog $catalog): array
+    private function serviceBriefPayload(
+        array $payload,
+        string $serviceSlug,
+        ServiceOrderCatalog $catalog,
+        string $logoAddonCode = '',
+        float $logoAddonAmountNgn = 0.0,
+        ?array $logoAddon = null,
+    ): array
     {
         $serviceSpecific = [];
 
@@ -845,9 +975,38 @@ class ServiceOrderController extends Controller
         }
 
         return array_filter([
+            'has_logo' => $payload['has_logo'] ?? null,
+            'logo_design_interest' => $payload['logo_design_interest'] ?? null,
+            'logo_addon' => $logoAddonCode !== '' && is_array($logoAddon) ? [
+                'package_code' => $logoAddonCode,
+                'name' => (string) ($logoAddon['name'] ?? ucfirst(str_replace('-', ' ', $logoAddonCode))),
+                'price_ngn' => round($logoAddonAmountNgn, 2),
+                'description' => (string) ($logoAddon['description'] ?? ''),
+            ] : null,
             'timeline_preference' => $payload['timeline_preference'] ?? null,
             'service_specific' => $serviceSpecific !== [] ? $serviceSpecific : null,
         ], static fn (mixed $value): bool => $value !== null && $value !== []);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>|null  $logoAddon
+     */
+    private function invoiceDescription(array $payload, ?array $logoAddon = null): string
+    {
+        $description = trim((string) ($payload['project_summary'] ?? ''));
+
+        if (! is_array($logoAddon)) {
+            return $description;
+        }
+
+        $logoAddonName = trim((string) ($logoAddon['name'] ?? ''));
+
+        if ($logoAddonName === '') {
+            return $description;
+        }
+
+        return trim($description.' | Logo Add-on: '.$logoAddonName);
     }
 
     private function sendOrderSubmittedAdminAlert(ServiceOrder $order): void
@@ -859,6 +1018,18 @@ class ServiceOrderController extends Controller
         }
 
         Mail::to($adminRecipients)->send(new ServiceOrderSubmittedAdminAlertMail($order));
+    }
+
+    private function sendServiceOrderClientEmails(ServiceOrder $order): void
+    {
+        $order->loadMissing('invoice.serviceOrder');
+
+        if (! $order->invoice || blank($order->email)) {
+            return;
+        }
+
+        Mail::to($order->email)->send(new InvoiceIssuedMail($order->invoice));
+        Mail::to($order->email)->send(new ServiceOrderClientSummaryMail($order));
     }
 
     /**

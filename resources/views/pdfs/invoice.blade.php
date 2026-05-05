@@ -232,6 +232,9 @@
         </table>
 
         <p class="title">Invoice #{{ $invoice->invoice_number }}</p>
+        @if ($invoice->serviceOrder?->order_code)
+            <p class="meta">Order Code: {{ $invoice->serviceOrder->order_code }}</p>
+        @endif
         <p class="meta">Invoice Date: {{ $invoiceDate }}</p>
         <p class="meta">Due Date: {{ $dueDate }}</p>
 

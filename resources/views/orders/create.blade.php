@@ -8,7 +8,8 @@
     <div class="container reveal">
         <span class="eyebrow">Secure Order Intake</span>
         <h1>Get Started With Bellah Options</h1>
-        <p class="lead">Complete the guided form below to submit your request, select a service package, and generate your order invoice.</p>
+        <p class="lead">Complete the guided form below to submit your request, select a service package, and generate your order invoice.</p>   
+            
     </div>
 </section>
 

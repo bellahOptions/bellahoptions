@@ -1,20 +1,20 @@
-import Checkbox from '@/Components/Checkbox';
-import InputError from '@/Components/InputError';
-import GuestLayout from '@/Layouts/GuestLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import Checkbox from "@/Components/Checkbox";
+import InputError from "@/Components/InputError";
+import GuestLayout from "@/Layouts/GuestLayout";
+import { Head, Link, useForm } from "@inertiajs/react";
 
 export default function Login({ status, canResetPassword }) {
     const { data, setData, post, processing, errors, reset } = useForm({
-        email: '',
-        password: '',
+        email: "",
+        password: "",
         remember: false,
     });
 
     const submit = (event) => {
         event.preventDefault();
 
-        post(route('login'), {
-            onFinish: () => reset('password'),
+        post(route("login"), {
+            onFinish: () => reset("password"),
         });
     };
 
@@ -30,7 +30,7 @@ export default function Login({ status, canResetPassword }) {
                     Sign in to your account
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Access your Bellah Options client dashboard securely.
+                    Access your dashboard.
                 </p>
             </div>
 
@@ -42,7 +42,10 @@ export default function Login({ status, canResetPassword }) {
 
             <form onSubmit={submit} className="mt-6 space-y-4">
                 <div>
-                    <label htmlFor="email" className="text-sm font-medium text-slate-700">
+                    <label
+                        htmlFor="email"
+                        className="text-sm font-medium text-slate-700"
+                    >
                         Email Address
                     </label>
                     <input
@@ -52,14 +55,19 @@ export default function Login({ status, canResetPassword }) {
                         value={data.email}
                         className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="username"
-                        onChange={(event) => setData('email', event.target.value)}
+                        onChange={(event) =>
+                            setData("email", event.target.value)
+                        }
                         required
                     />
                     <InputError message={errors.email} className="mt-2" />
                 </div>
 
                 <div>
-                    <label htmlFor="password" className="text-sm font-medium text-slate-700">
+                    <label
+                        htmlFor="password"
+                        className="text-sm font-medium text-slate-700"
+                    >
                         Password
                     </label>
                     <input
@@ -69,7 +77,9 @@ export default function Login({ status, canResetPassword }) {
                         value={data.password}
                         className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="current-password"
-                        onChange={(event) => setData('password', event.target.value)}
+                        onChange={(event) =>
+                            setData("password", event.target.value)
+                        }
                         required
                     />
                     <InputError message={errors.password} className="mt-2" />
@@ -79,7 +89,9 @@ export default function Login({ status, canResetPassword }) {
                     <Checkbox
                         name="remember"
                         checked={data.remember}
-                        onChange={(event) => setData('remember', event.target.checked)}
+                        onChange={(event) =>
+                            setData("remember", event.target.checked)
+                        }
                         className="text-blue-600 focus:ring-blue-500"
                     />
                     <span className="text-sm text-slate-600">Remember me</span>
@@ -90,13 +102,13 @@ export default function Login({ status, canResetPassword }) {
                     disabled={processing}
                     className="w-full rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                    {processing ? 'Signing in...' : 'Sign In'}
+                    {processing ? "Signing in..." : "Sign In"}
                 </button>
 
                 <div className="flex flex-wrap items-center justify-end gap-3 pt-1 text-sm">
                     {canResetPassword && (
                         <Link
-                            href={route('password.request')}
+                            href={route("password.request")}
                             className="font-medium text-slate-600 hover:text-slate-900"
                         >
                             Forgot password?
@@ -105,8 +117,11 @@ export default function Login({ status, canResetPassword }) {
                 </div>
 
                 <p className="text-sm text-slate-600">
-                    Don&apos;t have an account?{' '}
-                    <Link href={route('register')} className="font-semibold text-blue-700 hover:text-blue-800">
+                    Don&apos;t have an account?{" "}
+                    <Link
+                        href={route("register")}
+                        className="font-semibold text-blue-700 hover:text-blue-800"
+                    >
                         Create one
                     </Link>
                 </p>

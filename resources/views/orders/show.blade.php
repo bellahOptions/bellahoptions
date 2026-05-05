@@ -17,7 +17,7 @@
         <div class="card soft reveal">
             <h2 style="font-size:1.3rem;">Order Information</h2>
             <ul style="margin:0.8rem 0 0; padding-left:1rem; display:grid; gap:0.35rem;">
-                <li><strong>Order ID:</strong> {{ $order->uuid }}</li>
+                <li><strong>Order ID:</strong> {{ $order->order_code }}</li>
                 <li><strong>Service:</strong> {{ $order->service_name }}</li>
                 <li><strong>Package:</strong> {{ $order->package_name }}</li>
                 <li><strong>Payment Status:</strong> {{ strtoupper((string) $order->payment_status) }}</li>

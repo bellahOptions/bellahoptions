@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'uuid',
+    'order_code',
     'user_id',
     'customer_id',
     'service_slug',
@@ -74,7 +75,7 @@ class ServiceOrder extends Model
 
     public function getRouteKeyName(): string
     {
-        return 'uuid';
+        return 'order_code';
     }
 
     public function user(): BelongsTo

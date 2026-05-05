@@ -28,7 +28,7 @@ class ServiceOrderSubmittedAdminAlertMail extends Mailable
         $senderName = (string) config('bellah.invoice.company_name', 'Bellah Options');
 
         return new Envelope(
-            subject: sprintf('New Service Order: %s (%s)', $this->order->service_name, $this->order->uuid),
+            subject: sprintf('New Service Order: %s (%s)', $this->order->service_name, $this->order->order_code),
             from: new Address($senderEmail, $senderName),
         );
     }

@@ -26,7 +26,7 @@
                         <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
                             <tr>
                                 <td style="padding:7px 0; font-size:14px; color:#475569; width:180px;"><strong style="color:#0f172a;">Order ID</strong></td>
-                                <td style="padding:7px 0; font-size:14px; color:#0f172a;">{{ $order->uuid }}</td>
+                                <td style="padding:7px 0; font-size:14px; color:#0f172a;">{{ $order->order_code }}</td>
                             </tr>
                             <tr>
                                 <td style="padding:7px 0; font-size:14px; color:#475569;"><strong style="color:#0f172a;">Service</strong></td>

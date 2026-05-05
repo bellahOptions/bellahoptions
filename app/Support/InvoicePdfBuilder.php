@@ -16,7 +16,7 @@ class InvoicePdfBuilder
         $invoiceDate = $invoice->issued_at?->format('d/m/Y') ?? now()->format('d/m/Y');
         $dueDate = $invoice->due_date?->format('d/m/Y') ?? $invoiceDate;
         $amount = (float) $invoice->amount;
-        $invoice->loadMissing('customer:id,address,company');
+        $invoice->loadMissing('customer:id,address,company', 'serviceOrder');
 
         $description = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
 
@@ -71,6 +71,7 @@ class InvoicePdfBuilder
 
         return $this->buildPlainFallbackPdf('INVOICE', [
             'Invoice Number: '.$invoice->invoice_number,
+            'Order Code: '.($invoice->serviceOrder?->order_code ?: 'N/A'),
             'Client: '.$customerName,
             'Client Email: '.($customerEmail !== '' ? $customerEmail : 'N/A'),
             'Issue Date: '.$invoiceDate,
@@ -93,7 +94,7 @@ class InvoicePdfBuilder
         $receiptDate = $invoice->paid_at?->format('d/m/Y') ?? now()->format('d/m/Y');
         $dueDate = $invoice->due_date?->format('d/m/Y') ?? $invoiceDate;
         $amount = (float) $invoice->amount;
-        $invoice->loadMissing('customer:id,address,company');
+        $invoice->loadMissing('customer:id,address,company', 'serviceOrder');
 
         $description = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
 

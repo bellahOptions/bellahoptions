@@ -119,4 +119,27 @@ class ServiceOrderCatalog
 
         return $labels;
     }
+
+    /**
+     * @return array<string, array<string, mixed>>
+     */
+    public function logoAddons(): array
+    {
+        /** @var array<string, array<string, mixed>> $addons */
+        $addons = (array) config('service_orders.logo_addons', []);
+
+        return $addons;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    public function logoAddon(string $packageCode): ?array
+    {
+        $addons = $this->logoAddons();
+
+        return isset($addons[$packageCode]) && is_array($addons[$packageCode])
+            ? $addons[$packageCode]
+            : null;
+    }
 }
