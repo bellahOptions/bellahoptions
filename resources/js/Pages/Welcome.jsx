@@ -240,7 +240,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [] }) {
                                         <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
                                     </Link>
                                     <Link
-                                        href="/order/social-media-design"
+                                        href="/order/special-service"
                                         className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-black text-gray-900 transition hover:border-[#000285] hover:text-[#000285]"
                                     >
                                         Start a Project
@@ -596,7 +596,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [] }) {
                                     </p>
                                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                                         <Link
-                                            href="/order/social-media-design"
+                                            href="/order/special-service"
                                             className="inline-flex items-center justify-center gap-3 rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
                                         >
                                             Start Your Project

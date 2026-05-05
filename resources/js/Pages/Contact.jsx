@@ -1,7 +1,8 @@
-import { Head } from "@inertiajs/react";
+import { Head, useForm, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import { EnvelopeIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline";
+import { useEffect } from "react";
 
 const contactCards = [
     {
@@ -24,7 +25,48 @@ const contactCards = [
     },
 ];
 
-export default function Contact() {
+export default function Contact({
+    humanCheckQuestion = "",
+    humanCheckNonce = "",
+    formRenderedAt = 0,
+}) {
+    const { flash } = usePage().props;
+    const { data, setData, post, processing, errors, reset, clearErrors } = useForm({
+        name: "",
+        email: "",
+        phone: "",
+        project_type: "",
+        message: "",
+        human_check_answer: "",
+        human_check_nonce: humanCheckNonce,
+        form_rendered_at: formRenderedAt,
+        company_name: "",
+        website: "",
+    });
+
+    useEffect(() => {
+        setData((previous) => ({
+            ...previous,
+            human_check_nonce: humanCheckNonce,
+            form_rendered_at: formRenderedAt,
+            human_check_answer: "",
+            company_name: "",
+            website: "",
+        }));
+    }, [formRenderedAt, humanCheckNonce, setData]);
+
+    const submit = (event) => {
+        event.preventDefault();
+
+        post(route("contact.submit"), {
+            preserveScroll: true,
+            onSuccess: () => {
+                reset("name", "email", "phone", "project_type", "message", "human_check_answer", "company_name", "website");
+                clearErrors();
+            },
+        });
+    };
+
     return (
         <>
             <Head title="Contact Bellah Options" />
@@ -69,23 +111,106 @@ export default function Contact() {
                                 })}
                             </Stagger>
 
-                            <form className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                            <form onSubmit={submit} className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
+                                {flash?.success && (
+                                    <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                        {flash.success}
+                                    </div>
+                                )}
+                                {flash?.error && (
+                                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                        {flash.error}
+                                    </div>
+                                )}
+
+                                <input
+                                    type="text"
+                                    name="company_name"
+                                    value={data.company_name}
+                                    onChange={(event) => setData("company_name", event.target.value)}
+                                    className="hidden"
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                    aria-hidden="true"
+                                />
+                                <input
+                                    type="text"
+                                    name="website"
+                                    value={data.website}
+                                    onChange={(event) => setData("website", event.target.value)}
+                                    className="hidden"
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                    aria-hidden="true"
+                                />
+
                                 <div className="grid gap-4 sm:grid-cols-2">
-                                    <Field label="Name" placeholder="Your name" />
-                                    <Field label="Email" placeholder="you@example.com" type="email" />
+                                    <Field
+                                        label="Name"
+                                        placeholder="Your name"
+                                        value={data.name}
+                                        onChange={(event) => setData("name", event.target.value)}
+                                        error={errors.name}
+                                    />
+                                    <Field
+                                        label="Email"
+                                        placeholder="you@example.com"
+                                        type="email"
+                                        value={data.email}
+                                        onChange={(event) => setData("email", event.target.value)}
+                                        error={errors.email}
+                                    />
+                                    <Field
+                                        label="Phone"
+                                        placeholder="+234 800 000 0000"
+                                        value={data.phone}
+                                        onChange={(event) => setData("phone", event.target.value)}
+                                        error={errors.phone}
+                                    />
                                     <div className="sm:col-span-2">
-                                        <Field label="Project Type" placeholder="Brand design, website, campaign..." />
+                                        <Field
+                                            label="Project Type"
+                                            placeholder="Brand design, website, campaign..."
+                                            value={data.project_type}
+                                            onChange={(event) => setData("project_type", event.target.value)}
+                                            error={errors.project_type}
+                                        />
                                     </div>
                                     <div className="sm:col-span-2">
                                         <label className="mb-2 block text-sm font-bold text-gray-700">Message</label>
-                                        <textarea rows={6} className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]" placeholder="Tell us what you need..." />
+                                        <textarea
+                                            rows={6}
+                                            value={data.message}
+                                            onChange={(event) => setData("message", event.target.value)}
+                                            className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]"
+                                            placeholder="Tell us what you need..."
+                                        />
+                                        {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message}</p>}
+                                    </div>
+                                    <div className="sm:col-span-2">
+                                        <label className="mb-2 block text-sm font-bold text-gray-700">
+                                            Human Check: {humanCheckQuestion}
+                                        </label>
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            value={data.human_check_answer}
+                                            onChange={(event) => setData("human_check_answer", event.target.value)}
+                                            className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]"
+                                            placeholder="Enter answer"
+                                        />
+                                        {errors.human_check_answer && <p className="mt-1 text-xs text-red-600">{errors.human_check_answer}</p>}
                                     </div>
                                 </div>
-                                <button type="button" className="mt-5 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white transition hover:bg-blue-800">
-                                    Send Message
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="mt-5 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    {processing ? "Sending..." : "Send Message"}
                                 </button>
                                 <p className="mt-3 text-xs text-gray-500">
-                                    For now, use phone or email for fastest response.
+                                    Protected with rate limiting, honeypot checks, and human verification.
                                 </p>
                             </form>
                         </div>
@@ -96,15 +221,18 @@ export default function Contact() {
     );
 }
 
-function Field({ label, type = "text", placeholder = "" }) {
+function Field({ label, type = "text", placeholder = "", value = "", onChange, error = "" }) {
     return (
         <div>
             <label className="mb-2 block text-sm font-bold text-gray-700">{label}</label>
             <input
                 type={type}
                 placeholder={placeholder}
+                value={value}
+                onChange={onChange}
                 className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]"
             />
+            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
         </div>
     );
 }

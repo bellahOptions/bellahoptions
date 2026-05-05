@@ -362,12 +362,7 @@ class ServiceOrderController extends Controller
      */
     private function checkoutServiceSlugs(): array
     {
-        return [
-            'social-media-design',
-            'web-design',
-            'graphic-design',
-            'special-service',
-        ];
+        return array_values(array_keys(config('service_orders.services', [])));
     }
 
     /**

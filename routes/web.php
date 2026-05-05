@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
@@ -47,7 +48,9 @@ Route::post('/webhooks/flutterwave', [ServiceOrderController::class, 'flutterwav
     ->name('webhooks.flutterwave');
 Route::redirect('/smm-form', '/order/social-media-design')->name('orders.smm-form');
 Route::redirect('/about-us', '/about-bellah-options')->name('about.legacy');
-Route::post('/contact-us', fn () => redirect()->route('home'))->name('contact.submit');
+Route::post('/contact-us', [ContactController::class, 'store'])
+    ->middleware('throttle:contact-form')
+    ->name('contact.submit');
 
 Route::get('/waitlist', [WaitlistController::class, 'create'])->name('waitlist.create');
 Route::view('/terms-of-service', 'terms-of-service')->name('terms.show');

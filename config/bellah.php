@@ -12,6 +12,11 @@ return [
 
     'waitlist_admin_emails' => $normalizeEmails((string) env('BELLAH_WAITLIST_ADMIN_EMAILS', 'bellahoptions@gmail.com')),
 
+    'contact_admin_emails' => $normalizeEmails((string) env(
+        'BELLAH_CONTACT_ADMIN_EMAILS',
+        'ahmed@bellahoptions.com,bellahoptions@gmail.com',
+    )),
+
     'invoice' => [
         'currency' => strtoupper((string) env('BELLAH_INVOICE_CURRENCY', 'NGN')),
         'company_name' => env('BELLAH_COMPANY_NAME', 'Bellah Options'),

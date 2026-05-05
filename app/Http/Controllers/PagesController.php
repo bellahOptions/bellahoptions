@@ -10,6 +10,8 @@ use App\Support\PublicContentSecurity;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Throwable;
 
@@ -111,9 +113,9 @@ class PagesController extends Controller
         return Inertia::render('WebDesignSamples');
     }
 
-    public function contactPage()
+    public function contactPage(Request $request)
     {
-        return Inertia::render('Contact');
+        return Inertia::render('Contact', $this->createContactHumanChallenge($request));
     }
 
     public function blogPage()
@@ -354,6 +356,29 @@ class PagesController extends Controller
             'published_at' => $post->published_at?->toFormattedDateString(),
             'cover_image' => $post->cover_image ? $this->publicAssetUrl($post->cover_image) : null,
             'url' => route('blog.show', $post),
+        ];
+    }
+
+    /**
+     * @return array{humanCheckQuestion: string, humanCheckNonce: string, formRenderedAt: int}
+     */
+    private function createContactHumanChallenge(Request $request): array
+    {
+        $left = random_int(2, 11);
+        $right = random_int(2, 11);
+        $issuedAt = now()->timestamp;
+        $nonce = Str::random(32);
+
+        $request->session()->put('contact_human_check', [
+            'answer' => $left + $right,
+            'issued_at' => $issuedAt,
+            'nonce' => $nonce,
+        ]);
+
+        return [
+            'humanCheckQuestion' => "What is {$left} + {$right}?",
+            'humanCheckNonce' => $nonce,
+            'formRenderedAt' => $issuedAt,
         ];
     }
 }
