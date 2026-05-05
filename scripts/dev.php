@@ -8,27 +8,30 @@ if (! file_exists($concurrently)) {
     exit(1);
 }
 
+$nodeBinary = PHP_OS_FAMILY === 'Windows' ? 'node.exe' : 'node';
+$npmBinary = PHP_OS_FAMILY === 'Windows' ? 'npm.cmd' : 'npm';
+
 $node = firstExistingPath([
     getenv('NODE_BINARY') ?: null,
-    ...pathsFromLaragon('node.exe'),
-    ...pathsFromEnvironment('node.exe'),
-    'C:\Program Files\nodejs\node.exe',
+    ...pathsFromLaragon($nodeBinary),
+    ...pathsFromEnvironment($nodeBinary),
+    PHP_OS_FAMILY === 'Windows' ? 'C:\Program Files\nodejs\node.exe' : null,
 ]);
 
 $npm = firstExistingPath([
     getenv('NPM_BINARY') ?: null,
-    ...pathsFromLaragon('npm.cmd'),
-    ...pathsFromEnvironment('npm.cmd'),
-    'C:\Program Files\nodejs\npm.cmd',
+    ...pathsFromLaragon($npmBinary),
+    ...pathsFromEnvironment($npmBinary),
+    PHP_OS_FAMILY === 'Windows' ? 'C:\Program Files\nodejs\npm.cmd' : null,
 ]);
 
 if ($node === null) {
-    fwrite(STDERR, "Unable to find node.exe. Install Node.js or set NODE_BINARY to its full path.\n");
+    fwrite(STDERR, "Unable to find node. Install Node.js or set NODE_BINARY to its full path.\n");
     exit(1);
 }
 
 if ($npm === null) {
-    fwrite(STDERR, "Unable to find npm.cmd. Install Node.js or set NPM_BINARY to its full path.\n");
+    fwrite(STDERR, "Unable to find npm. Install Node.js or set NPM_BINARY to its full path.\n");
     exit(1);
 }
 

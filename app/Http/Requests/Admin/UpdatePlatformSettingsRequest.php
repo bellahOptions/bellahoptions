@@ -30,6 +30,7 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'contact_map_embed_url' => trim((string) $this->input('contact_map_embed_url')),
             'home_slides' => is_array($this->input('home_slides')) ? $this->input('home_slides') : [],
             'service_prices' => is_array($this->input('service_prices')) ? $this->input('service_prices') : [],
+            'terms' => is_array($this->input('terms')) ? $this->input('terms') : [],
         ]);
     }
 
@@ -61,6 +62,11 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'service_prices' => ['required', 'array', 'min:1'],
             'service_prices.*' => ['required', 'array', 'min:1'],
             'service_prices.*.*' => ['required', 'numeric', 'min:1', 'max:999999999.99'],
+
+            'terms' => ['required', 'array'],
+            'terms.terms_of_service' => ['nullable', 'string', 'max:200000'],
+            'terms.privacy_policy' => ['nullable', 'string', 'max:200000'],
+            'terms.cookie_policy' => ['nullable', 'string', 'max:200000'],
         ];
     }
 

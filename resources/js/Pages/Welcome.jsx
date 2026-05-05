@@ -11,7 +11,6 @@ import {
     CodeBracketIcon,
     DevicePhoneMobileIcon,
     LightBulbIcon,
-    MegaphoneIcon,
     PaintBrushIcon,
     PresentationChartLineIcon,
     RectangleGroupIcon,
@@ -72,41 +71,6 @@ const services = [
         icon: RectangleGroupIcon,
         accent: "bg-blue-500",
         tint: "bg-blue-50 text-blue-700 ring-blue-100",
-    },
-];
-
-const serviceSamples = [
-    {
-        title: "Brand Identity System",
-        service: "Brand Design",
-        image: "/Wingram-07.png",
-        summary: "Wingram brand identity built for consistency across digital and print touchpoints.",
-        href: "https://www.behance.net/gallery/233003719/Brand-Identity-System-for-Wingram-by-Bellah-Options",
-        icon: CheckBadgeIcon,
-    },
-    {
-        title: "Social Campaign Creatives",
-        service: "Graphic Design",
-        image: "/terranize.PNG",
-        summary: "Campaign visuals designed to improve attention and message clarity.",
-        href: "https://www.behance.net/gallery/216593821/Social-Media-Designs-for-SavingsBox",
-        icon: MegaphoneIcon,
-    },
-    {
-        title: "Live Website Samples",
-        service: "Web Design",
-        image: "/t-site.PNG",
-        summary: "Responsive website projects built for strong messaging and conversion paths.",
-        href: "/web-design-samples",
-        icon: CodeBracketIcon,
-    },
-    {
-        title: "App Experience Reimagined",
-        service: "UI/UX Design",
-        image: "/perkpay.PNG",
-        summary: "Product interface direction focused on usability and visual confidence.",
-        href: "https://www.behance.net/gallery/240637753/CDCare-App-Reimagined",
-        icon: RectangleGroupIcon,
     },
 ];
 
@@ -183,9 +147,10 @@ const cycleLabel = (cycle) => {
     return labels[cycle] || cycle || "package";
 };
 
-export default function Welcome({ slideShows = [], featuredPlans = [] }) {
+export default function Welcome({ slideShows = [], featuredPlans = [], gallerySamples = [] }) {
     const scrollingLogos = [...brandLogos, ...brandLogos, ...brandLogos];
     const hasFeaturedPlans = Array.isArray(featuredPlans) && featuredPlans.length > 0;
+    const hasGallerySamples = Array.isArray(gallerySamples) && gallerySamples.length > 0;
 
     return (
         <>
@@ -471,71 +436,68 @@ export default function Welcome({ slideShows = [], featuredPlans = [] }) {
                         </div>
                     </RevealSection>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="mx-auto max-w-3xl text-center">
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">
-                                    Service Samples
-                                </p>
-                                <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
-                                    Samples from projects we have rendered across key service areas.
-                                </h2>
-                                <p className="mt-4 text-base leading-8 text-gray-600">
-                                    Quick previews from branding, graphic design, web design, and UI/UX work done by Bellah Options.
-                                </p>
-                            </div>
+                    {hasGallerySamples && (
+                        <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
+                            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                                <div className="mx-auto max-w-3xl text-center">
+                                    <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
+                                        Selected projects uploaded by our super-admin team.
+                                    </h2>
+                                    <p className="mt-4 text-base leading-8 text-gray-600">
+                                        Fresh portfolio previews pulled directly from the live gallery records.
+                                    </p>
+                                </div>
 
-                            <Stagger className="mt-10 grid gap-5 sm:grid-cols-2">
-                                {serviceSamples.map((sample) => {
-                                    const Icon = sample.icon;
-                                    const isExternal = sample.href.startsWith("http");
+                                <Stagger className="mt-10 grid gap-5 grid-cols-2 md:grid-cols-4">
+                                    {gallerySamples.map((sample) => {
+                                        const isExternal = sample.href.startsWith("http");
 
-                                    return (
-                                        <StaggerItem
-                                            as="article"
-                                            key={sample.title}
-                                            className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200"
-                                        >
-                                            <div className="aspect-[16/10] overflow-hidden bg-blue-50">
-                                                <img
-                                                    src={sample.image}
-                                                    alt={sample.title}
-                                                    className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                                                />
-                                            </div>
-                                            <div className="p-6">
-                                                <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#000285]">
-                                                    <Icon className="h-4 w-4" />
-                                                    {sample.service}
+                                        return (
+                                            <StaggerItem
+                                                as="article"
+                                                key={sample.title}
+                                                className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200"
+                                            >
+                                                <div className="aspect-[16/10] overflow-hidden bg-blue-50">
+                                                    <img
+                                                        src={sample.image}
+                                                        alt={sample.title}
+                                                        className="h-full w-full object-cover transition duration-500 hover:scale-105"
+                                                    />
                                                 </div>
-                                                <h3 className="mt-3 text-2xl font-black text-gray-950">{sample.title}</h3>
-                                                <p className="mt-3 text-sm leading-6 text-gray-600">{sample.summary}</p>
-                                                {isExternal ? (
-                                                    <a
-                                                        href={sample.href}
-                                                        target="_blank"
-                                                        rel="noreferrer"
-                                                        className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
-                                                    >
-                                                        View Sample
-                                                        <ArrowRightIcon className="h-4 w-4" />
-                                                    </a>
-                                                ) : (
-                                                    <Link
-                                                        href={sample.href}
-                                                        className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
-                                                    >
-                                                        View Sample
-                                                        <ArrowRightIcon className="h-4 w-4" />
-                                                    </Link>
-                                                )}
-                                            </div>
-                                        </StaggerItem>
-                                    );
-                                })}
-                            </Stagger>
-                        </div>
-                    </RevealSection>
+                                                <div className="p-6">
+                                                    <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-[#000285]">
+                                                        {sample.service}
+                                                    </div>
+                                                    <h3 className="mt-3 text-2xl font-black text-gray-950">{sample.title}</h3>
+                                                    <p className="mt-3 text-sm leading-6 text-gray-600">{sample.summary}</p>
+                                                    {isExternal ? (
+                                                        <a
+                                                            href={sample.href}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
+                                                        >
+                                                            View Sample
+                                                            <ArrowRightIcon className="h-4 w-4" />
+                                                        </a>
+                                                    ) : (
+                                                        <Link
+                                                            href={sample.href}
+                                                            className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
+                                                        >
+                                                            View Sample
+                                                            <ArrowRightIcon className="h-4 w-4" />
+                                                        </Link>
+                                                    )}
+                                                </div>
+                                            </StaggerItem>
+                                        );
+                                    })}
+                                </Stagger>
+                            </div>
+                        </RevealSection>
+                    )}
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

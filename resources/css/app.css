@@ -1,4 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +10,7 @@
 :root {
     --font-main: "DM Sans", sans-serif;
 }
- 
+
 body {
     font-family: var(--font-main);
 }
@@ -136,7 +139,6 @@ body {
     }
 }
 
-  
 body.marketing-ui * {
             box-sizing: border-box;
         }
@@ -159,12 +161,10 @@ body.marketing-ui a {
             text-decoration: none;
         }
 
-
         body.marketing-ui .container {
             width: min(1140px, calc(100% - 2rem));
             margin-inline: auto;
         }
-
 
         body.marketing-ui .site-header {
             position: sticky;
@@ -175,7 +175,6 @@ body.marketing-ui a {
             border-bottom: 1px solid rgba(15, 35, 71, 0.08);
         }
 
-
         body.marketing-ui .nav-row {
             display: flex;
             justify-content: space-between;
@@ -183,7 +182,6 @@ body.marketing-ui a {
             gap: 1rem;
             padding: 0.8rem 0;
         }
-
 
         body.marketing-ui .brand {
             display: inline-flex;
@@ -195,20 +193,17 @@ body.marketing-ui a {
             color: var(--navy);
         }
 
-
         body.marketing-ui .brand img {
             width: 34px;
             height: 34px;
             object-fit: contain;
         }
 
-
         body.marketing-ui .nav-links {
             display: flex;
             align-items: center;
             gap: 0.35rem;
         }
-
 
         body.marketing-ui .nav-links a {
             font-weight: 700;
@@ -219,18 +214,15 @@ body.marketing-ui a {
             transition: 180ms ease;
         }
 
-
         body.marketing-ui .nav-links a:hover {
             color: var(--navy);
             background: rgba(37, 80, 255, 0.08);
         }
 
-
         body.marketing-ui .nav-links a.active {
             color: var(--blue);
             background: rgba(37, 80, 255, 0.11);
         }
-
 
         body.marketing-ui .menu-toggle {
             display: none;
@@ -244,13 +236,11 @@ body.marketing-ui a {
             cursor: pointer;
         }
 
-
         body.marketing-ui .hero {
             position: relative;
             overflow: hidden;
             padding: clamp(3.6rem, 6vw, 6rem) 0 clamp(2.8rem, 5vw, 4.6rem);
         }
-
 
         body.marketing-ui .hero::after {
             content: '';
@@ -269,7 +259,6 @@ body.marketing-ui a {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(20px); }
         }
-
 
         body.marketing-ui .eyebrow {
             display: inline-flex;
@@ -306,13 +295,11 @@ body.marketing-ui p {
             color: var(--ink-soft);
         }
 
-
         body.marketing-ui .lead {
             font-size: clamp(1rem, 2.2vw, 1.2rem);
             margin-top: 1rem;
             max-width: 64ch;
         }
-
 
         body.marketing-ui .hero-grid,
 
@@ -325,28 +312,23 @@ body.marketing-ui p {
             gap: 1.1rem;
         }
 
-
         body.marketing-ui .hero-grid,
 
         body.marketing-ui .grid-2 {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
-
         body.marketing-ui .grid-3 {
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
-
 
         body.marketing-ui .grid-4 {
             grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
-
         body.marketing-ui .section {
             padding: clamp(2.4rem, 4.2vw, 4.2rem) 0;
         }
-
 
         body.marketing-ui .card {
             background: var(--panel);
@@ -356,11 +338,9 @@ body.marketing-ui p {
             box-shadow: var(--shadow);
         }
 
-
         body.marketing-ui .card.soft {
             background: linear-gradient(160deg, rgba(255, 255, 255, 0.95), rgba(241, 247, 255, 0.95));
         }
-
 
         body.marketing-ui .media {
             width: 100%;
@@ -370,7 +350,6 @@ body.marketing-ui p {
             background: #edf4ff;
         }
 
-
         body.marketing-ui .btn-row {
             display: flex;
             flex-wrap: wrap;
@@ -378,7 +357,6 @@ body.marketing-ui p {
             gap: 0.8rem;
             margin-top: 1.35rem;
         }
-
 
         body.marketing-ui .btn,
 
@@ -396,19 +374,16 @@ body.marketing-ui p {
             padding: 0.86rem 1.1rem;
         }
 
-
         body.marketing-ui .btn {
             color: #fff;
             background: linear-gradient(120deg, #2550ff, #0b1f6d);
             box-shadow: 0 16px 30px rgba(37, 80, 255, 0.24);
         }
 
-
         body.marketing-ui .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 18px 36px rgba(37, 80, 255, 0.34);
         }
-
 
         body.marketing-ui .btn-outline {
             color: var(--navy);
@@ -416,11 +391,9 @@ body.marketing-ui p {
             background: rgba(255, 255, 255, 0.72);
         }
 
-
         body.marketing-ui .btn-outline:hover {
             background: rgba(37, 80, 255, 0.08);
         }
-
 
         body.marketing-ui .pill-list {
             display: flex;
@@ -431,7 +404,6 @@ body.marketing-ui p {
             list-style: none;
         }
 
-
         body.marketing-ui .pill-list li {
             background: rgba(11, 31, 109, 0.08);
             color: var(--ink-soft);
@@ -441,19 +413,16 @@ body.marketing-ui p {
             padding: 0.38rem 0.8rem;
         }
 
-
         body.marketing-ui .reveal {
             opacity: 0;
             transform: translateY(16px);
             transition: opacity 0.45s ease, transform 0.45s ease;
         }
 
-
         body.marketing-ui .reveal.is-visible {
             opacity: 1;
             transform: translateY(0);
         }
-
 
         body.marketing-ui .site-footer {
             margin-top: clamp(2rem, 4vw, 4rem);
@@ -462,13 +431,11 @@ body.marketing-ui p {
             padding: 2rem 0;
         }
 
-
         body.marketing-ui .footer-grid {
             display: grid;
             grid-template-columns: 1.3fr 1fr 1fr;
             gap: 1rem;
         }
-
 
         body.marketing-ui .footer-links {
             margin: 0;
@@ -478,23 +445,19 @@ body.marketing-ui p {
             gap: 0.45rem;
         }
 
-
         body.marketing-ui .footer-links a {
             color: var(--ink-soft);
             font-weight: 600;
         }
 
-
         body.marketing-ui .footer-links a:hover {
             color: var(--blue);
         }
-
 
         body.marketing-ui .small {
             font-size: 0.88rem;
             color: #52607a;
         }
-
 
         body.marketing-ui .status {
             margin-top: 0.85rem;
@@ -504,20 +467,17 @@ body.marketing-ui p {
             font-size: 0.92rem;
         }
 
-
         body.marketing-ui .status.success {
             background: rgba(59, 109, 255, 0.16);
             color: #12308f;
             border: 1px solid rgba(37, 80, 255, 0.25);
         }
 
-
         body.marketing-ui .status.warning {
             background: rgba(11, 31, 109, 0.16);
             color: #102678;
             border: 1px solid rgba(11, 31, 109, 0.22);
         }
-
 
         body.marketing-ui .errors {
             margin-top: 0.85rem;
@@ -527,7 +487,6 @@ body.marketing-ui p {
             border-radius: 12px;
             padding: 0.8rem 1rem;
         }
-
 
         body.marketing-ui .errors ul {
             margin: 0;
@@ -558,12 +517,10 @@ body.marketing-ui label {
             font-size: 0.92rem;
         }
 
-
         body.marketing-ui .field {
             display: grid;
             gap: 0.35rem;
         }
-
 
         body.marketing-ui .gallery-controls {
             display: flex;
@@ -571,7 +528,6 @@ body.marketing-ui label {
             gap: 0.5rem;
             margin: 1rem 0 0;
         }
-
 
         body.marketing-ui .gallery-controls button {
             border: 1px solid rgba(11, 31, 109, 0.16);
@@ -584,7 +540,6 @@ body.marketing-ui label {
             transition: 150ms ease;
         }
 
-
         body.marketing-ui .gallery-controls button.is-active,
 
         body.marketing-ui .gallery-controls button:hover {
@@ -592,7 +547,6 @@ body.marketing-ui label {
             border-color: rgba(37, 80, 255, 0.34);
             background: rgba(37, 80, 255, 0.1);
         }
-
 
         body.marketing-ui .lightbox {
             position: fixed;
@@ -605,11 +559,9 @@ body.marketing-ui label {
             padding: 1rem;
         }
 
-
         body.marketing-ui .lightbox.active {
             display: grid;
         }
-
 
         body.marketing-ui .lightbox img {
             width: min(960px, 100%);
@@ -619,7 +571,6 @@ body.marketing-ui label {
             background: #fff;
             box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
         }
-
 
         body.marketing-ui .lightbox-close {
             position: absolute;
@@ -635,7 +586,6 @@ body.marketing-ui label {
             font-size: 1.35rem;
         }
 
-
         body.marketing-ui .home-slideshow {
             position: relative;
             overflow: hidden;
@@ -645,12 +595,10 @@ body.marketing-ui label {
             box-shadow: var(--shadow);
         }
 
-
         body.marketing-ui .home-slides-track {
             position: relative;
             min-height: 440px;
         }
-
 
         body.marketing-ui .home-slide {
             display: none;
@@ -659,11 +607,9 @@ body.marketing-ui label {
             padding: 0.8rem;
         }
 
-
         body.marketing-ui .home-slide.is-active {
             display: grid;
         }
-
 
         body.marketing-ui .home-slide-content {
             padding: 0.5rem 0.35rem 0.35rem;
@@ -672,13 +618,11 @@ body.marketing-ui label {
             gap: 0.6rem;
         }
 
-
         body.marketing-ui .home-slide-image .media {
             min-height: 360px;
             max-height: 460px;
             object-fit: cover;
         }
-
 
         body.marketing-ui .home-slideshow-controls {
             position: absolute;
@@ -688,7 +632,6 @@ body.marketing-ui label {
             gap: 0.45rem;
             z-index: 2;
         }
-
 
         body.marketing-ui .home-slideshow-controls button {
             border: 1px solid rgba(11, 31, 109, 0.22);
@@ -702,20 +645,17 @@ body.marketing-ui label {
             font-weight: 700;
         }
 
-
         body.marketing-ui .home-slideshow-controls button:hover {
             background: rgba(37, 80, 255, 0.12);
             border-color: rgba(37, 80, 255, 0.38);
             color: var(--blue);
         }
 
-
         body.marketing-ui .plan-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1rem;
         }
-
 
         body.marketing-ui .plan-card {
             display: grid;
@@ -724,19 +664,16 @@ body.marketing-ui label {
             position: relative;
         }
 
-
         body.marketing-ui .plan-card.is-featured {
             border: 1px solid rgba(37, 80, 255, 0.45);
             box-shadow: 0 20px 46px rgba(37, 80, 255, 0.24);
         }
-
 
         body.marketing-ui .plan-badges {
             display: flex;
             flex-wrap: wrap;
             gap: 0.4rem;
         }
-
 
         body.marketing-ui .plan-badge {
             display: inline-flex;
@@ -749,30 +686,25 @@ body.marketing-ui label {
             text-transform: uppercase;
         }
 
-
         body.marketing-ui .plan-badge.featured {
             background: rgba(37, 80, 255, 0.12);
             color: #2550ff;
         }
-
 
         body.marketing-ui .plan-badge.recommended {
             background: rgba(11, 31, 109, 0.16);
             color: #102678;
         }
 
-
         body.marketing-ui .plan-badge.popular {
             background: rgba(59, 109, 255, 0.20);
             color: #12308f;
         }
 
-
         body.marketing-ui .plan-badge.discount {
             background: rgba(11, 31, 109, 0.12);
             color: #102347;
         }
-
 
         body.marketing-ui .plan-pricing {
             margin-top: 0.65rem;
@@ -780,11 +712,9 @@ body.marketing-ui label {
             gap: 0.2rem;
         }
 
-
         body.marketing-ui .plan-pricing .line-through {
             text-decoration: line-through;
         }
-
 
         body.marketing-ui .plan-price {
             margin: 0;
@@ -793,7 +723,6 @@ body.marketing-ui label {
             font-weight: 800;
             line-height: 1.2;
         }
-
 
         body.marketing-ui .plan-price span {
             font-size: 0.86rem;
@@ -815,7 +744,6 @@ body.marketing-ui label {
                 grid-template-columns: 1fr;
             }
 
-
             body.marketing-ui .nav-links {
                 position: absolute;
                 right: 1rem;
@@ -831,11 +759,9 @@ body.marketing-ui label {
                 padding: 0.5rem;
             }
 
-
             body.marketing-ui .nav-links.open {
                 display: flex;
             }
-
 
             body.marketing-ui .menu-toggle {
                 display: inline-flex;
@@ -843,24 +769,20 @@ body.marketing-ui label {
                 justify-content: center;
             }
 
-
             body.marketing-ui .home-slide,
 
             body.marketing-ui .home-slide.is-active {
                 grid-template-columns: 1fr;
             }
 
-
             body.marketing-ui .home-slides-track {
                 min-height: 0;
             }
-
 
             body.marketing-ui .home-slide-image .media {
                 min-height: 240px;
                 max-height: 320px;
             }
-
 
             body.marketing-ui .plan-grid {
                 grid-template-columns: 1fr;
@@ -892,4 +814,89 @@ body.marketing-ui .footer-bottom {
     margin-top: 1.25rem;
     border-top: 1px solid rgba(11, 31, 109, 0.15);
     padding-top: 1rem;
+}
+
+@layer base {
+  .theme {
+        --font-heading: var(--font-sans);
+        --font-sans: 'Geist Variable', sans-serif;
+    }
+  :root {
+        --background: oklch(1 0 0);
+        --foreground: oklch(0.145 0 0);
+        --card: oklch(1 0 0);
+        --card-foreground: oklch(0.145 0 0);
+        --popover: oklch(1 0 0);
+        --popover-foreground: oklch(0.145 0 0);
+        --primary: oklch(0.205 0 0);
+        --primary-foreground: oklch(0.985 0 0);
+        --secondary: oklch(0.97 0 0);
+        --secondary-foreground: oklch(0.205 0 0);
+        --muted: oklch(0.97 0 0);
+        --muted-foreground: oklch(0.556 0 0);
+        --accent: oklch(0.97 0 0);
+        --accent-foreground: oklch(0.205 0 0);
+        --destructive: oklch(0.577 0.245 27.325);
+        --border: oklch(0.922 0 0);
+        --input: oklch(0.922 0 0);
+        --ring: oklch(0.708 0 0);
+        --chart-1: oklch(0.87 0 0);
+        --chart-2: oklch(0.556 0 0);
+        --chart-3: oklch(0.439 0 0);
+        --chart-4: oklch(0.371 0 0);
+        --chart-5: oklch(0.269 0 0);
+        --radius: 0.625rem;
+        --sidebar: oklch(0.985 0 0);
+        --sidebar-foreground: oklch(0.145 0 0);
+        --sidebar-primary: oklch(0.205 0 0);
+        --sidebar-primary-foreground: oklch(0.985 0 0);
+        --sidebar-accent: oklch(0.97 0 0);
+        --sidebar-accent-foreground: oklch(0.205 0 0);
+        --sidebar-border: oklch(0.922 0 0);
+        --sidebar-ring: oklch(0.708 0 0);
+    }
+  .dark {
+        --background: oklch(0.145 0 0);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.205 0 0);
+        --card-foreground: oklch(0.985 0 0);
+        --popover: oklch(0.205 0 0);
+        --popover-foreground: oklch(0.985 0 0);
+        --primary: oklch(0.922 0 0);
+        --primary-foreground: oklch(0.205 0 0);
+        --secondary: oklch(0.269 0 0);
+        --secondary-foreground: oklch(0.985 0 0);
+        --muted: oklch(0.269 0 0);
+        --muted-foreground: oklch(0.708 0 0);
+        --accent: oklch(0.269 0 0);
+        --accent-foreground: oklch(0.985 0 0);
+        --destructive: oklch(0.704 0.191 22.216);
+        --border: oklch(1 0 0 / 10%);
+        --input: oklch(1 0 0 / 15%);
+        --ring: oklch(0.556 0 0);
+        --chart-1: oklch(0.87 0 0);
+        --chart-2: oklch(0.556 0 0);
+        --chart-3: oklch(0.439 0 0);
+        --chart-4: oklch(0.371 0 0);
+        --chart-5: oklch(0.269 0 0);
+        --sidebar: oklch(0.205 0 0);
+        --sidebar-foreground: oklch(0.985 0 0);
+        --sidebar-primary: oklch(0.488 0.243 264.376);
+        --sidebar-primary-foreground: oklch(0.985 0 0);
+        --sidebar-accent: oklch(0.269 0 0);
+        --sidebar-accent-foreground: oklch(0.985 0 0);
+        --sidebar-border: oklch(1 0 0 / 10%);
+        --sidebar-ring: oklch(0.556 0 0);
+    }
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+    }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    }
+  html {
+    font-family: var(--font-main);
+    }
 }

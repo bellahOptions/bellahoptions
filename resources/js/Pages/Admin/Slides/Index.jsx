@@ -107,7 +107,7 @@ export default function Slides({ slideShows = [] }) {
                                     These slides are pulled from the database on the Welcome page.
                                 </p>
                                 <p className="mt-1 text-xs text-gray-500">
-                                    Public paths like <span className="font-mono">images/hero.jpg</span> will be saved as <span className="font-mono">/images/hero.jpg</span>.
+                                    Slide image is optional. If missing or broken, the homepage will show an animated background automatically.
                                 </p>
                             </div>
                             <button
@@ -247,14 +247,13 @@ function SlideFields({ form, className = '' }) {
                 />
             </Field>
 
-            <Field label="Image URL or Public Path" error={form.errors.slide_image}>
+            <Field label="Image URL or Public Path (Optional)" error={form.errors.slide_image}>
                 <input
                     type="text"
                     value={form.data.slide_image}
                     onChange={(event) => form.setData('slide_image', event.target.value)}
                     placeholder="/images/welcome-slide.jpg"
                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                    required
                 />
             </Field>
 

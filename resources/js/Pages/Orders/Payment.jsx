@@ -5,13 +5,17 @@ import { RevealSection } from "@/Components/MotionReveal";
 import { ArrowRightIcon, CreditCardIcon, LifebuoyIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatMoney, statusLabel } from "./orderUtils";
 import { termsSections } from "@/Pages/Legal/policyData";
+import { resolvePolicySections } from "@/Pages/Legal/policyParser";
 
-export default function OrderPayment({ order, canPay = false, paymentProvider = "paystack" }) {
+export default function OrderPayment({ order, canPay = false, paymentProvider = "paystack", term = null }) {
     const { flash, localization } = usePage().props;
     const locale = localization?.locale?.replace("_", "-") || "en-NG";
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
-    const termsPreview = useMemo(() => termsSections.slice(0, 6), []);
+    const termsPreview = useMemo(
+        () => resolvePolicySections(term?.content, termsSections).slice(0, 6),
+        [term?.content],
+    );
 
     const startPayment = () => {
         router.post(route("orders.payment.initialize", order.order_code), {}, { preserveScroll: true });

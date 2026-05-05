@@ -1,5 +1,8 @@
 import { Link } from "@inertiajs/react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
+import { loadSlim } from "@tsparticles/slim";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination, Autoplay } from "swiper/modules";
 import "swiper/css";
@@ -12,7 +15,7 @@ const fallbackSlides = [
         slide_title: "Upgrade your Social Media!",
         text: "Get creative social media designs to power your online presence and drive sales.",
         slide_image:
-            "https://img.freepik.com/premium-photo/abstract-dark-blue-background-silk-satin-navy-blue-color-elegant-background-with-space-design-soft-wavy-folds_728202-5520.jpg?w=360",
+            "https://unsplash.com/photos/blue-and-black-digital-wallpaper-bKESVqfxass",
         slide_link: "/order/social-media-design",
         slide_link_text: "Get Started",
     },
@@ -20,16 +23,16 @@ const fallbackSlides = [
         id: "fallback-2",
         slide_title: "Automate your process",
         text: "Your website should work for you even when you are not online",
-        slide_image: "https://cdn.wallpapersafari.com/10/34/xwEKsq.jpg",
+        slide_image: "https://unsplash.com/photos/a-black-background-with-a-blue-wave-in-the-middle-ZhVUAUc8V4s",
         slide_link: "/order/web-design",
         slide_link_text: "Create your Website",
     },
     {
         id: "fallback-3",
-        slide_title: "Your Headline Here",
-        text: "Your subtext here",
+        slide_title: "Plan your app before lauch",
+        text: "A good creative strategy is the foundation of any successful project launch",
         slide_image:
-            "https://media.istockphoto.com/id/1807779771/vector/abstract-dark-blue-vector-background.jpg?s=612x612&w=0&k=20&c=7iEsr6VR1PwHxzQyZVUAJw9cSGPtWOcRjyXBkbH6mCI=",
+            "https://unsplash.com/photos/a-view-of-the-night-showing-stars--tOr_T4qTpQ",
         slide_link: "/order/brand-design",
         slide_link_text: "Start a Project",
     },
@@ -55,6 +58,23 @@ export default function Slider({ slides = [] }) {
     const resolvedSlides = Array.isArray(slides) && slides.length > 2
         ? slides
         : fallbackSlides;
+    const [particlesReady, setParticlesReady] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        initParticlesEngine(async (engine) => {
+            await loadSlim(engine);
+        }).then(() => {
+            if (isMounted) {
+                setParticlesReady(true);
+            }
+        });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     return (
         <Swiper
@@ -68,15 +88,11 @@ export default function Slider({ slides = [] }) {
             {resolvedSlides.map((slide, index) => (
                 <SwiperSlide key={slide.id ?? `${slide.slide_title}-${index}`}>
                     <div className="relative h-full">
-                        {slide.slide_image ? (
-                            <img
-                                src={slideImageSrc(slide.slide_image)}
-                                alt={slide.slide_title || `Slide ${index + 1}`}
-                                className="h-full w-full object-cover"
-                            />
-                        ) : (
-                            <MotionBackground index={index} />
-                        )}
+                        <SlideVisual
+                            slide={slide}
+                            index={index}
+                            particlesReady={particlesReady}
+                        />
                         <motion.div
                             className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 px-4 py-16 text-center text-white sm:px-6 lg:px-8"
                             initial={{ opacity: 0 }}
@@ -132,15 +148,86 @@ export default function Slider({ slides = [] }) {
     );
 }
 
-function MotionBackground({ index }) {
+function SlideVisual({ slide, index, particlesReady }) {
+    const imageSrc = slideImageSrc(slide?.slide_image);
+    const [useFallback, setUseFallback] = useState(imageSrc === "");
+
+    useEffect(() => {
+        setUseFallback(imageSrc === "");
+    }, [imageSrc]);
+
+    if (useFallback) {
+        return <AnimatedParticlesBackground index={index} particlesReady={particlesReady} />;
+    }
+
+    return (
+        <img
+            src={imageSrc}
+            alt={slide?.slide_title || `Slide ${index + 1}`}
+            className="h-full w-full object-cover"
+            onError={() => setUseFallback(true)}
+        />
+    );
+}
+
+function AnimatedParticlesBackground({ index, particlesReady }) {
     const palettes = [
         "from-[#000285] via-[#0891b2] to-[#111827]",
         "from-[#111827] via-[#2563eb] to-[#0f766e]",
         "from-[#0f172a] via-[#7c3aed] to-[#0369a1]",
     ];
+    const particleColors = [
+        ["#ffffff", "#67e8f9", "#c4b5fd"],
+        ["#bfdbfe", "#67e8f9", "#93c5fd"],
+        ["#ffffff", "#a78bfa", "#38bdf8"],
+    ];
+    const options = useMemo(() => ({
+        fullScreen: { enable: false },
+        fpsLimit: 120,
+        particles: {
+            number: {
+                value: 70,
+                density: { enable: true, area: 800 },
+            },
+            color: { value: particleColors[index % particleColors.length] },
+            links: {
+                enable: true,
+                color: "#ffffff",
+                opacity: 0.2,
+                distance: 140,
+                width: 1,
+            },
+            move: {
+                enable: true,
+                speed: 1.1,
+                outModes: { default: "out" },
+            },
+            opacity: { value: { min: 0.15, max: 0.6 } },
+            size: { value: { min: 1, max: 3 } },
+        },
+        interactivity: {
+            events: {
+                onHover: { enable: true, mode: "grab" },
+            },
+            modes: {
+                grab: {
+                    distance: 160,
+                    links: { opacity: 0.45 },
+                },
+            },
+        },
+        detectRetina: true,
+    }), [index]);
 
     return (
         <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${palettes[index % palettes.length]}`}>
+            {particlesReady && (
+                <Particles
+                    id={`slide-particles-${index}`}
+                    className="absolute inset-0 h-full w-full"
+                    options={options}
+                />
+            )}
             <motion.div
                 className="absolute -left-24 top-12 h-28 w-[70vw] rotate-[-18deg] bg-white/15 blur-2xl"
                 animate={{ x: ["-12%", "18%", "-12%"], opacity: [0.25, 0.45, 0.25] }}

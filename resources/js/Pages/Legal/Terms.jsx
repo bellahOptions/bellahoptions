@@ -1,5 +1,6 @@
 import PolicyLayout from "./PolicyLayout";
 import { termsSections } from "./policyData";
+import { resolvePolicySections } from "./policyParser";
 
 const meta = [
     { label: "Registered Name", value: "Bellah Options" },
@@ -8,13 +9,15 @@ const meta = [
     { label: "Contact", value: "hello@bellahoptions.com | +234 810 867 1804" },
 ];
 
-export default function Terms() {
+export default function Terms({ term = null }) {
+    const sections = resolvePolicySections(term?.content, termsSections);
+
     return (
         <PolicyLayout
             title="Terms of Service"
             eyebrow="Legal Agreement"
             description="These terms govern Bellah Options service engagements and explain contract formation, scope, payment, revisions, intellectual property, cancellation, data protection, liability, disputes, and related client responsibilities."
-            sections={termsSections}
+            sections={sections}
             meta={meta}
             notice="By engaging Bellah Options through a proposal, payment, written confirmation, or project commencement request, you acknowledge that you have read and accepted these Terms of Service."
             ctaLabel="Contact Our Team"

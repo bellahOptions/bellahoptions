@@ -14,10 +14,12 @@ use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+//SEO ROUTES
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
 
+//PAGES ROUTES
 Route::get('/', [PagesController::class, 'welcomePage'])->name('home');
 Route::get('/welcome', [PagesController::class, 'welcomePage'])->name('welcome');
 Route::get('/about-bellah-options', [PagesController::class, 'aboutPage'])->name('about');
@@ -29,6 +31,8 @@ Route::get('/blog/{blogPost:slug}', [PagesController::class, 'blogShowPage'])->n
 Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contact');
 Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
+
+//ORDER ROUTES
 Route::get('/order', fn () => redirect()->route('services'))->name('orders.index');
 Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
     ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
@@ -49,16 +53,20 @@ Route::post('/webhooks/paystack', [ServiceOrderController::class, 'webhook'])
 Route::post('/webhooks/flutterwave', [ServiceOrderController::class, 'flutterwaveWebhook'])
     ->middleware('throttle:40,1')
     ->name('webhooks.flutterwave');
+
 Route::redirect('/smm-form', '/order/social-media-design')->name('orders.smm-form');
 Route::redirect('/about-us', '/about-bellah-options')->name('about.legacy');
 Route::post('/contact-us', [ContactController::class, 'store'])
     ->middleware('throttle:contact-form')
-    ->name('contact.submit');
+    ->name('contact.submit'); 
 
-Route::get('/waitlist', [WaitlistController::class, 'create'])->name('waitlist.create');
-Route::get('/terms-of-service', fn () => Inertia::render('Legal/Terms'))->name('terms.show');
-Route::get('/privacy-policy', fn () => Inertia::render('Legal/Privacy'))->name('privacy.show');
-Route::get('/cookie-policy', fn () => Inertia::render('Legal/Cookies'))->name('cookies.show');
+//Route::get('/waitlist', [WaitlistController::class, 'create'])->name('waitlist.create');
+//LEGAL ROUTES
+Route::get('/terms-of-service', [PagesController::class, 'showTerms'])->name('terms.show');
+Route::get('/privacy-policy', [PagesController::class, 'showPrivacyPolicy'])->name('privacy.show');
+Route::get('/cookie-policy', [PagesController::class, 'showCookiePolicy'])->name('cookies.show');
+
+
 Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');

@@ -12,6 +12,7 @@ use App\Models\AppSetting;
 use App\Models\DiscountCode;
 use App\Models\ServiceOrder;
 use App\Models\SubscriptionPlan;
+use App\Models\Term;
 use App\Support\PlatformSettings;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -40,6 +41,7 @@ class SettingController extends Controller
                 'contact_behance_url' => $contactInfo['behance_url'],
                 'contact_map_embed_url' => $contactInfo['map_embed_url'],
                 'home_slides' => PlatformSettings::homeSlides(),
+                'terms' => $this->policyTermsPayload(),
             ],
             'serviceCatalog' => $this->serviceCatalogMeta($serviceCatalog),
             'servicePrices' => $this->servicePricingValues($serviceCatalog),
@@ -127,6 +129,7 @@ class SettingController extends Controller
 
         PlatformSettings::setHomeSlides((array) ($payload['home_slides'] ?? []));
         PlatformSettings::setServicePriceOverrides((array) ($payload['service_prices'] ?? []));
+        $this->savePolicyTerms((array) ($payload['terms'] ?? []));
 
         return back()->with('success', 'Platform settings updated successfully.');
     }
@@ -430,6 +433,49 @@ class SettingController extends Controller
                 ->whereKeyNot($plan->id)
                 ->where('is_recommended', true)
                 ->update(['is_recommended' => false]);
+        }
+    }
+
+    /**
+     * @return array{terms_of_service: string, privacy_policy: string, cookie_policy: string}
+     */
+    private function policyTermsPayload(): array
+    {
+        return [
+            'terms_of_service' => $this->findPolicyContentByKeyword('terms'),
+            'privacy_policy' => $this->findPolicyContentByKeyword('privacy'),
+            'cookie_policy' => $this->findPolicyContentByKeyword('cookie'),
+        ];
+    }
+
+    private function findPolicyContentByKeyword(string $keyword): string
+    {
+        $term = Term::query()
+            ->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower($keyword).'%'])
+            ->latest('updated_at')
+            ->first();
+
+        return $term instanceof Term ? (string) $term->content : '';
+    }
+
+    /**
+     * @param  array<string, mixed>  $termsPayload
+     */
+    private function savePolicyTerms(array $termsPayload): void
+    {
+        $map = [
+            'terms_of_service' => 'Terms of Service',
+            'privacy_policy' => 'Privacy Policy',
+            'cookie_policy' => 'Cookie Policy',
+        ];
+
+        foreach ($map as $field => $title) {
+            $content = trim((string) ($termsPayload[$field] ?? ''));
+
+            Term::query()->updateOrCreate(
+                ['title' => $title],
+                ['content' => $content],
+            );
         }
     }
 }

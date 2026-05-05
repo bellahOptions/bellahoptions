@@ -12,6 +12,7 @@ use App\Models\DiscountCode;
 use App\Models\Invoice;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
+use App\Models\Term;
 use App\Services\FlutterwaveService;
 use App\Models\User;
 use App\Services\PaystackService;
@@ -303,6 +304,7 @@ class ServiceOrderController extends Controller
             'order' => $this->orderPayload($serviceOrder),
             'canPay' => (float) $serviceOrder->amount > 0 && ! in_array((string) $serviceOrder->payment_status, ['paid', 'not_required'], true),
             'paymentProvider' => strtolower(trim((string) $serviceOrder->payment_provider)) ?: 'paystack',
+            'term' => $this->resolveTermsPayload(),
         ]);
     }
 
@@ -762,6 +764,36 @@ class ServiceOrderController extends Controller
         $prefix = $currency === 'NGN' ? '₦' : $currency.' ';
 
         return $prefix.number_format((float) $discount->discount_value, 2).' off';
+    }
+
+    /**
+     * @return array{id:int,title:string,content:string,updated_at:?string}|null
+     */
+    private function resolveTermsPayload(): ?array
+    {
+        try {
+            $term = Term::query()
+                ->whereRaw('LOWER(title) LIKE ?', ['%terms%'])
+                ->latest('updated_at')
+                ->first();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load terms for order payment.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (! $term instanceof Term) {
+            return null;
+        }
+
+        return [
+            'id' => $term->id,
+            'title' => (string) $term->title,
+            'content' => (string) $term->content,
+            'updated_at' => $term->updated_at?->toIso8601String(),
+        ];
     }
 
     /**

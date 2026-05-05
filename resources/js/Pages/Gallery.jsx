@@ -3,6 +3,8 @@ import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 
 export default function Gallery({ projects = [] }) {
+    const hasProjects = Array.isArray(projects) && projects.length > 0;
+
     return (
         <>
             <Head title="Gallery" />
@@ -14,7 +16,7 @@ export default function Gallery({ projects = [] }) {
                                 A look at visual systems, campaigns, and brand assets.
                             </h1>
                             <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                Explore selected Behance projects from Bellah Options. Super-admin uploads still take priority whenever they are available.
+                                Every project shown here is published directly by Bellah Options super-admin.
                             </p>
                             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                                 <a
@@ -38,6 +40,11 @@ export default function Gallery({ projects = [] }) {
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                                {!hasProjects && (
+                                    <article className="col-span-full border border-blue-100 bg-blue-50 p-6 text-sm font-semibold leading-7 text-blue-900">
+                                        No gallery projects are published yet. Super-admin uploads will appear here once available.
+                                    </article>
+                                )}
                                 {projects.map((project) => {
                                     const hasUrl = typeof project.project_url === "string" && project.project_url.length > 0;
 
@@ -59,11 +66,6 @@ export default function Gallery({ projects = [] }) {
                                                 <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">
                                                     {project.category}
                                                 </p>
-                                                {project.source === "sample" && (
-                                                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
-                                                        Sample
-                                                    </span>
-                                                )}
                                             </div>
                                             <h2 className="mt-3 text-2xl font-black text-gray-950">{project.title}</h2>
                                             <p className="mt-3 text-sm leading-6 text-gray-600">{project.description}</p>

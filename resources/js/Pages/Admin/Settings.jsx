@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const createEmptySlide = () => ({
     title: '',
@@ -21,6 +23,47 @@ const formatMoney = (amount) => {
         }).format(value)
         : '₦0.00';
 };
+
+const quillModules = {
+    toolbar: [
+        [{ header: [2, 3, 4, false] }],
+        ['bold', 'italic', 'underline'],
+        [{ list: 'ordered' }, { list: 'bullet' }],
+        ['blockquote', 'link'],
+        ['clean'],
+    ],
+};
+
+const quillFormats = [
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'list',
+    'bullet',
+    'blockquote',
+    'link',
+];
+
+function TermsEditor({ label, value, onChange, error }) {
+    return (
+        <div>
+            <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+            <div className="overflow-hidden rounded-md border border-gray-300 bg-white focus-within:border-indigo-500">
+                <ReactQuill
+                    theme="snow"
+                    value={value}
+                    onChange={onChange}
+                    modules={quillModules}
+                    formats={quillFormats}
+                    placeholder="Write policy content here..."
+                    className="min-h-[280px]"
+                />
+            </div>
+            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        </div>
+    );
+}
 
 export default function Settings({
     settings = {},
@@ -53,6 +96,11 @@ export default function Settings({
             ? settings.home_slides
             : [createEmptySlide()],
         service_prices: servicePrices || {},
+        terms: {
+            terms_of_service: settings?.terms?.terms_of_service || '',
+            privacy_policy: settings?.terms?.privacy_policy || '',
+            cookie_policy: settings?.terms?.cookie_policy || '',
+        },
     });
 
     const discountForm = useForm({
@@ -122,6 +170,13 @@ export default function Settings({
     const removeSlide = (index) => {
         const nextSlides = [...(data.home_slides || [])].filter((_, currentIndex) => currentIndex !== index);
         setData('home_slides', nextSlides.length > 0 ? nextSlides : [createEmptySlide()]);
+    };
+
+    const updateTermContent = (field, value) => {
+        setData('terms', {
+            ...(data.terms || {}),
+            [field]: value,
+        });
     };
 
     const submitDiscountCode = (event) => {
@@ -474,6 +529,39 @@ export default function Settings({
                             >
                                 Add Slide
                             </button>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Legal Terms Manager</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Super admins can update the Terms of Service, Privacy Policy, and Cookie Policy directly from this dashboard.
+                            </p>
+                            <p className="mt-1 text-xs text-gray-500">
+                                Use the Quill editor to format headings, paragraphs, lists, and links.
+                            </p>
+
+                            <div className="mt-5 grid gap-4">
+                                <TermsEditor
+                                    label="Terms of Service Content"
+                                    value={data.terms?.terms_of_service || ''}
+                                    onChange={(value) => updateTermContent('terms_of_service', value)}
+                                    error={errors['terms.terms_of_service']}
+                                />
+
+                                <TermsEditor
+                                    label="Privacy Policy Content"
+                                    value={data.terms?.privacy_policy || ''}
+                                    onChange={(value) => updateTermContent('privacy_policy', value)}
+                                    error={errors['terms.privacy_policy']}
+                                />
+
+                                <TermsEditor
+                                    label="Cookie Policy Content"
+                                    value={data.terms?.cookie_policy || ''}
+                                    onChange={(value) => updateTermContent('cookie_policy', value)}
+                                    error={errors['terms.cookie_policy']}
+                                />
+                            </div>
                         </div>
 
                         <div>

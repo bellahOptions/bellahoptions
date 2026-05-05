@@ -6,6 +6,7 @@ use App\Models\Event;
 use App\Models\BlogPost;
 use App\Models\GalleryProject;
 use App\Models\SlideShow;
+use App\Models\Term;
 use App\Support\PublicContentSecurity;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
@@ -53,6 +54,21 @@ class PagesController extends Controller
                 ->filter()
                 ->values(),
             'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),
+            'gallerySamples' => GalleryProject::query()
+                ->where('is_published', true)
+                ->orderBy('position')
+                ->latest('id')
+                ->limit(4)
+                ->get()
+                ->map(fn (GalleryProject $project): array => [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                    'service' => $project->category ?: 'Creative Work',
+                    'image' => $this->publicAssetUrl($project->image_path) ?? '/logo-07.svg',
+                    'summary' => $project->description ?: 'Uploaded by Bellah Options super-admin.',
+                    'href' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($project->project_url) ?: '/gallery',
+                ])
+                ->values(),
         ]);
     }
 
@@ -101,9 +117,7 @@ class PagesController extends Controller
             ->values();
 
         return Inertia::render('Gallery', [
-            'projects' => $projects->isNotEmpty()
-                ? $projects
-                : $this->fallbackGallerySamples(),
+            'projects' => $projects,
         ]);
     }
 
@@ -175,141 +189,6 @@ class PagesController extends Controller
         ]);
     }
 
-    /**
-     * @return array<int, array<string, string|null>>
-     */
-    private function fallbackGallerySamples(): array
-    {
-        return [
-            [
-                'id' => 'sample-nexar-systems',
-                'title' => 'Logo Design for Nexar Systems',
-                'category' => 'Logo Design',
-                'description' => 'A modern identity crafted for Nexar Systems on Behance.',
-                'image' => '/Wingram-07.png',
-                'project_url' => 'https://www.behance.net/gallery/246255317/Logo-design-for-Nexar-Systems',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-logofolio-v1',
-                'title' => 'Logofolio v1',
-                'category' => 'Logo Collection',
-                'description' => 'Selected logo explorations showcasing versatile brand directions.',
-                'image' => '/Wingram-08.png',
-                'project_url' => 'https://www.behance.net/gallery/242705853/Logofolio-v1',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-cdcare-app',
-                'title' => 'CDCare App Reimagined',
-                'category' => 'UI/UX Design',
-                'description' => 'A product design and experience refresh for the CDCare app.',
-                'image' => '/Wingram-09.png',
-                'project_url' => 'https://www.behance.net/gallery/240637753/CDCare-App-Reimagined',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-wisepulse',
-                'title' => 'Brand Logo Design for WisePulse',
-                'category' => 'Brand Design',
-                'description' => 'A strategic logo system built for a standout brand presence.',
-                'image' => '/terranize.PNG',
-                'project_url' => 'https://www.behance.net/gallery/234391241/Brand-Logo-design-for-WisePulse',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-wingram-identity',
-                'title' => 'Brand Identity System for Wingram',
-                'category' => 'Brand Design',
-                'description' => 'Full identity system by Bellah Options for Wingram.',
-                'image' => '/perkpay.PNG',
-                'project_url' => 'https://www.behance.net/gallery/233003719/Brand-Identity-System-for-Wingram-by-Bellah-Options',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-komchop',
-                'title' => 'Street Food Brand Identity: KomChop',
-                'category' => 'Brand Identity',
-                'description' => 'Street-food branding built to feel energetic and memorable.',
-                'image' => '/fluxe.png',
-                'project_url' => 'https://www.behance.net/gallery/221970917/Street-Food-Brand-Identity-KomChop',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-savingsbox',
-                'title' => 'Social Media Designs for SavingsBox',
-                'category' => 'Social Media Design',
-                'description' => 'Creative social assets designed for consistency and reach.',
-                'image' => '/reup-05.svg',
-                'project_url' => 'https://www.behance.net/gallery/216593821/Social-Media-Designs-for-SavingsBox',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-platinum-apparels',
-                'title' => 'Platinum Apparels Brand Logo',
-                'category' => 'Logo Design',
-                'description' => 'A refined brand logo project for Platinum Apparels.',
-                'image' => '/BOSS-logo-02.svg',
-                'project_url' => 'https://www.behance.net/gallery/207917631/Platinum-Apparels-Brand-Logo',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-marveled',
-                'title' => 'Brand Identity for Marveled',
-                'category' => 'Brand Identity',
-                'description' => 'Identity direction for a marketing firm brand.',
-                'image' => '/Marvbelked-01.png',
-                'project_url' => 'https://www.behance.net/gallery/207534817/Brand-Identity-project-for-a-Marveled-a-Marketing-firm',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-solvebills',
-                'title' => 'SolveBills Brand Design Project',
-                'category' => 'Brand Design',
-                'description' => 'Comprehensive brand design crafted for SolveBills.',
-                'image' => '/reup.PNG',
-                'project_url' => 'https://www.behance.net/gallery/207024019/SolveBills-Brand-design-Project',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-bw-xchange',
-                'title' => 'Logo Design for BW Xchange',
-                'category' => 'Logo Design',
-                'description' => 'Logo design balancing personality and market clarity.',
-                'image' => '/logo-06.svg',
-                'project_url' => 'https://www.behance.net/gallery/167771977/Logo-Design-for-BW-Xchange',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-kabes-clothing',
-                'title' => 'Logo Redesign for Kabes Clothing',
-                'category' => 'Logo Redesign',
-                'description' => 'A refreshed mark tailored for stronger apparel branding.',
-                'image' => '/logo-07.svg',
-                'project_url' => 'https://www.behance.net/gallery/167435559/Logo-Redesign-for-Kabes-Clothing',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-product-logo-brand',
-                'title' => 'Product Design + Logo + Brand Design',
-                'category' => 'Product & Brand Design',
-                'description' => 'Multi-discipline project combining product, logo, and brand work.',
-                'image' => '/logo-08.svg',
-                'project_url' => 'https://www.behance.net/gallery/166047879/Product-Design-Logo-Design-brand-design',
-                'source' => 'sample',
-            ],
-            [
-                'id' => 'sample-behance-portfolio',
-                'title' => 'Explore More Behance Projects',
-                'category' => 'Portfolio',
-                'description' => 'Browse the full Bellah Options Behance portfolio for additional work.',
-                'image' => '/bellah.jpg',
-                'project_url' => 'https://www.behance.net/bellahoptionsNG',
-                'source' => 'sample',
-            ],
-        ];
-    }
-
     private function publicAssetUrl(?string $path): ?string
     {
         $sanitized = PublicContentSecurity::sanitizeRelativePathOrHttpUrl($path);
@@ -378,6 +257,63 @@ class PagesController extends Controller
             'humanCheckQuestion' => "What is {$left} + {$right}?",
             'humanCheckNonce' => $nonce,
             'formRenderedAt' => $issuedAt,
+        ];
+    }
+
+    public function showTerms()
+    {
+        return Inertia::render('Legal/Terms', [
+            'term' => $this->resolvePolicyTermPayload('terms'),
+        ]);
+    }
+
+    public function showPrivacyPolicy()
+    {
+        return Inertia::render('Legal/Privacy', [
+            'term' => $this->resolvePolicyTermPayload('privacy'),
+        ]);
+    }
+
+    public function showCookiePolicy()
+    {
+        return Inertia::render('Legal/Cookies', [
+            'term' => $this->resolvePolicyTermPayload('cookie'),
+        ]);
+    }
+
+    /**
+     * @return array{id:int,title:string,content:string,updated_at:?string}|null
+     */
+    private function resolvePolicyTermPayload(string $policy): ?array
+    {
+        try {
+            $query = Term::query();
+
+            $query->where(function ($builder) use ($policy): void {
+                $builder
+                    ->whereRaw('LOWER(title) LIKE ?', ["%{$policy}%"])
+                    ->orWhereRaw('LOWER(title) = ?', [$policy]);
+            });
+
+            $term = $query->latest('updated_at')->first();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load policy term from database.', [
+                'policy' => $policy,
+                'message' => $exception->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (! $term instanceof Term) {
+            return null;
+        }
+
+        return [
+            'id' => $term->id,
+            'title' => (string) $term->title,
+            'content' => (string) $term->content,
+            'updated_at' => $term->updated_at?->toIso8601String(),
         ];
     }
 }
