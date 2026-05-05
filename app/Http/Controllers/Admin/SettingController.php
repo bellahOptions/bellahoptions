@@ -18,8 +18,11 @@ use App\Support\ServiceOrderCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
+use Throwable;
 
 class SettingController extends Controller
 {
@@ -129,7 +132,9 @@ class SettingController extends Controller
 
         PlatformSettings::setHomeSlides((array) ($payload['home_slides'] ?? []));
         PlatformSettings::setServicePriceOverrides((array) ($payload['service_prices'] ?? []));
-        $this->savePolicyTerms((array) ($payload['terms'] ?? []));
+        if (is_array($payload['terms'] ?? null)) {
+            $this->savePolicyTerms((array) $payload['terms']);
+        }
 
         return back()->with('success', 'Platform settings updated successfully.');
     }
@@ -450,6 +455,10 @@ class SettingController extends Controller
 
     private function findPolicyContentByKeyword(string $keyword): string
     {
+        if (! $this->termsTableExists()) {
+            return '';
+        }
+
         $term = Term::query()
             ->whereRaw('LOWER(title) LIKE ?', ['%'.strtolower($keyword).'%'])
             ->latest('updated_at')
@@ -463,6 +472,10 @@ class SettingController extends Controller
      */
     private function savePolicyTerms(array $termsPayload): void
     {
+        if (! $this->termsTableExists()) {
+            return;
+        }
+
         $map = [
             'terms_of_service' => 'Terms of Service',
             'privacy_policy' => 'Privacy Policy',
@@ -476,6 +489,19 @@ class SettingController extends Controller
                 ['title' => $title],
                 ['content' => $content],
             );
+        }
+    }
+
+    private function termsTableExists(): bool
+    {
+        try {
+            return Schema::hasTable('terms');
+        } catch (Throwable $exception) {
+            Log::warning('Unable to confirm terms table availability.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return false;
         }
     }
 }

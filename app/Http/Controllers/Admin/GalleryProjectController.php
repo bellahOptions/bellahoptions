@@ -9,6 +9,7 @@ use App\Support\WebpImageConverter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -18,6 +19,12 @@ class GalleryProjectController extends Controller
 {
     public function index(): Response
     {
+        if (! Schema::hasTable('gallery_projects')) {
+            return Inertia::render('Admin/Gallery/Index', [
+                'items' => [],
+            ]);
+        }
+
         return Inertia::render('Admin/Gallery/Index', [
             'items' => GalleryProject::query()
                 ->orderBy('position')
@@ -28,6 +35,10 @@ class GalleryProjectController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        if (! Schema::hasTable('gallery_projects')) {
+            return back()->with('error', 'Gallery projects table is missing. Run migrations and try again.');
+        }
+
         GalleryProject::query()->create([
             ...$this->validatedData($request),
             'uploaded_by' => $request->user()?->id,

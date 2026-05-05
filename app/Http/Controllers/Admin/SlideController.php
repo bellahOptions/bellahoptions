@@ -7,6 +7,7 @@ use App\Models\SlideShow;
 use App\Support\PublicContentSecurity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -17,6 +18,12 @@ class SlideController extends Controller
      */
     public function index(): Response
     {
+        if (! Schema::hasTable('slide_shows')) {
+            return Inertia::render('Admin/Slides/Index', [
+                'slideShows' => [],
+            ]);
+        }
+
         return Inertia::render('Admin/Slides/Index', [
             'slideShows' => SlideShow::query()
                 ->latest('id')
@@ -37,6 +44,10 @@ class SlideController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        if (! Schema::hasTable('slide_shows')) {
+            return back()->with('error', 'Slide storage table is missing. Run migrations and try again.');
+        }
+
         SlideShow::create($this->validatedPayload($request));
 
         return back()->with('success', 'Slide created successfully.');

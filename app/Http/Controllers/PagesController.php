@@ -28,17 +28,23 @@ class PagesController extends Controller
         ServiceOrderCatalog $serviceOrderCatalog
     )
     {
-        return Inertia::render('Welcome', [
-            'slideShows' => SlideShow::query()
+        $slideShows = collect();
+        try {
+            $slideShows = SlideShow::query()
                 ->latest('id')
                 ->get(['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'])
                 ->map(function (SlideShow $slide) use ($serviceOrderCatalog): ?array {
                     try {
+                        $safeImage = $this->publicAssetUrl($slide->slide_image);
+                        if (is_string($slide->slide_image) && trim($slide->slide_image) !== '' && $safeImage === null) {
+                            return null;
+                        }
+
                         return [
                             'id' => $slide->id,
                             'slide_title' => $slide->slide_title,
                             'text' => $slide->text,
-                            'slide_image' => $this->publicAssetUrl($slide->slide_image),
+                            'slide_image' => $safeImage,
                             'slide_link' => $this->normalizeSlideOrderLink($slide->slide_link, $serviceOrderCatalog),
                             'slide_link_text' => $slide->slide_link_text,
                         ];
@@ -52,9 +58,16 @@ class PagesController extends Controller
                     }
                 })
                 ->filter()
-                ->values(),
-            'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),
-            'gallerySamples' => GalleryProject::query()
+                ->values();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load welcome slides.', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
+        $gallerySamples = collect();
+        try {
+            $gallerySamples = GalleryProject::query()
                 ->where('is_published', true)
                 ->orderBy('position')
                 ->latest('id')
@@ -68,7 +81,17 @@ class PagesController extends Controller
                     'summary' => $project->description ?: 'Uploaded by Bellah Options super-admin.',
                     'href' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($project->project_url) ?: '/gallery',
                 ])
-                ->values(),
+                ->values();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load homepage gallery samples.', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
+        return Inertia::render('Welcome', [
+            'slideShows' => $slideShows,
+            'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),
+            'gallerySamples' => $gallerySamples,
         ]);
     }
 
@@ -100,21 +123,28 @@ class PagesController extends Controller
 
     public function galleryPage()
     {
-        $projects = GalleryProject::query()
-            ->where('is_published', true)
-            ->orderBy('position')
-            ->latest('id')
-            ->get()
-            ->map(fn (GalleryProject $project): array => [
-                'id' => $project->id,
-                'title' => $project->title,
-                'category' => $project->category ?: 'Creative Work',
-                'description' => $project->description ?: '',
-                'image' => $this->publicAssetUrl($project->image_path) ?? '/logo-07.svg',
-                'project_url' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($project->project_url),
-                'source' => 'uploaded',
-            ])
-            ->values();
+        $projects = collect();
+        try {
+            $projects = GalleryProject::query()
+                ->where('is_published', true)
+                ->orderBy('position')
+                ->latest('id')
+                ->get()
+                ->map(fn (GalleryProject $project): array => [
+                    'id' => $project->id,
+                    'title' => $project->title,
+                    'category' => $project->category ?: 'Creative Work',
+                    'description' => $project->description ?: '',
+                    'image' => $this->publicAssetUrl($project->image_path) ?? '/logo-07.svg',
+                    'project_url' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($project->project_url),
+                    'source' => 'uploaded',
+                ])
+                ->values();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load gallery projects.', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
 
         return Inertia::render('Gallery', [
             'projects' => $projects,
@@ -207,7 +237,7 @@ class PagesController extends Controller
             return null;
         }
 
-        if (preg_match('#^/services/([a-z0-9-]+)([?#].*)?$#i', $sanitized, $matches) !== 1) {
+        if (preg_match('#^/services/([a-z0-9-]+)([?\#].*)?$#i', $sanitized, $matches) !== 1) {
             return $sanitized;
         }
 

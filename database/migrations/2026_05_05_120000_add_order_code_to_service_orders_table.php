@@ -32,7 +32,7 @@ return new class extends Migration
             ->get();
 
         foreach ($orders as $order) {
-            $orderCode = generateServiceOrderCode($seenOrderIds);
+            $orderCode = $this->generateServiceOrderCode($seenOrderIds);
 
             DB::table('service_orders')
                 ->where('id', $order->id)
@@ -56,16 +56,16 @@ return new class extends Migration
             $table->dropColumn('order_code');
         });
     }
+    
+    /**
+     * @param  array<string, bool>  $seenOrderIds
+     */
+    private function generateServiceOrderCode(array $seenOrderIds): string
+    {
+        do {
+            $candidate = 'BO'.strtoupper(Str::random(6));
+        } while (isset($seenOrderIds[$candidate]) || DB::table('service_orders')->where('order_code', $candidate)->exists());
+
+        return $candidate;
+    }
 };
-
-/**
- * @param  array<string, bool>  $seenOrderIds
- */
-function generateServiceOrderCode(array $seenOrderIds): string
-{
-    do {
-        $candidate = 'BO'.strtoupper(Str::random(6));
-    } while (isset($seenOrderIds[$candidate]) || DB::table('service_orders')->where('order_code', $candidate)->exists());
-
-    return $candidate;
-}

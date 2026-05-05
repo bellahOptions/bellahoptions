@@ -49,6 +49,12 @@ const errorStepMap = {
     company_name: 6,
 };
 
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const phonePattern = /^[+0-9()\-\s]+$/;
+const fullNamePattern = /^[\p{L}\s\-.'`]+$/u;
+const httpUrlPattern = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
+const discountPattern = /^[A-Z0-9\-]+$/;
+
 export default function OrderCreate({
     serviceSlug,
     humanCheckQuestion = "",
@@ -72,7 +78,7 @@ export default function OrderCreate({
         ? selectedServiceSlug
         : serviceSlug;
 
-    const { data, setData, post, processing, errors } = useForm(
+    const { data, setData, setError, clearErrors, post, processing, errors } = useForm(
         buildOrderFormSeed(checkoutServices, {
             full_name: profileDefaults.name || auth?.user?.name || "",
             email: profileDefaults.email || auth?.user?.email || "",
@@ -91,37 +97,251 @@ export default function OrderCreate({
     const activePackageEntries = Object.entries(activePackages);
     const logoAddonEntries = Object.entries(logoAddons || {});
     const selectedLogoAddon = logoAddons[data.logo_addon_package] || null;
+    const intakeFieldMap = useMemo(() => {
+        const map = new Map();
+
+        (activeService?.intake || []).forEach((field) => {
+            if (field?.name) {
+                map.set(field.name, field);
+            }
+        });
+
+        return map;
+    }, [activeService]);
+
+    const validateField = (fieldName, nextData) => {
+        const value = nextData[fieldName];
+        const normalized = String(value ?? "").trim();
+        const intakeField = intakeFieldMap.get(fieldName);
+
+        if (fieldName === "full_name") {
+            if (normalized === "") return "Full name is required.";
+            if (normalized.length < 3) return "Full name must be at least 3 characters.";
+            if (normalized.length > 120) return "Full name must not exceed 120 characters.";
+            if (!fullNamePattern.test(normalized)) return "Please enter a valid full name.";
+            return null;
+        }
+
+        if (fieldName === "email") {
+            if (normalized === "") return "Email is required.";
+            if (!emailPattern.test(normalized)) return "Please enter a valid email address.";
+            if (normalized.length > 255) return "Email must not exceed 255 characters.";
+            return null;
+        }
+
+        if (fieldName === "phone") {
+            if (normalized === "") return "Phone is required.";
+            if (normalized.length < 7) return "Phone must be at least 7 characters.";
+            if (normalized.length > 30) return "Phone must not exceed 30 characters.";
+            if (!phonePattern.test(normalized)) return "Please enter a valid phone number.";
+            return null;
+        }
+
+        if (fieldName === "business_name") {
+            if (normalized === "") return "Business name is required.";
+            if (normalized.length < 2) return "Business name must be at least 2 characters.";
+            if (normalized.length > 180) return "Business name must not exceed 180 characters.";
+            return null;
+        }
+
+        if (fieldName === "position") {
+            return normalized.length > 120 ? "Role/position must not exceed 120 characters." : null;
+        }
+
+        if (fieldName === "business_website") {
+            if (normalized === "") return null;
+            if (normalized.length > 255) return "Business website must not exceed 255 characters.";
+            if (!httpUrlPattern.test(normalized)) return "Please enter a valid full website URL, including http:// or https://.";
+            return null;
+        }
+
+        if (fieldName === "has_logo") {
+            return ["yes", "no"].includes(normalized) ? null : "Please tell us whether you already have a logo.";
+        }
+
+        if (fieldName === "logo_design_interest") {
+            if (nextData.has_logo !== "no") return null;
+            if (!["yes", "no"].includes(normalized)) return "Please tell us whether you want Bellah Options to design a logo for you.";
+            return null;
+        }
+
+        if (fieldName === "logo_addon_package") {
+            if (!(nextData.has_logo === "no" && nextData.logo_design_interest === "yes")) return null;
+            if (normalized === "") return "Please choose a logo or brand design package.";
+            return logoAddons[normalized] ? null : "The selected logo package is invalid.";
+        }
+
+        if (fieldName === "service_package") {
+            if (normalized === "") return "Please select a package.";
+            return activePackages[normalized] ? null : "Please select a valid package.";
+        }
+
+        if (fieldName === "discount_code") {
+            if (normalized === "") return null;
+            return discountPattern.test(normalized.toUpperCase()) ? null : "Please enter a valid discount code.";
+        }
+
+        if (fieldName === "project_summary") {
+            if (normalized === "") return "Project summary is required.";
+            if (normalized.length < 30) return "Project summary must be at least 30 characters.";
+            if (normalized.length > 2500) return "Project summary must not exceed 2500 characters.";
+            return null;
+        }
+
+        if (fieldName === "project_goals") return normalized.length > 1500 ? "Project goals must not exceed 1500 characters." : null;
+        if (fieldName === "target_audience") return normalized.length > 1000 ? "Target audience must not exceed 1000 characters." : null;
+        if (fieldName === "preferred_style") return normalized.length > 1000 ? "Preferred style must not exceed 1000 characters." : null;
+        if (fieldName === "deliverables") return normalized.length > 1500 ? "Deliverables must not exceed 1500 characters." : null;
+        if (fieldName === "additional_details") return normalized.length > 2000 ? "Additional details must not exceed 2000 characters." : null;
+        if (fieldName === "timeline_preference") return normalized.length > 120 ? "Timeline preference must not exceed 120 characters." : null;
+
+        if (fieldName === "create_account") return null;
+
+        if (fieldName === "password") {
+            if (isAuthenticated || !nextData.create_account) return null;
+            if (normalized === "") return "A password is required to create your account.";
+            if (normalized.length < 8) return "Password must be at least 8 characters.";
+            return null;
+        }
+
+        if (fieldName === "password_confirmation") {
+            if (isAuthenticated || !nextData.create_account) return null;
+            if (String(nextData.password || "") !== String(nextData.password_confirmation || "")) {
+                return "Password confirmation does not match.";
+            }
+
+            return null;
+        }
+
+        if (fieldName === "human_check_answer") {
+            return normalized === "" ? "Human verification is required." : null;
+        }
+
+        if (fieldName === "website" || fieldName === "company_name" || fieldName === "contact_notes") {
+            return normalized === "" ? null : "Human verification failed.";
+        }
+
+        if (!intakeField) {
+            return null;
+        }
+
+        const required = Boolean(intakeField.required);
+        const maxLength = Number(intakeField.max || (intakeField.type === "textarea" ? 2500 : 255));
+
+        if (required && normalized === "") {
+            return `${intakeField.label || "This field"} is required.`;
+        }
+
+        if (normalized === "") {
+            return null;
+        }
+
+        if (intakeField.type === "number") {
+            const numericValue = Number(value);
+
+            if (!Number.isInteger(numericValue)) {
+                return `${intakeField.label || "This field"} must be a whole number.`;
+            }
+
+            const min = Number(intakeField.min || 0);
+            const max = Number(intakeField.max || 1000000);
+
+            if (numericValue < min || numericValue > max) {
+                return `${intakeField.label || "This field"} must be between ${min} and ${max}.`;
+            }
+
+            return null;
+        }
+
+        if (normalized.length > maxLength) {
+            return `${intakeField.label || "This field"} must not exceed ${maxLength} characters.`;
+        }
+
+        if (intakeField.type === "url" && !httpUrlPattern.test(normalized)) {
+            return `${intakeField.label || "This field"} must be a valid URL starting with http:// or https://.`;
+        }
+
+        if (intakeField.type === "select") {
+            const options = intakeField.options || {};
+            const allowedValues = Array.isArray(options) ? options : Object.keys(options);
+
+            if (allowedValues.length > 0 && !allowedValues.includes(normalized)) {
+                return `${intakeField.label || "This field"} has an invalid option selected.`;
+            }
+        }
+
+        return null;
+    };
+
+    const validateFields = (nextData, fieldNames) => {
+        const uniqueFields = [...new Set(fieldNames)];
+
+        uniqueFields.forEach((fieldName) => {
+            const error = validateField(fieldName, nextData);
+
+            if (error) {
+                setError(fieldName, error);
+            } else {
+                clearErrors(fieldName);
+            }
+        });
+    };
+
+    const updateField = (fieldName, value, relatedFields = []) => {
+        const nextData = {
+            ...data,
+            [fieldName]: value,
+        };
+
+        setData(fieldName, value);
+        validateFields(nextData, [fieldName, ...relatedFields]);
+    };
 
     useEffect(() => {
         if (!data.service_package && selectedPackageCode) {
+            const nextData = {
+                ...data,
+                service_package: selectedPackageCode,
+            };
+
             setData("service_package", selectedPackageCode);
+            validateFields(nextData, ["service_package"]);
         }
-    }, [data.service_package, selectedPackageCode, setData]);
+    }, [data, data.service_package, selectedPackageCode, setData]);
 
     useEffect(() => {
         if (!activePackages[data.service_package]) {
             const firstPackageCode = activePackageEntries[0]?.[0] || "";
+            const nextData = {
+                ...data,
+                service_package: firstPackageCode,
+            };
+
             setData("service_package", firstPackageCode);
+            validateFields(nextData, ["service_package"]);
         }
-    }, [activePackageEntries, activePackages, data.service_package, setData]);
+    }, [activePackageEntries, activePackages, data, data.service_package, setData]);
 
     useEffect(() => {
         if (data.has_logo !== "no") {
             if (data.logo_design_interest !== "") {
                 setData("logo_design_interest", "");
+                clearErrors("logo_design_interest");
             }
 
             if (data.logo_addon_package !== "") {
                 setData("logo_addon_package", "");
+                clearErrors("logo_addon_package");
             }
         }
-    }, [data.has_logo, data.logo_addon_package, data.logo_design_interest, setData]);
+    }, [clearErrors, data.has_logo, data.logo_addon_package, data.logo_design_interest, setData]);
 
     useEffect(() => {
         if (data.logo_design_interest !== "yes" && data.logo_addon_package !== "") {
             setData("logo_addon_package", "");
+            clearErrors("logo_addon_package");
         }
-    }, [data.logo_addon_package, data.logo_design_interest, setData]);
+    }, [clearErrors, data.logo_addon_package, data.logo_design_interest, setData]);
 
     const summaryItems = useMemo(() => {
         const packageData = activePackages[data.service_package] || null;
@@ -246,7 +466,7 @@ export default function OrderCreate({
                                         />
                                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                             <Field label="Full Name" error={errors.full_name}>
-                                                <input autoComplete="name" value={data.full_name} onChange={(event) => setData("full_name", event.target.value)} className={inputClassName} />
+                                                <input autoComplete="name" value={data.full_name} onChange={(event) => updateField("full_name", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Email Address" error={errors.email}>
                                                 <input
@@ -255,7 +475,7 @@ export default function OrderCreate({
                                                     autoComplete="email"
                                                     placeholder="name@company.com"
                                                     value={data.email}
-                                                    onChange={(event) => setData("email", event.target.value)}
+                                                    onChange={(event) => updateField("email", event.target.value)}
                                                     className={inputClassName}
                                                 />
                                             </Field>
@@ -266,12 +486,12 @@ export default function OrderCreate({
                                                     autoComplete="tel"
                                                     placeholder="+234 800 000 0000"
                                                     value={data.phone}
-                                                    onChange={(event) => setData("phone", event.target.value)}
+                                                    onChange={(event) => updateField("phone", event.target.value)}
                                                     className={inputClassName}
                                                 />
                                             </Field>
                                             <Field label="Role / Position" error={errors.position}>
-                                                <input value={data.position} onChange={(event) => setData("position", event.target.value)} className={inputClassName} />
+                                                <input value={data.position} onChange={(event) => updateField("position", event.target.value)} className={inputClassName} />
                                             </Field>
                                         </div>
                                     </section>
@@ -307,7 +527,7 @@ export default function OrderCreate({
                                         />
                                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                             <Field label="Business Name" error={errors.business_name}>
-                                                <input value={data.business_name} onChange={(event) => setData("business_name", event.target.value)} className={inputClassName} />
+                                                <input value={data.business_name} onChange={(event) => updateField("business_name", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Business Website" error={errors.business_website}>
                                                 <input
@@ -315,12 +535,12 @@ export default function OrderCreate({
                                                     inputMode="url"
                                                     placeholder="https://yourbusiness.com"
                                                     value={data.business_website}
-                                                    onChange={(event) => setData("business_website", event.target.value)}
+                                                    onChange={(event) => updateField("business_website", event.target.value)}
                                                     className={inputClassName}
                                                 />
                                             </Field>
                                             <Field label="Do You Already Have a Logo?" error={errors.has_logo}>
-                                                <select value={data.has_logo} onChange={(event) => setData("has_logo", event.target.value)} className={inputClassName}>
+                                                <select value={data.has_logo} onChange={(event) => updateField("has_logo", event.target.value, ["logo_design_interest", "logo_addon_package"])} className={inputClassName}>
                                                     <option value="">Select an option</option>
                                                     <option value="yes">Yes, we already have a logo</option>
                                                     <option value="no">No, we need logo support</option>
@@ -328,7 +548,7 @@ export default function OrderCreate({
                                             </Field>
                                             {data.has_logo === "no" && (
                                                 <Field label="Do You Want Us to Design a Logo?" error={errors.logo_design_interest}>
-                                                    <select value={data.logo_design_interest} onChange={(event) => setData("logo_design_interest", event.target.value)} className={inputClassName}>
+                                                    <select value={data.logo_design_interest} onChange={(event) => updateField("logo_design_interest", event.target.value, ["logo_addon_package"])} className={inputClassName}>
                                                         <option value="">Select an option</option>
                                                         <option value="yes">Yes, add logo / brand design</option>
                                                         <option value="no">No, not right now</option>
@@ -336,25 +556,25 @@ export default function OrderCreate({
                                                 </Field>
                                             )}
                                             <Field label="Business / Project Summary" error={errors.project_summary} className="sm:col-span-2">
-                                                <textarea rows={4} value={data.project_summary} onChange={(event) => setData("project_summary", event.target.value)} className={inputClassName} />
+                                                <textarea rows={4} value={data.project_summary} onChange={(event) => updateField("project_summary", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Project Goals" error={errors.project_goals} className="sm:col-span-2">
-                                                <textarea rows={3} value={data.project_goals} onChange={(event) => setData("project_goals", event.target.value)} className={inputClassName} />
+                                                <textarea rows={3} value={data.project_goals} onChange={(event) => updateField("project_goals", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Target Audience" error={errors.target_audience}>
-                                                <textarea rows={3} value={data.target_audience} onChange={(event) => setData("target_audience", event.target.value)} className={inputClassName} />
+                                                <textarea rows={3} value={data.target_audience} onChange={(event) => updateField("target_audience", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Preferred Style" error={errors.preferred_style}>
-                                                <textarea rows={3} value={data.preferred_style} onChange={(event) => setData("preferred_style", event.target.value)} className={inputClassName} />
+                                                <textarea rows={3} value={data.preferred_style} onChange={(event) => updateField("preferred_style", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Expected Deliverables" error={errors.deliverables}>
-                                                <textarea rows={3} value={data.deliverables} onChange={(event) => setData("deliverables", event.target.value)} className={inputClassName} />
+                                                <textarea rows={3} value={data.deliverables} onChange={(event) => updateField("deliverables", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Timeline Preference" error={errors.timeline_preference}>
-                                                <input value={data.timeline_preference} onChange={(event) => setData("timeline_preference", event.target.value)} className={inputClassName} />
+                                                <input value={data.timeline_preference} onChange={(event) => updateField("timeline_preference", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Additional Details" error={errors.additional_details} className="sm:col-span-2">
-                                                <textarea rows={3} value={data.additional_details} onChange={(event) => setData("additional_details", event.target.value)} className={inputClassName} />
+                                                <textarea rows={3} value={data.additional_details} onChange={(event) => updateField("additional_details", event.target.value)} className={inputClassName} />
                                             </Field>
                                         </div>
 
@@ -372,7 +592,7 @@ export default function OrderCreate({
                                                             <button
                                                                 key={code}
                                                                 type="button"
-                                                                onClick={() => setData("logo_addon_package", code)}
+                                                                onClick={() => updateField("logo_addon_package", code)}
                                                                 className={`border p-5 text-left transition ${selected ? "border-[#000285] bg-white" : "border-blue-200 bg-blue-50/40 hover:border-blue-300"}`}
                                                             >
                                                                 <p className="text-lg font-black text-gray-950">{addon.name}</p>
@@ -396,7 +616,7 @@ export default function OrderCreate({
                                                             field={field}
                                                             value={data[field.name] || ""}
                                                             error={errors[field.name]}
-                                                            onChange={(value) => setData(field.name, value)}
+                                                            onChange={(value) => updateField(field.name, value)}
                                                         />
                                                     ))}
                                                 </div>
@@ -419,7 +639,7 @@ export default function OrderCreate({
                                                     <button
                                                         key={code}
                                                         type="button"
-                                                        onClick={() => setData("service_package", code)}
+                                                        onClick={() => updateField("service_package", code)}
                                                         className={`border p-5 text-left transition ${selected ? "border-[#000285] bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
                                                     >
                                                         <p className="text-lg font-black text-gray-950">{pack.name}</p>
@@ -449,7 +669,7 @@ export default function OrderCreate({
                                                     <input
                                                         type="checkbox"
                                                         checked={Boolean(data.create_account)}
-                                                        onChange={(event) => setData("create_account", event.target.checked)}
+                                                        onChange={(event) => updateField("create_account", event.target.checked, ["password", "password_confirmation"])}
                                                         className="mt-1 rounded border-gray-300 text-[#000285] focus:ring-[#000285]"
                                                     />
                                                     <span>
@@ -460,10 +680,10 @@ export default function OrderCreate({
                                                 {data.create_account && (
                                                     <div className="grid gap-4 sm:grid-cols-2">
                                                         <Field label="Password" error={errors.password}>
-                                                            <input type="password" value={data.password} onChange={(event) => setData("password", event.target.value)} className={inputClassName} />
+                                                            <input type="password" value={data.password} onChange={(event) => updateField("password", event.target.value, ["password_confirmation"])} className={inputClassName} />
                                                         </Field>
                                                         <Field label="Confirm Password" error={errors.password_confirmation}>
-                                                            <input type="password" value={data.password_confirmation} onChange={(event) => setData("password_confirmation", event.target.value)} className={inputClassName} />
+                                                            <input type="password" value={data.password_confirmation} onChange={(event) => updateField("password_confirmation", event.target.value)} className={inputClassName} />
                                                         </Field>
                                                     </div>
                                                 )}
@@ -498,7 +718,7 @@ export default function OrderCreate({
                                                 <input
                                                     type="text"
                                                     value={data.human_check_answer}
-                                                    onChange={(event) => setData("human_check_answer", event.target.value)}
+                                                    onChange={(event) => updateField("human_check_answer", event.target.value)}
                                                     className={inputClassName}
                                                     autoComplete="off"
                                                 />
@@ -519,7 +739,7 @@ export default function OrderCreate({
                                             tabIndex={-1}
                                             autoComplete="off"
                                             value={data.website}
-                                            onChange={(event) => setData("website", event.target.value)}
+                                            onChange={(event) => updateField("website", event.target.value)}
                                         />
                                     </label>
                                     <label>
@@ -530,7 +750,7 @@ export default function OrderCreate({
                                             tabIndex={-1}
                                             autoComplete="off"
                                             value={data.company_name}
-                                            onChange={(event) => setData("company_name", event.target.value)}
+                                            onChange={(event) => updateField("company_name", event.target.value)}
                                         />
                                     </label>
                                     <label>
@@ -541,7 +761,7 @@ export default function OrderCreate({
                                             tabIndex={-1}
                                             autoComplete="off"
                                             value={data.contact_notes}
-                                            onChange={(event) => setData("contact_notes", event.target.value)}
+                                            onChange={(event) => updateField("contact_notes", event.target.value)}
                                         />
                                     </label>
                                 </div>
