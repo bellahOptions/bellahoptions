@@ -64,4 +64,24 @@ final class PublicContentSecurity
 
         return self::isSafeRelativePathOrHttpUrl($normalized) ? $normalized : null;
     }
+
+    public static function sanitizeLenientRelativePathOrHttpUrl(mixed $value): ?string
+    {
+        $normalized = self::normalizeNullableText($value);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        if (self::isSafeHttpUrl($normalized)) {
+            return $normalized;
+        }
+
+        $candidate = $normalized;
+        if (! str_starts_with($candidate, '/')) {
+            $candidate = '/'.ltrim($candidate, '/');
+        }
+
+        return self::isSafeRelativePath($candidate) ? $candidate : null;
+    }
 }

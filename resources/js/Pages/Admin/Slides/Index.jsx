@@ -106,6 +106,9 @@ export default function Slides({ slideShows = [] }) {
                                 <p className="text-sm text-gray-600">
                                     These slides are pulled from the database on the Welcome page.
                                 </p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Public paths like <span className="font-mono">images/hero.jpg</span> will be saved as <span className="font-mono">/images/hero.jpg</span>.
+                                </p>
                             </div>
                             <button
                                 type="submit"

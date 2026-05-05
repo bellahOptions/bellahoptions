@@ -9,7 +9,9 @@ use App\Models\SlideShow;
 use App\Support\PublicContentSecurity;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Throwable;
 
 class PagesController extends Controller
 {
@@ -27,14 +29,26 @@ class PagesController extends Controller
             'slideShows' => SlideShow::query()
                 ->latest('id')
                 ->get(['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'])
-                ->map(fn (SlideShow $slide): array => [
-                    'id' => $slide->id,
-                    'slide_title' => $slide->slide_title,
-                    'text' => $slide->text,
-                    'slide_image' => $this->publicAssetUrl($slide->slide_image),
-                    'slide_link' => $this->normalizeSlideOrderLink($slide->slide_link, $serviceOrderCatalog),
-                    'slide_link_text' => $slide->slide_link_text,
-                ])
+                ->map(function (SlideShow $slide) use ($serviceOrderCatalog): ?array {
+                    try {
+                        return [
+                            'id' => $slide->id,
+                            'slide_title' => $slide->slide_title,
+                            'text' => $slide->text,
+                            'slide_image' => $this->publicAssetUrl($slide->slide_image),
+                            'slide_link' => $this->normalizeSlideOrderLink($slide->slide_link, $serviceOrderCatalog),
+                            'slide_link_text' => $slide->slide_link_text,
+                        ];
+                    } catch (Throwable $exception) {
+                        Log::warning('Skipping malformed welcome slide.', [
+                            'slide_id' => $slide->id,
+                            'message' => $exception->getMessage(),
+                        ]);
+
+                        return null;
+                    }
+                })
+                ->filter()
                 ->filter(fn (array $slide): bool => $slide['slide_image'] !== null)
                 ->values(),
             'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),

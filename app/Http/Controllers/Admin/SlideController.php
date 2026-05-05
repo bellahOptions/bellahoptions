@@ -83,6 +83,15 @@ class SlideController extends Controller
      */
     private function validatedPayload(Request $request): array
     {
+        $request->merge([
+            'slide_image' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl(
+                $request->input('slide_image')
+            ),
+            'slide_link' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl(
+                $request->input('slide_link')
+            ),
+        ]);
+
         $payload = $request->validate([
             'slide_title' => ['required', 'string', 'max:120'],
             'text' => ['required', 'string', 'max:260'],
@@ -116,8 +125,8 @@ class SlideController extends Controller
         return [
             'slide_title' => trim((string) $payload['slide_title']),
             'text' => trim((string) $payload['text']),
-            'slide_image' => (string) PublicContentSecurity::sanitizeRelativePathOrHttpUrl($payload['slide_image']),
-            'slide_link' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($payload['slide_link'] ?? null),
+            'slide_image' => (string) PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_image']),
+            'slide_link' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_link'] ?? null),
             'slide_link_text' => $this->nullableTrim($payload['slide_link_text'] ?? null),
         ];
     }
