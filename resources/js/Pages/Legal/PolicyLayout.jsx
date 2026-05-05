@@ -1,6 +1,5 @@
 import { Head, Link } from "@inertiajs/react";
 import { useMemo, useState } from "react";
-import { motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
 import { ArrowRightIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
@@ -31,6 +30,8 @@ export default function PolicyLayout({
             return [heading, body, bullets].some((value) => value.includes(normalizedQuery));
         });
     }, [normalizedQuery, sections]);
+
+    const hasSections = sections.length > 0;
 
     return (
         <>
@@ -113,15 +114,17 @@ export default function PolicyLayout({
                                 </aside>
 
                                 <div className="space-y-6">
+                                    {!hasSections && (
+                                        <section className="border border-red-200 bg-red-50 p-6 text-sm leading-7 text-red-700 shadow-sm">
+                                            This page content is temporarily unavailable. Please contact Bellah Options for a copy while we restore it.
+                                        </section>
+                                    )}
+
                                     {filteredSections.map((section, index) => (
-                                        <motion.section
+                                        <section
                                             key={section.id}
                                             id={section.id}
                                             className="border border-gray-200 bg-white p-6 shadow-sm sm:p-8"
-                                            initial={{ opacity: 0, y: 18 }}
-                                            whileInView={{ opacity: 1, y: 0 }}
-                                            viewport={{ once: true, amount: 0.18 }}
-                                            transition={{ duration: 0.35, delay: index * 0.03 }}
                                         >
                                             <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-600">
                                                 Section {index + 1}
@@ -146,7 +149,7 @@ export default function PolicyLayout({
                                                     ))}
                                                 </ul>
                                             )}
-                                        </motion.section>
+                                        </section>
                                     ))}
 
                                     <section className="bg-[#000285] p-6 text-white sm:p-8">

@@ -1,15 +1,36 @@
 import { Head, Link, router, usePage } from "@inertiajs/react";
+import { useMemo, useState } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
-import { ArrowRightIcon, CreditCardIcon, LifebuoyIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, CreditCardIcon, LifebuoyIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatMoney, statusLabel } from "./orderUtils";
+import { termsSections } from "@/Pages/Legal/policyData";
 
 export default function OrderPayment({ order, canPay = false, paymentProvider = "paystack" }) {
     const { flash, localization } = usePage().props;
     const locale = localization?.locale?.replace("_", "-") || "en-NG";
+    const [showTermsModal, setShowTermsModal] = useState(false);
+    const [termsAccepted, setTermsAccepted] = useState(false);
+    const termsPreview = useMemo(() => termsSections.slice(0, 6), []);
 
     const startPayment = () => {
         router.post(route("orders.payment.initialize", order.order_code), {}, { preserveScroll: true });
+    };
+
+    const handlePayNow = () => {
+        if (!termsAccepted) {
+            setShowTermsModal(true);
+
+            return;
+        }
+
+        startPayment();
+    };
+
+    const agreeAndContinue = () => {
+        setTermsAccepted(true);
+        setShowTermsModal(false);
+        startPayment();
     };
 
     return (
@@ -74,8 +95,12 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                                     Card and transfer details are completed on {String(paymentProvider).toUpperCase()} checkout. We only store the payment reference and verification status.
                                 </p>
 
+                                <div className="mt-6 border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-7 text-blue-900">
+                                    Before payment continues, you must review and accept the Bellah Options Terms of Service.
+                                </div>
+
                                 {canPay ? (
-                                    <button type="button" onClick={startPayment} className="mt-8 inline-flex w-full items-center justify-center gap-2 bg-[#000285] px-6 py-3 text-sm font-black text-white">
+                                    <button type="button" onClick={handlePayNow} className="mt-8 inline-flex w-full items-center justify-center gap-2 bg-[#000285] px-6 py-3 text-sm font-black text-white">
                                         Pay Now With {String(paymentProvider).toUpperCase()}
                                         <ArrowRightIcon className="h-4 w-4" />
                                     </button>
@@ -91,6 +116,13 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                                     <Link href={route("orders.show", order.order_code)} className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-black text-gray-700">
                                         View Order Progress
                                     </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowTermsModal(true)}
+                                        className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-black text-gray-700"
+                                    >
+                                        Review Terms
+                                    </button>
                                     <Link href="/contact-us" className="inline-flex items-center justify-center gap-2 border border-gray-300 px-5 py-3 text-sm font-black text-gray-700">
                                         Need Help?
                                         <LifebuoyIcon className="h-4 w-4" />
@@ -105,6 +137,94 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                     </RevealSection>
                 </main>
             </PageTheme>
+
+            {showTermsModal && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center bg-gray-950/70 px-4 py-8">
+                    <div className="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden bg-white shadow-2xl">
+                        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-5">
+                            <div>
+                                <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-600">
+                                    Terms Confirmation
+                                </p>
+                                <h2 className="mt-2 text-2xl font-black text-gray-950">
+                                    Review and accept before payment
+                                </h2>
+                                <p className="mt-2 text-sm leading-7 text-gray-600">
+                                    By proceeding, you confirm that you have read and agreed to the Bellah Options Terms of Service for this order.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setShowTermsModal(false)}
+                                className="flex h-10 w-10 items-center justify-center border border-gray-200 text-gray-600 transition hover:bg-gray-50"
+                                aria-label="Close terms modal"
+                            >
+                                <XMarkIcon className="h-5 w-5" />
+                            </button>
+                        </div>
+
+                        <div className="overflow-y-auto px-6 py-6">
+                            <div className="space-y-5">
+                                {termsPreview.map((section, index) => (
+                                    <section key={section.id} className="border border-gray-200 bg-gray-50 p-5">
+                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">
+                                            Section {index + 1}
+                                        </p>
+                                        <h3 className="mt-2 text-xl font-black text-gray-950">
+                                            {section.title}
+                                        </h3>
+                                        <div className="mt-3 space-y-3">
+                                            {(section.body || []).map((paragraph) => (
+                                                <p key={paragraph} className="text-sm leading-7 text-gray-600">
+                                                    {paragraph}
+                                                </p>
+                                            ))}
+                                        </div>
+                                        {(section.bullets || []).length > 0 && (
+                                            <ul className="mt-4 space-y-2">
+                                                {section.bullets.map((bullet) => (
+                                                    <li key={bullet} className="flex items-start gap-3 text-sm leading-7 text-gray-600">
+                                                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#000285]" />
+                                                        <span>{bullet}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
+                                    </section>
+                                ))}
+                            </div>
+
+                            <div className="mt-6 border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-7 text-blue-900">
+                                Need the full document?{" "}
+                                <Link href="/terms-of-service" className="font-black text-[#000285] underline underline-offset-2">
+                                    Open the full Terms of Service page
+                                </Link>
+                                .
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-3 border-t border-gray-200 px-6 py-5 sm:flex-row sm:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setTermsAccepted(false);
+                                    setShowTermsModal(false);
+                                }}
+                                className="border border-gray-300 px-5 py-3 text-sm font-black text-gray-700"
+                            >
+                                Reject Terms
+                            </button>
+                            <button
+                                type="button"
+                                onClick={agreeAndContinue}
+                                className="bg-[#000285] px-5 py-3 text-sm font-black text-white"
+                            >
+                                Agree and Continue to Payment
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
