@@ -51,7 +51,6 @@ class PagesController extends Controller
                     }
                 })
                 ->filter()
-                ->filter(fn (array $slide): bool => $slide['slide_image'] !== null)
                 ->values(),
             'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),
         ]);

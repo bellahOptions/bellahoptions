@@ -52,7 +52,7 @@ function isExternalUrl(url) {
 }
 
 export default function Slider({ slides = [] }) {
-    const resolvedSlides = Array.isArray(slides) && slides.length > 0
+    const resolvedSlides = Array.isArray(slides) && slides.length > 2
         ? slides
         : fallbackSlides;
 
@@ -68,11 +68,15 @@ export default function Slider({ slides = [] }) {
             {resolvedSlides.map((slide, index) => (
                 <SwiperSlide key={slide.id ?? `${slide.slide_title}-${index}`}>
                     <div className="relative h-full">
-                        <img
-                            src={slideImageSrc(slide.slide_image)}
-                            alt={slide.slide_title || `Slide ${index + 1}`}
-                            className="h-full w-full object-cover"
-                        />
+                        {slide.slide_image ? (
+                            <img
+                                src={slideImageSrc(slide.slide_image)}
+                                alt={slide.slide_title || `Slide ${index + 1}`}
+                                className="h-full w-full object-cover"
+                            />
+                        ) : (
+                            <MotionBackground index={index} />
+                        )}
                         <motion.div
                             className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 px-4 py-16 text-center text-white sm:px-6 lg:px-8"
                             initial={{ opacity: 0 }}
@@ -125,5 +129,37 @@ export default function Slider({ slides = [] }) {
                 </SwiperSlide>
             ))}
         </Swiper>
+    );
+}
+
+function MotionBackground({ index }) {
+    const palettes = [
+        "from-[#000285] via-[#0891b2] to-[#111827]",
+        "from-[#111827] via-[#2563eb] to-[#0f766e]",
+        "from-[#0f172a] via-[#7c3aed] to-[#0369a1]",
+    ];
+
+    return (
+        <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${palettes[index % palettes.length]}`}>
+            <motion.div
+                className="absolute -left-24 top-12 h-28 w-[70vw] rotate-[-18deg] bg-white/15 blur-2xl"
+                animate={{ x: ["-12%", "18%", "-12%"], opacity: [0.25, 0.45, 0.25] }}
+                transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+                className="absolute bottom-12 right-[-10%] h-36 w-[80vw] rotate-[-18deg] bg-cyan-200/20 blur-2xl"
+                animate={{ x: ["12%", "-16%", "12%"], opacity: [0.2, 0.5, 0.2] }}
+                transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
+            />
+            <motion.div
+                className="absolute inset-0 opacity-30"
+                style={{
+                    backgroundImage: "linear-gradient(rgba(255,255,255,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px)",
+                    backgroundSize: "56px 56px",
+                }}
+                animate={{ backgroundPosition: ["0px 0px", "56px 56px"] }}
+                transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            />
+        </div>
     );
 }

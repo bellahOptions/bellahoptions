@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Validator;
@@ -45,7 +44,8 @@ class StoreServiceOrderRequest extends FormRequest
             'website' => trim((string) $this->input('website')),
             'company_name' => trim((string) $this->input('company_name')),
             'contact_notes' => trim((string) $this->input('contact_notes')),
-            'order_nonce' => trim((string) $this->input('order_nonce')),
+            'human_check_answer' => strtoupper(trim((string) $this->input('human_check_answer'))),
+            'human_check_nonce' => trim((string) $this->input('human_check_nonce')),
             'create_account' => $this->boolean('create_account'),
         ];
 
@@ -100,8 +100,9 @@ class StoreServiceOrderRequest extends FormRequest
                 'confirmed',
                 Password::defaults(),
             ],
-            'order_nonce' => ['required', 'string', 'size:32'],
-            'order_rendered_at' => ['required', 'integer', 'min:1'],
+            'human_check_nonce' => ['required', 'string', 'size:32'],
+            'human_check_answer' => ['required', 'string', 'max:40'],
+            'form_rendered_at' => ['required', 'integer', 'min:1'],
             'website' => ['nullable', 'string', 'max:0'],
             'company_name' => ['nullable', 'string', 'max:0'],
             'contact_notes' => ['nullable', 'string', 'max:0'],
@@ -122,6 +123,7 @@ class StoreServiceOrderRequest extends FormRequest
             'website.max' => 'Human verification failed.',
             'company_name.max' => 'Human verification failed.',
             'contact_notes.max' => 'Human verification failed.',
+            'human_check_answer.required' => 'Human verification is required.',
             'password.required' => 'A password is required to create your account.',
             'password.confirmed' => 'Password confirmation does not match.',
             'has_logo.required' => 'Please tell us whether you already have a logo.',
@@ -133,27 +135,21 @@ class StoreServiceOrderRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $challenge = $this->session()->get('service_order_guard');
+            $challenge = $this->session()->get('service_order_human_check');
 
             if (! is_array($challenge)) {
-                $validator->errors()->add('project_summary', 'Security validation expired. Please reload and try again.');
-
-                return;
-            }
-
-            if ((string) ($challenge['service_slug'] ?? '') !== $this->serviceSlug()) {
-                $validator->errors()->add('project_summary', 'Security validation failed. Please reload and try again.');
+                $validator->errors()->add('human_check_answer', 'Human verification expired. Please reload and try again.');
 
                 return;
             }
 
             $nonceMatches = hash_equals(
                 (string) ($challenge['nonce'] ?? ''),
-                (string) $this->input('order_nonce'),
+                (string) $this->input('human_check_nonce'),
             );
 
             if (! $nonceMatches) {
-                $validator->errors()->add('project_summary', 'Security validation failed. Please reload and try again.');
+                $validator->errors()->add('human_check_answer', 'Human verification failed. Please reload and try again.');
 
                 return;
             }
@@ -161,70 +157,28 @@ class StoreServiceOrderRequest extends FormRequest
             $issuedAt = (int) ($challenge['issued_at'] ?? 0);
             $submittedAt = now()->timestamp;
 
-            if ($issuedAt <= 0 || ($submittedAt - $issuedAt) < 4 || ($submittedAt - $issuedAt) > 7200) {
-                $validator->errors()->add('project_summary', 'Please take a moment and submit again.');
+            if ($issuedAt <= 0 || ($submittedAt - $issuedAt) < 3 || ($submittedAt - $issuedAt) > 7200) {
+                $validator->errors()->add('human_check_answer', 'Please take a moment and submit again.');
 
                 return;
             }
 
-            if ((int) $this->input('order_rendered_at') !== $issuedAt) {
-                $validator->errors()->add('project_summary', 'Security validation failed. Please reload and try again.');
+            if ((int) $this->input('form_rendered_at') !== $issuedAt) {
+                $validator->errors()->add('human_check_answer', 'Human verification failed. Please reload and try again.');
 
                 return;
             }
 
-            $userAgent = Str::lower(trim((string) $this->userAgent()));
-            $blockedSignatures = [
-                'curl',
-                'wget',
-                'python-requests',
-                'python urllib',
-                'httpclient',
-                'libwww-perl',
-                'scrapy',
-                'headlesschrome',
-                'phantomjs',
-            ];
+            $providedAnswer = strtoupper(trim((string) $this->input('human_check_answer')));
+            $expectedAnswer = strtoupper(trim((string) ($challenge['answer'] ?? '')));
 
-            if ($userAgent === '' || Str::length($userAgent) < 12) {
-                $validator->errors()->add('project_summary', 'Unable to verify this submission. Please use a standard browser and try again.');
-
-                return;
-            }
-
-            foreach ($blockedSignatures as $signature) {
-                if (Str::contains($userAgent, $signature)) {
-                    $validator->errors()->add('project_summary', 'Automated submissions are not allowed.');
-
-                    return;
-                }
-            }
-
-            $summary = (string) $this->input('project_summary');
-            $linkCount = preg_match_all('/(?:https?:\/\/|www\.)/iu', $summary);
-            if ($linkCount !== false && $linkCount > 3) {
-                $validator->errors()->add('project_summary', 'Please keep links in your project brief to a maximum of three.');
-            }
-
-            if (preg_match('/(.)\1{9,}/u', $summary) === 1) {
-                $validator->errors()->add('project_summary', 'Please provide a clear project brief.');
+            if ($providedAnswer === '' || ! hash_equals($expectedAnswer, $providedAnswer)) {
+                $validator->errors()->add('human_check_answer', 'Human verification answer is incorrect.');
             }
 
             $fullName = (string) $this->input('full_name');
             if (preg_match('/\s+/u', trim($fullName)) !== 1) {
                 $validator->errors()->add('full_name', 'Please enter your full name.');
-            }
-
-            $suspiciousPayload = implode(' ', array_filter([
-                (string) $this->input('full_name'),
-                (string) $this->input('business_name'),
-                (string) $this->input('project_summary'),
-                (string) $this->input('project_goals'),
-                (string) $this->input('additional_details'),
-            ]));
-
-            if (preg_match('/<[^>]+>/u', $suspiciousPayload) === 1 || preg_match('/(?:javascript:|data:text\/html|<script|\[url=)/iu', $suspiciousPayload) === 1) {
-                $validator->errors()->add('project_summary', 'Please remove code or embedded markup from your project brief.');
             }
 
             if ($this->boolean('create_account') && $this->user() === null) {

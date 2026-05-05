@@ -96,11 +96,11 @@ class SlideController extends Controller
             'slide_title' => ['required', 'string', 'max:120'],
             'text' => ['required', 'string', 'max:260'],
             'slide_image' => [
-                'required',
+                'nullable',
                 'string',
                 'max:255',
                 function (string $attribute, mixed $value, \Closure $fail): void {
-                    if (PublicContentSecurity::isSafeRelativePathOrHttpUrl($value)) {
+                    if ($value === null || $value === '' || PublicContentSecurity::isSafeRelativePathOrHttpUrl($value)) {
                         return;
                     }
 
@@ -125,7 +125,7 @@ class SlideController extends Controller
         return [
             'slide_title' => trim((string) $payload['slide_title']),
             'text' => trim((string) $payload['text']),
-            'slide_image' => (string) PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_image']),
+            'slide_image' => (string) (PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_image'] ?? null) ?? ''),
             'slide_link' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_link'] ?? null),
             'slide_link_text' => $this->nullableTrim($payload['slide_link_text'] ?? null),
         ];

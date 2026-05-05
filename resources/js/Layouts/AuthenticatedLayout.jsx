@@ -78,9 +78,6 @@ export default function AuthenticatedLayout({ header, children }) {
                 </div>
 
                 <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
-                    <p className="px-3 pb-3 text-xs font-bold uppercase tracking-[0.18em] text-gray-400">
-                        Admin Menu
-                    </p>
                     {navItems.map((item) => (
                         <SidebarLink
                             key={item.label}

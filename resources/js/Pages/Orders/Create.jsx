@@ -42,15 +42,18 @@ const errorStepMap = {
     create_account: 5,
     password: 5,
     password_confirmation: 5,
-    order_nonce: 6,
-    order_rendered_at: 6,
+    human_check_answer: 6,
+    human_check_nonce: 6,
+    form_rendered_at: 6,
     website: 6,
     company_name: 6,
 };
 
 export default function OrderCreate({
     serviceSlug,
-    formGuard,
+    humanCheckQuestion = "",
+    humanCheckNonce = "",
+    formRenderedAt = 0,
     isAuthenticated = false,
     discountCode = "",
     discountSummary = "",
@@ -74,8 +77,8 @@ export default function OrderCreate({
             full_name: profileDefaults.name || auth?.user?.name || "",
             email: profileDefaults.email || auth?.user?.email || "",
             service_package: selectedPackageCode || "",
-            order_nonce: formGuard?.nonce || "",
-            order_rendered_at: formGuard?.issued_at || 0,
+            human_check_nonce: humanCheckNonce || "",
+            form_rendered_at: formRenderedAt || 0,
             discount_code: discountCode || "",
         }),
     );
@@ -490,11 +493,22 @@ export default function OrderCreate({
                                                 <p className="mt-3 text-sm leading-6 text-blue-100">We’ll create the order record first. If payment is required, you’ll be taken straight to the payment screen.</p>
                                             </div>
                                         </div>
+                                        <div className="mt-6 max-w-sm">
+                                            <Field label={`Human Match: ${humanCheckQuestion}`} error={errors.human_check_answer}>
+                                                <input
+                                                    type="text"
+                                                    value={data.human_check_answer}
+                                                    onChange={(event) => setData("human_check_answer", event.target.value)}
+                                                    className={inputClassName}
+                                                    autoComplete="off"
+                                                />
+                                            </Field>
+                                        </div>
                                     </section>
                                 )}
 
-                                <input type="hidden" value={data.order_nonce} readOnly />
-                                <input type="hidden" value={data.order_rendered_at} readOnly />
+                                <input type="hidden" value={data.human_check_nonce} readOnly />
+                                <input type="hidden" value={data.form_rendered_at} readOnly />
                                 <input type="hidden" value={data.discount_code} readOnly />
                                 <div className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
                                     <label>

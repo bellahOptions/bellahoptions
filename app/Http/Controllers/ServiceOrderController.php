@@ -67,15 +67,11 @@ class ServiceOrderController extends Controller
         $logoAddons = $this->localizeLogoAddons($catalog->logoAddons(), (string) $localization['currency']);
         $discount = $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
 
-        $request->session()->put('service_order_guard', [
-            'issued_at' => now()->timestamp,
-            'nonce' => Str::random(32),
-            'service_slug' => $serviceSlug,
-        ]);
+        $humanCheck = $this->createHumanMatchChallenge($request);
 
         return Inertia::render('Orders/Create', [
             'serviceSlug' => $serviceSlug,
-            'formGuard' => $request->session()->get('service_order_guard'),
+            ...$humanCheck,
             'isAuthenticated' => $request->user() !== null,
             'discountCode' => $discount?->code,
             'discountSummary' => $discount ? $this->discountSummary($discount) : null,
@@ -260,7 +256,7 @@ class ServiceOrderController extends Controller
             return back()->withInput()->with('error', 'Unable to create your order right now. Please try again.');
         }
 
-        $request->session()->forget('service_order_guard');
+        $request->session()->forget('service_order_human_check');
         $request->session()->forget('checkout_discount_code');
         $request->session()->put('service_order_access.'.$order->uuid, true);
 
@@ -1007,6 +1003,29 @@ class ServiceOrderController extends Controller
         }
 
         return trim($description.' | Logo Add-on: '.$logoAddonName);
+    }
+
+    /**
+     * @return array{humanCheckQuestion: string, humanCheckNonce: string, formRenderedAt: int}
+     */
+    private function createHumanMatchChallenge(Request $request): array
+    {
+        $words = ['BRAND', 'DESIGN', 'PROJECT', 'INVOICE', 'BELLAH'];
+        $answer = $words[array_rand($words)];
+        $issuedAt = now()->timestamp;
+        $nonce = Str::random(32);
+
+        $request->session()->put('service_order_human_check', [
+            'answer' => $answer,
+            'issued_at' => $issuedAt,
+            'nonce' => $nonce,
+        ]);
+
+        return [
+            'humanCheckQuestion' => "Type {$answer}",
+            'humanCheckNonce' => $nonce,
+            'formRenderedAt' => $issuedAt,
+        ];
     }
 
     private function sendOrderSubmittedAdminAlert(ServiceOrder $order): void
