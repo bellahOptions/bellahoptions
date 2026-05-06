@@ -16,7 +16,7 @@ export default function StaffLiveChatDock() {
             <button
                 type="button"
                 onClick={() => setOpen((previous) => !previous)}
-                className="inline-flex items-center gap-2 rounded-full bg-[#000285] px-4 py-3 text-sm font-bold text-white shadow-xl shadow-blue-900/30 transition hover:bg-blue-800"
+                className="inline-flex items-center gap-2 rounded-full bg-[#000285] px-4 py-3 text-sm font-black text-white shadow-xl shadow-blue-900/30 transition hover:bg-blue-800"
                 aria-label={open ? 'Hide staff chat panel' : 'Open staff chat panel'}
             >
                 <span className={`inline-block h-2.5 w-2.5 rounded-full ${open ? 'bg-emerald-300' : 'bg-white/80'}`} />

@@ -30,7 +30,7 @@ class HumanVerification
                 'humanVerificationMode' => 'turnstile',
                 'humanCheckQuestion' => '',
                 'humanCheckNonce' => '',
-                'turnstileSiteKey' => trim((string) config('services.turnstile.site_key', '')),
+                'turnstileSiteKey' => self::configuredTurnstileSiteKey(),
                 'formRenderedAt' => now()->timestamp,
             ];
         }
@@ -57,7 +57,7 @@ class HumanVerification
 
     public static function usesTurnstile(): bool
     {
-        return app()->isProduction();
+        return self::configuredTurnstileSiteKey() !== '' && self::configuredTurnstileSecretKey() !== '';
     }
 
     /**
@@ -157,7 +157,7 @@ class HumanVerification
     private static function validateTurnstileChallenge(FormRequest $request, Validator $validator): void
     {
         $token = trim((string) $request->input('turnstile_token'));
-        $secret = trim((string) config('services.turnstile.secret_key', ''));
+        $secret = self::configuredTurnstileSecretKey();
 
         if ($secret === '') {
             $validator->errors()->add('turnstile_token', 'Captcha verification is not configured. Please contact support.');
@@ -208,5 +208,15 @@ class HumanVerification
                 ? 'Captcha expired. Please complete the verification again.'
                 : 'Captcha verification failed. Please try again.',
         );
+    }
+
+    private static function configuredTurnstileSiteKey(): string
+    {
+        return trim((string) config('services.turnstile.site_key', ''));
+    }
+
+    private static function configuredTurnstileSecretKey(): string
+    {
+        return trim((string) config('services.turnstile.secret_key', ''));
     }
 }

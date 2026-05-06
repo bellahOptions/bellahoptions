@@ -450,25 +450,25 @@ export default function StaffLiveChatWorkspace({
     };
 
     return (
-        <section className={`flex min-h-0 overflow-hidden rounded-2xl border border-blue-200 bg-blue-50 ${className}`}>
-            <aside className="flex w-[43%] min-w-[260px] flex-col border-r border-blue-200 bg-blue-100">
-                <header className="space-y-2 border-b border-blue-200 px-4 py-3">
-                    <p className="text-sm font-bold text-blue-950">Live Conversations</p>
-                    <p className="text-xs text-blue-800">{onlineStaffIds.length} staff online now</p>
+        <section className={`flex min-h-0 overflow-hidden rounded-2xl border border-gray-200 bg-white ${className}`}>
+            <aside className="flex w-[43%] min-w-[260px] flex-col border-r border-gray-200 bg-gray-50">
+                <header className="space-y-2 border-b border-gray-200 px-4 py-3">
+                    <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">Live Conversations</p>
+                    <p className="text-xs text-gray-600">{onlineStaffIds.length} staff online now</p>
 
                     {showNudge && (
-                        <div className="rounded-md border border-blue-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-blue-900">
+                        <div className="rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-black uppercase tracking-wide text-[#000285]">
                             New customer message received.
                         </div>
                     )}
                 </header>
 
-                <div className="border-b border-blue-200 px-3 py-2">
-                    <p className="text-[11px] font-semibold uppercase tracking-wide text-blue-700">Online Team</p>
+                <div className="border-b border-gray-200 px-3 py-2">
+                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#000285]">Online Team</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
-                        {onlineStaff.length === 0 && <span className="text-[11px] text-blue-800">No active staff presence.</span>}
+                        {onlineStaff.length === 0 && <span className="text-[11px] text-gray-600">No active staff presence.</span>}
                         {onlineStaff.map((staff) => (
-                            <span key={staff.id} className="rounded-full bg-white px-2 py-0.5 text-[11px] font-medium text-blue-900 ring-1 ring-blue-200">
+                            <span key={staff.id} className="rounded-full bg-white px-2 py-0.5 text-[11px] font-semibold text-gray-800 ring-1 ring-gray-200">
                                 {staff.name}
                             </span>
                         ))}
@@ -476,9 +476,9 @@ export default function StaffLiveChatWorkspace({
                 </div>
 
                 <div className="min-h-0 flex-1 overflow-y-auto">
-                    {loading && <p className="px-4 py-3 text-sm text-blue-900">Loading threads...</p>}
+                    {loading && <p className="px-4 py-3 text-sm text-gray-700">Loading threads...</p>}
                     {!loading && threads.length === 0 && (
-                        <p className="px-4 py-3 text-sm text-blue-900">No active conversations yet.</p>
+                        <p className="px-4 py-3 text-sm text-gray-700">No active conversations yet.</p>
                     )}
 
                     {threads.map((threadItem) => {
@@ -489,20 +489,20 @@ export default function StaffLiveChatWorkspace({
                                 key={threadItem.id}
                                 type="button"
                                 onClick={() => setSelectedThreadId(threadItem.id)}
-                                className={`w-full border-b border-blue-200 px-4 py-3 text-left transition ${
-                                    active ? 'bg-white' : 'hover:bg-blue-50'
+                                className={`w-full border-b border-gray-200 px-4 py-3 text-left transition ${
+                                    active ? 'bg-white' : 'hover:bg-gray-100'
                                 }`}
                             >
                                 <div className="flex items-center justify-between gap-2">
-                                    <p className="truncate text-sm font-bold text-blue-950">{threadItem.display_name}</p>
+                                    <p className="truncate text-sm font-black text-gray-900">{threadItem.display_name}</p>
                                     {threadItem.unread_count > 0 && (
-                                        <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-blue-700 px-1 text-[11px] font-bold text-white">
+                                        <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#000285] px-1 text-[11px] font-black text-white">
                                             {threadItem.unread_count > 99 ? '99+' : threadItem.unread_count}
                                         </span>
                                     )}
                                 </div>
-                                <p className="mt-1 truncate text-xs text-blue-900">{threadItem.display_email || 'Guest visitor'}</p>
-                                <p className="mt-2 truncate text-xs text-blue-700">
+                                <p className="mt-1 truncate text-xs text-gray-600">{threadItem.display_email || 'Guest visitor'}</p>
+                                <p className="mt-2 truncate text-xs text-gray-500">
                                     {threadItem.latest_message?.body || 'No messages yet'}
                                 </p>
                                 <div className="mt-2 flex items-center justify-between">
@@ -515,7 +515,7 @@ export default function StaffLiveChatWorkspace({
                                     >
                                         {threadItem.status}
                                     </span>
-                                    <span className="text-[11px] text-blue-700">
+                                    <span className="text-[11px] text-gray-500">
                                         {threadItem.customer_is_online ? 'customer online' : formatDateTime(threadItem.last_message_at)}
                                     </span>
                                 </div>
@@ -526,11 +526,11 @@ export default function StaffLiveChatWorkspace({
             </aside>
 
             <div className="flex min-w-0 flex-1 flex-col bg-white">
-                <header className="border-b border-blue-200 bg-blue-50 px-4 py-3">
+                <header className="border-b border-gray-200 bg-white px-4 py-3">
                     <div className="flex items-center justify-between gap-3">
                         <div>
-                            <p className="text-sm font-bold text-blue-950">{selectedThreadLabel}</p>
-                            <p className="text-xs text-blue-800">{selectedThreadMeta}</p>
+                            <p className="text-sm font-black text-gray-900">{selectedThreadLabel}</p>
+                            <p className="text-xs text-gray-600">{selectedThreadMeta}</p>
                         </div>
 
                         {selectedThread && (
@@ -539,7 +539,7 @@ export default function StaffLiveChatWorkspace({
                                     type="button"
                                     onClick={joinThread}
                                     disabled={joining}
-                                    className="rounded-md border border-blue-300 px-2.5 py-1 text-xs font-bold text-blue-800 transition hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-55"
+                                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-700 transition hover:border-[#000285] hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-55"
                                 >
                                     {joining ? 'Joining...' : 'Join Chat'}
                                 </button>
@@ -566,10 +566,10 @@ export default function StaffLiveChatWorkspace({
 
                 <div
                     ref={scrollerRef}
-                    className={`min-h-0 flex-1 space-y-3 overflow-y-auto bg-white px-4 py-4 ${compact ? 'max-h-[50vh]' : ''}`}
+                    className={`min-h-0 flex-1 space-y-3 overflow-y-auto bg-gray-50 px-4 py-4 ${compact ? 'max-h-[50vh]' : ''}`}
                 >
                     {messages.length === 0 && (
-                        <p className="text-sm text-blue-700">Choose a conversation to begin live support.</p>
+                        <p className="text-sm text-gray-600">Choose a conversation to begin live support.</p>
                     )}
 
                     {messages.map((message) => {
@@ -579,11 +579,11 @@ export default function StaffLiveChatWorkspace({
                             <article
                                 key={message.id}
                                 className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                                    isStaff ? 'ml-auto bg-blue-700 text-white' : 'mr-auto bg-blue-100 text-blue-950'
+                                    isStaff ? 'ml-auto bg-[#000285] text-white' : 'mr-auto border border-gray-200 bg-white text-gray-900'
                                 }`}
                             >
                                 <p className="whitespace-pre-wrap break-words">{message.body}</p>
-                                <p className={`mt-1 text-[11px] ${isStaff ? 'text-blue-100' : 'text-blue-700'}`}>
+                                <p className={`mt-1 text-[11px] ${isStaff ? 'text-blue-100' : 'text-gray-500'}`}>
                                     {message.sender_name} · {formatDateTime(message.created_at)}
                                 </p>
 
@@ -595,8 +595,8 @@ export default function StaffLiveChatWorkspace({
                                             onClick={() => toggleReaction(message.id, reaction.emoji)}
                                             className={`rounded-full px-2 py-0.5 text-[11px] transition ${
                                                 isStaff
-                                                    ? 'border border-blue-300/40 bg-blue-800/60 text-white hover:bg-blue-800'
-                                                    : 'border border-blue-300 bg-white text-blue-900 hover:bg-blue-50'
+                                                    ? 'border border-blue-300/40 bg-blue-900 text-white hover:bg-blue-950'
+                                                    : 'border border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200'
                                             }`}
                                         >
                                             {reaction.emoji} {reaction.count}
@@ -607,7 +607,7 @@ export default function StaffLiveChatWorkspace({
                                             key={`${message.id}-quick-${emoji}`}
                                             type="button"
                                             onClick={() => toggleReaction(message.id, emoji)}
-                                            className={`rounded-full px-1 py-0.5 text-xs ${isStaff ? 'text-blue-100 hover:bg-blue-800' : 'text-blue-700 hover:bg-blue-50'}`}
+                                            className={`rounded-full px-1 py-0.5 text-xs ${isStaff ? 'text-blue-100 hover:bg-blue-900' : 'text-gray-600 hover:bg-gray-100'}`}
                                             title={`React with ${emoji}`}
                                         >
                                             {emoji}
@@ -619,18 +619,18 @@ export default function StaffLiveChatWorkspace({
                     })}
 
                     {selectedThread?.customer_typing && (
-                        <div className="mr-auto inline-flex max-w-[72%] items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs text-blue-900">
+                        <div className="mr-auto inline-flex max-w-[72%] items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-700">
                             <span className="inline-flex gap-1">
-                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:0ms]" />
-                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:120ms]" />
-                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-blue-500 [animation-delay:240ms]" />
+                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:0ms]" />
+                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:120ms]" />
+                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:240ms]" />
                             </span>
                             Customer is typing...
                         </div>
                     )}
                 </div>
 
-                <form onSubmit={sendMessage} className="border-t border-blue-200 bg-blue-50 p-3">
+                <form onSubmit={sendMessage} className="border-t border-gray-200 bg-white p-3">
                     <div className="flex items-end gap-2">
                         <textarea
                             value={draft}
@@ -639,19 +639,19 @@ export default function StaffLiveChatWorkspace({
                             maxLength={2000}
                             disabled={!selectedThreadId}
                             placeholder={selectedThreadId ? 'Type a reply for this customer...' : 'Select a conversation first'}
-                            className="min-h-10 flex-1 resize-none rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-blue-950 focus:border-blue-700 focus:outline-none disabled:cursor-not-allowed disabled:bg-blue-100"
+                            className="min-h-10 flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#000285] focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
                         />
                         <button
                             type="submit"
                             disabled={sending || !selectedThreadId}
-                            className="rounded-lg bg-blue-700 px-4 py-2 text-sm font-bold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="rounded-lg bg-[#000285] px-4 py-2 text-sm font-black text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {sending ? 'Sending...' : 'Send'}
                         </button>
                     </div>
 
                     {selectedThread?.staff_typing && (
-                        <p className="mt-1 text-[11px] text-blue-700">You are typing...</p>
+                        <p className="mt-1 text-[11px] text-gray-500">You are typing...</p>
                     )}
                     {error && <p className="mt-2 text-xs font-medium text-red-600">{error}</p>}
                 </form>

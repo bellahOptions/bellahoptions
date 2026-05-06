@@ -16,6 +16,11 @@ export default function HumanVerificationField({
     const [turnstileClientError, setTurnstileClientError] = useState("");
     const turnstileContainerRef = useRef(null);
     const turnstileWidgetIdRef = useRef(null);
+    const onTurnstileChangeRef = useRef(onTurnstileChange);
+
+    useEffect(() => {
+        onTurnstileChangeRef.current = onTurnstileChange;
+    }, [onTurnstileChange]);
 
     useEffect(() => {
         if (mode !== "turnstile") {
@@ -37,15 +42,15 @@ export default function HumanVerificationField({
                 turnstileWidgetIdRef.current = turnstile.render(turnstileContainerRef.current, {
                     sitekey: turnstileSiteKey,
                     callback: (token) => {
-                        onTurnstileChange?.(token);
+                        onTurnstileChangeRef.current?.(token);
                         setTurnstileClientError("");
                     },
                     "expired-callback": () => {
-                        onTurnstileChange?.("");
+                        onTurnstileChangeRef.current?.("");
                         setTurnstileClientError("Verification expired. Please complete the captcha again.");
                     },
                     "error-callback": () => {
-                        onTurnstileChange?.("");
+                        onTurnstileChangeRef.current?.("");
                         setTurnstileClientError("Captcha verification failed. Please try again.");
                         return true;
                     },
@@ -65,7 +70,7 @@ export default function HumanVerificationField({
                 turnstileWidgetIdRef.current = null;
             }
         };
-    }, [mode, onTurnstileChange, turnstileSiteKey]);
+    }, [mode, turnstileSiteKey]);
 
     useEffect(() => {
         if (mode !== "turnstile" || !turnstileError) {
@@ -75,8 +80,8 @@ export default function HumanVerificationField({
         if (window.turnstile && turnstileWidgetIdRef.current !== null) {
             window.turnstile.reset(turnstileWidgetIdRef.current);
         }
-        onTurnstileChange?.("");
-    }, [mode, onTurnstileChange, turnstileError]);
+        onTurnstileChangeRef.current?.("");
+    }, [mode, turnstileError]);
 
     if (mode === "turnstile") {
         return (
