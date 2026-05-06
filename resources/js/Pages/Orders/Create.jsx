@@ -10,6 +10,7 @@ import {
     ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { buildOrderFormSeed, formatMoney } from "./orderUtils";
+import { loadTurnstileScript } from "@/lib/turnstile";
 
 const steps = [
     "Client",
@@ -57,7 +58,6 @@ const fullNamePattern = /^[\p{L}\s\-.'`]+$/u;
 const httpUrlPattern = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
 const discountPattern = /^[A-Z0-9\-]+$/;
 const orderDraftStoragePrefix = "bellah_order_draft_v2";
-const turnstileScriptSrc = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 const sensitiveDraftFields = new Set([
     "password",
     "password_confirmation",
@@ -492,41 +492,48 @@ export default function OrderCreate({
             return;
         }
 
-        const initializeTurnstile = () => {
-            if (!turnstileSiteKey || !turnstileContainerRef.current || turnstileWidgetIdRef.current !== null) {
-                return;
-            }
+        if (!turnstileSiteKey) {
+            return;
+        }
 
-            if (!window.turnstile || typeof window.turnstile.render !== "function") {
-                return;
-            }
+        let cancelled = false;
 
-            turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
-                sitekey: turnstileSiteKey,
-                callback: (token) => {
-                    updateField("turnstile_token", token);
-                    setTurnstileClientError("");
-                },
-                "expired-callback": () => {
-                    updateField("turnstile_token", "");
-                    setTurnstileClientError("Verification expired. Please complete the captcha again.");
-                },
-                "error-callback": () => {
-                    updateField("turnstile_token", "");
+        loadTurnstileScript()
+            .then((turnstile) => {
+                if (cancelled || !turnstileContainerRef.current || turnstileWidgetIdRef.current !== null) {
+                    return;
+                }
+
+                turnstileWidgetIdRef.current = turnstile.render(turnstileContainerRef.current, {
+                    sitekey: turnstileSiteKey,
+                    callback: (token) => {
+                        updateField("turnstile_token", token);
+                        setTurnstileClientError("");
+                    },
+                    "expired-callback": () => {
+                        updateField("turnstile_token", "");
+                        setTurnstileClientError("Verification expired. Please complete the captcha again.");
+                    },
+                    "error-callback": () => {
+                        updateField("turnstile_token", "");
+                        setTurnstileClientError("Captcha failed to load correctly. Please refresh and try again.");
+                        return true;
+                    },
+                });
+                setTurnstileClientError("");
+            })
+            .catch(() => {
+                if (!cancelled) {
                     setTurnstileClientError("Captcha failed to load correctly. Please refresh and try again.");
-                    return true;
-                },
+                }
             });
-        };
-
-        initializeTurnstile();
-
-        const interval = window.setInterval(() => {
-            initializeTurnstile();
-        }, 300);
 
         return () => {
-            window.clearInterval(interval);
+            cancelled = true;
+            if (window.turnstile && turnstileWidgetIdRef.current !== null) {
+                window.turnstile.remove(turnstileWidgetIdRef.current);
+                turnstileWidgetIdRef.current = null;
+            }
         };
     }, [humanVerificationMode, turnstileSiteKey]);
 
@@ -724,11 +731,7 @@ export default function OrderCreate({
 
     return (
         <>
-            <Head title="Start Order">
-                {humanVerificationMode === "turnstile" && (
-                    <script src={turnstileScriptSrc} async defer />
-                )}
-            </Head>
+            <Head title="Start Order" />
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
