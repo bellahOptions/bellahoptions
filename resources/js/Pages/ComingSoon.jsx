@@ -20,11 +20,14 @@ import {
     User,
 } from 'lucide-react';
 import { useEffect } from 'react';
+import HumanVerificationField from '@/Components/HumanVerificationField';
 
 export default function ComingSoon({
     occupations = [],
+    humanVerificationMode = 'math',
     humanCheckQuestion = '',
     humanCheckNonce = '',
+    turnstileSiteKey = '',
     formRenderedAt = 0,
 }) {
     const { flash } = usePage().props;
@@ -35,9 +38,12 @@ export default function ComingSoon({
             email: '',
             occupation: '',
             human_check_answer: '',
+            turnstile_token: '',
             human_check_nonce: humanCheckNonce,
             form_rendered_at: formRenderedAt,
             company_name: '',
+            website: '',
+            contact_notes: '',
         });
 
     useEffect(() => {
@@ -46,7 +52,10 @@ export default function ComingSoon({
             human_check_nonce: humanCheckNonce,
             form_rendered_at: formRenderedAt,
             human_check_answer: '',
+            turnstile_token: '',
             company_name: '',
+            website: '',
+            contact_notes: '',
         }));
     }, [formRenderedAt, humanCheckNonce, setData]);
 
@@ -56,7 +65,7 @@ export default function ComingSoon({
         post(route('waitlist.store'), {
             preserveScroll: true,
             onSuccess: () => {
-                reset('name', 'email', 'occupation', 'human_check_answer', 'company_name');
+                reset('name', 'email', 'occupation', 'human_check_answer', 'turnstile_token', 'company_name', 'website', 'contact_notes');
                 clearErrors();
             },
         });
@@ -143,6 +152,26 @@ export default function ComingSoon({
                                             autoComplete="off"
                                             aria-hidden="true"
                                         />
+                                        <input
+                                            type="text"
+                                            name="website"
+                                            value={data.website}
+                                            onChange={(event) => setData('website', event.target.value)}
+                                            className="hidden"
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                            aria-hidden="true"
+                                        />
+                                        <input
+                                            type="text"
+                                            name="contact_notes"
+                                            value={data.contact_notes}
+                                            onChange={(event) => setData('contact_notes', event.target.value)}
+                                            className="hidden"
+                                            tabIndex={-1}
+                                            autoComplete="off"
+                                            aria-hidden="true"
+                                        />
                                         <div className="space-y-2">
                                             <Label htmlFor="name">Full Name</Label>
                                             <div className="relative">
@@ -207,24 +236,18 @@ export default function ComingSoon({
                                             )}
                                         </div>
 
-                                        <div className="space-y-2">
-                                            <Label htmlFor="human_check_answer">
-                                                Identify yourself: {humanCheckQuestion}
-                                            </Label>
-                                            <Input
-                                                id="human_check_answer"
-                                                type="number"
-                                                min="0"
-                                                name="human_check_answer"
-                                                value={data.human_check_answer}
-                                                onChange={(event) => setData('human_check_answer', event.target.value)}
-                                                placeholder="Enter answer"
-                                                required
-                                            />
-                                            {errors.human_check_answer && (
-                                                <p className="text-sm text-red-600">{errors.human_check_answer}</p>
-                                            )}
-                                        </div>
+                                        <HumanVerificationField
+                                            mode={humanVerificationMode}
+                                            question={humanCheckQuestion}
+                                            turnstileSiteKey={turnstileSiteKey}
+                                            mathValue={data.human_check_answer}
+                                            onMathChange={(value) => setData('human_check_answer', value)}
+                                            onTurnstileChange={(token) => setData('turnstile_token', token)}
+                                            mathError={errors.human_check_answer}
+                                            turnstileError={errors.turnstile_token}
+                                            labelPrefix="Identify yourself"
+                                            inputClassName="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#050a97] disabled:cursor-not-allowed disabled:opacity-50"
+                                        />
 
                                         <Button
                                             type="submit"

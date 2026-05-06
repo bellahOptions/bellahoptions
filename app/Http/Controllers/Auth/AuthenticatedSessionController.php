@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Mail\StaffLoginOtpMail;
 use App\Models\User;
+use App\Support\HumanVerification;
 use App\Support\StaffOtpChallenge;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,6 +30,7 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/Login', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            ...HumanVerification::createChallenge(request(), 'auth_login_human_check'),
         ]);
     }
 
@@ -61,6 +63,8 @@ class AuthenticatedSessionController extends Controller
                 'email' => trans('auth.failed'),
             ]);
         }
+
+        $request->session()->forget('auth_login_human_check');
 
         if ($user->isStaff()) {
             $request->session()->regenerate();

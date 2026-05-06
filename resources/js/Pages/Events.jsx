@@ -2,6 +2,7 @@ import { Head, Link } from "@inertiajs/react";
 import { motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 import { ArrowRightIcon, CalendarDaysIcon, MapPinIcon, SparklesIcon } from "@heroicons/react/24/outline";
 
 export default function Events({ events = [] }) {
@@ -12,17 +13,12 @@ export default function Events({ events = [] }) {
             <Head title="Events" />
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-20 text-white sm:py-24 lg:py-28">
-                        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                            <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Events</p>
-                            <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                                Workshops, launches, and creative sessions.
-                            </h1>
-                            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                Events uploaded by the super-admin appear here automatically.
-                            </p>
-                        </div>
-                    </RevealSection>
+                    <PublicPageHeader
+                        pageKey="events"
+                        fallbackTitle="Workshops, launches, and creative sessions."
+                        fallbackText="Events uploaded by the super-admin appear here automatically."
+                        eyebrow="Events"
+                    />
 
                     {hasEvents ? (
                         <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">

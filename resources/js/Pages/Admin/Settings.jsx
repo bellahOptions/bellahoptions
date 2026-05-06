@@ -13,6 +13,77 @@ const createEmptySlide = () => ({
     cta_url: '',
 });
 
+const PUBLIC_HEADER_PAGES = [
+    { key: 'about', label: 'About Us' },
+    { key: 'services', label: 'Services' },
+    { key: 'gallery', label: 'Gallery' },
+    { key: 'blog', label: 'Blog' },
+    { key: 'events', label: 'Events' },
+    { key: 'faqs', label: 'FAQs' },
+    { key: 'contact', label: 'Contact' },
+    { key: 'web_design_samples', label: 'Web Design Samples' },
+];
+
+const createDefaultPublicPageHeaders = () => ({
+    about: {
+        title: 'We are a creative tech agency built for ambitious brands.',
+        text: 'Bellah Options helps businesses grow faster through brand identity, graphic design, social media content, websites, and product experiences that look polished and work clearly.',
+        background_image: '',
+    },
+    services: {
+        title: 'Creative services built for launch, growth, and consistency.',
+        text: 'Choose the service lane that matches your next move. Every package is structured to make the brief clearer and the output easier to use.',
+        background_image: '',
+    },
+    gallery: {
+        title: 'A look at visual systems, campaigns, and brand assets.',
+        text: 'Every project shown here is published directly by Bellah Options super-admin.',
+        background_image: '',
+    },
+    blog: {
+        title: 'Ideas on branding, content, design, and digital growth.',
+        text: 'Notes from Bellah Options for founders, creators, and growing teams building stronger digital presence.',
+        background_image: '',
+    },
+    events: {
+        title: 'Workshops, launches, and creative sessions.',
+        text: 'Events uploaded by the super-admin appear here automatically.',
+        background_image: '',
+    },
+    faqs: {
+        title: 'Frequently Asked Questions',
+        text: 'Clear answers to common questions about Bellah Options services, process, timelines, and delivery.',
+        background_image: '',
+    },
+    contact: {
+        title: 'Tell us what you are building.',
+        text: 'Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step.',
+        background_image: '',
+    },
+    web_design_samples: {
+        title: 'Web Design Samples',
+        text: 'A focused set of live web experiences from Bellah Options projects.',
+        background_image: '',
+    },
+});
+
+const normalizePublicPageHeaders = (headers) => {
+    const defaults = createDefaultPublicPageHeaders();
+    const source = headers && typeof headers === 'object' ? headers : {};
+
+    return Object.fromEntries(
+        Object.entries(defaults).map(([key, fallback]) => {
+            const candidate = source?.[key] && typeof source[key] === 'object' ? source[key] : {};
+
+            return [key, {
+                title: String(candidate?.title || fallback.title),
+                text: String(candidate?.text || fallback.text),
+                background_image: String(candidate?.background_image || ''),
+            }];
+        }),
+    );
+};
+
 const quillModules = {
     toolbar: [
         [{ header: [2, 3, 4, false] }],
@@ -84,6 +155,7 @@ export default function Settings({
         home_slides: Array.isArray(settings?.home_slides) && settings.home_slides.length > 0
             ? settings.home_slides
             : [createEmptySlide()],
+        public_page_headers: normalizePublicPageHeaders(settings?.public_page_headers),
         terms: {
             terms_of_service: settings?.terms?.terms_of_service || '',
             privacy_policy: settings?.terms?.privacy_policy || '',
@@ -186,6 +258,28 @@ export default function Settings({
         });
     };
 
+    const updatePublicHeader = (pageKey, field, value) => {
+        setData('public_page_headers', {
+            ...(data.public_page_headers || {}),
+            [pageKey]: {
+                ...(data.public_page_headers?.[pageKey] || {}),
+                [field]: value,
+            },
+        });
+    };
+
+    const applySelectorValue = (target, value) => {
+        if (target.startsWith('public_page_headers.')) {
+            const [, pageKey, field] = target.split('.');
+            if (pageKey && field) {
+                updatePublicHeader(pageKey, field, value);
+            }
+            return;
+        }
+
+        setData(target, value);
+    };
+
     const refreshMediaLibrary = async () => {
         setSelectorLoading(true);
         setSelectorError('');
@@ -211,7 +305,7 @@ export default function Settings({
     };
 
     const chooseMediaFile = (path) => {
-        setData(selectorTarget, path);
+        applySelectorValue(selectorTarget, path);
         closeSelector();
     };
 
@@ -230,7 +324,7 @@ export default function Settings({
 
             const uploadedPath = String(response?.data?.path || '');
             if (uploadedPath !== '') {
-                setData(target, uploadedPath);
+                applySelectorValue(target, uploadedPath);
             }
         } catch (error) {
             window.alert('Upload failed. Please try another file.');
@@ -654,6 +748,103 @@ export default function Settings({
                             >
                                 Add Slide
                             </button>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Public Page Headers</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Customize hero header title, intro text, and background image for key public pages.
+                            </p>
+
+                            <div className="mt-5 space-y-4">
+                                {PUBLIC_HEADER_PAGES.map((page) => {
+                                    const header = data.public_page_headers?.[page.key] || {};
+                                    const titleError = errors[`public_page_headers.${page.key}.title`];
+                                    const textError = errors[`public_page_headers.${page.key}.text`];
+                                    const imageError = errors[`public_page_headers.${page.key}.background_image`];
+                                    const backgroundImage = String(header.background_image || '');
+                                    const backgroundPreview = /^https?:\/\//i.test(backgroundImage)
+                                        ? backgroundImage
+                                        : backgroundImage.startsWith('/')
+                                            ? backgroundImage
+                                            : backgroundImage
+                                                ? `/${backgroundImage}`
+                                                : '';
+
+                                    return (
+                                        <div key={`header-page-${page.key}`} className="rounded-xl border border-gray-200 p-4">
+                                            <h4 className="text-sm font-semibold text-gray-900">{page.label}</h4>
+
+                                            <div className="mt-3 grid gap-3">
+                                                <div>
+                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Header Title</label>
+                                                    <input
+                                                        type="text"
+                                                        value={header.title || ''}
+                                                        onChange={(event) => updatePublicHeader(page.key, 'title', event.target.value)}
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    />
+                                                    {titleError && <p className="mt-1 text-xs text-red-600">{titleError}</p>}
+                                                </div>
+
+                                                <div>
+                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Header Text</label>
+                                                    <textarea
+                                                        rows="3"
+                                                        value={header.text || ''}
+                                                        onChange={(event) => updatePublicHeader(page.key, 'text', event.target.value)}
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    />
+                                                    {textError && <p className="mt-1 text-xs text-red-600">{textError}</p>}
+                                                </div>
+
+                                                <div>
+                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Background Image Path</label>
+                                                    <input
+                                                        type="text"
+                                                        value={backgroundImage}
+                                                        onChange={(event) => updatePublicHeader(page.key, 'background_image', event.target.value)}
+                                                        placeholder="optimized/about-header.webp"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    />
+                                                    {imageError && <p className="mt-1 text-xs text-red-600">{imageError}</p>}
+                                                    <div className="mt-2 flex flex-wrap gap-2">
+                                                        <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                                            Upload Background
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                className="hidden"
+                                                                onChange={(event) => {
+                                                                    const file = event.target.files?.[0];
+                                                                    if (file) {
+                                                                        uploadBrandAsset(`public_page_headers.${page.key}.background_image`, file);
+                                                                    }
+                                                                    event.target.value = '';
+                                                                }}
+                                                            />
+                                                        </label>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => openSelector(`public_page_headers.${page.key}.background_image`)}
+                                                            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                                        >
+                                                            Media Selector
+                                                        </button>
+                                                    </div>
+                                                    {backgroundPreview && (
+                                                        <img
+                                                            src={backgroundPreview}
+                                                            alt={`${page.label} background preview`}
+                                                            className="mt-3 h-20 w-full rounded border border-gray-200 object-cover"
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">

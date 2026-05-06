@@ -1,6 +1,7 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import { resolvePublicAssetUrl } from "@/lib/publicPageHeaders";
 import {
     ArrowRightIcon,
     BoltIcon,
@@ -103,21 +104,36 @@ const values = [
 ];
 
 export default function About() {
+    const { publicPageHeaders = {} } = usePage().props;
+    const headerConfig = publicPageHeaders?.about && typeof publicPageHeaders.about === "object"
+        ? publicPageHeaders.about
+        : {};
+    const headerTitle = String(headerConfig?.title || "").trim() || "We are a creative tech agency built for ambitious brands.";
+    const headerText = String(headerConfig?.text || "").trim() || "Bellah Options helps businesses grow faster through brand identity, graphic design, social media content, websites, and product experiences that look polished and work clearly.";
+    const headerBackgroundImage = resolvePublicAssetUrl(headerConfig?.background_image);
+
     return (
         <>
             <Head title="About Bellah Options" />
 
             <PageTheme>
                 <main className="min-h-screen overflow-x-hidden bg-white text-gray-950">
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
+                    <RevealSection
+                        className={`${headerBackgroundImage ? "bg-cover bg-center bg-no-repeat" : "bg-gray-50"} py-16 sm:py-20 lg:py-24`}
+                        style={headerBackgroundImage
+                            ? {
+                                backgroundImage: `linear-gradient(rgba(249, 250, 251, 0.96), rgba(249, 250, 251, 0.94)), url("${headerBackgroundImage}")`,
+                            }
+                            : undefined}
+                    >
                         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
                             <div className="text-center lg:text-left">
                                 <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
-                                    We are a creative tech agency built for ambitious brands.
+                                    {headerTitle}
                                 </h1>
 
                                 <p className="mt-6 text-base leading-8 text-gray-600 sm:text-lg">
-                                    Bellah Options helps businesses grow faster through brand identity, graphic design, social media content, websites, and product experiences that look polished and work clearly.
+                                    {headerText}
                                 </p>
 
                                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">

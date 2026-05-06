@@ -3,13 +3,13 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\RegisterRequest;
 use App\Models\User;
+use App\Support\HumanVerification;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -21,7 +21,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        return Inertia::render('Auth/Register', [
+            ...HumanVerification::createChallenge(request(), 'auth_register_human_check'),
+        ]);
     }
 
     /**
@@ -29,15 +31,9 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(RegisterRequest $request): RedirectResponse
     {
-        $request->validate([
-            'name' => 'nullable|string|max:255',
-            'first_name' => ['required_without:name', 'string', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
-            'last_name' => ['required_without:name', 'string', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $request->session()->forget('auth_register_human_check');
 
         $firstName = $request->string('first_name')->trim()->value();
         $lastName = $request->string('last_name')->trim()->value();

@@ -1,6 +1,7 @@
 import { Head } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 
 const webProjects = [
     {
@@ -32,16 +33,11 @@ export default function WebDesignSamples() {
             <Head title="Web Design Samples" />
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-20 text-white sm:py-24 lg:py-28">
-                        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                            <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                                Web Design Samples
-                            </h1>
-                            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                A focused set of live web experiences from Bellah Options projects.
-                            </p>
-                        </div>
-                    </RevealSection>
+                    <PublicPageHeader
+                        pageKey="web_design_samples"
+                        fallbackTitle="Web Design Samples"
+                        fallbackText="A focused set of live web experiences from Bellah Options projects."
+                    />
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">

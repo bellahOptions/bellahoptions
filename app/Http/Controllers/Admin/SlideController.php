@@ -18,6 +18,21 @@ use Inertia\Response;
 
 class SlideController extends Controller
 {
+    /** @var array<int, string> */
+    private const CONTENT_MEDIA_TYPES = ['image', 'video'];
+
+    /** @var array<int, string> */
+    private const LAYOUT_STYLES = ['center', 'split-left', 'split-right'];
+
+    /** @var array<int, string> */
+    private const CONTENT_ALIGNMENTS = ['left', 'center'];
+
+    /** @var array<int, string> */
+    private const ANIMATION_STYLES = ['fade-up', 'fade-down', 'slide-left', 'slide-right', 'zoom-in', 'none'];
+
+    /** @var array<int, string> */
+    private const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogg', 'mov'];
+
     /**
      * Display a listing of the resource.
      */
@@ -32,21 +47,61 @@ class SlideController extends Controller
 
         $columns = ['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text', 'created_at', 'updated_at'];
         $hasSlideBackgroundColumn = Schema::hasColumn('slide_shows', 'slide_background');
+        $hasContentMediaTypeColumn = Schema::hasColumn('slide_shows', 'content_media_type');
+        $hasContentMediaPathColumn = Schema::hasColumn('slide_shows', 'content_media_path');
+        $hasLayoutStyleColumn = Schema::hasColumn('slide_shows', 'layout_style');
+        $hasContentAlignmentColumn = Schema::hasColumn('slide_shows', 'content_alignment');
+        $hasTitleAnimationColumn = Schema::hasColumn('slide_shows', 'title_animation');
+        $hasTextAnimationColumn = Schema::hasColumn('slide_shows', 'text_animation');
+        $hasMediaAnimationColumn = Schema::hasColumn('slide_shows', 'media_animation');
+        $hasButtonAnimationColumn = Schema::hasColumn('slide_shows', 'button_animation');
 
         if ($hasSlideBackgroundColumn) {
             $columns[] = 'slide_background';
+        }
+        if ($hasContentMediaTypeColumn) {
+            $columns[] = 'content_media_type';
+        }
+        if ($hasContentMediaPathColumn) {
+            $columns[] = 'content_media_path';
+        }
+        if ($hasLayoutStyleColumn) {
+            $columns[] = 'layout_style';
+        }
+        if ($hasContentAlignmentColumn) {
+            $columns[] = 'content_alignment';
+        }
+        if ($hasTitleAnimationColumn) {
+            $columns[] = 'title_animation';
+        }
+        if ($hasTextAnimationColumn) {
+            $columns[] = 'text_animation';
+        }
+        if ($hasMediaAnimationColumn) {
+            $columns[] = 'media_animation';
+        }
+        if ($hasButtonAnimationColumn) {
+            $columns[] = 'button_animation';
         }
 
         return Inertia::render('Admin/Slides/Index', [
             'slideShows' => SlideShow::query()
                 ->latest('id')
                 ->get($columns)
-                ->map(static fn (SlideShow $slide) => [
+                ->map(fn (SlideShow $slide) => [
                     'id' => $slide->id,
                     'slide_title' => $slide->slide_title,
                     'text' => $slide->text,
                     'slide_image' => $slide->slide_image,
                     'slide_background' => $hasSlideBackgroundColumn ? $slide->slide_background : null,
+                    'content_media_type' => $this->normalizeContentMediaType($hasContentMediaTypeColumn ? $slide->content_media_type : null),
+                    'content_media_path' => $hasContentMediaPathColumn ? $slide->content_media_path : null,
+                    'layout_style' => $this->normalizeLayoutStyle($hasLayoutStyleColumn ? $slide->layout_style : null),
+                    'content_alignment' => $this->normalizeContentAlignment($hasContentAlignmentColumn ? $slide->content_alignment : null),
+                    'title_animation' => $this->normalizeAnimationStyle($hasTitleAnimationColumn ? $slide->title_animation : null),
+                    'text_animation' => $this->normalizeAnimationStyle($hasTextAnimationColumn ? $slide->text_animation : null),
+                    'media_animation' => $this->normalizeAnimationStyle($hasMediaAnimationColumn ? $slide->media_animation : null),
+                    'button_animation' => $this->normalizeAnimationStyle($hasButtonAnimationColumn ? $slide->button_animation : null),
                     'slide_link' => $slide->slide_link,
                     'slide_link_text' => $slide->slide_link_text,
                     'created_at' => $slide->created_at,
@@ -126,8 +181,8 @@ class SlideController extends Controller
             'file' => [
                 'required',
                 'file',
-                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/svg+xml,image/avif',
-                'max:8192',
+                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/svg+xml,image/avif,video/mp4,video/webm,video/ogg,video/quicktime',
+                'max:51200',
             ],
         ]);
 
@@ -139,6 +194,24 @@ class SlideController extends Controller
         }
 
         $extension = strtolower($file->getClientOriginalExtension());
+
+        if ($this->isVideoExtension($extension)) {
+            $storedPath = $file->storePublicly('slide-videos', 'public');
+            if (! is_string($storedPath) || $storedPath === '') {
+                throw ValidationException::withMessages([
+                    'file' => 'Unable to upload the selected video file.',
+                ]);
+            }
+
+            $publicPath = '/storage/'.$storedPath;
+
+            return response()->json([
+                'path' => $publicPath,
+                'url' => $publicPath,
+                'media_type' => 'video',
+                'message' => 'Video uploaded successfully.',
+            ], 201);
+        }
 
         if ($extension === 'svg') {
             $storedPath = $file->storePublicly('slide-images', 'public');
@@ -153,6 +226,7 @@ class SlideController extends Controller
             return response()->json([
                 'path' => $publicPath,
                 'url' => $publicPath,
+                'media_type' => 'image',
                 'message' => 'Image uploaded successfully.',
             ], 201);
         }
@@ -170,12 +244,13 @@ class SlideController extends Controller
         return response()->json([
             'path' => $publicPath,
             'url' => $publicPath,
+            'media_type' => 'image',
             'message' => 'Image uploaded successfully.',
         ], 201);
     }
 
     /**
-     * @return array{slide_title: string, text: string, slide_image: string, slide_link: string|null, slide_link_text: string|null, slide_background?: string|null}
+     * @return array<string, string|null>
      */
     private function validatedPayload(Request $request): array
     {
@@ -187,6 +262,16 @@ class SlideController extends Controller
                 $request->input('slide_link')
             ),
             'slide_background' => SlideBackgroundOptions::sanitize($request->input('slide_background')),
+            'content_media_path' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl(
+                $request->input('content_media_path')
+            ),
+            'content_media_type' => $this->normalizeContentMediaType($request->input('content_media_type')),
+            'layout_style' => $this->normalizeLayoutStyle($request->input('layout_style')),
+            'content_alignment' => $this->normalizeContentAlignment($request->input('content_alignment')),
+            'title_animation' => $this->normalizeAnimationStyle($request->input('title_animation')),
+            'text_animation' => $this->normalizeAnimationStyle($request->input('text_animation')),
+            'media_animation' => $this->normalizeAnimationStyle($request->input('media_animation')),
+            'button_animation' => $this->normalizeAnimationStyle($request->input('button_animation')),
         ]);
 
         $payload = $request->validate([
@@ -216,6 +301,25 @@ class SlideController extends Controller
                     $fail('Slide background selection is invalid.');
                 },
             ],
+            'content_media_type' => ['nullable', 'string', 'in:image,video'],
+            'content_media_path' => [
+                'nullable',
+                'string',
+                'max:255',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($value === null || $value === '' || PublicContentSecurity::isSafeRelativePathOrHttpUrl($value)) {
+                        return;
+                    }
+
+                    $fail('Content media path must be a valid http(s) URL or a safe public path starting with "/".');
+                },
+            ],
+            'layout_style' => ['nullable', 'string', 'in:center,split-left,split-right'],
+            'content_alignment' => ['nullable', 'string', 'in:left,center'],
+            'title_animation' => ['nullable', 'string', 'in:fade-up,fade-down,slide-left,slide-right,zoom-in,none'],
+            'text_animation' => ['nullable', 'string', 'in:fade-up,fade-down,slide-left,slide-right,zoom-in,none'],
+            'media_animation' => ['nullable', 'string', 'in:fade-up,fade-down,slide-left,slide-right,zoom-in,none'],
+            'button_animation' => ['nullable', 'string', 'in:fade-up,fade-down,slide-left,slide-right,zoom-in,none'],
             'slide_link' => [
                 'nullable',
                 'string',
@@ -233,11 +337,22 @@ class SlideController extends Controller
 
         $imagePath = (string) (PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_image'] ?? null) ?? '');
         $background = SlideBackgroundOptions::sanitize($payload['slide_background'] ?? null);
+        $contentMediaPath = PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['content_media_path'] ?? null);
+        $contentMediaType = $this->normalizeContentMediaType($payload['content_media_type'] ?? null)
+            ?? $this->detectMediaTypeFromPath($contentMediaPath);
 
         $data = [
             'slide_title' => trim((string) $payload['slide_title']),
             'text' => trim((string) $payload['text']),
             'slide_image' => $imagePath,
+            'content_media_type' => $contentMediaPath ? $contentMediaType : null,
+            'content_media_path' => $contentMediaPath,
+            'layout_style' => $this->normalizeLayoutStyle($payload['layout_style'] ?? null) ?? 'center',
+            'content_alignment' => $this->normalizeContentAlignment($payload['content_alignment'] ?? null) ?? 'center',
+            'title_animation' => $this->normalizeAnimationStyle($payload['title_animation'] ?? null) ?? 'fade-up',
+            'text_animation' => $this->normalizeAnimationStyle($payload['text_animation'] ?? null) ?? 'fade-up',
+            'media_animation' => $this->normalizeAnimationStyle($payload['media_animation'] ?? null) ?? 'zoom-in',
+            'button_animation' => $this->normalizeAnimationStyle($payload['button_animation'] ?? null) ?? 'fade-up',
             'slide_link' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($payload['slide_link'] ?? null),
             'slide_link_text' => $this->nullableTrim($payload['slide_link_text'] ?? null),
         ];
@@ -270,7 +385,7 @@ class SlideController extends Controller
             new \RecursiveDirectoryIterator($publicRoot, \FilesystemIterator::SKIP_DOTS)
         );
 
-        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'bmp'];
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'avif', 'bmp', 'mp4', 'webm', 'ogg', 'mov'];
         $excludedDirectories = ['build'];
 
         $files = [];
@@ -307,6 +422,7 @@ class SlideController extends Controller
                 'path' => $publicPath,
                 'directory' => dirname($publicPath) === '/' ? '/' : dirname($publicPath),
                 'extension' => $extension,
+                'media_type' => $this->isVideoExtension($extension) ? 'video' : 'image',
                 'size' => $file->getSize(),
                 'updated_at' => date(DATE_ATOM, $file->getMTime()),
                 'preview_url' => $publicPath,
@@ -323,5 +439,69 @@ class SlideController extends Controller
         $trimmed = trim((string) $value);
 
         return $trimmed !== '' ? $trimmed : null;
+    }
+
+    private function normalizeContentMediaType(mixed $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, self::CONTENT_MEDIA_TYPES, true) ? $candidate : null;
+    }
+
+    private function normalizeLayoutStyle(mixed $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, self::LAYOUT_STYLES, true) ? $candidate : null;
+    }
+
+    private function normalizeContentAlignment(mixed $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, self::CONTENT_ALIGNMENTS, true) ? $candidate : null;
+    }
+
+    private function normalizeAnimationStyle(mixed $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, self::ANIMATION_STYLES, true) ? $candidate : null;
+    }
+
+    private function detectMediaTypeFromPath(?string $path): ?string
+    {
+        if (! is_string($path) || trim($path) === '') {
+            return null;
+        }
+
+        $normalizedPath = strtok($path, '?#');
+        if (! is_string($normalizedPath)) {
+            return null;
+        }
+
+        $extension = strtolower(pathinfo($normalizedPath, PATHINFO_EXTENSION));
+        if ($extension === '') {
+            return null;
+        }
+
+        return $this->isVideoExtension($extension) ? 'video' : 'image';
+    }
+
+    private function isVideoExtension(string $extension): bool
+    {
+        return in_array(strtolower($extension), self::VIDEO_EXTENSIONS, true);
     }
 }

@@ -25,10 +25,20 @@ class StaffAuthenticationTest extends TestCase
         $staff = User::factory()->create([
             'role' => User::ROLE_CUSTOMER_REP,
         ]);
+        $this->get(route('staff.login'));
+        $challenge = session('auth_login_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_login_human_check' => $challenge]);
 
         $response = $this->post(route('staff.login.store'), [
             'email' => $staff->email,
             'password' => 'password',
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
         ]);
 
         $response->assertRedirect(route('staff.otp.create'));
@@ -52,10 +62,20 @@ class StaffAuthenticationTest extends TestCase
         $user = User::factory()->create([
             'role' => 'user',
         ]);
+        $this->get(route('staff.login'));
+        $challenge = session('auth_login_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_login_human_check' => $challenge]);
 
         $this->post(route('staff.login.store'), [
             'email' => $user->email,
             'password' => 'password',
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
         ])->assertSessionHasErrors(['email']);
 
         $this->assertGuest();
@@ -68,11 +88,21 @@ class StaffAuthenticationTest extends TestCase
         $staff = User::factory()->create([
             'role' => User::ROLE_SUPER_ADMIN,
         ]);
+        $this->get(route('login'));
+        $challenge = session('auth_login_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_login_human_check' => $challenge]);
 
         $response = $this->post(route('login'), [
             'email' => $staff->email,
             'password' => 'password',
             'remember' => true,
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
         ]);
 
         $response->assertRedirect(route('staff.otp.create'));
@@ -87,10 +117,20 @@ class StaffAuthenticationTest extends TestCase
         $staff = User::factory()->create([
             'role' => User::ROLE_CUSTOMER_REP,
         ]);
+        $this->get(route('staff.login'));
+        $challenge = session('auth_login_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_login_human_check' => $challenge]);
 
         $this->post(route('staff.login.store'), [
             'email' => $staff->email,
             'password' => 'password',
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
         ])->assertRedirect(route('staff.otp.create'));
 
         $this->post(route('staff.otp.store'), [

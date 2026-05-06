@@ -1,8 +1,10 @@
 import { Head, useForm, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 import { EnvelopeIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
+import HumanVerificationField from "@/Components/HumanVerificationField";
 
 const contactCards = [
     {
@@ -26,8 +28,10 @@ const contactCards = [
 ];
 
 export default function Contact({
+    humanVerificationMode = "math",
     humanCheckQuestion = "",
     humanCheckNonce = "",
+    turnstileSiteKey = "",
     formRenderedAt = 0,
 }) {
     const { flash } = usePage().props;
@@ -38,10 +42,12 @@ export default function Contact({
         project_type: "",
         message: "",
         human_check_answer: "",
+        turnstile_token: "",
         human_check_nonce: humanCheckNonce,
         form_rendered_at: formRenderedAt,
         company_name: "",
         website: "",
+        contact_notes: "",
     });
 
     useEffect(() => {
@@ -50,8 +56,10 @@ export default function Contact({
             human_check_nonce: humanCheckNonce,
             form_rendered_at: formRenderedAt,
             human_check_answer: "",
+            turnstile_token: "",
             company_name: "",
             website: "",
+            contact_notes: "",
         }));
     }, [formRenderedAt, humanCheckNonce, setData]);
 
@@ -61,7 +69,7 @@ export default function Contact({
         post(route("contact.submit"), {
             preserveScroll: true,
             onSuccess: () => {
-                reset("name", "email", "phone", "project_type", "message", "human_check_answer", "company_name", "website");
+                reset("name", "email", "phone", "project_type", "message", "human_check_answer", "turnstile_token", "company_name", "website", "contact_notes");
                 clearErrors();
             },
         });
@@ -72,16 +80,11 @@ export default function Contact({
             <Head title="Contact Bellah Options" />
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-20 text-white sm:py-24 lg:py-28">
-                        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                            <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                                Tell us what you are building.
-                            </h1>
-                            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step.
-                            </p>
-                        </div>
-                    </RevealSection>
+                    <PublicPageHeader
+                        pageKey="contact"
+                        fallbackTitle="Tell us what you are building."
+                        fallbackText="Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step."
+                    />
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
@@ -143,6 +146,16 @@ export default function Contact({
                                     autoComplete="off"
                                     aria-hidden="true"
                                 />
+                                <input
+                                    type="text"
+                                    name="contact_notes"
+                                    value={data.contact_notes}
+                                    onChange={(event) => setData("contact_notes", event.target.value)}
+                                    className="hidden"
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                    aria-hidden="true"
+                                />
 
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <Field
@@ -188,18 +201,16 @@ export default function Contact({
                                         {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message}</p>}
                                     </div>
                                     <div className="sm:col-span-2">
-                                        <label className="mb-2 block text-sm font-bold text-gray-700">
-                                            Human Check: {humanCheckQuestion}
-                                        </label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            value={data.human_check_answer}
-                                            onChange={(event) => setData("human_check_answer", event.target.value)}
-                                            className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]"
-                                            placeholder="Enter answer"
+                                        <HumanVerificationField
+                                            mode={humanVerificationMode}
+                                            question={humanCheckQuestion}
+                                            turnstileSiteKey={turnstileSiteKey}
+                                            mathValue={data.human_check_answer}
+                                            onMathChange={(value) => setData("human_check_answer", value)}
+                                            onTurnstileChange={(token) => setData("turnstile_token", token)}
+                                            mathError={errors.human_check_answer}
+                                            turnstileError={errors.turnstile_token}
                                         />
-                                        {errors.human_check_answer && <p className="mt-1 text-xs text-red-600">{errors.human_check_answer}</p>}
                                     </div>
                                 </div>
                                 <button

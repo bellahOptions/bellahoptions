@@ -20,10 +20,20 @@ class AuthenticationTest extends TestCase
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
+        $this->get('/login');
+        $challenge = session('auth_login_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_login_human_check' => $challenge]);
 
         $response = $this->post('/login', [
             'email' => $user->email,
             'password' => 'password',
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
         ]);
 
         $this->assertAuthenticated();
@@ -33,10 +43,20 @@ class AuthenticationTest extends TestCase
     public function test_users_can_not_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();
+        $this->get('/login');
+        $challenge = session('auth_login_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_login_human_check' => $challenge]);
 
         $this->post('/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
         ]);
 
         $this->assertGuest();

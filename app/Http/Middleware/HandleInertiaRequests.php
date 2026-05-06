@@ -67,6 +67,7 @@ class HandleInertiaRequests extends Middleware
                 'error' => fn () => $request->session()->get('error'),
             ],
             'branding' => PlatformSettings::brandAssets(),
+            'publicPageHeaders' => PlatformSettings::publicPageHeaders(),
         ];
     }
 }

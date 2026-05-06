@@ -1,6 +1,7 @@
 import { Head } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 
 export default function Faqs({ faqs = [] }) {
     const groupedFaqs = faqs.reduce((groups, item) => {
@@ -20,19 +21,12 @@ export default function Faqs({ faqs = [] }) {
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                            <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">
-                                Support
-                            </p>
-                            <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                                Frequently Asked Questions
-                            </h1>
-                            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                Clear answers to common questions about Bellah Options services, process, timelines, and delivery.
-                            </p>
-                        </div>
-                    </RevealSection>
+                    <PublicPageHeader
+                        pageKey="faqs"
+                        fallbackTitle="Frequently Asked Questions"
+                        fallbackText="Clear answers to common questions about Bellah Options services, process, timelines, and delivery."
+                        className="py-16 text-white sm:py-20 lg:py-24"
+                    />
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">

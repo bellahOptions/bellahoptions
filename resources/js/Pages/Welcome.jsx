@@ -441,14 +441,14 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                                 <div className="mx-auto max-w-3xl text-center">
                                     <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
-                                        Selected projects uploaded by our super-admin team.
+                                        Check our works
                                     </h2>
                                     <p className="mt-4 text-base leading-8 text-gray-600">
                                         Fresh portfolio previews pulled directly from the live gallery records.
                                     </p>
                                 </div>
 
-                                <Stagger className="mt-10 grid gap-5 grid-cols-2 md:grid-cols-4">
+                                <Stagger className="mt-10 grid gap-5 grid-cols-1 md:grid-cols-4">
                                     {gallerySamples.map((sample) => {
                                         const isExternal = sample.href.startsWith("http");
 

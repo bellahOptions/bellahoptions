@@ -6,6 +6,8 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -77,5 +79,20 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canManageWaitlist(): bool
     {
         return $this->isSuperAdmin() || $this->isCustomerRep();
+    }
+
+    public function liveChatThreads(): HasMany
+    {
+        return $this->hasMany(LiveChatThread::class, 'customer_user_id');
+    }
+
+    public function assignedLiveChatThreads(): HasMany
+    {
+        return $this->hasMany(LiveChatThread::class, 'assigned_staff_id');
+    }
+
+    public function liveChatPresence(): HasOne
+    {
+        return $this->hasOne(LiveChatStaffPresence::class);
     }
 }

@@ -8,9 +8,37 @@ const emptySlide = {
     text: '',
     slide_image: '',
     slide_background: '',
+    content_media_type: '',
+    content_media_path: '',
+    layout_style: 'center',
+    content_alignment: 'center',
+    title_animation: 'fade-up',
+    text_animation: 'fade-up',
+    media_animation: 'zoom-in',
+    button_animation: 'fade-up',
     slide_link: '',
     slide_link_text: '',
 };
+
+const layoutStyleOptions = [
+    { value: 'center', label: 'Centered Content' },
+    { value: 'split-left', label: 'Split Layout (Media Left)' },
+    { value: 'split-right', label: 'Split Layout (Media Right)' },
+];
+
+const contentAlignmentOptions = [
+    { value: 'center', label: 'Center' },
+    { value: 'left', label: 'Left' },
+];
+
+const animationOptions = [
+    { value: 'fade-up', label: 'Fade Up' },
+    { value: 'fade-down', label: 'Fade Down' },
+    { value: 'slide-left', label: 'Slide Left' },
+    { value: 'slide-right', label: 'Slide Right' },
+    { value: 'zoom-in', label: 'Zoom In' },
+    { value: 'none', label: 'None' },
+];
 
 const backgroundPreviewClasses = {
     'particles-ocean': 'bg-gradient-to-br from-[#000285] via-[#0891b2] to-[#111827]',
@@ -51,7 +79,39 @@ function fileUploadError(error) {
         return message;
     }
 
-    return 'Upload failed. Please try another image.';
+    return 'Upload failed. Please try another file.';
+}
+
+function normalizeLayoutStyle(value) {
+    const candidate = String(value || '').trim().toLowerCase();
+
+    return ['center', 'split-left', 'split-right'].includes(candidate) ? candidate : 'center';
+}
+
+function normalizeContentAlignment(value) {
+    const candidate = String(value || '').trim().toLowerCase();
+
+    return ['left', 'center'].includes(candidate) ? candidate : 'center';
+}
+
+function normalizeAnimation(value, fallback = 'fade-up') {
+    const candidate = String(value || '').trim().toLowerCase();
+
+    return ['fade-up', 'fade-down', 'slide-left', 'slide-right', 'zoom-in', 'none'].includes(candidate)
+        ? candidate
+        : fallback;
+}
+
+function inferMediaType(path, extension = '') {
+    const ext = String(extension || '').trim().toLowerCase();
+    if (['mp4', 'webm', 'ogg', 'mov'].includes(ext)) {
+        return 'video';
+    }
+
+    const normalizedPath = String(path || '').split(/[?#]/)[0] || '';
+    const pathExtension = normalizedPath.includes('.') ? normalizedPath.split('.').pop()?.toLowerCase() : '';
+
+    return ['mp4', 'webm', 'ogg', 'mov'].includes(pathExtension || '') ? 'video' : 'image';
 }
 
 export default function Slides({ slideShows = [], mediaLibrary = null }) {
@@ -65,6 +125,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
     const [mediaError, setMediaError] = useState('');
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [selectorTarget, setSelectorTarget] = useState('create');
+    const [selectorPurpose, setSelectorPurpose] = useState('background');
     const [selectorTab, setSelectorTab] = useState('files');
     const [selectorSearch, setSelectorSearch] = useState('');
     const [uploadState, setUploadState] = useState({
@@ -114,6 +175,14 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
             text: slide.text || '',
             slide_image: slide.slide_image || '',
             slide_background: normalizeBackgroundId(slide.slide_background),
+            content_media_type: slide.content_media_type || '',
+            content_media_path: slide.content_media_path || '',
+            layout_style: normalizeLayoutStyle(slide.layout_style),
+            content_alignment: normalizeContentAlignment(slide.content_alignment),
+            title_animation: normalizeAnimation(slide.title_animation, 'fade-up'),
+            text_animation: normalizeAnimation(slide.text_animation, 'fade-up'),
+            media_animation: normalizeAnimation(slide.media_animation, 'zoom-in'),
+            button_animation: normalizeAnimation(slide.button_animation, 'fade-up'),
             slide_link: slide.slide_link || '',
             slide_link_text: slide.slide_link_text || '',
         });
@@ -184,7 +253,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
         }
     };
 
-    const uploadImage = async (target, file) => {
+    const uploadImage = async (target, file, purpose = 'background') => {
         if (!file) {
             return;
         }
@@ -205,8 +274,14 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                 throw new Error('Upload response did not include a path.');
             }
 
-            form.setData('slide_image', uploadedPath);
-            form.setData('slide_background', '');
+            const mediaType = String(response?.data?.media_type || inferMediaType(uploadedPath, file.name?.split('.').pop() || ''));
+            if (purpose === 'foreground') {
+                form.setData('content_media_path', uploadedPath);
+                form.setData('content_media_type', mediaType);
+            } else {
+                form.setData('slide_image', uploadedPath);
+                form.setData('slide_background', '');
+            }
 
             setUploadStatus(target, { uploading: false, error: '' });
             await refreshMediaLibrary();
@@ -215,8 +290,10 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
         }
     };
 
-    const openMediaSelector = async (target) => {
+    const openMediaSelector = async (target, purpose = 'background') => {
         setSelectorTarget(target);
+        setSelectorPurpose(purpose);
+        setSelectorTab(purpose === 'foreground' ? 'files' : 'files');
         setSelectorOpen(true);
         await refreshMediaLibrary();
     };
@@ -226,16 +303,30 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
         setSelectorSearch('');
     };
 
-    const selectFile = (path) => {
+    const selectFile = (file) => {
         const form = formByTarget(selectorTarget);
+        const path = String(file?.path || '');
 
-        form.setData('slide_image', path);
-        form.setData('slide_background', '');
+        if (path === '') {
+            return;
+        }
+
+        if (selectorPurpose === 'foreground') {
+            form.setData('content_media_path', path);
+            form.setData('content_media_type', inferMediaType(path, file?.extension || ''));
+        } else {
+            form.setData('slide_image', path);
+            form.setData('slide_background', '');
+        }
 
         closeMediaSelector();
     };
 
     const selectBackground = (backgroundId) => {
+        if (selectorPurpose !== 'background') {
+            return;
+        }
+
         const form = formByTarget(selectorTarget);
 
         form.setData('slide_background', backgroundId);
@@ -292,8 +383,8 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                             form={createForm}
                             className="mt-5"
                             uploadStatus={uploadState.create}
-                            onUpload={(file) => uploadImage('create', file)}
-                            onOpenMediaSelector={() => openMediaSelector('create')}
+                            onUpload={(file, purpose) => uploadImage('create', file, purpose)}
+                            onOpenMediaSelector={(purpose) => openMediaSelector('create', purpose)}
                         />
                     </form>
 
@@ -322,8 +413,8 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                                                 <SlideFields
                                                     form={editForm}
                                                     uploadStatus={uploadState.edit}
-                                                    onUpload={(file) => uploadImage('edit', file)}
-                                                    onOpenMediaSelector={() => openMediaSelector('edit')}
+                                                    onUpload={(file, purpose) => uploadImage('edit', file, purpose)}
+                                                    onOpenMediaSelector={(purpose) => openMediaSelector('edit', purpose)}
                                                 />
                                                 <div className="flex flex-wrap gap-2">
                                                     <button
@@ -364,6 +455,28 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                                                         <div>
                                                             <dt className="inline font-semibold">Dynamic Background: </dt>
                                                             <dd className="inline break-all">{slide.slide_background || 'None'}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="inline font-semibold">Foreground Media: </dt>
+                                                            <dd className="inline break-all">{slide.content_media_path || 'None'}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="inline font-semibold">Foreground Media Type: </dt>
+                                                            <dd className="inline">{slide.content_media_type || 'Auto'}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="inline font-semibold">Layout: </dt>
+                                                            <dd className="inline">{slide.layout_style || 'center'}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="inline font-semibold">Content Align: </dt>
+                                                            <dd className="inline">{slide.content_alignment || 'center'}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="inline font-semibold">Animations: </dt>
+                                                            <dd className="inline">
+                                                                title={slide.title_animation || 'fade-up'}, text={slide.text_animation || 'fade-up'}, media={slide.media_animation || 'zoom-in'}, button={slide.button_animation || 'fade-up'}
+                                                            </dd>
                                                         </div>
                                                         <div>
                                                             <dt className="inline font-semibold">Link: </dt>
@@ -407,7 +520,9 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                         <div>
                             <h3 className="text-lg font-semibold text-gray-900">Media Selector</h3>
                             <p className="text-sm text-gray-600">
-                                Pick from public files or dynamic backgrounds.
+                                {selectorPurpose === 'foreground'
+                                    ? 'Pick an image or video for slide foreground content.'
+                                    : 'Pick from public files or dynamic backgrounds.'}
                             </p>
                         </div>
                         <button
@@ -427,13 +542,15 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                         >
                             Files ({mediaFiles.length})
                         </button>
-                        <button
-                            type="button"
-                            onClick={() => setSelectorTab('backgrounds')}
-                            className={`rounded-md px-3 py-2 text-sm font-semibold ${selectorTab === 'backgrounds' ? 'bg-blue-700 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
-                        >
-                            Dynamic Backgrounds ({dynamicBackgrounds.length})
-                        </button>
+                        {selectorPurpose === 'background' && (
+                            <button
+                                type="button"
+                                onClick={() => setSelectorTab('backgrounds')}
+                                className={`rounded-md px-3 py-2 text-sm font-semibold ${selectorTab === 'backgrounds' ? 'bg-blue-700 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                            >
+                                Dynamic Backgrounds ({dynamicBackgrounds.length})
+                            </button>
+                        )}
                         <button
                             type="button"
                             onClick={refreshMediaLibrary}
@@ -463,15 +580,26 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                                             <button
                                                 key={file.path}
                                                 type="button"
-                                                onClick={() => selectFile(file.path)}
+                                                onClick={() => selectFile(file)}
                                                 className="group overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-blue-400 hover:shadow-sm"
                                             >
                                                 <div className="h-28 w-full overflow-hidden bg-gray-50">
-                                                    <img
-                                                        src={slideImageSrc(file.preview_url || file.path)}
-                                                        alt={file.name || file.path}
-                                                        className="h-full w-full object-cover"
-                                                    />
+                                                    {inferMediaType(file.path, file.extension) === 'video' ? (
+                                                        <video
+                                                            src={slideImageSrc(file.preview_url || file.path)}
+                                                            className="h-full w-full object-cover"
+                                                            muted
+                                                            loop
+                                                            autoPlay
+                                                            playsInline
+                                                        />
+                                                    ) : (
+                                                        <img
+                                                            src={slideImageSrc(file.preview_url || file.path)}
+                                                            alt={file.name || file.path}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1 p-2">
                                                     <p className="truncate text-xs font-semibold text-gray-900">{file.name}</p>
@@ -524,6 +652,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
 
 function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMediaSelector }) {
     const selectedBackground = normalizeBackgroundId(form.data.slide_background);
+    const resolvedContentMediaType = form.data.content_media_type || inferMediaType(form.data.content_media_path, '');
 
     return (
         <div className={`grid gap-4 md:grid-cols-2 ${className}`}>
@@ -551,13 +680,14 @@ function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMedia
                 />
             </Field>
 
-            <Field label="Slide Media" error={form.errors.slide_image} className="md:col-span-2">
+            <Field label="Hero Background Media" error={form.errors.slide_image} className="md:col-span-2">
                 <SlideMediaField
-                    imagePath={form.data.slide_image}
+                    mode="background"
+                    mediaPath={form.data.slide_image}
                     backgroundId={selectedBackground}
                     uploadStatus={uploadStatus}
-                    onUpload={onUpload}
-                    onOpenMediaSelector={onOpenMediaSelector}
+                    onUpload={(file) => onUpload(file, 'background')}
+                    onOpenMediaSelector={() => onOpenMediaSelector('background')}
                     onClearMedia={() => {
                         form.setData('slide_image', '');
                         form.setData('slide_background', '');
@@ -565,7 +695,7 @@ function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMedia
                 />
             </Field>
 
-            <Field label="Image URL or Public Path (Optional)" error={form.errors.slide_image}>
+            <Field label="Background Image URL or Public Path (Optional)" error={form.errors.slide_image}>
                 <input
                     type="text"
                     value={form.data.slide_image}
@@ -590,7 +720,7 @@ function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMedia
                     />
                     <button
                         type="button"
-                        onClick={onOpenMediaSelector}
+                        onClick={() => onOpenMediaSelector('background')}
                         className="rounded-md border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
                     >
                         Choose Dynamic Background
@@ -606,6 +736,100 @@ function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMedia
                     )}
                 </div>
             </Field>
+
+            <Field
+                label="Foreground Media (Image/Video)"
+                error={form.errors.content_media_path || form.errors.content_media_type}
+                className="md:col-span-2"
+            >
+                <SlideMediaField
+                    mode="foreground"
+                    mediaPath={form.data.content_media_path}
+                    mediaType={resolvedContentMediaType}
+                    uploadStatus={uploadStatus}
+                    onUpload={(file) => onUpload(file, 'foreground')}
+                    onOpenMediaSelector={() => onOpenMediaSelector('foreground')}
+                    onClearMedia={() => {
+                        form.setData('content_media_path', '');
+                        form.setData('content_media_type', '');
+                    }}
+                />
+            </Field>
+
+            <Field label="Foreground Media URL or Public Path" error={form.errors.content_media_path}>
+                <input
+                    type="text"
+                    value={form.data.content_media_path}
+                    onChange={(event) => form.setData('content_media_path', event.target.value)}
+                    placeholder="/storage/slide-videos/promo.mp4"
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                />
+            </Field>
+
+            <Field label="Foreground Media Type" error={form.errors.content_media_type}>
+                <select
+                    value={form.data.content_media_type || ''}
+                    onChange={(event) => form.setData('content_media_type', event.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                >
+                    <option value="">Auto Detect</option>
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                </select>
+            </Field>
+
+            <Field label="Layout Structure" error={form.errors.layout_style}>
+                <select
+                    value={form.data.layout_style || 'center'}
+                    onChange={(event) => form.setData('layout_style', event.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                >
+                    {layoutStyleOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <Field label="Content Alignment" error={form.errors.content_alignment}>
+                <select
+                    value={form.data.content_alignment || 'center'}
+                    onChange={(event) => form.setData('content_alignment', event.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                >
+                    {contentAlignmentOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
+                </select>
+            </Field>
+
+            <AnimationField
+                label="Title Animation"
+                value={form.data.title_animation || 'fade-up'}
+                error={form.errors.title_animation}
+                onChange={(value) => form.setData('title_animation', value)}
+            />
+            <AnimationField
+                label="Text Animation"
+                value={form.data.text_animation || 'fade-up'}
+                error={form.errors.text_animation}
+                onChange={(value) => form.setData('text_animation', value)}
+            />
+            <AnimationField
+                label="Media Animation"
+                value={form.data.media_animation || 'zoom-in'}
+                error={form.errors.media_animation}
+                onChange={(value) => form.setData('media_animation', value)}
+            />
+            <AnimationField
+                label="Button Animation"
+                value={form.data.button_animation || 'fade-up'}
+                error={form.errors.button_animation}
+                onChange={(value) => form.setData('button_animation', value)}
+            />
 
             <Field label="Slide Link" error={form.errors.slide_link}>
                 <input
@@ -630,7 +854,16 @@ function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMedia
     );
 }
 
-function SlideMediaField({ imagePath, backgroundId, uploadStatus, onUpload, onOpenMediaSelector, onClearMedia }) {
+function SlideMediaField({
+    mode,
+    mediaPath,
+    mediaType = '',
+    backgroundId = '',
+    uploadStatus,
+    onUpload,
+    onOpenMediaSelector,
+    onClearMedia,
+}) {
     const inputRef = useRef(null);
     const [dragging, setDragging] = useState(false);
 
@@ -658,8 +891,10 @@ function SlideMediaField({ imagePath, backgroundId, uploadStatus, onUpload, onOp
         inputRef.current?.click();
     };
 
-    const resolvedImage = slideImageSrc(imagePath);
+    const resolvedMedia = slideImageSrc(mediaPath);
     const hasBackground = Boolean(normalizeBackgroundId(backgroundId));
+    const isForeground = mode === 'foreground';
+    const isVideo = isForeground && (mediaType === 'video' || inferMediaType(mediaPath, '') === 'video');
 
     return (
         <div className="space-y-3">
@@ -671,7 +906,9 @@ function SlideMediaField({ imagePath, backgroundId, uploadStatus, onUpload, onOp
             >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-gray-700">
-                        Drag and drop an image here, or browse from your device/media library.
+                        {isForeground
+                            ? 'Drag and drop an image/video here, or browse from your device/media library.'
+                            : 'Drag and drop a background image here, or browse from your device/media library.'}
                     </p>
                     <div className="flex flex-wrap gap-2">
                         <button
@@ -680,7 +917,7 @@ function SlideMediaField({ imagePath, backgroundId, uploadStatus, onUpload, onOp
                             disabled={uploadStatus?.uploading}
                             className="rounded-md bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
                         >
-                            {uploadStatus?.uploading ? 'Uploading...' : 'Upload Image'}
+                            {uploadStatus?.uploading ? 'Uploading...' : isForeground ? 'Upload Media' : 'Upload Image'}
                         </button>
                         <button
                             type="button"
@@ -701,7 +938,7 @@ function SlideMediaField({ imagePath, backgroundId, uploadStatus, onUpload, onOp
                 <input
                     ref={inputRef}
                     type="file"
-                    accept="image/*"
+                    accept={isForeground ? 'image/*,video/*' : 'image/*'}
                     className="hidden"
                     onChange={(event) => {
                         const file = event.target.files?.[0];
@@ -717,27 +954,81 @@ function SlideMediaField({ imagePath, backgroundId, uploadStatus, onUpload, onOp
 
             <div className="rounded-md border border-gray-200 bg-white p-3">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Current selection</p>
-                <SlideCardPreview
-                    imagePath={resolvedImage}
-                    backgroundId={hasBackground ? backgroundId : ''}
-                    title="Selected slide media"
-                    compact
-                />
-                {imagePath && (
+                {isForeground ? (
+                    <ForegroundMediaPreview mediaPath={resolvedMedia} isVideo={isVideo} />
+                ) : (
+                    <SlideCardPreview
+                        imagePath={resolvedMedia}
+                        backgroundId={hasBackground ? backgroundId : ''}
+                        title="Selected slide media"
+                        compact
+                    />
+                )}
+                {mediaPath && (
                     <p className="mt-2 break-all text-xs text-gray-500">
-                        Image path: {imagePath}
+                        Path: {mediaPath}
                     </p>
                 )}
-                {!imagePath && hasBackground && (
+                {!mediaPath && hasBackground && !isForeground && (
                     <p className="mt-2 break-all text-xs text-gray-500">
                         Dynamic background: {backgroundId}
                     </p>
                 )}
-                {!imagePath && !hasBackground && (
+                {!mediaPath && !hasBackground && (
                     <p className="mt-2 text-xs text-gray-500">No media selected.</p>
                 )}
             </div>
         </div>
+    );
+}
+
+function AnimationField({ label, value, error, onChange }) {
+    return (
+        <Field label={label} error={error}>
+            <select
+                value={value}
+                onChange={(event) => onChange(event.target.value)}
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+            >
+                {animationOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+        </Field>
+    );
+}
+
+function ForegroundMediaPreview({ mediaPath, isVideo }) {
+    if (!mediaPath) {
+        return (
+            <div className="flex h-36 w-full items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-400">
+                No Foreground Media
+            </div>
+        );
+    }
+
+    if (isVideo) {
+        return (
+            <video
+                src={mediaPath}
+                className="h-36 w-full rounded-md border border-gray-200 object-cover"
+                muted
+                loop
+                autoPlay
+                playsInline
+                controls
+            />
+        );
+    }
+
+    return (
+        <img
+            src={mediaPath}
+            alt="Foreground media preview"
+            className="h-36 w-full rounded-md border border-gray-200 object-cover"
+        />
     );
 }
 

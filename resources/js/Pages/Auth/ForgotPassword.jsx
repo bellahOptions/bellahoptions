@@ -1,11 +1,40 @@
 import InputError from '@/Components/InputError';
+import HumanVerificationField from '@/Components/HumanVerificationField';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 
-export default function ForgotPassword({ status }) {
+export default function ForgotPassword({
+    status,
+    humanVerificationMode = 'math',
+    humanCheckQuestion = '',
+    humanCheckNonce = '',
+    turnstileSiteKey = '',
+    formRenderedAt = 0,
+}) {
     const { data, setData, post, processing, errors } = useForm({
         email: '',
+        human_check_answer: '',
+        turnstile_token: '',
+        human_check_nonce: humanCheckNonce,
+        form_rendered_at: formRenderedAt,
+        website: '',
+        company_name: '',
+        contact_notes: '',
     });
+
+    useEffect(() => {
+        setData((previous) => ({
+            ...previous,
+            human_check_answer: '',
+            turnstile_token: '',
+            human_check_nonce: humanCheckNonce,
+            form_rendered_at: formRenderedAt,
+            website: '',
+            company_name: '',
+            contact_notes: '',
+        }));
+    }, [formRenderedAt, humanCheckNonce, setData]);
 
     const submit = (e) => {
         e.preventDefault();
@@ -36,6 +65,36 @@ export default function ForgotPassword({ status }) {
             )}
 
             <form onSubmit={submit} className="mt-6 space-y-4">
+                <input
+                    type="text"
+                    name="company_name"
+                    value={data.company_name}
+                    onChange={(event) => setData('company_name', event.target.value)}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                />
+                <input
+                    type="text"
+                    name="website"
+                    value={data.website}
+                    onChange={(event) => setData('website', event.target.value)}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                />
+                <input
+                    type="text"
+                    name="contact_notes"
+                    value={data.contact_notes}
+                    onChange={(event) => setData('contact_notes', event.target.value)}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                />
                 <div>
                     <label htmlFor="email" className="text-sm font-medium text-slate-700">
                         Email Address
@@ -53,6 +112,17 @@ export default function ForgotPassword({ status }) {
                 </div>
 
                 <InputError message={errors.email} className="mt-2" />
+
+                <HumanVerificationField
+                    mode={humanVerificationMode}
+                    question={humanCheckQuestion}
+                    turnstileSiteKey={turnstileSiteKey}
+                    mathValue={data.human_check_answer}
+                    onMathChange={(value) => setData('human_check_answer', value)}
+                    onTurnstileChange={(token) => setData('turnstile_token', token)}
+                    mathError={errors.human_check_answer}
+                    turnstileError={errors.turnstile_token}
+                />
 
                 <div className="pt-1">
                     <button

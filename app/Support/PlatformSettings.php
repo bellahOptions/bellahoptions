@@ -19,6 +19,8 @@ class PlatformSettings
 
     private const BRAND_ASSETS_KEY = 'brand_assets_json';
 
+    private const PUBLIC_PAGE_HEADERS_KEY = 'public_page_headers_json';
+
     private const MAIN_WEBSITE_URI_KEY = 'main_website_uri';
 
     /**
@@ -167,6 +169,65 @@ class PlatformSettings
         ];
 
         AppSetting::setValue(self::BRAND_ASSETS_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @return array<string, array{title: string, text: string, background_image: string|null}>
+     */
+    public static function publicPageHeaders(): array
+    {
+        $defaults = self::defaultPublicPageHeaders();
+        $raw = AppSetting::getValue(self::PUBLIC_PAGE_HEADERS_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        $normalized = [];
+
+        foreach ($defaults as $pageKey => $defaultConfig) {
+            $candidate = is_array($decoded[$pageKey] ?? null) ? $decoded[$pageKey] : [];
+
+            $title = trim((string) ($candidate['title'] ?? ''));
+            $text = trim((string) ($candidate['text'] ?? ''));
+
+            $normalized[$pageKey] = [
+                'title' => $title !== '' ? mb_substr($title, 0, 180) : $defaultConfig['title'],
+                'text' => $text !== '' ? mb_substr($text, 0, 500) : $defaultConfig['text'],
+                'background_image' => self::sanitizeAssetPath($candidate['background_image'] ?? null),
+            ];
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  array<string, mixed>  $headers
+     */
+    public static function setPublicPageHeaders(array $headers): void
+    {
+        $defaults = self::defaultPublicPageHeaders();
+        $payload = [];
+
+        foreach ($defaults as $pageKey => $defaultConfig) {
+            $candidate = is_array($headers[$pageKey] ?? null) ? $headers[$pageKey] : [];
+            $title = trim((string) ($candidate['title'] ?? ''));
+            $text = trim((string) ($candidate['text'] ?? ''));
+
+            $payload[$pageKey] = [
+                'title' => $title !== '' ? mb_substr($title, 0, 180) : $defaultConfig['title'],
+                'text' => $text !== '' ? mb_substr($text, 0, 500) : $defaultConfig['text'],
+                'background_image' => self::sanitizeAssetPath($candidate['background_image'] ?? null),
+            ];
+        }
+
+        AppSetting::setValue(self::PUBLIC_PAGE_HEADERS_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -439,6 +500,55 @@ class PlatformSettings
         return [
             'logo_path' => '/logo-06.svg',
             'favicon_path' => '/images/icon/favicon-32x32.png',
+        ];
+    }
+
+    /**
+     * @return array<string, array{title: string, text: string, background_image: string|null}>
+     */
+    private static function defaultPublicPageHeaders(): array
+    {
+        return [
+            'about' => [
+                'title' => 'We are a creative tech agency built for ambitious brands.',
+                'text' => 'Bellah Options helps businesses grow faster through brand identity, graphic design, social media content, websites, and product experiences that look polished and work clearly.',
+                'background_image' => null,
+            ],
+            'services' => [
+                'title' => 'Creative services built for launch, growth, and consistency.',
+                'text' => 'Choose the service lane that matches your next move. Every package is structured to make the brief clearer and the output easier to use.',
+                'background_image' => null,
+            ],
+            'gallery' => [
+                'title' => 'A look at visual systems, campaigns, and brand assets.',
+                'text' => 'Every project shown here is published directly by Bellah Options super-admin.',
+                'background_image' => null,
+            ],
+            'blog' => [
+                'title' => 'Ideas on branding, content, design, and digital growth.',
+                'text' => 'Notes from Bellah Options for founders, creators, and growing teams building stronger digital presence.',
+                'background_image' => null,
+            ],
+            'events' => [
+                'title' => 'Workshops, launches, and creative sessions.',
+                'text' => 'Events uploaded by the super-admin appear here automatically.',
+                'background_image' => null,
+            ],
+            'faqs' => [
+                'title' => 'Frequently Asked Questions',
+                'text' => 'Clear answers to common questions about Bellah Options services, process, timelines, and delivery.',
+                'background_image' => null,
+            ],
+            'contact' => [
+                'title' => 'Tell us what you are building.',
+                'text' => 'Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step.',
+                'background_image' => null,
+            ],
+            'web_design_samples' => [
+                'title' => 'Web Design Samples',
+                'text' => 'A focused set of live web experiences from Bellah Options projects.',
+                'background_image' => null,
+            ],
         ];
     }
 

@@ -9,13 +9,13 @@ use App\Models\GalleryProject;
 use App\Models\SlideShow;
 use App\Models\Term;
 use App\Support\PublicContentSecurity;
+use App\Support\HumanVerification;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SlideBackgroundOptions;
 use App\Support\SubscriptionPlanCatalog;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Throwable;
 
@@ -35,14 +35,56 @@ class PagesController extends Controller
         try {
             $slideColumns = ['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'];
             $hasSlideBackgroundColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'slide_background');
+            $hasContentMediaTypeColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_type');
+            $hasContentMediaPathColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_path');
+            $hasLayoutStyleColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'layout_style');
+            $hasContentAlignmentColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_alignment');
+            $hasTitleAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'title_animation');
+            $hasTextAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'text_animation');
+            $hasMediaAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'media_animation');
+            $hasButtonAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'button_animation');
             if ($hasSlideBackgroundColumn) {
                 $slideColumns[] = 'slide_background';
+            }
+            if ($hasContentMediaTypeColumn) {
+                $slideColumns[] = 'content_media_type';
+            }
+            if ($hasContentMediaPathColumn) {
+                $slideColumns[] = 'content_media_path';
+            }
+            if ($hasLayoutStyleColumn) {
+                $slideColumns[] = 'layout_style';
+            }
+            if ($hasContentAlignmentColumn) {
+                $slideColumns[] = 'content_alignment';
+            }
+            if ($hasTitleAnimationColumn) {
+                $slideColumns[] = 'title_animation';
+            }
+            if ($hasTextAnimationColumn) {
+                $slideColumns[] = 'text_animation';
+            }
+            if ($hasMediaAnimationColumn) {
+                $slideColumns[] = 'media_animation';
+            }
+            if ($hasButtonAnimationColumn) {
+                $slideColumns[] = 'button_animation';
             }
 
             $slideShows = SlideShow::query()
                 ->latest('id')
                 ->get($slideColumns)
-                ->map(function (SlideShow $slide) use ($serviceOrderCatalog): ?array {
+                ->map(function (SlideShow $slide) use (
+                    $serviceOrderCatalog,
+                    $hasContentMediaTypeColumn,
+                    $hasContentMediaPathColumn,
+                    $hasLayoutStyleColumn,
+                    $hasContentAlignmentColumn,
+                    $hasTitleAnimationColumn,
+                    $hasTextAnimationColumn,
+                    $hasMediaAnimationColumn,
+                    $hasButtonAnimationColumn
+                ): ?array {
                     try {
                         $safeImage = $this->publicAssetUrl($slide->slide_image);
                         if (is_string($slide->slide_image) && trim($slide->slide_image) !== '' && $safeImage === null) {
@@ -55,6 +97,14 @@ class PagesController extends Controller
                             'text' => $slide->text,
                             'slide_image' => $safeImage,
                             'slide_background' => SlideBackgroundOptions::sanitize($slide->slide_background ?? null),
+                            'content_media_type' => $this->normalizeSlideContentMediaType($hasContentMediaTypeColumn ? $slide->content_media_type : null),
+                            'content_media_path' => $this->publicAssetUrl($hasContentMediaPathColumn ? $slide->content_media_path : null),
+                            'layout_style' => $this->normalizeSlideLayoutStyle($hasLayoutStyleColumn ? $slide->layout_style : null),
+                            'content_alignment' => $this->normalizeSlideContentAlignment($hasContentAlignmentColumn ? $slide->content_alignment : null),
+                            'title_animation' => $this->normalizeSlideAnimationStyle($hasTitleAnimationColumn ? $slide->title_animation : null),
+                            'text_animation' => $this->normalizeSlideAnimationStyle($hasTextAnimationColumn ? $slide->text_animation : null),
+                            'media_animation' => $this->normalizeSlideAnimationStyle($hasMediaAnimationColumn ? $slide->media_animation : null),
+                            'button_animation' => $this->normalizeSlideAnimationStyle($hasButtonAnimationColumn ? $slide->button_animation : null),
                             'slide_link' => $this->normalizeSlideOrderLink($slide->slide_link, $serviceOrderCatalog),
                             'slide_link_text' => $slide->slide_link_text,
                         ];
@@ -175,7 +225,7 @@ class PagesController extends Controller
 
     public function contactPage(Request $request)
     {
-        return Inertia::render('Contact', $this->createContactHumanChallenge($request));
+        return Inertia::render('Contact', HumanVerification::createChallenge($request, 'contact_human_check'));
     }
 
     public function blogPage()
@@ -294,6 +344,46 @@ class PagesController extends Controller
         return '/order/'.$serviceSlug.((string) ($matches[2] ?? ''));
     }
 
+    private function normalizeSlideContentMediaType(?string $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, ['image', 'video'], true) ? $candidate : null;
+    }
+
+    private function normalizeSlideLayoutStyle(?string $value): string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if (in_array($candidate, ['center', 'split-left', 'split-right'], true)) {
+            return $candidate;
+        }
+
+        return 'center';
+    }
+
+    private function normalizeSlideContentAlignment(?string $value): string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if (in_array($candidate, ['left', 'center'], true)) {
+            return $candidate;
+        }
+
+        return 'center';
+    }
+
+    private function normalizeSlideAnimationStyle(?string $value): string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if (in_array($candidate, ['fade-up', 'fade-down', 'slide-left', 'slide-right', 'zoom-in', 'none'], true)) {
+            return $candidate;
+        }
+
+        return 'fade-up';
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -309,29 +399,6 @@ class PagesController extends Controller
             'published_at' => $post->published_at?->toFormattedDateString(),
             'cover_image' => $post->cover_image ? $this->publicAssetUrl($post->cover_image) : null,
             'url' => route('blog.show', $post),
-        ];
-    }
-
-    /**
-     * @return array{humanCheckQuestion: string, humanCheckNonce: string, formRenderedAt: int}
-     */
-    private function createContactHumanChallenge(Request $request): array
-    {
-        $left = random_int(2, 11);
-        $right = random_int(2, 11);
-        $issuedAt = now()->timestamp;
-        $nonce = Str::random(32);
-
-        $request->session()->put('contact_human_check', [
-            'answer' => $left + $right,
-            'issued_at' => $issuedAt,
-            'nonce' => $nonce,
-        ]);
-
-        return [
-            'humanCheckQuestion' => "What is {$left} + {$right}?",
-            'humanCheckNonce' => $nonce,
-            'formRenderedAt' => $issuedAt,
         ];
     }
 

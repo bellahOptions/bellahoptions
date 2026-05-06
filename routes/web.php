@@ -6,6 +6,8 @@ use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\LiveChat\CustomerChatController;
+use App\Http\Controllers\LiveChat\StaffChatController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SeoController;
@@ -73,6 +75,20 @@ Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');
 
+Route::prefix('live-chat')->name('live-chat.')->group(function (): void {
+    Route::get('/session', [CustomerChatController::class, 'session'])->name('session');
+    Route::get('/messages', [CustomerChatController::class, 'messages'])->name('messages');
+    Route::post('/messages', [CustomerChatController::class, 'send'])
+        ->middleware('throttle:40,1')
+        ->name('messages.send');
+    Route::patch('/close', [CustomerChatController::class, 'close'])->name('close');
+    Route::post('/presence', [CustomerChatController::class, 'presence'])->name('presence');
+    Route::post('/typing', [CustomerChatController::class, 'typing'])->name('typing');
+    Route::post('/messages/{message}/reactions', [CustomerChatController::class, 'react'])
+        ->middleware('throttle:120,1')
+        ->name('messages.react');
+});
+
 Route::get('/new-home', [PagesController::class, 'index'])->name('home.new');
 
 Route::get('/dashboard', AdminDashboardController::class)
@@ -80,6 +96,20 @@ Route::get('/dashboard', AdminDashboardController::class)
     ->name('dashboard');
 
 Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
+    Route::get('/admin/live-chat', [StaffChatController::class, 'index'])->name('admin.live-chat.index');
+    Route::get('/admin/live-chat/overview', [StaffChatController::class, 'overview'])->name('admin.live-chat.overview');
+    Route::get('/admin/live-chat/threads/{thread}/messages', [StaffChatController::class, 'messages'])->name('admin.live-chat.threads.messages');
+    Route::post('/admin/live-chat/threads/{thread}/messages', [StaffChatController::class, 'send'])
+        ->middleware('throttle:60,1')
+        ->name('admin.live-chat.threads.messages.send');
+    Route::patch('/admin/live-chat/threads/{thread}/join', [StaffChatController::class, 'join'])->name('admin.live-chat.threads.join');
+    Route::post('/admin/live-chat/threads/{thread}/typing', [StaffChatController::class, 'typing'])->name('admin.live-chat.threads.typing');
+    Route::post('/admin/live-chat/messages/{message}/reactions', [StaffChatController::class, 'react'])
+        ->middleware('throttle:120,1')
+        ->name('admin.live-chat.messages.react');
+    Route::patch('/admin/live-chat/threads/{thread}/status', [StaffChatController::class, 'updateStatus'])->name('admin.live-chat.threads.status');
+    Route::post('/admin/live-chat/presence', [StaffChatController::class, 'presence'])->name('admin.live-chat.presence');
+
     Route::get('/admin/invoices', [InvoiceController::class, 'index'])->name('admin.invoices.index');
     Route::get('/admin/invoices/{invoice}', [InvoiceController::class, 'show'])->name('admin.invoices.show');
     Route::get('/admin/customers/search', [CustomerController::class, 'search'])->name('admin.customers.search');

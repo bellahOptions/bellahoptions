@@ -6,6 +6,7 @@ use App\Http\Requests\StoreWaitlistRequest;
 use App\Mail\WaitlistAdminAlertMail;
 use App\Mail\WaitlistWelcomeMail;
 use App\Models\Waitlist;
+use App\Support\HumanVerification;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -21,7 +22,7 @@ class WaitlistController extends Controller
     {
         return Inertia::render('ComingSoon', [
             'occupations' => config('occupations.list', []),
-            ...$this->createHumanChallenge($request),
+            ...HumanVerification::createChallenge($request, 'waitlist_human_check'),
         ]);
     }
 
@@ -61,28 +62,5 @@ class WaitlistController extends Controller
         $request->session()->forget('waitlist_human_check');
 
         return back()->with('success', 'Thanks for joining the waitlist! We will notify you when we launch.')->withInput();
-    }
-
-    /**
-     * @return array{humanCheckQuestion: string, humanCheckNonce: string, formRenderedAt: int}
-     */
-    private function createHumanChallenge(Request $request): array
-    {
-        $left = random_int(2, 11);
-        $right = random_int(2, 11);
-        $issuedAt = now()->timestamp;
-        $nonce = Str::random(32);
-
-        $request->session()->put('waitlist_human_check', [
-            'answer' => $left + $right,
-            'issued_at' => $issuedAt,
-            'nonce' => $nonce,
-        ]);
-
-        return [
-            'humanCheckQuestion' => "What is {$left} + {$right}?",
-            'humanCheckNonce' => $nonce,
-            'formRenderedAt' => $issuedAt,
-        ];
     }
 }

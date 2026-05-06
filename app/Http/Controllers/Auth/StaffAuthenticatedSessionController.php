@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Mail\StaffLoginOtpMail;
 use App\Models\User;
+use App\Support\HumanVerification;
 use App\Support\StaffOtpChallenge;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -26,6 +27,7 @@ class StaffAuthenticatedSessionController extends Controller
     {
         return Inertia::render('Auth/StaffLogin', [
             'status' => session('status'),
+            ...HumanVerification::createChallenge(request(), 'auth_login_human_check'),
         ]);
     }
 
@@ -60,6 +62,8 @@ class StaffAuthenticatedSessionController extends Controller
                 'email' => 'This portal is restricted to Bellah Options staff accounts.',
             ]);
         }
+
+        $request->session()->forget('auth_login_human_check');
 
         $request->session()->regenerate();
         $otpCode = $staffOtpChallenge->issue($request, $user);

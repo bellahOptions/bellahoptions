@@ -1,6 +1,7 @@
 import { Head, Link } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 import {
     ArrowRightIcon,
     CheckCircleIcon,
@@ -31,17 +32,11 @@ export default function Services({ services = [] }) {
             <Head title="Services" />
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-20 text-white sm:py-24 lg:py-28">
-                        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                            <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Services</p>
-                            <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                                Creative services built for launch, growth, and consistency.
-                            </h1>
-                            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                Choose the service lane that matches your next move. Every package is structured to make the brief clearer and the output easier to use.
-                            </p>
-                        </div>
-                    </RevealSection>
+                    <PublicPageHeader
+                        pageKey="services"
+                        fallbackTitle="Creative services built for launch, growth, and consistency."
+                        fallbackText="Choose the service lane that matches your next move. Every package is structured to make the brief clearer and the output easier to use."
+                    />
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

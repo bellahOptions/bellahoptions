@@ -2,12 +2,14 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Support\HumanVerification;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 
 class LoginRequest extends FormRequest
@@ -27,10 +29,38 @@ class LoginRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-        ];
+        ], HumanVerification::rules(), HumanVerification::honeypotRules());
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return HumanVerification::messages();
+    }
+
+    protected function prepareForValidation(): void
+    {
+        $this->merge([
+            'email' => strtolower(trim((string) $this->input('email'))),
+            'human_check_answer' => strtoupper(trim((string) $this->input('human_check_answer'))),
+            'human_check_nonce' => trim((string) $this->input('human_check_nonce')),
+            'turnstile_token' => trim((string) $this->input('turnstile_token')),
+            'website' => trim((string) $this->input('website')),
+            'company_name' => trim((string) $this->input('company_name')),
+            'contact_notes' => trim((string) $this->input('contact_notes')),
+        ]);
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            HumanVerification::validate($this, $validator, 'auth_login_human_check');
+        });
     }
 
     /**

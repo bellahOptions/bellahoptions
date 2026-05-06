@@ -1,6 +1,7 @@
 import { Head, Link } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 
 export default function Gallery({ projects = [] }) {
     const hasProjects = Array.isArray(projects) && projects.length > 0;
@@ -10,32 +11,28 @@ export default function Gallery({ projects = [] }) {
             <Head title="Gallery" />
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-20 text-white sm:py-24 lg:py-28">
-                        <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                            <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">
-                                A look at visual systems, campaigns, and brand assets.
-                            </h1>
-                            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">
-                                Every project shown here is published directly by Bellah Options super-admin.
-                            </p>
-                            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                                <a
-                                    href="https://www.behance.net/bellahoptionsNG"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-black text-[#000285] transition hover:bg-blue-50"
-                                >
-                                    View Full Behance Portfolio
-                                </a>
-                                <Link
-                                    href="/web-design-samples"
-                                    className="inline-flex items-center justify-center rounded-lg border border-blue-200 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900/25"
-                                >
-                                    See Web Design Samples
-                                </Link>
-                            </div>
+                    <PublicPageHeader
+                        pageKey="gallery"
+                        fallbackTitle="A look at visual systems, campaigns, and brand assets."
+                        fallbackText="Every project shown here is published directly by Bellah Options super-admin."
+                    >
+                        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+                            <a
+                                href="https://www.behance.net/bellahoptionsNG"
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-black text-[#000285] transition hover:bg-blue-50"
+                            >
+                                View Full Behance Portfolio
+                            </a>
+                            <Link
+                                href="/web-design-samples"
+                                className="inline-flex items-center justify-center rounded-lg border border-blue-200 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900/25"
+                            >
+                                See Web Design Samples
+                            </Link>
                         </div>
-                    </RevealSection>
+                    </PublicPageHeader>
 
                     <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

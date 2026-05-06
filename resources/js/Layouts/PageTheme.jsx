@@ -1,4 +1,5 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import CustomerLiveChatWidget from "@/Components/live-chat/CustomerLiveChatWidget";
 import { Link } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -256,7 +257,7 @@ export default function PageTheme({ children }) {
             <motion.button
                 type="button"
                 onClick={scrollToTop}
-                className={`fixed bottom-5 right-5 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-[#000285] text-white shadow-lg shadow-blue-900/25 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 ${
+                className={`fixed bottom-5 right-24 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-[#000285] text-white shadow-lg shadow-blue-900/25 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 ${
                     scrolled ? "" : "pointer-events-none"
                 }`}
                 initial={false}
@@ -314,7 +315,7 @@ export default function PageTheme({ children }) {
                     <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
                         {/* Brand */}
                         <div className="space-y-5">
-                            <ApplicationLogo className="h-10 w-auto" />
+                            <img src="/logo-08.svg" className="h-10 w-auto" />
                             <p className="text-sm leading-7 text-blue-200">
                                 Creative design agency transforming ideas into
                                 meaningful visual experiences through branding,
@@ -462,6 +463,8 @@ export default function PageTheme({ children }) {
                     </div>
                 </div>
             </motion.footer>
+
+            <CustomerLiveChatWidget show />
         </>
     );
 }

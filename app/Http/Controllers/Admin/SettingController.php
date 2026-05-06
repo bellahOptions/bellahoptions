@@ -46,6 +46,7 @@ class SettingController extends Controller
                 'logo_path' => PlatformSettings::brandAssets()['logo_path'],
                 'favicon_path' => PlatformSettings::brandAssets()['favicon_path'],
                 'home_slides' => PlatformSettings::homeSlides(),
+                'public_page_headers' => PlatformSettings::publicPageHeaders(),
                 'terms' => $this->policyTermsPayload(),
             ],
             'serviceCatalog' => $this->serviceCatalogMeta($serviceCatalog),
@@ -167,6 +168,10 @@ class SettingController extends Controller
 
         if (array_key_exists('home_slides', $payload)) {
             PlatformSettings::setHomeSlides((array) $payload['home_slides']);
+        }
+
+        if (array_key_exists('public_page_headers', $payload) && is_array($payload['public_page_headers'])) {
+            PlatformSettings::setPublicPageHeaders($payload['public_page_headers']);
         }
 
         if (is_array($payload['terms'] ?? null)) {

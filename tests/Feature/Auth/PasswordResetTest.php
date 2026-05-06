@@ -24,8 +24,20 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->get('/forgot-password');
+        $challenge = session('auth_forgot_password_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_forgot_password_human_check' => $challenge]);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $this->post('/forgot-password', [
+            'email' => $user->email,
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
+        ]);
 
         Notification::assertSentTo($user, ResetPassword::class);
     }
@@ -35,8 +47,20 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->get('/forgot-password');
+        $challenge = session('auth_forgot_password_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_forgot_password_human_check' => $challenge]);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $this->post('/forgot-password', [
+            'email' => $user->email,
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
+        ]);
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
             $response = $this->get('/reset-password/'.$notification->token);
@@ -52,8 +76,20 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
+        $this->get('/forgot-password');
+        $challenge = session('auth_forgot_password_human_check');
+        $challenge['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['auth_forgot_password_human_check' => $challenge]);
 
-        $this->post('/forgot-password', ['email' => $user->email]);
+        $this->post('/forgot-password', [
+            'email' => $user->email,
+            'human_check_answer' => $challenge['answer'],
+            'human_check_nonce' => $challenge['nonce'],
+            'form_rendered_at' => $challenge['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'contact_notes' => '',
+        ]);
 
         Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
             $response = $this->post('/reset-password', [

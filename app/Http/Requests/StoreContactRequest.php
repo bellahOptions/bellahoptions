@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Support\HumanVerification;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Carbon;
 use Illuminate\Validation\Validator;
 
 class StoreContactRequest extends FormRequest
@@ -19,18 +19,13 @@ class StoreContactRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+        return array_merge([
             'name' => ['required', 'string', 'min:2', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
             'email' => ['required', 'string', 'email:rfc', 'max:255'],
             'phone' => ['nullable', 'string', 'min:7', 'max:40'],
             'project_type' => ['required', 'string', 'min:3', 'max:160'],
             'message' => ['required', 'string', 'min:20', 'max:2500'],
-            'company_name' => ['nullable', 'string', 'max:0'],
-            'website' => ['nullable', 'string', 'max:0'],
-            'human_check_nonce' => ['required', 'string', 'size:32'],
-            'human_check_answer' => ['required', 'integer', 'between:0,100'],
-            'form_rendered_at' => ['required', 'integer', 'min:1'],
-        ];
+        ], HumanVerification::rules(), HumanVerification::honeypotRules());
     }
 
     /**
@@ -38,58 +33,15 @@ class StoreContactRequest extends FormRequest
      */
     public function messages(): array
     {
-        return [
+        return array_merge([
             'name.regex' => 'Please enter a valid name.',
-            'company_name.max' => 'Human verification failed.',
-            'website.max' => 'Human verification failed.',
-            'human_check_answer.required' => 'Human verification is required.',
-            'human_check_answer.integer' => 'Human verification is required.',
-        ];
+        ], HumanVerification::messages());
     }
 
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            $challenge = $this->session()->get('contact_human_check');
-
-            if (! is_array($challenge)) {
-                $validator->errors()->add('human_check_answer', 'Human verification expired. Please try again.');
-
-                return;
-            }
-
-            $nonceMatches = hash_equals(
-                (string) ($challenge['nonce'] ?? ''),
-                (string) $this->input('human_check_nonce'),
-            );
-
-            if (! $nonceMatches) {
-                $validator->errors()->add('human_check_answer', 'Human verification failed.');
-
-                return;
-            }
-
-            $issuedAt = (int) ($challenge['issued_at'] ?? 0);
-            $submittedAt = Carbon::now()->timestamp;
-
-            if ($issuedAt <= 0 || ($submittedAt - $issuedAt) < 3 || ($submittedAt - $issuedAt) > 3600) {
-                $validator->errors()->add('human_check_answer', 'Please take a moment and try again.');
-
-                return;
-            }
-
-            if ((int) $this->input('form_rendered_at') !== $issuedAt) {
-                $validator->errors()->add('human_check_answer', 'Human verification failed.');
-
-                return;
-            }
-
-            $providedAnswer = (int) $this->input('human_check_answer');
-            $expectedAnswer = (int) ($challenge['answer'] ?? -1);
-
-            if ($providedAnswer !== $expectedAnswer) {
-                $validator->errors()->add('human_check_answer', 'Human verification answer is incorrect.');
-            }
+            HumanVerification::validate($this, $validator, 'contact_human_check');
         });
     }
 }

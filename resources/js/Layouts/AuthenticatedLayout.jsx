@@ -1,5 +1,7 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
+import CustomerLiveChatWidget from '@/Components/live-chat/CustomerLiveChatWidget';
+import StaffLiveChatDock from '@/Components/live-chat/StaffLiveChatDock';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -21,6 +23,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 label: 'Dashboard',
                 href: route('dashboard'),
                 active: route().current('dashboard'),
+                show: true,
+            },
+            {
+                label: 'Live Chat',
+                href: route('admin.live-chat.index'),
+                active: route().current('admin.live-chat.*'),
                 show: true,
             },
             {
@@ -231,6 +239,8 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 <main>{children}</main>
             </div>
+
+            {isStaff ? <StaffLiveChatDock /> : <CustomerLiveChatWidget show />}
         </div>
     );
 }

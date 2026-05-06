@@ -44,6 +44,10 @@ class UpdatePlatformSettingsRequest extends FormRequest
             $fields['home_slides'] = is_array($this->input('home_slides')) ? $this->input('home_slides') : [];
         }
 
+        if ($this->has('public_page_headers')) {
+            $fields['public_page_headers'] = is_array($this->input('public_page_headers')) ? $this->input('public_page_headers') : [];
+        }
+
         if ($this->has('terms')) {
             $fields['terms'] = is_array($this->input('terms')) ? $this->input('terms') : null;
         }
@@ -76,6 +80,12 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'home_slides.*.image' => ['required_with:home_slides', 'string', 'max:255', 'regex:/^[a-zA-Z0-9_\/.\-]+$/'],
             'home_slides.*.cta_label' => ['required_with:home_slides', 'string', 'max:60'],
             'home_slides.*.cta_url' => ['required_with:home_slides', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+
+            'public_page_headers' => ['sometimes', 'required', 'array'],
+            'public_page_headers.*' => ['required_with:public_page_headers', 'array'],
+            'public_page_headers.*.title' => ['nullable', 'string', 'max:180'],
+            'public_page_headers.*.text' => ['nullable', 'string', 'max:500'],
+            'public_page_headers.*.background_image' => ['nullable', 'string', 'max:255'],
 
             'terms' => ['sometimes', 'nullable', 'array'],
             'terms.terms_of_service' => ['nullable', 'string', 'max:200000'],

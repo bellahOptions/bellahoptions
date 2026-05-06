@@ -1,15 +1,43 @@
 import InputError from '@/Components/InputError';
+import HumanVerificationField from '@/Components/HumanVerificationField';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 
-export default function Register() {
+export default function Register({
+    humanVerificationMode = 'math',
+    humanCheckQuestion = '',
+    humanCheckNonce = '',
+    turnstileSiteKey = '',
+    formRenderedAt = 0,
+}) {
     const { data, setData, post, processing, errors, reset } = useForm({
         first_name: '',
         last_name: '',
         email: '',
         password: '',
         password_confirmation: '',
+        human_check_answer: '',
+        turnstile_token: '',
+        human_check_nonce: humanCheckNonce,
+        form_rendered_at: formRenderedAt,
+        website: '',
+        company_name: '',
+        contact_notes: '',
     });
+
+    useEffect(() => {
+        setData((previous) => ({
+            ...previous,
+            human_check_answer: '',
+            turnstile_token: '',
+            human_check_nonce: humanCheckNonce,
+            form_rendered_at: formRenderedAt,
+            website: '',
+            company_name: '',
+            contact_notes: '',
+        }));
+    }, [formRenderedAt, humanCheckNonce, setData]);
 
     const submit = (event) => {
         event.preventDefault();
@@ -40,6 +68,36 @@ export default function Register() {
             </div>
 
             <form onSubmit={submit} className="mt-6 space-y-4">
+                <input
+                    type="text"
+                    name="company_name"
+                    value={data.company_name}
+                    onChange={(event) => setData('company_name', event.target.value)}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                />
+                <input
+                    type="text"
+                    name="website"
+                    value={data.website}
+                    onChange={(event) => setData('website', event.target.value)}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                />
+                <input
+                    type="text"
+                    name="contact_notes"
+                    value={data.contact_notes}
+                    onChange={(event) => setData('contact_notes', event.target.value)}
+                    className="hidden"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                />
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                         <label htmlFor="first_name" className="text-sm font-medium text-slate-700">
@@ -124,6 +182,17 @@ export default function Register() {
                     />
                     <InputError message={errors.password_confirmation} className="mt-2" />
                 </div>
+
+                <HumanVerificationField
+                    mode={humanVerificationMode}
+                    question={humanCheckQuestion}
+                    turnstileSiteKey={turnstileSiteKey}
+                    mathValue={data.human_check_answer}
+                    onMathChange={(value) => setData('human_check_answer', value)}
+                    onTurnstileChange={(token) => setData('turnstile_token', token)}
+                    mathError={errors.human_check_answer}
+                    turnstileError={errors.turnstile_token}
+                />
 
                 <button
                     type="submit"
