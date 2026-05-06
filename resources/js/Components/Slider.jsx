@@ -33,6 +33,7 @@ const fallbackSlides = [
         slide_background: "particles-ocean",
         content_media_type: "",
         content_media_path: "",
+        content_media_position: "center",
         layout_style: "center",
         content_alignment: "center",
         title_animation: "fade-up",
@@ -50,6 +51,7 @@ const fallbackSlides = [
         slide_background: "particles-aurora",
         content_media_type: "",
         content_media_path: "",
+        content_media_position: "center",
         layout_style: "center",
         content_alignment: "center",
         title_animation: "fade-up",
@@ -67,6 +69,7 @@ const fallbackSlides = [
         slide_background: "particles-cosmic",
         content_media_type: "",
         content_media_path: "",
+        content_media_position: "center",
         layout_style: "center",
         content_alignment: "center",
         title_animation: "fade-up",
@@ -114,6 +117,12 @@ function normalizeContentAlignment(value) {
     const candidate = String(value || "").trim().toLowerCase();
 
     return ["left", "center"].includes(candidate) ? candidate : "center";
+}
+
+function normalizeContentMediaPosition(value) {
+    const candidate = String(value || "").trim().toLowerCase();
+
+    return ["top", "center", "bottom"].includes(candidate) ? candidate : "center";
 }
 
 function normalizeAnimation(value, fallback = "fade-up") {
@@ -208,13 +217,18 @@ function SlideCallToAction({ slide, children }) {
     );
 }
 
-function ForegroundMedia({ slide, mediaAnimation }) {
+function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center" }) {
     const path = slideImageSrc(slide?.content_media_path);
     if (!path) {
         return null;
     }
 
     const mediaType = normalizeContentMediaType(slide?.content_media_type, path);
+    const positionClass = mediaPosition === "top"
+        ? "object-top"
+        : mediaPosition === "bottom"
+            ? "object-bottom"
+            : "object-center";
 
     return (
         <motion.div
@@ -226,7 +240,7 @@ function ForegroundMedia({ slide, mediaAnimation }) {
             {mediaType === "video" ? (
                 <video
                     src={path}
-                    className="h-[260px] w-full object-cover sm:h-[320px] lg:h-[360px]"
+                    className={`h-[260px] w-full object-cover ${positionClass} sm:h-[320px] lg:h-[360px]`}
                     autoPlay
                     loop
                     muted
@@ -237,7 +251,7 @@ function ForegroundMedia({ slide, mediaAnimation }) {
                 <img
                     src={path}
                     alt={slide?.slide_title || "Slide media"}
-                    className="h-[260px] w-full object-cover sm:h-[320px] lg:h-[360px]"
+                    className={`h-[260px] w-full object-cover ${positionClass} sm:h-[320px] lg:h-[360px]`}
                 />
             )}
         </motion.div>
@@ -251,6 +265,7 @@ function SlideContent({ slide, index }) {
     const textAnimation = normalizeAnimation(slide?.text_animation, "fade-up");
     const mediaAnimation = normalizeAnimation(slide?.media_animation, "zoom-in");
     const buttonAnimation = normalizeAnimation(slide?.button_animation, "fade-up");
+    const mediaPosition = normalizeContentMediaPosition(slide?.content_media_position);
 
     const hasForegroundMedia = Boolean(slideImageSrc(slide?.content_media_path));
     const useSplitLayout = hasForegroundMedia && layoutStyle !== "center";
@@ -299,7 +314,11 @@ function SlideContent({ slide, index }) {
                     </div>
 
                     <div className={`${mediaFirst ? 'order-1 lg:order-1' : 'order-2'} w-full`}>
-                        <ForegroundMedia slide={slide} mediaAnimation={mediaAnimation} />
+                        <ForegroundMedia
+                            slide={slide}
+                            mediaAnimation={mediaAnimation}
+                            mediaPosition={mediaPosition}
+                        />
                     </div>
                 </div>
             </motion.div>
@@ -332,7 +351,11 @@ function SlideContent({ slide, index }) {
 
             {hasForegroundMedia && (
                 <div className="mt-8 w-full max-w-3xl">
-                    <ForegroundMedia slide={slide} mediaAnimation={mediaAnimation} />
+                    <ForegroundMedia
+                        slide={slide}
+                        mediaAnimation={mediaAnimation}
+                        mediaPosition={mediaPosition}
+                    />
                 </div>
             )}
 

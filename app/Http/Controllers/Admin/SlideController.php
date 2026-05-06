@@ -22,6 +22,9 @@ class SlideController extends Controller
     private const CONTENT_MEDIA_TYPES = ['image', 'video'];
 
     /** @var array<int, string> */
+    private const CONTENT_MEDIA_POSITIONS = ['top', 'center', 'bottom'];
+
+    /** @var array<int, string> */
     private const LAYOUT_STYLES = ['center', 'split-left', 'split-right'];
 
     /** @var array<int, string> */
@@ -49,6 +52,7 @@ class SlideController extends Controller
         $hasSlideBackgroundColumn = Schema::hasColumn('slide_shows', 'slide_background');
         $hasContentMediaTypeColumn = Schema::hasColumn('slide_shows', 'content_media_type');
         $hasContentMediaPathColumn = Schema::hasColumn('slide_shows', 'content_media_path');
+        $hasContentMediaPositionColumn = Schema::hasColumn('slide_shows', 'content_media_position');
         $hasLayoutStyleColumn = Schema::hasColumn('slide_shows', 'layout_style');
         $hasContentAlignmentColumn = Schema::hasColumn('slide_shows', 'content_alignment');
         $hasTitleAnimationColumn = Schema::hasColumn('slide_shows', 'title_animation');
@@ -64,6 +68,9 @@ class SlideController extends Controller
         }
         if ($hasContentMediaPathColumn) {
             $columns[] = 'content_media_path';
+        }
+        if ($hasContentMediaPositionColumn) {
+            $columns[] = 'content_media_position';
         }
         if ($hasLayoutStyleColumn) {
             $columns[] = 'layout_style';
@@ -96,6 +103,7 @@ class SlideController extends Controller
                     'slide_background' => $hasSlideBackgroundColumn ? $slide->slide_background : null,
                     'content_media_type' => $this->normalizeContentMediaType($hasContentMediaTypeColumn ? $slide->content_media_type : null),
                     'content_media_path' => $hasContentMediaPathColumn ? $slide->content_media_path : null,
+                    'content_media_position' => $this->normalizeContentMediaPosition($hasContentMediaPositionColumn ? $slide->content_media_position : null) ?? 'center',
                     'layout_style' => $this->normalizeLayoutStyle($hasLayoutStyleColumn ? $slide->layout_style : null),
                     'content_alignment' => $this->normalizeContentAlignment($hasContentAlignmentColumn ? $slide->content_alignment : null),
                     'title_animation' => $this->normalizeAnimationStyle($hasTitleAnimationColumn ? $slide->title_animation : null),
@@ -266,6 +274,7 @@ class SlideController extends Controller
                 $request->input('content_media_path')
             ),
             'content_media_type' => $this->normalizeContentMediaType($request->input('content_media_type')),
+            'content_media_position' => $this->normalizeContentMediaPosition($request->input('content_media_position')),
             'layout_style' => $this->normalizeLayoutStyle($request->input('layout_style')),
             'content_alignment' => $this->normalizeContentAlignment($request->input('content_alignment')),
             'title_animation' => $this->normalizeAnimationStyle($request->input('title_animation')),
@@ -302,6 +311,7 @@ class SlideController extends Controller
                 },
             ],
             'content_media_type' => ['nullable', 'string', 'in:image,video'],
+            'content_media_position' => ['nullable', 'string', 'in:top,center,bottom'],
             'content_media_path' => [
                 'nullable',
                 'string',
@@ -347,6 +357,7 @@ class SlideController extends Controller
             'slide_image' => $imagePath,
             'content_media_type' => $contentMediaPath ? $contentMediaType : null,
             'content_media_path' => $contentMediaPath,
+            'content_media_position' => $this->normalizeContentMediaPosition($payload['content_media_position'] ?? null) ?? 'center',
             'layout_style' => $this->normalizeLayoutStyle($payload['layout_style'] ?? null) ?? 'center',
             'content_alignment' => $this->normalizeContentAlignment($payload['content_alignment'] ?? null) ?? 'center',
             'title_animation' => $this->normalizeAnimationStyle($payload['title_animation'] ?? null) ?? 'fade-up',
@@ -359,6 +370,9 @@ class SlideController extends Controller
 
         if (Schema::hasColumn('slide_shows', 'slide_background')) {
             $data['slide_background'] = $imagePath !== '' ? null : $background;
+        }
+        if (! Schema::hasColumn('slide_shows', 'content_media_position')) {
+            unset($data['content_media_position']);
         }
 
         return $data;
@@ -459,6 +473,16 @@ class SlideController extends Controller
         }
 
         return in_array($candidate, self::LAYOUT_STYLES, true) ? $candidate : null;
+    }
+
+    private function normalizeContentMediaPosition(mixed $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, self::CONTENT_MEDIA_POSITIONS, true) ? $candidate : null;
     }
 
     private function normalizeContentAlignment(mixed $value): ?string

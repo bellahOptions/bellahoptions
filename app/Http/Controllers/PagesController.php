@@ -37,6 +37,7 @@ class PagesController extends Controller
             $hasSlideBackgroundColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'slide_background');
             $hasContentMediaTypeColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_type');
             $hasContentMediaPathColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_path');
+            $hasContentMediaPositionColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_position');
             $hasLayoutStyleColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'layout_style');
             $hasContentAlignmentColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_alignment');
             $hasTitleAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'title_animation');
@@ -51,6 +52,9 @@ class PagesController extends Controller
             }
             if ($hasContentMediaPathColumn) {
                 $slideColumns[] = 'content_media_path';
+            }
+            if ($hasContentMediaPositionColumn) {
+                $slideColumns[] = 'content_media_position';
             }
             if ($hasLayoutStyleColumn) {
                 $slideColumns[] = 'layout_style';
@@ -78,6 +82,7 @@ class PagesController extends Controller
                     $serviceOrderCatalog,
                     $hasContentMediaTypeColumn,
                     $hasContentMediaPathColumn,
+                    $hasContentMediaPositionColumn,
                     $hasLayoutStyleColumn,
                     $hasContentAlignmentColumn,
                     $hasTitleAnimationColumn,
@@ -99,6 +104,7 @@ class PagesController extends Controller
                             'slide_background' => SlideBackgroundOptions::sanitize($slide->slide_background ?? null),
                             'content_media_type' => $this->normalizeSlideContentMediaType($hasContentMediaTypeColumn ? $slide->content_media_type : null),
                             'content_media_path' => $this->publicAssetUrl($hasContentMediaPathColumn ? $slide->content_media_path : null),
+                            'content_media_position' => $this->normalizeSlideContentMediaPosition($hasContentMediaPositionColumn ? $slide->content_media_position : null),
                             'layout_style' => $this->normalizeSlideLayoutStyle($hasLayoutStyleColumn ? $slide->layout_style : null),
                             'content_alignment' => $this->normalizeSlideContentAlignment($hasContentAlignmentColumn ? $slide->content_alignment : null),
                             'title_animation' => $this->normalizeSlideAnimationStyle($hasTitleAnimationColumn ? $slide->title_animation : null),
@@ -358,6 +364,16 @@ class PagesController extends Controller
     {
         $candidate = strtolower(trim((string) $value));
         if (in_array($candidate, ['center', 'split-left', 'split-right'], true)) {
+            return $candidate;
+        }
+
+        return 'center';
+    }
+
+    private function normalizeSlideContentMediaPosition(?string $value): string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if (in_array($candidate, ['top', 'center', 'bottom'], true)) {
             return $candidate;
         }
 

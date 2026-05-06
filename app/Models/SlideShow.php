@@ -13,6 +13,7 @@ class SlideShow extends Model
         'slide_background',
         'content_media_type',
         'content_media_path',
+        'content_media_position',
         'layout_style',
         'content_alignment',
         'title_animation',

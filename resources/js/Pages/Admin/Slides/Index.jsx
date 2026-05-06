@@ -10,6 +10,7 @@ const emptySlide = {
     slide_background: '',
     content_media_type: '',
     content_media_path: '',
+    content_media_position: 'center',
     layout_style: 'center',
     content_alignment: 'center',
     title_animation: 'fade-up',
@@ -29,6 +30,12 @@ const layoutStyleOptions = [
 const contentAlignmentOptions = [
     { value: 'center', label: 'Center' },
     { value: 'left', label: 'Left' },
+];
+
+const mediaPositionOptions = [
+    { value: 'top', label: 'Top' },
+    { value: 'center', label: 'Center' },
+    { value: 'bottom', label: 'Bottom' },
 ];
 
 const animationOptions = [
@@ -100,6 +107,12 @@ function normalizeAnimation(value, fallback = 'fade-up') {
     return ['fade-up', 'fade-down', 'slide-left', 'slide-right', 'zoom-in', 'none'].includes(candidate)
         ? candidate
         : fallback;
+}
+
+function normalizeMediaPosition(value) {
+    const candidate = String(value || '').trim().toLowerCase();
+
+    return ['top', 'center', 'bottom'].includes(candidate) ? candidate : 'center';
 }
 
 function inferMediaType(path, extension = '') {
@@ -177,6 +190,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
             slide_background: normalizeBackgroundId(slide.slide_background),
             content_media_type: slide.content_media_type || '',
             content_media_path: slide.content_media_path || '',
+            content_media_position: normalizeMediaPosition(slide.content_media_position),
             layout_style: normalizeLayoutStyle(slide.layout_style),
             content_alignment: normalizeContentAlignment(slide.content_alignment),
             title_animation: normalizeAnimation(slide.title_animation, 'fade-up'),
@@ -463,6 +477,10 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                                                         <div>
                                                             <dt className="inline font-semibold">Foreground Media Type: </dt>
                                                             <dd className="inline">{slide.content_media_type || 'Auto'}</dd>
+                                                        </div>
+                                                        <div>
+                                                            <dt className="inline font-semibold">Foreground Media Position: </dt>
+                                                            <dd className="inline">{normalizeMediaPosition(slide.content_media_position)}</dd>
                                                         </div>
                                                         <div>
                                                             <dt className="inline font-semibold">Layout: </dt>
@@ -775,6 +793,20 @@ function SlideFields({ form, className = '', uploadStatus, onUpload, onOpenMedia
                     <option value="">Auto Detect</option>
                     <option value="image">Image</option>
                     <option value="video">Video</option>
+                </select>
+            </Field>
+
+            <Field label="Foreground Media Position" error={form.errors.content_media_position}>
+                <select
+                    value={form.data.content_media_position || 'center'}
+                    onChange={(event) => form.setData('content_media_position', event.target.value)}
+                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                >
+                    {mediaPositionOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                            {option.label}
+                        </option>
+                    ))}
                 </select>
             </Field>
 
