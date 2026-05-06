@@ -41,6 +41,7 @@ class SeoController extends Controller
         $append('/services', 'weekly', '0.95');
         $append('/about-us', 'monthly', '0.80');
         $append('/gallery', 'weekly', '0.85');
+        $append('/faqs', 'weekly', '0.75');
         $append('/web-design-samples', 'weekly', '0.85');
         $append('/contact-us', 'weekly', '0.80');
         $append('/waitlist', 'weekly', '0.60');
@@ -155,6 +156,7 @@ class SeoController extends Controller
             '- Services: '.$this->absoluteUrl($baseUrl, '/services'),
             '- About Us: '.$this->absoluteUrl($baseUrl, '/about-us'),
             '- Gallery: '.$this->absoluteUrl($baseUrl, '/gallery'),
+            '- FAQs: '.$this->absoluteUrl($baseUrl, '/faqs'),
             '- Web Design Samples: '.$this->absoluteUrl($baseUrl, '/web-design-samples'),
             '- Contact Us: '.$this->absoluteUrl($baseUrl, '/contact-us'),
             '',

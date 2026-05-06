@@ -1,5 +1,5 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
 import {
@@ -43,10 +43,12 @@ const errorStepMap = {
     password: 5,
     password_confirmation: 5,
     human_check_answer: 6,
+    turnstile_token: 6,
     human_check_nonce: 6,
     form_rendered_at: 6,
     website: 6,
     company_name: 6,
+    contact_notes: 6,
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -54,11 +56,46 @@ const phonePattern = /^[+0-9()\-\s]+$/;
 const fullNamePattern = /^[\p{L}\s\-.'`]+$/u;
 const httpUrlPattern = /^https?:\/\/[^\s/$.?#].[^\s]*$/i;
 const discountPattern = /^[A-Z0-9\-]+$/;
+const orderDraftStoragePrefix = "bellah_order_draft_v2";
+const turnstileScriptSrc = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+const sensitiveDraftFields = new Set([
+    "password",
+    "password_confirmation",
+    "human_check_answer",
+    "human_check_nonce",
+    "form_rendered_at",
+    "turnstile_token",
+    "website",
+    "company_name",
+    "contact_notes",
+]);
+
+function resolveAutoTimeline(serviceSlug, packageCode) {
+    if (serviceSlug === "brand-design" && packageCode === "logo-design") {
+        return "8 working days";
+    }
+
+    if (serviceSlug === "brand-design") {
+        return "2 weeks";
+    }
+
+    if (serviceSlug === "social-media-design") {
+        return "2 weeks. Delivery comes in batches of 5 designs every 3 working days until completion.";
+    }
+
+    if (serviceSlug === "ui-ux" || serviceSlug === "web-design") {
+        return "Timeline is subject to Bellah Options team review after project scope confirmation.";
+    }
+
+    return "";
+}
 
 export default function OrderCreate({
     serviceSlug,
+    humanVerificationMode = "math",
     humanCheckQuestion = "",
     humanCheckNonce = "",
+    turnstileSiteKey = "",
     formRenderedAt = 0,
     isAuthenticated = false,
     discountCode = "",
@@ -77,6 +114,7 @@ export default function OrderCreate({
     const initialServiceSlug = selectedServiceSlug && checkoutServices[selectedServiceSlug]
         ? selectedServiceSlug
         : serviceSlug;
+    const draftStorageKey = `${orderDraftStoragePrefix}:${serviceSlug}`;
 
     const { data, setData, setError, clearErrors, post, processing, errors } = useForm(
         buildOrderFormSeed(checkoutServices, {
@@ -85,18 +123,28 @@ export default function OrderCreate({
             service_package: selectedPackageCode || "",
             human_check_nonce: humanCheckNonce || "",
             form_rendered_at: formRenderedAt || 0,
+            turnstile_token: "",
             discount_code: discountCode || "",
         }),
     );
 
     const [currentStep, setCurrentStep] = useState(1);
     const [activeServiceSlug, setActiveServiceSlug] = useState(initialServiceSlug);
+    const [draftRestored, setDraftRestored] = useState(false);
+    const [turnstileClientError, setTurnstileClientError] = useState("");
+    const turnstileContainerRef = useRef(null);
+    const turnstileWidgetIdRef = useRef(null);
+    const hasAttemptedDraftRestoreRef = useRef(false);
 
     const activeService = checkoutServices[activeServiceSlug] || null;
     const activePackages = activeService?.packages || {};
     const activePackageEntries = Object.entries(activePackages);
     const logoAddonEntries = Object.entries(logoAddons || {});
     const selectedLogoAddon = logoAddons[data.logo_addon_package] || null;
+    const autoTimelinePreference = useMemo(
+        () => resolveAutoTimeline(activeServiceSlug, data.service_package),
+        [activeServiceSlug, data.service_package],
+    );
     const intakeFieldMap = useMemo(() => {
         const map = new Map();
 
@@ -214,7 +262,13 @@ export default function OrderCreate({
         }
 
         if (fieldName === "human_check_answer") {
+            if (humanVerificationMode !== "math") return null;
             return normalized === "" ? "Human verification is required." : null;
+        }
+
+        if (fieldName === "turnstile_token") {
+            if (humanVerificationMode !== "turnstile") return null;
+            return normalized === "" ? "Please complete the captcha verification." : null;
         }
 
         if (fieldName === "website" || fieldName === "company_name" || fieldName === "contact_notes") {
@@ -343,6 +397,153 @@ export default function OrderCreate({
         }
     }, [clearErrors, data.logo_addon_package, data.logo_design_interest, setData]);
 
+    useEffect(() => {
+        if ((humanCheckNonce || "") !== data.human_check_nonce) {
+            setData("human_check_nonce", humanCheckNonce || "");
+        }
+
+        if ((formRenderedAt || 0) !== data.form_rendered_at) {
+            setData("form_rendered_at", formRenderedAt || 0);
+        }
+
+        if (humanVerificationMode === "math" && data.turnstile_token !== "") {
+            setData("turnstile_token", "");
+        }
+    }, [data.form_rendered_at, data.human_check_nonce, data.turnstile_token, formRenderedAt, humanCheckNonce, humanVerificationMode, setData]);
+
+    useEffect(() => {
+        if (typeof window === "undefined" || hasAttemptedDraftRestoreRef.current) {
+            return;
+        }
+
+        hasAttemptedDraftRestoreRef.current = true;
+
+        try {
+            const rawDraft = window.sessionStorage.getItem(draftStorageKey)
+                || window.localStorage.getItem(draftStorageKey);
+            if (!rawDraft) {
+                return;
+            }
+
+            const parsedDraft = JSON.parse(rawDraft);
+            if (!parsedDraft || typeof parsedDraft !== "object") {
+                return;
+            }
+
+            const restoredData = parsedDraft.data && typeof parsedDraft.data === "object"
+                ? parsedDraft.data
+                : {};
+            const restoredStep = Number(parsedDraft.currentStep || 1);
+            const restoredServiceSlug = String(parsedDraft.activeServiceSlug || "");
+
+            Object.entries(restoredData).forEach(([fieldName, fieldValue]) => {
+                if (sensitiveDraftFields.has(fieldName)) {
+                    return;
+                }
+
+                if (Object.hasOwn(data, fieldName)) {
+                    setData(fieldName, fieldValue ?? "");
+                }
+            });
+
+            if (Number.isInteger(restoredStep) && restoredStep >= 1 && restoredStep <= steps.length) {
+                setCurrentStep(restoredStep);
+            }
+
+            if (restoredServiceSlug && checkoutServices[restoredServiceSlug]) {
+                setActiveServiceSlug(restoredServiceSlug);
+            }
+
+            setDraftRestored(true);
+        } catch {
+            // ignore malformed draft payloads
+        }
+    }, [checkoutServices, data, draftStorageKey, setData]);
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return;
+        }
+
+        const draftPayload = {
+            currentStep,
+            activeServiceSlug,
+            data: Object.fromEntries(
+                Object.entries(data).filter(([fieldName]) => !sensitiveDraftFields.has(fieldName)),
+            ),
+            saved_at: Date.now(),
+        };
+
+        window.sessionStorage.setItem(draftStorageKey, JSON.stringify(draftPayload));
+        window.localStorage.setItem(draftStorageKey, JSON.stringify(draftPayload));
+    }, [activeServiceSlug, currentStep, data, draftStorageKey]);
+
+    useEffect(() => {
+        if (!autoTimelinePreference || data.timeline_preference === autoTimelinePreference) {
+            return;
+        }
+
+        setData("timeline_preference", autoTimelinePreference);
+        validateFields({ ...data, timeline_preference: autoTimelinePreference }, ["timeline_preference"]);
+    }, [autoTimelinePreference, data, data.timeline_preference, setData]);
+
+    useEffect(() => {
+        if (humanVerificationMode !== "turnstile") {
+            return;
+        }
+
+        const initializeTurnstile = () => {
+            if (!turnstileSiteKey || !turnstileContainerRef.current || turnstileWidgetIdRef.current !== null) {
+                return;
+            }
+
+            if (!window.turnstile || typeof window.turnstile.render !== "function") {
+                return;
+            }
+
+            turnstileWidgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
+                sitekey: turnstileSiteKey,
+                callback: (token) => {
+                    updateField("turnstile_token", token);
+                    setTurnstileClientError("");
+                },
+                "expired-callback": () => {
+                    updateField("turnstile_token", "");
+                    setTurnstileClientError("Verification expired. Please complete the captcha again.");
+                },
+                "error-callback": () => {
+                    updateField("turnstile_token", "");
+                    setTurnstileClientError("Captcha failed to load correctly. Please refresh and try again.");
+                    return true;
+                },
+            });
+        };
+
+        initializeTurnstile();
+
+        const interval = window.setInterval(() => {
+            initializeTurnstile();
+        }, 300);
+
+        return () => {
+            window.clearInterval(interval);
+        };
+    }, [humanVerificationMode, turnstileSiteKey]);
+
+    useEffect(() => {
+        if (humanVerificationMode !== "turnstile" || !errors.turnstile_token) {
+            return;
+        }
+
+        if (window.turnstile && turnstileWidgetIdRef.current !== null) {
+            window.turnstile.reset(turnstileWidgetIdRef.current);
+        }
+
+        if (data.turnstile_token !== "") {
+            setData("turnstile_token", "");
+        }
+    }, [data.turnstile_token, errors.turnstile_token, humanVerificationMode, setData]);
+
     const summaryItems = useMemo(() => {
         const packageData = activePackages[data.service_package] || null;
 
@@ -359,11 +560,104 @@ export default function OrderCreate({
         ];
     }, [activePackages, activeService?.name, activeServiceSlug, currency, data.business_name, data.email, data.full_name, data.has_logo, data.logo_design_interest, data.service_package, locale, selectedLogoAddon]);
 
-    const nextStep = () => setCurrentStep((value) => Math.min(steps.length, value + 1));
+    const fieldsForStep = (stepNumber, nextData) => {
+        if (stepNumber === 1) {
+            return ["full_name", "email", "phone", "position"];
+        }
+
+        if (stepNumber === 2) {
+            return [];
+        }
+
+        if (stepNumber === 3) {
+            const intakeFields = (activeService?.intake || [])
+                .map((field) => field?.name)
+                .filter(Boolean);
+            const fields = [
+                "business_name",
+                "business_website",
+                "has_logo",
+                "project_summary",
+                "project_goals",
+                "target_audience",
+                "preferred_style",
+                "deliverables",
+                "timeline_preference",
+                "additional_details",
+                ...intakeFields,
+            ];
+
+            if (nextData.has_logo === "no") {
+                fields.push("logo_design_interest");
+
+                if (nextData.logo_design_interest === "yes") {
+                    fields.push("logo_addon_package");
+                }
+            }
+
+            return fields;
+        }
+
+        if (stepNumber === 4) {
+            return ["service_package", "discount_code"];
+        }
+
+        if (stepNumber === 5) {
+            const fields = ["create_account"];
+
+            if (!isAuthenticated && nextData.create_account) {
+                fields.push("password", "password_confirmation");
+            }
+
+            return fields;
+        }
+
+        if (stepNumber === 6) {
+            const fields = ["website", "company_name", "contact_notes"];
+
+            if (humanVerificationMode === "turnstile") {
+                fields.push("turnstile_token");
+            } else {
+                fields.push("human_check_answer");
+            }
+
+            return fields;
+        }
+
+        return [];
+    };
+
+    const validateStep = (stepNumber, nextData) => {
+        const fields = fieldsForStep(stepNumber, nextData);
+        validateFields(nextData, fields);
+
+        return fields.every((fieldName) => !validateField(fieldName, nextData));
+    };
+    const stepHasIssues = (stepNumber, nextData) => {
+        const fields = fieldsForStep(stepNumber, nextData);
+
+        return fields.some((fieldName) => Boolean(validateField(fieldName, nextData)));
+    };
+
+    const nextStep = () => {
+        const canProceed = validateStep(currentStep, data);
+
+        if (!canProceed) {
+            return;
+        }
+
+        setCurrentStep((value) => Math.min(steps.length, value + 1));
+    };
     const previousStep = () => setCurrentStep((value) => Math.max(1, value - 1));
 
     const submit = (event) => {
         event.preventDefault();
+
+        const canSubmit = validateStep(steps.length, data);
+
+        if (!canSubmit) {
+            return;
+        }
 
         post(route("orders.store", { serviceSlug: activeServiceSlug }), {
             preserveScroll: true,
@@ -371,14 +665,70 @@ export default function OrderCreate({
                 const nextErrorStep = resolveErrorStep(formErrors, activeService);
                 setCurrentStep(nextErrorStep);
             },
+            onSuccess: () => {
+                if (typeof window !== "undefined") {
+                    window.sessionStorage.removeItem(draftStorageKey);
+                    window.localStorage.removeItem(draftStorageKey);
+                }
+            },
         });
     };
 
-    const visibleErrorMessages = useMemo(() => Object.values(errors || {}).filter(Boolean), [errors]);
+    const visibleErrorMessages = useMemo(() => {
+        const mapped = Object.entries(errors || {})
+            .filter(([, message]) => Boolean(message))
+            .map(([fieldName, message]) => {
+                const stillInvalid = validateField(fieldName, data) !== null;
+
+                if (stillInvalid) {
+                    return String(message);
+                }
+
+                if (!Object.hasOwn(data, fieldName)) {
+                    return String(message);
+                }
+
+                return null;
+            })
+            .filter(Boolean);
+
+        return [...new Set(mapped)];
+    }, [data, errors, validateField]);
+    const hasMeaningfulInput = useMemo(() => {
+        const keys = [
+            "full_name",
+            "email",
+            "phone",
+            "business_name",
+            "project_summary",
+            "service_package",
+        ];
+
+        return keys.some((fieldName) => String(data[fieldName] || "").trim() !== "");
+    }, [data]);
+    const showPositiveStatus = visibleErrorMessages.length === 0
+        && hasMeaningfulInput
+        && !stepHasIssues(currentStep, data);
+
+    useEffect(() => {
+        const staleErrorFields = Object.keys(errors || {}).filter((fieldName) => {
+            if (!Object.hasOwn(data, fieldName)) {
+                return false;
+            }
+
+            return validateField(fieldName, data) === null;
+        });
+
+        staleErrorFields.forEach((fieldName) => clearErrors(fieldName));
+    }, [clearErrors, data, errors, validateField]);
 
     return (
         <>
-            <Head title="Start Order" />
+            <Head title="Start Order">
+                {humanVerificationMode === "turnstile" && (
+                    <script src={turnstileScriptSrc} async defer />
+                )}
+            </Head>
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
@@ -440,6 +790,11 @@ export default function OrderCreate({
                                         {discountSummary ? ` (${discountSummary})` : ""}
                                     </div>
                                 )}
+                                {draftRestored && (
+                                    <div className="border border-cyan-200 bg-cyan-50 p-5 text-sm text-cyan-800">
+                                        We restored your last in-progress draft automatically.
+                                    </div>
+                                )}
                             </aside>
 
                             <form onSubmit={submit} className="bg-white p-6 shadow-sm ring-1 ring-gray-200 sm:p-8">
@@ -455,6 +810,16 @@ export default function OrderCreate({
                                         <p className="mt-1">
                                             Please review the highlighted fields. We have taken you to the first step that needs attention.
                                         </p>
+                                        <ul className="mt-2 list-disc space-y-1 pl-5">
+                                            {visibleErrorMessages.slice(0, 4).map((message) => (
+                                                <li key={message}>{message}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                {showPositiveStatus && (
+                                    <div className="mb-5 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                        You are doing everything right.
                                     </div>
                                 )}
 
@@ -571,7 +936,12 @@ export default function OrderCreate({
                                                 <textarea rows={3} value={data.deliverables} onChange={(event) => updateField("deliverables", event.target.value)} className={inputClassName} />
                                             </Field>
                                             <Field label="Timeline Preference" error={errors.timeline_preference}>
-                                                <input value={data.timeline_preference} onChange={(event) => updateField("timeline_preference", event.target.value)} className={inputClassName} />
+                                                <input
+                                                    value={data.timeline_preference}
+                                                    readOnly={Boolean(autoTimelinePreference)}
+                                                    onChange={(event) => updateField("timeline_preference", event.target.value)}
+                                                    className={`${inputClassName} ${autoTimelinePreference ? "bg-gray-50" : ""}`}
+                                                />
                                             </Field>
                                             <Field label="Additional Details" error={errors.additional_details} className="sm:col-span-2">
                                                 <textarea rows={3} value={data.additional_details} onChange={(event) => updateField("additional_details", event.target.value)} className={inputClassName} />
@@ -642,9 +1012,41 @@ export default function OrderCreate({
                                                         onClick={() => updateField("service_package", code)}
                                                         className={`border p-5 text-left transition ${selected ? "border-[#000285] bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
                                                     >
-                                                        <p className="text-lg font-black text-gray-950">{pack.name}</p>
-                                                        <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(pack.price, currency, locale)}</p>
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <p className="text-lg font-black text-gray-950">{pack.name}</p>
+                                                            {pack.is_recommended && (
+                                                                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-indigo-700">
+                                                                    Recommended
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {pack.discount_price && Number(pack.base_price_ngn || 0) > Number(pack.discount_price || 0) ? (
+                                                            <div className="mt-2 flex items-center gap-2">
+                                                                <p className="text-sm font-bold text-[#000285]">{formatMoney(pack.discount_price, currency, locale)}</p>
+                                                                <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
+                                                            </div>
+                                                        ) : (
+                                                            <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(pack.price, currency, locale)}</p>
+                                                        )}
                                                         <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
+                                                        {Array.isArray(pack.features) && pack.features.length > 0 && (
+                                                            <ul className="mt-3 space-y-1">
+                                                                {pack.features.slice(0, 4).map((feature) => (
+                                                                    <li key={`${code}-${feature}`} className="text-xs text-gray-600">
+                                                                        - {feature}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                        {pack.sample_image && (
+                                                            <img
+                                                                src={String(pack.sample_image).startsWith('/') || /^https?:\/\//i.test(String(pack.sample_image))
+                                                                    ? String(pack.sample_image)
+                                                                    : `/${String(pack.sample_image)}`}
+                                                                alt={pack.name}
+                                                                className="mt-3 h-16 w-full rounded object-cover"
+                                                            />
+                                                        )}
                                                     </button>
                                                 );
                                             })}
@@ -714,15 +1116,27 @@ export default function OrderCreate({
                                             </div>
                                         </div>
                                         <div className="mt-6 max-w-sm">
-                                            <Field label={`Human Match: ${humanCheckQuestion}`} error={errors.human_check_answer}>
-                                                <input
-                                                    type="text"
-                                                    value={data.human_check_answer}
-                                                    onChange={(event) => updateField("human_check_answer", event.target.value)}
-                                                    className={inputClassName}
-                                                    autoComplete="off"
-                                                />
-                                            </Field>
+                                            {humanVerificationMode === "turnstile" ? (
+                                                <Field label="Security Check (Cloudflare Captcha)" error={errors.turnstile_token || turnstileClientError}>
+                                                    {turnstileSiteKey ? (
+                                                        <div ref={turnstileContainerRef} className="min-h-16" />
+                                                    ) : (
+                                                        <p className="text-sm text-red-600">
+                                                            Captcha is not configured. Please contact support.
+                                                        </p>
+                                                    )}
+                                                </Field>
+                                            ) : (
+                                                <Field label={`Human Check: ${humanCheckQuestion}`} error={errors.human_check_answer}>
+                                                    <input
+                                                        type="text"
+                                                        value={data.human_check_answer}
+                                                        onChange={(event) => updateField("human_check_answer", event.target.value)}
+                                                        className={inputClassName}
+                                                        autoComplete="off"
+                                                    />
+                                                </Field>
+                                            )}
                                         </div>
                                     </section>
                                 )}

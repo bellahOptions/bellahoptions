@@ -1,9 +1,63 @@
 import { Head, Link } from "@inertiajs/react";
+import { useMemo } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import { ArrowLeftIcon, ArrowRightIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 
+function sanitizeRichHtml(html) {
+    if (typeof window === "undefined" || typeof window.DOMParser === "undefined") {
+        return "";
+    }
+
+    const doc = new window.DOMParser().parseFromString(String(html || ""), "text/html");
+
+    doc.querySelectorAll("script,style,iframe,object,embed,form,input,button,textarea").forEach((node) => {
+        node.remove();
+    });
+
+    doc.querySelectorAll("*").forEach((node) => {
+        Array.from(node.attributes).forEach((attribute) => {
+            const name = attribute.name.toLowerCase();
+            const value = String(attribute.value || "").trim().toLowerCase();
+
+            if (name.startsWith("on")) {
+                node.removeAttribute(attribute.name);
+                return;
+            }
+
+            if ((name === "href" || name === "src") && value.startsWith("javascript:")) {
+                node.removeAttribute(attribute.name);
+            }
+        });
+
+        if (node.tagName.toLowerCase() === "a") {
+            node.setAttribute("rel", "noopener noreferrer");
+        }
+    });
+
+    return doc.body.innerHTML;
+}
+
 export default function BlogShow({ post, relatedPosts = [] }) {
+    const rawBody = String(post?.body || "").trim();
+    const hasHtmlBody = /<[^>]+>/.test(rawBody);
+
+    const safeBodyHtml = useMemo(() => {
+        if (!hasHtmlBody) {
+            return "";
+        }
+
+        return sanitizeRichHtml(rawBody);
+    }, [hasHtmlBody, rawBody]);
+
+    const fallbackParagraphs = useMemo(() => {
+        if (hasHtmlBody) {
+            return [];
+        }
+
+        return rawBody.split(/\n{2,}/).map((paragraph) => paragraph.trim()).filter(Boolean);
+    }, [hasHtmlBody, rawBody]);
+
     return (
         <>
             <Head title={post.title} />
@@ -46,11 +100,18 @@ export default function BlogShow({ post, relatedPosts = [] }) {
 
                     <RevealSection className="bg-white py-16 sm:py-20">
                         <article className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-                            <div className="space-y-6 text-lg leading-8 text-gray-700">
-                                {(post.body || "").split(/\n{2,}/).map((paragraph, index) => (
-                                    <p key={index}>{paragraph}</p>
-                                ))}
-                            </div>
+                            {safeBodyHtml ? (
+                                <div
+                                    className="space-y-6 text-lg leading-8 text-gray-700 [&_a]:text-[#000285] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:pl-4 [&_h2]:mt-8 [&_h2]:text-2xl [&_h2]:font-black [&_h3]:mt-7 [&_h3]:text-xl [&_h3]:font-black [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
+                                    dangerouslySetInnerHTML={{ __html: safeBodyHtml }}
+                                />
+                            ) : (
+                                <div className="space-y-6 text-lg leading-8 text-gray-700">
+                                    {fallbackParagraphs.map((paragraph, index) => (
+                                        <p key={`${index}-${paragraph.slice(0, 40)}`}>{paragraph}</p>
+                                    ))}
+                                </div>
+                            )}
                         </article>
                     </RevealSection>
 

@@ -3,6 +3,9 @@
     $currencyPrefix = $isNaira ? '&#8358;' : strtoupper((string) $invoice->currency).' ';
     $formattedAmount = number_format((float) $invoice->amount, 2);
     $orderCode = $invoice->serviceOrder?->order_code;
+    $transferAccountNumber = trim((string) config('bellah.payment.transfer.account_number', '4210082961'));
+    $transferAccountName = trim((string) config('bellah.payment.transfer.account_name', 'Bellah Options'));
+    $transferBankName = trim((string) config('bellah.payment.transfer.bank_name', 'Fidelity Bank'));
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -55,9 +58,9 @@
                             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #d9e2ec; border-radius:10px; background:#ffffff;">
                                 <tr>
                                     <td style="padding:14px 16px;">
-                                        <p style="margin:0 0 4px;"><strong>Account Number:</strong> 4210082961</p>
-                                        <p style="margin:0 0 4px;"><strong>Account Name:</strong> Bellah Options</p>
-                                        <p style="margin:0;"><strong>Bank Name:</strong> Fidelity Bank</p>
+                                        <p style="margin:0 0 4px;"><strong>Account Number:</strong> {{ $transferAccountNumber }}</p>
+                                        <p style="margin:0 0 4px;"><strong>Account Name:</strong> {{ $transferAccountName }}</p>
+                                        <p style="margin:0;"><strong>Bank Name:</strong> {{ $transferBankName }}</p>
                                     </td>
                                 </tr>
                             </table>

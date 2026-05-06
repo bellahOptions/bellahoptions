@@ -13,6 +13,8 @@
 
     $defaultDescription = 'Bellah Options is a creative tech startup helping businesses with branding, graphic design, social media management, and custom websites to scale digital presence.';
     $metaDescription = $localizedDescriptions[$metaLanguage] ?? $defaultDescription;
+    $brandAssets = \App\Support\PlatformSettings::brandAssets();
+    $faviconPath = (string) ($brandAssets['favicon_path'] ?? '/favicon.ico');
 @endphp
 
 <!-- Google Analytics -->
@@ -29,10 +31,8 @@
 </script>
 
 <!-- Favicons -->
-<link rel="apple-touch-icon" sizes="180x180" href="https://bellahoptions.com/images/icon/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://bellahoptions.com/images/icon/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://bellahoptions.com/images/icon/favicon-16x16.png">
-<link rel="manifest" href="https://bellahoptions.com/images/icon/site.webmanifest">
+<link rel="apple-touch-icon" href="{{ $faviconPath }}">
+<link rel="icon" href="{{ $faviconPath }}">
 
 <!-- Open Graph -->
 <meta property="og:title" content="Bellah Options | Creative Branding & Tech Solutions for Startups">

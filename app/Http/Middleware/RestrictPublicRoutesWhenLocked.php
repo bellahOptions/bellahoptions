@@ -14,16 +14,24 @@ class RestrictPublicRoutesWhenLocked
      * @var array<int, string>
      */
     private const ALLOWED_ROUTE_NAMES = [
-        'staff.login',
-        'staff.login.store',
-        'staff.otp.create',
-        'staff.otp.store',
-        'staff.otp.resend',
         'admin.login',
         'logout',
+        'storage.local',
+        'sanctum.csrf-cookie',
         'webhooks.paystack',
         'webhooks.flutterwave',
         'orders.payment.callback',
+    ];
+
+    /**
+     * @var array<int, string>
+     */
+    private const ALLOWED_ROUTE_PREFIXES = [
+        'admin.',
+        'staff.',
+        'profile.',
+        'verification.',
+        'password.',
     ];
 
     /**
@@ -41,12 +49,13 @@ class RestrictPublicRoutesWhenLocked
             return $next($request);
         }
 
-        if ($request->user()?->isStaff()) {
+        $routeName = $request->route()?->getName();
+        if ($routeName !== null && $this->isAllowedRouteName($routeName)) {
             return $next($request);
         }
 
-        $routeName = $request->route()?->getName();
-        if ($routeName !== null && in_array($routeName, self::ALLOWED_ROUTE_NAMES, true)) {
+        // Keep framework health checks reachable during maintenance windows.
+        if ($request->is('up')) {
             return $next($request);
         }
 
@@ -59,5 +68,20 @@ class RestrictPublicRoutesWhenLocked
         }
 
         return redirect()->route('staff.login')->with('error', $message);
+    }
+
+    private function isAllowedRouteName(string $routeName): bool
+    {
+        if (in_array($routeName, self::ALLOWED_ROUTE_NAMES, true)) {
+            return true;
+        }
+
+        foreach (self::ALLOWED_ROUTE_PREFIXES as $prefix) {
+            if (str_starts_with($routeName, $prefix)) {
+                return true;
+            }
+        }
+
+        return $routeName === 'dashboard';
     }
 }

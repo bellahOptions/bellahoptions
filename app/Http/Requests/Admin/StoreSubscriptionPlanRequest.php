@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\ServiceOrderCatalog;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,7 +24,9 @@ class StoreSubscriptionPlanRequest extends FormRequest
             'name' => trim((string) $this->input('name')),
             'service_slug' => trim((string) $this->input('service_slug')),
             'package_code' => trim((string) $this->input('package_code')),
+            'image_path' => trim((string) $this->input('image_path')),
             'short_description' => trim((string) $this->input('short_description')),
+            'long_description' => trim((string) $this->input('long_description')),
             'billing_cycle' => strtolower(trim((string) $this->input('billing_cycle'))),
             'position' => $this->input('position') === null || $this->input('position') === ''
                 ? 0
@@ -54,7 +57,9 @@ class StoreSubscriptionPlanRequest extends FormRequest
                 Rule::unique('subscription_plans', 'package_code')
                     ->where(fn ($query) => $query->where('service_slug', (string) $this->input('service_slug'))),
             ],
+            'image_path' => ['nullable', 'string', 'max:255'],
             'short_description' => ['nullable', 'string', 'max:280'],
+            'long_description' => ['nullable', 'string', 'max:5000'],
             'billing_cycle' => ['required', 'string', Rule::in(['monthly', 'quarterly', 'biannually', 'yearly'])],
             'position' => ['required', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['required', 'boolean'],
@@ -69,7 +74,7 @@ class StoreSubscriptionPlanRequest extends FormRequest
         $validator->after(function (Validator $validator): void {
             $serviceSlug = (string) $this->input('service_slug');
             $packageCode = (string) $this->input('package_code');
-            $packages = array_keys((array) data_get(config('service_orders.services'), $serviceSlug.'.packages', []));
+            $packages = app(ServiceOrderCatalog::class)->packageCodes($serviceSlug);
 
             if (! in_array($packageCode, $packages, true)) {
                 $validator->errors()->add('package_code', 'Selected package is invalid for the chosen service.');

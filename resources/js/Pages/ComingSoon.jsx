@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Button } from '@/Components/ui/button';
 import {
     Card,
@@ -73,11 +74,7 @@ export default function ComingSoon({
                 <main className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-16 sm:px-8">
                     <div className="grid w-full items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                         <section className="animate-fade-up">
-                            <img
-                                src="/logo-06.svg"
-                                alt="Bellah Options logo"
-                                className="h-12 w-auto sm:h-14"
-                            />
+                            <ApplicationLogo className="h-12 w-auto sm:h-14" />
 
                             <h1 className="font-display mt-6 text-4xl font-bold leading-tight tracking-tighter text-[#050a49] sm:text-5xl lg:text-6xl">
                                 Our new website is almost here.

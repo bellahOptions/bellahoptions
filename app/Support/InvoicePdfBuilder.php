@@ -42,8 +42,9 @@ class InvoicePdfBuilder
         $creditAmount = 0.0;
         $total = $subtotal + $vatAmount - $creditAmount;
         $balance = $invoice->status === 'paid' ? 0.0 : $total;
+        $transferPayment = $this->resolveTransferPaymentPayload();
 
-        $logoDataUri = $this->buildLogoDataUri(public_path('logo-06.svg'));
+        $logoDataUri = $this->buildLogoDataUri($this->resolveBrandLogoPath());
 
         $html = view('pdfs.invoice', [
             'invoice' => $invoice,
@@ -60,6 +61,7 @@ class InvoicePdfBuilder
             'credit' => $this->formatCurrency($creditAmount, (string) $invoice->currency),
             'total' => $this->formatCurrency($total, (string) $invoice->currency),
             'balance' => $this->formatCurrency($balance, (string) $invoice->currency),
+            'transferPayment' => $transferPayment,
             'generatedAt' => now()->format('d/m/Y'),
         ])->render();
 
@@ -83,6 +85,10 @@ class InvoicePdfBuilder
             'Credit: '.$this->formatCurrency($creditAmount, (string) $invoice->currency),
             'Total: '.$this->formatCurrency($total, (string) $invoice->currency),
             'Balance: '.$this->formatCurrency($balance, (string) $invoice->currency),
+            'Payment Method: Bank Transfer',
+            'Bank Name: '.($transferPayment['bank_name'] !== '' ? $transferPayment['bank_name'] : 'N/A'),
+            'Account Name: '.($transferPayment['account_name'] !== '' ? $transferPayment['account_name'] : 'N/A'),
+            'Account Number: '.($transferPayment['account_number'] !== '' ? $transferPayment['account_number'] : 'N/A'),
             'Generated At: '.now()->format('d/m/Y H:i'),
         ]);
     }
@@ -122,7 +128,7 @@ class InvoicePdfBuilder
         $paidAmount = $invoice->status === 'paid' ? $total : 0.0;
         $balance = max(0, $total - $paidAmount);
         $paymentReference = trim((string) ($invoice->payment_reference ?: 'N/A'));
-        $logoDataUri = $this->buildLogoDataUri(public_path('logo-06.svg'));
+        $logoDataUri = $this->buildLogoDataUri($this->resolveBrandLogoPath());
 
         $html = view('pdfs.receipt', [
             'invoice' => $invoice,
@@ -197,6 +203,29 @@ class InvoicePdfBuilder
 
             return null;
         }
+    }
+
+    /**
+     * @return array{enabled:bool,account_number:string,account_name:string,bank_name:string,instructions:string}
+     */
+    private function resolveTransferPaymentPayload(): array
+    {
+        $accountNumber = trim((string) config('bellah.payment.transfer.account_number', ''));
+        $accountName = trim((string) config('bellah.payment.transfer.account_name', ''));
+        $bankName = trim((string) config('bellah.payment.transfer.bank_name', ''));
+        $instructions = trim((string) config('bellah.payment.transfer.instructions', ''));
+        $enabled = (bool) config('bellah.payment.transfer.enabled', true)
+            && $accountNumber !== ''
+            && $accountName !== ''
+            && $bankName !== '';
+
+        return [
+            'enabled' => $enabled,
+            'account_number' => $accountNumber,
+            'account_name' => $accountName,
+            'bank_name' => $bankName,
+            'instructions' => $instructions,
+        ];
     }
 
     /**
@@ -362,5 +391,16 @@ class InvoicePdfBuilder
         }
 
         return 'data:image/svg+xml;base64,'.base64_encode($logoContents);
+    }
+
+    private function resolveBrandLogoPath(): string
+    {
+        $logoPath = (string) (PlatformSettings::brandAssets()['logo_path'] ?? '/logo-06.svg');
+
+        if (! str_starts_with($logoPath, '/')) {
+            $logoPath = '/'.$logoPath;
+        }
+
+        return public_path(ltrim($logoPath, '/'));
     }
 }

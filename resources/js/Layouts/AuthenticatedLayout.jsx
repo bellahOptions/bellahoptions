@@ -42,6 +42,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: canManageSettings,
             },
             {
+                label: 'Service Pricing',
+                href: route('admin.service-pricing.edit'),
+                active: route().current('admin.service-pricing.*'),
+                show: canManageSettings,
+            },
+            {
                 label: 'Slides',
                 href: route('admin.slides.index'),
                 active: route().current('admin.slides.*'),
@@ -63,6 +69,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 label: 'Blog',
                 href: route('admin.blog.index'),
                 active: route().current('admin.blog.*'),
+                show: canManagePublicContent,
+            },
+            {
+                label: 'FAQs',
+                href: route('admin.faqs.index'),
+                active: route().current('admin.faqs.*'),
                 show: canManagePublicContent,
             },
         ].filter((item) => item.show)

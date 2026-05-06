@@ -48,4 +48,9 @@ return [
         'webhook_hash' => env('FLUTTERWAVE_WEBHOOK_HASH'),
     ],
 
+    'turnstile' => [
+        'site_key' => env('TURNSTILE_SITEKEY'),
+        'secret_key' => env('TURNSTILE_SECRET_KEY'),
+    ],
+
 ];

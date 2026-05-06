@@ -2,6 +2,9 @@
     $isNaira = strtoupper((string) $invoice->currency) === 'NGN';
     $currencyPrefix = $isNaira ? '&#8358;' : strtoupper((string) $invoice->currency).' ';
     $formattedAmount = number_format((float) $invoice->amount, 2);
+    $transferAccountNumber = trim((string) config('bellah.payment.transfer.account_number', '4210082961'));
+    $transferAccountName = trim((string) config('bellah.payment.transfer.account_name', 'Bellah Options'));
+    $transferBankName = trim((string) config('bellah.payment.transfer.bank_name', 'Fidelity Bank'));
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -39,9 +42,9 @@
                             </table>
 
                             <p style="margin:16px 0 8px;"><strong>Payment method:</strong> Bank Transfer</p>
-                            <p style="margin:0 0 4px;"><strong>Account Number:</strong> 4210082961</p>
-                            <p style="margin:0 0 4px;"><strong>Account Name:</strong> Bellah Options</p>
-                            <p style="margin:0 0 14px;"><strong>Bank Name:</strong> Fidelity Bank</p>
+                            <p style="margin:0 0 4px;"><strong>Account Number:</strong> {{ $transferAccountNumber }}</p>
+                            <p style="margin:0 0 4px;"><strong>Account Name:</strong> {{ $transferAccountName }}</p>
+                            <p style="margin:0 0 14px;"><strong>Bank Name:</strong> {{ $transferBankName }}</p>
 
                             <p style="margin:0 0 8px;">Please reply with your receipt once payment is completed.</p>
                             <p style="margin:0;">The invoice PDF is attached for easy reference.</p>

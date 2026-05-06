@@ -169,6 +169,32 @@
             margin-top: 8px;
         }
 
+        .transfer-card {
+            margin-top: 14px;
+            border: 1px solid #d9e0e7;
+            background: #f7f9fb;
+            padding: 10px 12px;
+        }
+
+        .transfer-title {
+            margin: 0 0 6px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0f1f33;
+        }
+
+        .transfer-line {
+            margin: 0 0 3px;
+            color: #344152;
+            font-size: 11px;
+        }
+
+        .transfer-help {
+            margin: 7px 0 0;
+            color: #5f6d7c;
+            font-size: 10px;
+        }
+
         .transactions th,
         .transactions td {
             border-top: 1px solid #d9e0e7;
@@ -225,8 +251,7 @@
                     <p class="company-line">(234) 810 867 1804</p>
                 </td>
                 <td class="payment-tip">
-                    To transfer from your bank account, use your preferred transfer method
-                    and include the invoice number as payment reference.
+                    {{ $transferPayment['instructions'] ?: 'Include the invoice number as payment reference when making transfer.' }}
                 </td>
             </tr>
         </table>
@@ -280,6 +305,16 @@
                 <td>{{ $total }}</td>
             </tr>
         </table>
+
+        @if($transferPayment['enabled'])
+            <div class="transfer-card">
+                <p class="transfer-title">Bank Transfer Details</p>
+                <p class="transfer-line"><strong>Bank Name:</strong> {{ $transferPayment['bank_name'] }}</p>
+                <p class="transfer-line"><strong>Account Name:</strong> {{ $transferPayment['account_name'] }}</p>
+                <p class="transfer-line"><strong>Account Number:</strong> {{ $transferPayment['account_number'] }}</p>
+                <p class="transfer-help">{{ $transferPayment['instructions'] ?: 'Include your invoice number as payment reference.' }}</p>
+            </div>
+        @endif
 
         <p class="section-title">Transactions</p>
         <table class="transactions">

@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\BlogPost;
+use App\Models\Faq;
 use App\Models\GalleryProject;
 use App\Models\SlideShow;
 use App\Models\Term;
 use App\Support\PublicContentSecurity;
 use App\Support\ServiceOrderCatalog;
+use App\Support\SlideBackgroundOptions;
 use App\Support\SubscriptionPlanCatalog;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -30,9 +33,15 @@ class PagesController extends Controller
     {
         $slideShows = collect();
         try {
+            $slideColumns = ['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'];
+            $hasSlideBackgroundColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'slide_background');
+            if ($hasSlideBackgroundColumn) {
+                $slideColumns[] = 'slide_background';
+            }
+
             $slideShows = SlideShow::query()
                 ->latest('id')
-                ->get(['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'])
+                ->get($slideColumns)
                 ->map(function (SlideShow $slide) use ($serviceOrderCatalog): ?array {
                     try {
                         $safeImage = $this->publicAssetUrl($slide->slide_image);
@@ -45,6 +54,7 @@ class PagesController extends Controller
                             'slide_title' => $slide->slide_title,
                             'text' => $slide->text,
                             'slide_image' => $safeImage,
+                            'slide_background' => SlideBackgroundOptions::sanitize($slide->slide_background ?? null),
                             'slide_link' => $this->normalizeSlideOrderLink($slide->slide_link, $serviceOrderCatalog),
                             'slide_link_text' => $slide->slide_link_text,
                         ];
@@ -114,6 +124,13 @@ class PagesController extends Controller
                             'name' => (string) ($package['name'] ?? ucfirst($packageCode)),
                             'description' => (string) ($package['description'] ?? ''),
                             'price' => round((float) ($package['price'] ?? 0), 2),
+                            'original_price' => round((float) ($package['original_price'] ?? $package['price'] ?? 0), 2),
+                            'discount_price' => isset($package['discount_price']) && is_numeric($package['discount_price'])
+                                ? round((float) $package['discount_price'], 2)
+                                : null,
+                            'is_recommended' => (bool) ($package['is_recommended'] ?? false),
+                            'features' => is_array($package['features'] ?? null) ? array_values($package['features']) : [],
+                            'sample_image' => $package['sample_image'] ?? null,
                         ])
                         ->values(),
                 ])
@@ -216,6 +233,34 @@ class PagesController extends Controller
                     'registration_url' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($event->registration_url),
                 ])
                 ->values(),
+        ]);
+    }
+
+    public function faqsPage()
+    {
+        $faqs = collect();
+
+        try {
+            $faqs = Faq::query()
+                ->where('is_published', true)
+                ->orderBy('position')
+                ->latest('id')
+                ->get()
+                ->map(fn (Faq $faq): array => [
+                    'id' => $faq->id,
+                    'question' => $faq->question,
+                    'answer' => $faq->answer,
+                    'category' => $faq->category ?: 'General',
+                ])
+                ->values();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load published FAQs.', [
+                'message' => $exception->getMessage(),
+            ]);
+        }
+
+        return Inertia::render('Faqs', [
+            'faqs' => $faqs,
         ]);
     }
 

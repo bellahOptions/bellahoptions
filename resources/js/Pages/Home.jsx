@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Head } from '@inertiajs/react';
 
 const highlights = [
@@ -18,7 +19,7 @@ export default function Home() {
                 <main className="mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-16 sm:px-8">
                     <div className="grid items-center w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                         <section>
-                            <img src="/logo-06.svg" alt="Bellah Options" className="h-11 w-auto" />
+                            <ApplicationLogo className="h-11 w-auto" />
                             <h1 className="mt-10 md:text-5xl font-black leading-tighter tracking-tighter text-[#0f2557] text-3xl">
                                 We are preparing a faster, smarter Bellah Options experience.
                             </h1>

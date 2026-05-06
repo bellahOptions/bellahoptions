@@ -43,11 +43,12 @@ class SettingController extends Controller
                 'contact_whatsapp_url' => $contactInfo['whatsapp_url'],
                 'contact_behance_url' => $contactInfo['behance_url'],
                 'contact_map_embed_url' => $contactInfo['map_embed_url'],
+                'logo_path' => PlatformSettings::brandAssets()['logo_path'],
+                'favicon_path' => PlatformSettings::brandAssets()['favicon_path'],
                 'home_slides' => PlatformSettings::homeSlides(),
                 'terms' => $this->policyTermsPayload(),
             ],
             'serviceCatalog' => $this->serviceCatalogMeta($serviceCatalog),
-            'servicePrices' => $this->servicePricingValues($serviceCatalog),
             'discountCodes' => DiscountCode::query()
                 ->latest('id')
                 ->get()
@@ -97,7 +98,9 @@ class SettingController extends Controller
                         'service_name' => $serviceName,
                         'package_code' => $plan->package_code,
                         'package_name' => $packageName,
+                        'image_path' => $plan->image_path,
                         'short_description' => $plan->short_description,
+                        'long_description' => $plan->long_description,
                         'billing_cycle' => $plan->billing_cycle,
                         'position' => (int) $plan->position,
                         'is_active' => (bool) $plan->is_active,
@@ -118,20 +121,54 @@ class SettingController extends Controller
     {
         $payload = $request->validated();
 
-        AppSetting::setBool('maintenance_mode', (bool) $payload['maintenance_mode']);
-        PlatformSettings::setSiteUrl((string) $payload['website_uri']);
+        if (array_key_exists('maintenance_mode', $payload)) {
+            AppSetting::setBool('maintenance_mode', (bool) $payload['maintenance_mode']);
+        }
 
-        PlatformSettings::setContactInfo([
-            'phone' => $payload['contact_phone'],
-            'email' => $payload['contact_email'],
-            'location' => $payload['contact_location'],
-            'whatsapp_url' => $payload['contact_whatsapp_url'],
-            'behance_url' => $payload['contact_behance_url'],
-            'map_embed_url' => $payload['contact_map_embed_url'],
-        ]);
+        if (array_key_exists('website_uri', $payload)) {
+            PlatformSettings::setSiteUrl((string) $payload['website_uri']);
+        }
 
-        PlatformSettings::setHomeSlides((array) ($payload['home_slides'] ?? []));
-        PlatformSettings::setServicePriceOverrides((array) ($payload['service_prices'] ?? []));
+        $contactKeys = [
+            'contact_phone' => 'phone',
+            'contact_email' => 'email',
+            'contact_location' => 'location',
+            'contact_whatsapp_url' => 'whatsapp_url',
+            'contact_behance_url' => 'behance_url',
+            'contact_map_embed_url' => 'map_embed_url',
+        ];
+        $hasContactUpdate = false;
+        foreach (array_keys($contactKeys) as $key) {
+            if (array_key_exists($key, $payload)) {
+                $hasContactUpdate = true;
+                break;
+            }
+        }
+        if ($hasContactUpdate) {
+            $contactInfo = PlatformSettings::contactInfo();
+            foreach ($contactKeys as $requestKey => $settingKey) {
+                if (array_key_exists($requestKey, $payload)) {
+                    $contactInfo[$settingKey] = (string) $payload[$requestKey];
+                }
+            }
+            PlatformSettings::setContactInfo($contactInfo);
+        }
+
+        if (array_key_exists('logo_path', $payload) || array_key_exists('favicon_path', $payload)) {
+            $brandAssets = PlatformSettings::brandAssets();
+            if (array_key_exists('logo_path', $payload)) {
+                $brandAssets['logo_path'] = (string) $payload['logo_path'];
+            }
+            if (array_key_exists('favicon_path', $payload)) {
+                $brandAssets['favicon_path'] = (string) $payload['favicon_path'];
+            }
+            PlatformSettings::setBrandAssets($brandAssets);
+        }
+
+        if (array_key_exists('home_slides', $payload)) {
+            PlatformSettings::setHomeSlides((array) $payload['home_slides']);
+        }
+
         if (is_array($payload['terms'] ?? null)) {
             $this->savePolicyTerms((array) $payload['terms']);
         }
@@ -189,7 +226,9 @@ class SettingController extends Controller
             'name' => $payload['name'],
             'service_slug' => $payload['service_slug'],
             'package_code' => $payload['package_code'],
+            'image_path' => $payload['image_path'] ?: null,
             'short_description' => $payload['short_description'] ?: null,
+            'long_description' => $payload['long_description'] ?: null,
             'billing_cycle' => $payload['billing_cycle'],
             'position' => (int) ($payload['position'] ?? 0),
             'is_active' => (bool) ($payload['is_active'] ?? true),
@@ -212,7 +251,9 @@ class SettingController extends Controller
 
         $fields = [
             'name',
+            'image_path',
             'short_description',
+            'long_description',
             'billing_cycle',
             'position',
             'is_active',
@@ -283,31 +324,6 @@ class SettingController extends Controller
         }
 
         return $mapped;
-    }
-
-    /**
-     * @param  array<string, array<string, mixed>>  $serviceCatalog
-     * @return array<string, array<string, float>>
-     */
-    private function servicePricingValues(array $serviceCatalog): array
-    {
-        $matrix = [];
-
-        foreach ($serviceCatalog as $serviceSlug => $service) {
-            if (! is_array($service)) {
-                continue;
-            }
-
-            foreach ((array) ($service['packages'] ?? []) as $packageCode => $package) {
-                if (! is_array($package)) {
-                    continue;
-                }
-
-                $matrix[$serviceSlug][$packageCode] = round((float) ($package['price'] ?? 0), 2);
-            }
-        }
-
-        return $matrix;
     }
 
     private function discountLink(DiscountCode $discount): string

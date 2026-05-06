@@ -9,13 +9,28 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 
+const BACKGROUND_THEMES = {
+    "particles-ocean": {
+        gradient: "from-[#000285] via-[#0891b2] to-[#111827]",
+        particleColors: ["#ffffff", "#67e8f9", "#c4b5fd"],
+    },
+    "particles-aurora": {
+        gradient: "from-[#111827] via-[#2563eb] to-[#0f766e]",
+        particleColors: ["#bfdbfe", "#67e8f9", "#93c5fd"],
+    },
+    "particles-cosmic": {
+        gradient: "from-[#0f172a] via-[#7c3aed] to-[#0369a1]",
+        particleColors: ["#ffffff", "#a78bfa", "#38bdf8"],
+    },
+};
+
 const fallbackSlides = [
     {
         id: "fallback-1",
         slide_title: "Upgrade your Social Media!",
         text: "Get creative social media designs to power your online presence and drive sales.",
-        slide_image:
-            "https://unsplash.com/photos/blue-and-black-digital-wallpaper-bKESVqfxass",
+        slide_image: "",
+        slide_background: "particles-ocean",
         slide_link: "/order/social-media-design",
         slide_link_text: "Get Started",
     },
@@ -23,16 +38,17 @@ const fallbackSlides = [
         id: "fallback-2",
         slide_title: "Automate your process",
         text: "Your website should work for you even when you are not online",
-        slide_image: "https://unsplash.com/photos/a-black-background-with-a-blue-wave-in-the-middle-ZhVUAUc8V4s",
+        slide_image: "",
+        slide_background: "particles-aurora",
         slide_link: "/order/web-design",
         slide_link_text: "Create your Website",
     },
     {
         id: "fallback-3",
-        slide_title: "Plan your app before lauch",
+        slide_title: "Plan your app before launch",
         text: "A good creative strategy is the foundation of any successful project launch",
-        slide_image:
-            "https://unsplash.com/photos/a-view-of-the-night-showing-stars--tOr_T4qTpQ",
+        slide_image: "",
+        slide_background: "particles-cosmic",
         slide_link: "/order/brand-design",
         slide_link_text: "Start a Project",
     },
@@ -52,6 +68,27 @@ function slideImageSrc(path) {
 
 function isExternalUrl(url) {
     return /^https?:\/\//i.test(url || "");
+}
+
+function normalizeBackgroundId(backgroundId) {
+    if (!backgroundId) {
+        return null;
+    }
+
+    const candidate = String(backgroundId).trim();
+
+    return Object.prototype.hasOwnProperty.call(BACKGROUND_THEMES, candidate) ? candidate : null;
+}
+
+function resolveBackgroundTheme(backgroundId, index) {
+    const validId = normalizeBackgroundId(backgroundId);
+    if (validId) {
+        return BACKGROUND_THEMES[validId];
+    }
+
+    const themes = Object.values(BACKGROUND_THEMES);
+
+    return themes[index % themes.length];
 }
 
 export default function Slider({ slides = [] }) {
@@ -150,6 +187,7 @@ export default function Slider({ slides = [] }) {
 
 function SlideVisual({ slide, index, particlesReady }) {
     const imageSrc = slideImageSrc(slide?.slide_image);
+    const backgroundId = normalizeBackgroundId(slide?.slide_background);
     const [useFallback, setUseFallback] = useState(imageSrc === "");
 
     useEffect(() => {
@@ -157,7 +195,13 @@ function SlideVisual({ slide, index, particlesReady }) {
     }, [imageSrc]);
 
     if (useFallback) {
-        return <AnimatedParticlesBackground index={index} particlesReady={particlesReady} />;
+        return (
+            <AnimatedParticlesBackground
+                backgroundId={backgroundId}
+                index={index}
+                particlesReady={particlesReady}
+            />
+        );
     }
 
     return (
@@ -170,57 +214,53 @@ function SlideVisual({ slide, index, particlesReady }) {
     );
 }
 
-function AnimatedParticlesBackground({ index, particlesReady }) {
-    const palettes = [
-        "from-[#000285] via-[#0891b2] to-[#111827]",
-        "from-[#111827] via-[#2563eb] to-[#0f766e]",
-        "from-[#0f172a] via-[#7c3aed] to-[#0369a1]",
-    ];
-    const particleColors = [
-        ["#ffffff", "#67e8f9", "#c4b5fd"],
-        ["#bfdbfe", "#67e8f9", "#93c5fd"],
-        ["#ffffff", "#a78bfa", "#38bdf8"],
-    ];
-    const options = useMemo(() => ({
-        fullScreen: { enable: false },
-        fpsLimit: 120,
-        particles: {
-            number: {
-                value: 70,
-                density: { enable: true, area: 800 },
+function AnimatedParticlesBackground({ backgroundId, index, particlesReady }) {
+    const options = useMemo(() => {
+        const theme = resolveBackgroundTheme(backgroundId, index);
+
+        return {
+            fullScreen: { enable: false },
+            fpsLimit: 120,
+            particles: {
+                number: {
+                    value: 70,
+                    density: { enable: true, area: 800 },
+                },
+                color: { value: theme.particleColors },
+                links: {
+                    enable: true,
+                    color: "#ffffff",
+                    opacity: 0.2,
+                    distance: 140,
+                    width: 1,
+                },
+                move: {
+                    enable: true,
+                    speed: 1.1,
+                    outModes: { default: "out" },
+                },
+                opacity: { value: { min: 0.15, max: 0.6 } },
+                size: { value: { min: 1, max: 3 } },
             },
-            color: { value: particleColors[index % particleColors.length] },
-            links: {
-                enable: true,
-                color: "#ffffff",
-                opacity: 0.2,
-                distance: 140,
-                width: 1,
-            },
-            move: {
-                enable: true,
-                speed: 1.1,
-                outModes: { default: "out" },
-            },
-            opacity: { value: { min: 0.15, max: 0.6 } },
-            size: { value: { min: 1, max: 3 } },
-        },
-        interactivity: {
-            events: {
-                onHover: { enable: true, mode: "grab" },
-            },
-            modes: {
-                grab: {
-                    distance: 160,
-                    links: { opacity: 0.45 },
+            interactivity: {
+                events: {
+                    onHover: { enable: true, mode: "grab" },
+                },
+                modes: {
+                    grab: {
+                        distance: 160,
+                        links: { opacity: 0.45 },
+                    },
                 },
             },
-        },
-        detectRetina: true,
-    }), [index]);
+            detectRetina: true,
+        };
+    }, [backgroundId, index]);
+
+    const theme = resolveBackgroundTheme(backgroundId, index);
 
     return (
-        <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${palettes[index % palettes.length]}`}>
+        <div className={`relative h-full w-full overflow-hidden bg-gradient-to-br ${theme.gradient}`}>
             {particlesReady && (
                 <Particles
                     id={`slide-particles-${index}`}

@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Modal from '@/Components/Modal';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
@@ -11,18 +12,6 @@ const createEmptySlide = () => ({
     cta_label: '',
     cta_url: '',
 });
-
-const formatMoney = (amount) => {
-    const value = Number(amount || 0);
-
-    return Number.isFinite(value)
-        ? new Intl.NumberFormat('en-NG', {
-            style: 'currency',
-            currency: 'NGN',
-            maximumFractionDigits: 2,
-        }).format(value)
-        : '₦0.00';
-};
 
 const quillModules = {
     toolbar: [
@@ -68,7 +57,6 @@ function TermsEditor({ label, value, onChange, error }) {
 export default function Settings({
     settings = {},
     serviceCatalog = {},
-    servicePrices = {},
     discountCodes = [],
     subscriptionPlans = [],
 }) {
@@ -81,7 +69,6 @@ export default function Settings({
         data,
         setData,
         patch,
-        processing,
         errors,
     } = useForm({
         maintenance_mode: Boolean(settings?.maintenance_mode),
@@ -92,10 +79,11 @@ export default function Settings({
         contact_whatsapp_url: settings?.contact_whatsapp_url || '',
         contact_behance_url: settings?.contact_behance_url || '',
         contact_map_embed_url: settings?.contact_map_embed_url || '',
+        logo_path: settings?.logo_path || '/logo-06.svg',
+        favicon_path: settings?.favicon_path || '/favicon.ico',
         home_slides: Array.isArray(settings?.home_slides) && settings.home_slides.length > 0
             ? settings.home_slides
             : [createEmptySlide()],
-        service_prices: servicePrices || {},
         terms: {
             terms_of_service: settings?.terms?.terms_of_service || '',
             privacy_policy: settings?.terms?.privacy_policy || '',
@@ -121,7 +109,9 @@ export default function Settings({
         name: '',
         service_slug: firstServiceSlug,
         package_code: '',
+        image_path: '',
         short_description: '',
+        long_description: '',
         billing_cycle: 'monthly',
         position: 0,
         is_active: true,
@@ -131,27 +121,44 @@ export default function Settings({
     });
 
     const [copiedLinkId, setCopiedLinkId] = useState(null);
+    const [autoSaveState, setAutoSaveState] = useState('idle');
+    const autoSaveInitialRender = useRef(true);
+    const autoSaveTimer = useRef(null);
+    const [selectorOpen, setSelectorOpen] = useState(false);
+    const [selectorTarget, setSelectorTarget] = useState('logo_path');
+    const [selectorFiles, setSelectorFiles] = useState([]);
+    const [selectorLoading, setSelectorLoading] = useState(false);
+    const [selectorError, setSelectorError] = useState('');
 
     const selectedServicePackages = serviceCatalog?.[discountForm.data.service_slug]?.packages || {};
     const selectedPlanPackages = serviceCatalog?.[subscriptionPlanForm.data.service_slug]?.packages || {};
 
-    const submitSettings = (event) => {
-        event.preventDefault();
+    useEffect(() => {
+        if (autoSaveInitialRender.current) {
+            autoSaveInitialRender.current = false;
+            return;
+        }
 
-        patch(route('admin.settings.update'), {
-            preserveScroll: true,
-        });
-    };
+        if (autoSaveTimer.current) {
+            window.clearTimeout(autoSaveTimer.current);
+        }
 
-    const updateServicePrice = (serviceSlug, packageCode, value) => {
-        setData('service_prices', {
-            ...(data.service_prices || {}),
-            [serviceSlug]: {
-                ...((data.service_prices || {})[serviceSlug] || {}),
-                [packageCode]: value,
-            },
-        });
-    };
+        setAutoSaveState('saving');
+        autoSaveTimer.current = window.setTimeout(() => {
+            patch(route('admin.settings.update'), {
+                preserveScroll: true,
+                preserveState: true,
+                onSuccess: () => setAutoSaveState('saved'),
+                onError: () => setAutoSaveState('error'),
+            });
+        }, 900);
+
+        return () => {
+            if (autoSaveTimer.current) {
+                window.clearTimeout(autoSaveTimer.current);
+            }
+        };
+    }, [data, patch]);
 
     const updateSlide = (index, field, value) => {
         const nextSlides = [...(data.home_slides || [])];
@@ -177,6 +184,57 @@ export default function Settings({
             ...(data.terms || {}),
             [field]: value,
         });
+    };
+
+    const refreshMediaLibrary = async () => {
+        setSelectorLoading(true);
+        setSelectorError('');
+
+        try {
+            const response = await window.axios.get(route('admin.slides.media.index'));
+            setSelectorFiles(Array.isArray(response?.data?.files) ? response.data.files : []);
+        } catch (error) {
+            setSelectorError('Unable to load media files right now.');
+        } finally {
+            setSelectorLoading(false);
+        }
+    };
+
+    const openSelector = async (target) => {
+        setSelectorTarget(target);
+        setSelectorOpen(true);
+        await refreshMediaLibrary();
+    };
+
+    const closeSelector = () => {
+        setSelectorOpen(false);
+    };
+
+    const chooseMediaFile = (path) => {
+        setData(selectorTarget, path);
+        closeSelector();
+    };
+
+    const uploadBrandAsset = async (target, file) => {
+        if (!file) {
+            return;
+        }
+
+        const body = new FormData();
+        body.append('file', file);
+
+        try {
+            const response = await window.axios.post(route('admin.slides.media.upload'), body, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            const uploadedPath = String(response?.data?.path || '');
+            if (uploadedPath !== '') {
+                setData(target, uploadedPath);
+            }
+        } catch (error) {
+            window.alert('Upload failed. Please try another file.');
+        }
     };
 
     const submitDiscountCode = (event) => {
@@ -240,6 +298,9 @@ export default function Settings({
                 subscriptionPlanForm.setData('show_on_homepage', true);
                 subscriptionPlanForm.setData('is_homepage_featured', false);
                 subscriptionPlanForm.setData('is_recommended', false);
+                subscriptionPlanForm.setData('image_path', '');
+                subscriptionPlanForm.setData('short_description', '');
+                subscriptionPlanForm.setData('long_description', '');
             },
         });
     };
@@ -288,7 +349,14 @@ export default function Settings({
                         </div>
                     )}
 
-                    <form onSubmit={submitSettings} className="space-y-6">
+                    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                        {autoSaveState === 'saving' && 'Saving changes...'}
+                        {autoSaveState === 'saved' && 'All changes saved automatically.'}
+                        {autoSaveState === 'error' && 'Autosave failed for one or more fields. Keep editing and we will retry.'}
+                        {autoSaveState === 'idle' && 'Changes save automatically while you edit.'}
+                    </div>
+
+                    <form onSubmit={(event) => event.preventDefault()} className="space-y-6">
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-gray-900">
                                 Access Control Modes
@@ -307,6 +375,101 @@ export default function Settings({
                                         <span className="mt-1 block text-sm text-gray-600">Blocks all public routes while maintenance is active. Staff can still access the staff portal.</span>
                                     </span>
                                 </label>
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                                Branding
+                            </h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Update the main website logo and favicon.
+                            </p>
+
+                            <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Logo Path</label>
+                                    <input
+                                        type="text"
+                                        value={data.logo_path}
+                                        onChange={(event) => setData('logo_path', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors.logo_path && <p className="mt-1 text-xs text-red-600">{errors.logo_path}</p>}
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                            Upload Logo
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(event) => {
+                                                    const file = event.target.files?.[0];
+                                                    if (file) {
+                                                        uploadBrandAsset('logo_path', file);
+                                                    }
+                                                    event.target.value = '';
+                                                }}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => openSelector('logo_path')}
+                                            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                        >
+                                            Media Selector
+                                        </button>
+                                    </div>
+                                    {data.logo_path && (
+                                        <img
+                                            src={/^https?:\/\//i.test(data.logo_path) ? data.logo_path : data.logo_path.startsWith('/') ? data.logo_path : `/${data.logo_path}`}
+                                            alt="Website logo preview"
+                                            className="mt-3 h-12 w-auto rounded border border-gray-200 bg-gray-50 px-2 py-1"
+                                        />
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Favicon Path</label>
+                                    <input
+                                        type="text"
+                                        value={data.favicon_path}
+                                        onChange={(event) => setData('favicon_path', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors.favicon_path && <p className="mt-1 text-xs text-red-600">{errors.favicon_path}</p>}
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                        <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                            Upload Favicon
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(event) => {
+                                                    const file = event.target.files?.[0];
+                                                    if (file) {
+                                                        uploadBrandAsset('favicon_path', file);
+                                                    }
+                                                    event.target.value = '';
+                                                }}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => openSelector('favicon_path')}
+                                            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                        >
+                                            Media Selector
+                                        </button>
+                                    </div>
+                                    {data.favicon_path && (
+                                        <img
+                                            src={/^https?:\/\//i.test(data.favicon_path) ? data.favicon_path : data.favicon_path.startsWith('/') ? data.favicon_path : `/${data.favicon_path}`}
+                                            alt="Favicon preview"
+                                            className="mt-3 h-10 w-10 rounded border border-gray-200 bg-gray-50 p-1"
+                                        />
+                                    )}
+                                </div>
                             </div>
                         </div>
 
@@ -397,44 +560,6 @@ export default function Settings({
                                     {errors.contact_map_embed_url && <p className="mt-1 text-xs text-red-600">{errors.contact_map_embed_url}</p>}
                                 </div>
                             </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Service Pricing</h3>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Update package pricing for checkout forms across all services.
-                            </p>
-
-                            <div className="mt-5 space-y-5">
-                                {serviceEntries.map(([serviceSlug, service]) => (
-                                    <div key={serviceSlug} className="rounded-xl border border-gray-200 p-4">
-                                        <h4 className="text-base font-semibold text-gray-900">{service?.name || serviceSlug}</h4>
-                                        <p className="mt-1 text-sm text-gray-600">{service?.description || ''}</p>
-
-                                        <div className="mt-4 grid gap-3 md:grid-cols-2">
-                                            {Object.entries(service?.packages || {}).map(([packageCode, packageMeta]) => (
-                                                <div key={`${serviceSlug}-${packageCode}`}>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">
-                                                        {packageMeta?.name || packageCode}
-                                                    </label>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        step="0.01"
-                                                        value={data.service_prices?.[serviceSlug]?.[packageCode] ?? ''}
-                                                        onChange={(event) => updateServicePrice(serviceSlug, packageCode, event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                                                    />
-                                                    <p className="mt-1 text-xs text-gray-500">
-                                                        {formatMoney(data.service_prices?.[serviceSlug]?.[packageCode])}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                            {errors.service_prices && <p className="mt-2 text-xs text-red-600">{errors.service_prices}</p>}
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -564,15 +689,6 @@ export default function Settings({
                             </div>
                         </div>
 
-                        <div>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                {processing ? 'Saving...' : 'Save Settings'}
-                            </button>
-                        </div>
                     </form>
 
                     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -867,7 +983,7 @@ export default function Settings({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Service</label>
+                                <label className="mb-1 block text-sm font-medium text-gray-700">Service Type</label>
                                 <select
                                     value={subscriptionPlanForm.data.service_slug}
                                     onChange={(event) => {
@@ -886,7 +1002,7 @@ export default function Settings({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Package</label>
+                                <label className="mb-1 block text-sm font-medium text-gray-700">Package/Plan Name</label>
                                 <select
                                     value={subscriptionPlanForm.data.package_code}
                                     onChange={(event) => subscriptionPlanForm.setData('package_code', event.target.value)}
@@ -903,6 +1019,18 @@ export default function Settings({
                             </div>
 
                             <div className="lg:col-span-2">
+                                <label className="mb-1 block text-sm font-medium text-gray-700">Image (optional)</label>
+                                <input
+                                    type="text"
+                                    value={subscriptionPlanForm.data.image_path}
+                                    onChange={(event) => subscriptionPlanForm.setData('image_path', event.target.value)}
+                                    placeholder="/storage/subscription-plans/plan.webp"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                />
+                                {subscriptionPlanForm.errors.image_path && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.image_path}</p>}
+                            </div>
+
+                            <div className="lg:col-span-2">
                                 <label className="mb-1 block text-sm font-medium text-gray-700">Short Description (optional)</label>
                                 <textarea
                                     rows={2}
@@ -911,6 +1039,17 @@ export default function Settings({
                                     className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                                 />
                                 {subscriptionPlanForm.errors.short_description && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.short_description}</p>}
+                            </div>
+
+                            <div className="lg:col-span-2">
+                                <label className="mb-1 block text-sm font-medium text-gray-700">Long Description (optional)</label>
+                                <textarea
+                                    rows={4}
+                                    value={subscriptionPlanForm.data.long_description}
+                                    onChange={(event) => subscriptionPlanForm.setData('long_description', event.target.value)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                />
+                                {subscriptionPlanForm.errors.long_description && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.long_description}</p>}
                             </div>
 
                             <div>
@@ -1007,6 +1146,18 @@ export default function Settings({
                                                 <p>{subscriptionPlan.service_name}</p>
                                                 <p className="text-xs text-gray-500">{subscriptionPlan.package_name}</p>
                                                 <p className="mt-1 text-xs text-gray-500">{subscriptionPlan.short_description || 'No custom description'}</p>
+                                                {subscriptionPlan.long_description && (
+                                                    <p className="mt-1 text-xs text-gray-500">{subscriptionPlan.long_description}</p>
+                                                )}
+                                                {subscriptionPlan.image_path && (
+                                                    <img
+                                                        src={String(subscriptionPlan.image_path).startsWith('/') || /^https?:\/\//i.test(String(subscriptionPlan.image_path))
+                                                            ? String(subscriptionPlan.image_path)
+                                                            : `/${String(subscriptionPlan.image_path)}`}
+                                                        alt={subscriptionPlan.name}
+                                                        className="mt-2 h-12 w-12 rounded object-cover"
+                                                    />
+                                                )}
                                             </td>
                                             <td className="px-3 py-3">
                                                 <p className="text-xs text-gray-700">Paid subscriptions: {subscriptionPlan.paid_subscriptions}</p>
@@ -1077,6 +1228,55 @@ export default function Settings({
                     </div>
                 </div>
             </div>
+
+            <Modal show={selectorOpen} maxWidth="2xl" onClose={closeSelector}>
+                <div className="space-y-4 p-5 sm:p-6">
+                    <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-gray-900">Select Media File</h3>
+                        <button
+                            type="button"
+                            onClick={closeSelector}
+                            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            Close
+                        </button>
+                    </div>
+
+                    {selectorLoading && <p className="text-sm text-gray-600">Loading media...</p>}
+                    {selectorError && <p className="text-sm text-red-600">{selectorError}</p>}
+
+                    {!selectorLoading && !selectorError && (
+                        <div className="max-h-[60vh] overflow-y-auto rounded-md border border-gray-200 p-3">
+                            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                {selectorFiles.map((file) => (
+                                    <button
+                                        key={file.path}
+                                        type="button"
+                                        onClick={() => chooseMediaFile(file.path)}
+                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-indigo-400 hover:shadow-sm"
+                                    >
+                                        <div className="h-24 w-full overflow-hidden bg-gray-50">
+                                            <img
+                                                src={/^https?:\/\//i.test(file.preview_url || file.path)
+                                                    ? (file.preview_url || file.path)
+                                                    : (file.preview_url || file.path).startsWith('/')
+                                                        ? (file.preview_url || file.path)
+                                                        : `/${file.preview_url || file.path}`}
+                                                alt={file.name || file.path}
+                                                className="h-full w-full object-cover"
+                                            />
+                                        </div>
+                                        <div className="space-y-1 p-2">
+                                            <p className="truncate text-xs font-semibold text-gray-900">{file.name}</p>
+                                            <p className="truncate text-[11px] text-gray-500">{file.path}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

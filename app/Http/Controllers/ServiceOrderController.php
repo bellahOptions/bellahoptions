@@ -23,6 +23,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -68,7 +69,7 @@ class ServiceOrderController extends Controller
         $logoAddons = $this->localizeLogoAddons($catalog->logoAddons(), (string) $localization['currency']);
         $discount = $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
 
-        $humanCheck = $this->createHumanMatchChallenge($request);
+        $humanCheck = $this->createHumanVerificationChallenge($request);
 
         return Inertia::render('Orders/Create', [
             'serviceSlug' => $serviceSlug,
@@ -299,11 +300,18 @@ class ServiceOrderController extends Controller
         $this->authorizeOrderAccess($request, $serviceOrder);
 
         $serviceOrder->load('invoice');
+        $paymentProvider = strtolower(trim((string) $serviceOrder->payment_provider)) ?: 'paystack';
+        $gatewayIssue = $this->paymentGatewayIssue($paymentProvider);
+        $gatewayReady = $gatewayIssue === null;
 
         return Inertia::render('Orders/Payment', [
             'order' => $this->orderPayload($serviceOrder),
-            'canPay' => (float) $serviceOrder->amount > 0 && ! in_array((string) $serviceOrder->payment_status, ['paid', 'not_required'], true),
-            'paymentProvider' => strtolower(trim((string) $serviceOrder->payment_provider)) ?: 'paystack',
+            'canPay' => (float) $serviceOrder->amount > 0
+                && ! in_array((string) $serviceOrder->payment_status, ['paid', 'not_required'], true)
+                && $gatewayReady,
+            'paymentProvider' => $paymentProvider,
+            'paymentGatewayIssue' => $gatewayIssue,
+            'transferPayment' => $this->resolveTransferPaymentPayload(),
             'term' => $this->resolveTermsPayload(),
         ]);
     }
@@ -335,9 +343,26 @@ class ServiceOrderController extends Controller
             return redirect()->route('orders.show', $serviceOrder)->with('success', 'This order does not require online payment.');
         }
 
-        $reference = $serviceOrder->paystack_reference ?: strtoupper('BO-'.$serviceOrder->id.'-'.now()->timestamp.'-'.Str::random(6));
         $provider = strtolower(trim((string) ($serviceOrder->payment_provider ?: 'paystack')));
         $callbackUrl = route('orders.payment.callback', ['provider' => $provider]);
+        $gatewayIssue = $this->paymentGatewayIssue($provider);
+
+        if ($gatewayIssue !== null) {
+            Log::warning('Payment initialization blocked because provider is not configured.', [
+                'order_id' => $serviceOrder->id,
+                'provider' => $provider,
+                'issue' => $gatewayIssue,
+            ]);
+
+            return back()->with('error', $gatewayIssue);
+        }
+
+        if (app()->isProduction() && str_starts_with($callbackUrl, 'http://')) {
+            $callbackUrl = 'https://'.ltrim(substr($callbackUrl, 7), '/');
+        }
+
+        $reference = $serviceOrder->paystack_reference ?: strtoupper('BO-'.Str::random(24));
+        $encryptedMetadata = $this->buildEncryptedPaymentMetadata($serviceOrder, $provider);
 
         try {
             if ($provider === 'flutterwave') {
@@ -347,14 +372,7 @@ class ServiceOrderController extends Controller
                     $reference,
                     $callbackUrl,
                     (string) $serviceOrder->currency,
-                    [
-                        'service_order_uuid' => $serviceOrder->uuid,
-                        'service' => $serviceOrder->service_name,
-                        'package' => $serviceOrder->package_name,
-                        'invoice_number' => $serviceOrder->invoice?->invoice_number,
-                        'phone' => $serviceOrder->phone,
-                        'customer_name' => $serviceOrder->full_name,
-                    ],
+                    $encryptedMetadata,
                 );
             } else {
                 $payment = $paystackService->initialize(
@@ -363,12 +381,7 @@ class ServiceOrderController extends Controller
                     $reference,
                     $callbackUrl,
                     (string) $serviceOrder->currency,
-                    [
-                        'service_order_uuid' => $serviceOrder->uuid,
-                        'service' => $serviceOrder->service_name,
-                        'package' => $serviceOrder->package_name,
-                        'invoice_number' => $serviceOrder->invoice?->invoice_number,
-                    ],
+                    $encryptedMetadata,
                 );
             }
         } catch (Throwable $exception) {
@@ -379,7 +392,7 @@ class ServiceOrderController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return back()->with('error', 'Unable to start payment right now. Please try again shortly.');
+            return back()->with('error', $this->paymentInitializationErrorMessage($exception, $provider));
         }
 
         $serviceOrder->update([
@@ -389,6 +402,157 @@ class ServiceOrderController extends Controller
         ]);
 
         return redirect()->away($payment['authorization_url']);
+    }
+
+    public function submitTransferPayment(Request $request, ServiceOrder $serviceOrder): RedirectResponse
+    {
+        if (! $this->hasOrderAccess($request, $serviceOrder)) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'You are not allowed to jump the order process. Please use the approved order sequence.');
+        }
+
+        if ($serviceOrder->payment_status === 'paid') {
+            return redirect()->route('orders.show', $serviceOrder)->with('success', 'This order has already been paid.');
+        }
+
+        if ((float) $serviceOrder->amount <= 0 || (string) $serviceOrder->payment_status === 'not_required') {
+            return redirect()->route('orders.show', $serviceOrder)->with('success', 'This order does not require immediate payment.');
+        }
+
+        $transfer = $this->resolveTransferPaymentPayload();
+
+        if (! (bool) ($transfer['enabled'] ?? false)) {
+            return back()->with('error', 'Bank transfer is currently unavailable. Please use online checkout.');
+        }
+
+        $payload = $request->validate([
+            'transfer_reference' => ['nullable', 'string', 'max:120'],
+        ]);
+
+        $reference = trim((string) ($payload['transfer_reference'] ?? ''));
+
+        ServiceOrderUpdate::create([
+            'service_order_id' => $serviceOrder->id,
+            'status' => 'payment_pending_confirmation',
+            'progress_percent' => (int) $serviceOrder->progress_percent,
+            'note' => $reference !== ''
+                ? 'Client reported bank transfer payment. Reference: '.$reference.'. Awaiting confirmation.'
+                : 'Client selected bank transfer payment and is awaiting confirmation.',
+            'is_public' => true,
+            'created_by' => $request->user()?->id,
+        ]);
+
+        $serviceOrder->update([
+            'payment_status' => 'processing',
+        ]);
+
+        $supportEmail = trim((string) config('bellah.invoice.company_email', 'support@bellahoptions.com'));
+
+        return redirect()
+            ->route('orders.show', $serviceOrder)
+            ->with('success', 'Transfer payment has been submitted for confirmation. Please share your receipt via '.$supportEmail.'.');
+    }
+
+    private function paymentGatewayIssue(string $provider): ?string
+    {
+        $provider = strtolower(trim($provider));
+        $appUrl = strtolower(trim((string) config('app.url', '')));
+
+        if (app()->isProduction() && ! str_starts_with($appUrl, 'https://')) {
+            return 'Secure HTTPS must be enabled before online payments can start.';
+        }
+
+        if ($provider === 'flutterwave') {
+            $publicKey = trim((string) config('services.flutterwave.public_key', ''));
+            $secretKey = trim((string) config('services.flutterwave.secret_key', ''));
+
+            if ($publicKey === '' || $secretKey === '') {
+                return 'Flutterwave is not configured yet. Please contact support.';
+            }
+
+            return null;
+        }
+
+        $publicKey = trim((string) config('services.paystack.public_key', ''));
+        $secretKey = trim((string) config('services.paystack.secret_key', ''));
+
+        if ($publicKey === '' || $secretKey === '') {
+            return 'Paystack is not configured yet. Please contact support.';
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function buildEncryptedPaymentMetadata(ServiceOrder $serviceOrder, string $provider): array
+    {
+        $payload = json_encode([
+            'order_uuid' => (string) $serviceOrder->uuid,
+            'order_code' => (string) $serviceOrder->order_code,
+            'provider' => strtolower(trim($provider)),
+            'created_at' => now()->toIso8601String(),
+        ]);
+
+        $encryptedPayload = is_string($payload)
+            ? Crypt::encryptString($payload)
+            : Crypt::encryptString((string) $serviceOrder->uuid);
+
+        return [
+            'bo_payload' => $encryptedPayload,
+            'bo_v' => '1',
+        ];
+    }
+
+    private function paymentInitializationErrorMessage(Throwable $exception, string $provider): string
+    {
+        $message = trim($exception->getMessage());
+
+        if ($message === '') {
+            return 'Unable to start payment right now. Please try again shortly.';
+        }
+
+        $providerLabel = ucfirst(strtolower(trim($provider)));
+        $normalized = strtolower($message);
+
+        if (str_contains($normalized, 'secret key')) {
+            return $providerLabel.' is not configured yet. Please contact support.';
+        }
+
+        if (str_contains($normalized, 'unable to connect')) {
+            return 'Unable to reach '.$providerLabel.' right now. Please try again shortly.';
+        }
+
+        if (app()->isProduction()) {
+            return 'Payment initialization failed: '.$message;
+        }
+
+        return $message;
+    }
+
+    /**
+     * @return array{enabled:bool,account_number:string,account_name:string,bank_name:string,instructions:string}
+     */
+    private function resolveTransferPaymentPayload(): array
+    {
+        $accountNumber = trim((string) config('bellah.payment.transfer.account_number', ''));
+        $accountName = trim((string) config('bellah.payment.transfer.account_name', ''));
+        $bankName = trim((string) config('bellah.payment.transfer.bank_name', ''));
+        $instructions = trim((string) config('bellah.payment.transfer.instructions', ''));
+        $enabled = (bool) config('bellah.payment.transfer.enabled', true)
+            && $accountNumber !== ''
+            && $accountName !== ''
+            && $bankName !== '';
+
+        return [
+            'enabled' => $enabled,
+            'account_number' => $accountNumber,
+            'account_name' => $accountName,
+            'bank_name' => $bankName,
+            'instructions' => $instructions,
+        ];
     }
 
     /**
@@ -414,10 +578,15 @@ class ServiceOrderController extends Controller
             }
 
             $priceNgn = round((float) ($package['price'] ?? 0), 2);
+            $originalPriceNgn = round((float) ($package['original_price'] ?? $priceNgn), 2);
+            $discountPriceNgn = isset($package['discount_price']) && is_numeric($package['discount_price'])
+                ? round((float) $package['discount_price'], 2)
+                : null;
             $localizedPackages[$packageCode] = [
                 ...$package,
                 'price' => $this->convertAmountFromNgn($priceNgn, $currency),
-                'base_price_ngn' => $priceNgn,
+                'base_price_ngn' => $originalPriceNgn,
+                'discount_price' => $discountPriceNgn !== null ? $this->convertAmountFromNgn($discountPriceNgn, $currency) : null,
             ];
         }
 
@@ -1038,24 +1207,45 @@ class ServiceOrderController extends Controller
     }
 
     /**
-     * @return array{humanCheckQuestion: string, humanCheckNonce: string, formRenderedAt: int}
+     * @return array{
+     *   humanVerificationMode:string,
+     *   humanCheckQuestion:string,
+     *   humanCheckNonce:string,
+     *   turnstileSiteKey:string,
+     *   formRenderedAt:int
+     * }
      */
-    private function createHumanMatchChallenge(Request $request): array
+    private function createHumanVerificationChallenge(Request $request): array
     {
-        $words = ['BRAND', 'DESIGN', 'PROJECT', 'INVOICE', 'BELLAH'];
-        $answer = $words[array_rand($words)];
+        if (app()->isProduction()) {
+            $request->session()->forget('service_order_human_check');
+
+            return [
+                'humanVerificationMode' => 'turnstile',
+                'humanCheckQuestion' => '',
+                'humanCheckNonce' => '',
+                'turnstileSiteKey' => trim((string) config('services.turnstile.site_key', '')),
+                'formRenderedAt' => now()->timestamp,
+            ];
+        }
+
+        $leftOperand = random_int(2, 12);
+        $rightOperand = random_int(1, 12);
+        $answer = $leftOperand + $rightOperand;
         $issuedAt = now()->timestamp;
         $nonce = Str::random(32);
 
         $request->session()->put('service_order_human_check', [
-            'answer' => $answer,
+            'answer' => (string) $answer,
             'issued_at' => $issuedAt,
             'nonce' => $nonce,
         ]);
 
         return [
-            'humanCheckQuestion' => "Type {$answer}",
+            'humanVerificationMode' => 'math',
+            'humanCheckQuestion' => "{$leftOperand} + {$rightOperand} = ?",
             'humanCheckNonce' => $nonce,
+            'turnstileSiteKey' => '',
             'formRenderedAt' => $issuedAt,
         ];
     }

@@ -10,7 +10,12 @@
             $routeMiddleware = collect(request()->route()?->gatherMiddleware() ?? []);
             $isAuthenticatedRoute = $routeMiddleware->contains(fn ($middleware) => $middleware === 'auth' || str_starts_with($middleware, 'auth:'));
             $isAdminRoute = request()->is('admin', 'admin/*', 'staff', 'staff/*');
+            $brandAssets = \App\Support\PlatformSettings::brandAssets();
+            $faviconPath = (string) ($brandAssets['favicon_path'] ?? '/favicon.ico');
         @endphp
+
+        <link rel="icon" href="{{ $faviconPath }}">
+        <link rel="apple-touch-icon" href="{{ $faviconPath }}">
 
         @unless ($isAuthenticatedRoute || $isAdminRoute)
             @include('partials.public-head-tags')

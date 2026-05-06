@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Link } from '@inertiajs/react';
 
 const authHighlights = [
@@ -27,7 +28,7 @@ export default function GuestLayout({ children }) {
                     <section className="hidden rounded-3xl border border-gray-200 bg-gradient-to-b from-white to-blue-50 p-8 shadow-sm lg:flex lg:flex-col lg:justify-between">
                         <div>
                             <Link href="/" className="inline-flex items-center gap-3">
-                                <img src="/logo-06.svg" alt="Bellah Options" className="h-10 w-auto" />
+                                <ApplicationLogo className="h-10 w-auto" />
                             </Link>
 
                             <h1 className="mt-10 max-w-lg text-4xl font-black leading-tight text-gray-950">
@@ -55,7 +56,7 @@ export default function GuestLayout({ children }) {
                     <section className="rounded-3xl border border-gray-200 bg-white p-6 shadow-xl shadow-blue-100/40 sm:p-8">
                         <div className="mb-6 flex items-center justify-between lg:hidden">
                             <Link href="/" className="inline-flex items-center gap-2">
-                                <img src="/logo-06.svg" alt="Bellah Options" className="h-8 w-auto" />
+                                <ApplicationLogo className="h-8 w-auto" />
                             </Link>
                             <p className="text-xs font-black uppercase tracking-[0.16em] text-[#000285]">
                                 Secure Access

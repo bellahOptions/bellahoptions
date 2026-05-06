@@ -30,6 +30,7 @@ Route::get('/blog', [PagesController::class, 'blogPage'])->name('blog');
 Route::get('/blog/{blogPost:slug}', [PagesController::class, 'blogShowPage'])->name('blog.show');
 Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contact');
 Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
+Route::get('/faqs', [PagesController::class, 'faqsPage'])->name('faqs');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
 
 //ORDER ROUTES
@@ -45,6 +46,7 @@ Route::get('/orders/{serviceOrder}/payment', [ServiceOrderController::class, 'pa
 Route::get('/orders/{orderReference}/payment/initialize', [ServiceOrderController::class, 'redirectBlockedPaymentInitialize'])
     ->name('orders.payment.initialize.blocked');
 Route::post('/orders/{serviceOrder}/payment/initialize', [ServiceOrderController::class, 'initializePayment'])->name('orders.payment.initialize');
+Route::post('/orders/{serviceOrder}/payment/transfer', [ServiceOrderController::class, 'submitTransferPayment'])->name('orders.payment.transfer');
 Route::get('/orders/payment/callback', [ServiceOrderController::class, 'paymentCallback'])->name('orders.payment.callback');
 Route::get('/orders/{serviceOrder}', [ServiceOrderController::class, 'show'])->name('orders.show');
 Route::post('/webhooks/paystack', [ServiceOrderController::class, 'webhook'])

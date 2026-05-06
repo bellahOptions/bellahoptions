@@ -50,6 +50,7 @@ export function buildOrderFormSeed(checkoutServices, defaults = {}) {
         password_confirmation: "",
         human_check_answer: "",
         human_check_nonce: defaults.human_check_nonce || "",
+        turnstile_token: "",
         form_rendered_at: defaults.form_rendered_at || 0,
         website: "",
         company_name: "",

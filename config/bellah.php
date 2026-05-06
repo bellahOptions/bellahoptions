@@ -28,6 +28,19 @@ return [
         )),
     ],
 
+    'payment' => [
+        'transfer' => [
+            'enabled' => (bool) env('BELLAH_TRANSFER_PAYMENT_ENABLED', true),
+            'account_number' => trim((string) env('BELLAH_TRANSFER_ACCOUNT_NUMBER', '4210082961')),
+            'account_name' => trim((string) env('BELLAH_TRANSFER_ACCOUNT_NAME', 'Bellah Options')),
+            'bank_name' => trim((string) env('BELLAH_TRANSFER_BANK_NAME', 'Fidelity Bank')),
+            'instructions' => trim((string) env(
+                'BELLAH_TRANSFER_INSTRUCTIONS',
+                'Use your invoice number or order code as the transfer reference and send proof of payment to support.',
+            )),
+        ],
+    ],
+
     'marketing' => [
         'sender_email' => strtolower(trim((string) env('BELLAH_MARKETING_SENDER_EMAIL', 'sales@bellahoptions.com'))),
         'sender_name' => env('BELLAH_COMPANY_NAME', 'Bellah Options'),

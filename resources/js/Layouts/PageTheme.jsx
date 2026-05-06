@@ -1,3 +1,4 @@
+import ApplicationLogo from "@/Components/ApplicationLogo";
 import { Link } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -25,6 +26,7 @@ const navLinks = [
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
+    { label: "FAQs", href: "/faqs" },
 ];
 
 const quickLinks = [
@@ -34,6 +36,7 @@ const quickLinks = [
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
+    { label: "FAQs", href: "/faqs" },
     { label: "Contact", href: "/contact-us" },
 ];
 
@@ -158,11 +161,7 @@ export default function PageTheme({ children }) {
                 {/* Main nav */}
                 <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
                     <Link href="/" className="shrink-0">
-                        <img
-                            src="/logo-06.svg"
-                            alt="Bellah Options"
-                            className="h-9"
-                        />
+                        <ApplicationLogo className="h-9" />
                     </Link>
 
                     {/* Desktop nav */}
@@ -315,11 +314,7 @@ export default function PageTheme({ children }) {
                     <div className="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
                         {/* Brand */}
                         <div className="space-y-5">
-                            <img
-                                src="https://bellahoptions.com/images/logo-08.svg"
-                                alt="Bellah Options"
-                                className="h-10 w-auto"
-                            />
+                            <ApplicationLogo className="h-10 w-auto" />
                             <p className="text-sm leading-7 text-blue-200">
                                 Creative design agency transforming ideas into
                                 meaningful visual experiences through branding,

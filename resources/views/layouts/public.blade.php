@@ -7,6 +7,10 @@
 
         <title>@yield('title', 'Bellah Options')</title>
         <meta name="description" content="@yield('description', 'Bellah Options service portal')">
+        @php
+            $brandAssets = \App\Support\PlatformSettings::brandAssets();
+            $logoPath = (string) ($brandAssets['logo_path'] ?? '/logo-06.svg');
+        @endphp
 
         @include('partials.public-head-tags')
 
@@ -16,7 +20,7 @@
         <header class="site-header">
             <div class="container" style="display:flex; align-items:center; justify-content:space-between; gap:1rem; padding-block:0.9rem;">
                 <a href="{{ route('home') }}" style="display:inline-flex; align-items:center; gap:0.6rem; text-decoration:none; color:inherit;">
-                    <img src="/logo-06.svg" alt="Bellah Options" style="height:38px; width:auto;" />
+                    <img src="{{ $logoPath }}" alt="Bellah Options" style="height:38px; width:auto;" />
                 </a>
                 <a class="btn-outline" href="{{ route('home') }}">Back Home</a>
             </div>

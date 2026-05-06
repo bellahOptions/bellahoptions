@@ -35,9 +35,9 @@ class ServiceOrderFlowTest extends TestCase
 
         $this->get(route('orders.create', 'social-media-design'));
 
-        $guard = session('service_order_guard');
+        $guard = session('service_order_human_check');
         $guard['issued_at'] = now()->subSeconds(8)->timestamp;
-        session(['service_order_guard' => $guard]);
+        session(['service_order_human_check' => $guard]);
 
         $response = $this->post(route('orders.store', 'social-media-design'), [
             'service_package' => 'starter',
@@ -47,9 +47,8 @@ class ServiceOrderFlowTest extends TestCase
             'business_name' => 'Ada Labs',
             'position' => 'Founder',
             'business_website' => 'https://adalabs.test',
+            'has_logo' => 'yes',
             'primary_platforms' => 'Instagram, LinkedIn',
-            'monthly_design_volume' => 12,
-            'posting_frequency' => '3-4-times-weekly',
             'timeline_preference' => 'Start next week',
             'project_summary' => 'We need monthly social media design support for product campaigns and launch storytelling.',
             'project_goals' => 'Increase consistency and conversion from social channels.',
@@ -57,8 +56,9 @@ class ServiceOrderFlowTest extends TestCase
             'preferred_style' => 'Modern and clean style with strong brand colors.',
             'deliverables' => 'Carousel sets, promo graphics, and ad visuals.',
             'additional_details' => 'Please include design source files in final delivery.',
-            'order_nonce' => $guard['nonce'],
-            'order_rendered_at' => $guard['issued_at'],
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
             'website' => '',
             'company_name' => '',
         ]);
@@ -103,9 +103,9 @@ class ServiceOrderFlowTest extends TestCase
 
         $this->get(route('orders.create', ['serviceSlug' => 'social-media-design', 'discount' => 'START20']));
 
-        $guard = session('service_order_guard');
+        $guard = session('service_order_human_check');
         $guard['issued_at'] = now()->subSeconds(8)->timestamp;
-        session(['service_order_guard' => $guard]);
+        session(['service_order_human_check' => $guard]);
 
         $response = $this->post(route('orders.store', 'social-media-design'), [
             'service_package' => 'starter',
@@ -114,13 +114,13 @@ class ServiceOrderFlowTest extends TestCase
             'phone' => '+2348108671804',
             'business_name' => 'Promo Labs',
             'position' => 'Founder',
+            'has_logo' => 'yes',
             'project_summary' => 'Need monthly social media design support for launch and promotional campaign visuals.',
             'discount_code' => 'START20',
             'primary_platforms' => 'Instagram, LinkedIn',
-            'monthly_design_volume' => 8,
-            'posting_frequency' => 'weekly',
-            'order_nonce' => $guard['nonce'],
-            'order_rendered_at' => $guard['issued_at'],
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
             'website' => '',
             'company_name' => '',
         ]);
@@ -133,9 +133,9 @@ class ServiceOrderFlowTest extends TestCase
         $this->assertDatabaseHas('service_orders', [
             'id' => $order->id,
             'discount_code' => 'START20',
-            'base_amount' => 30000.00,
-            'discount_amount' => 6000.00,
-            'amount' => 24000.00,
+            'base_amount' => 50000.00,
+            'discount_amount' => 10000.00,
+            'amount' => 40000.00,
         ]);
 
         $this->assertDatabaseHas('discount_codes', [
@@ -146,26 +146,25 @@ class ServiceOrderFlowTest extends TestCase
 
     public function test_guest_can_create_order_and_register_account_in_same_flow(): void
     {
-        $this->get(route('orders.create', 'graphic-design'));
+        $this->get(route('orders.create', 'social-media-design'));
 
-        $guard = session('service_order_guard');
+        $guard = session('service_order_human_check');
         $guard['issued_at'] = now()->subSeconds(8)->timestamp;
-        session(['service_order_guard' => $guard]);
+        session(['service_order_human_check' => $guard]);
 
-        $response = $this->post(route('orders.store', 'graphic-design'), [
-            'service_package' => 'basic',
+        $response = $this->post(route('orders.store', 'social-media-design'), [
+            'service_package' => 'starter',
             'full_name' => 'Grace Hopper',
             'email' => 'grace@example.com',
             'phone' => '+2348108671804',
             'business_name' => 'Grace Studios',
             'position' => 'Creative Director',
-            'design_asset_types' => 'Campaign posters, social ad creatives, and rollout announcement banners.',
-            'usage_channels' => 'Instagram, print handbills, website.',
-            'existing_brand_assets' => 'partial',
-            'print_required' => 'yes',
+            'has_logo' => 'yes',
+            'primary_platforms' => 'Instagram, LinkedIn',
             'project_summary' => 'We need design assets for product posters and launch communication campaigns.',
-            'order_nonce' => $guard['nonce'],
-            'order_rendered_at' => $guard['issued_at'],
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
             'create_account' => '1',
             'password' => 'Pass1234!Pass1234!',
             'password_confirmation' => 'Pass1234!Pass1234!',
@@ -212,9 +211,9 @@ class ServiceOrderFlowTest extends TestCase
     {
         $this->get(route('orders.create', 'web-design'));
 
-        $guard = session('service_order_guard');
+        $guard = session('service_order_human_check');
         $guard['issued_at'] = now()->subSeconds(8)->timestamp;
-        session(['service_order_guard' => $guard]);
+        session(['service_order_human_check' => $guard]);
 
         $response = $this->post(route('orders.store', 'web-design'), [
             'service_package' => 'starter',
@@ -222,13 +221,15 @@ class ServiceOrderFlowTest extends TestCase
             'email' => 'maya@example.com',
             'phone' => '+2348108671804',
             'business_name' => 'Maya Ventures',
+            'has_logo' => 'yes',
             'project_summary' => 'We need a conversion-first website to position our offer and support online sales.',
             'website_type' => 'business-site',
             'required_pages' => 'Home, About, Services, Contact',
             'content_ready' => 'partial',
             'domain_hosting_status' => 'domain-only',
-            'order_nonce' => $guard['nonce'],
-            'order_rendered_at' => $guard['issued_at'],
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
             'website' => '',
             'company_name' => '',
         ]);
@@ -246,9 +247,9 @@ class ServiceOrderFlowTest extends TestCase
 
         $this->get(route('orders.create', 'social-media-design'));
 
-        $guard = session('service_order_guard');
+        $guard = session('service_order_human_check');
         $guard['issued_at'] = now()->subSeconds(8)->timestamp;
-        session(['service_order_guard' => $guard]);
+        session(['service_order_human_check' => $guard]);
 
         $response = $this->post(route('orders.store', 'social-media-design'), [
             'service_package' => 'starter',
@@ -256,12 +257,12 @@ class ServiceOrderFlowTest extends TestCase
             'email' => 'override@example.com',
             'phone' => '+2348108671804',
             'business_name' => 'Override Studio',
+            'has_logo' => 'yes',
             'project_summary' => 'Need social media design support and we want current admin-updated package pricing applied.',
             'primary_platforms' => 'Instagram',
-            'monthly_design_volume' => 10,
-            'posting_frequency' => 'weekly',
-            'order_nonce' => $guard['nonce'],
-            'order_rendered_at' => $guard['issued_at'],
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
             'website' => '',
             'company_name' => '',
         ]);
@@ -300,6 +301,7 @@ class ServiceOrderFlowTest extends TestCase
 
         $order = ServiceOrder::create([
             'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'order_code' => 'BO-ORDER-300',
             'user_id' => $user->id,
             'service_slug' => 'social-media-design',
             'service_name' => 'Social Media Design Subscription',
@@ -361,6 +363,7 @@ class ServiceOrderFlowTest extends TestCase
 
         $order = ServiceOrder::create([
             'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'order_code' => 'BO-ORDER-301',
             'user_id' => $user->id,
             'service_slug' => 'social-media-design',
             'service_name' => 'Social Media Design Subscription',
@@ -410,6 +413,67 @@ class ServiceOrderFlowTest extends TestCase
             'id' => $invoice->id,
             'status' => 'paid',
             'payment_reference' => 'BO-CALLBACK-REF',
+        ]);
+    }
+
+    public function test_customer_can_submit_transfer_payment_confirmation(): void
+    {
+        $user = User::factory()->create();
+
+        $invoice = Invoice::create([
+            'invoice_number' => '252',
+            'customer_name' => $user->name,
+            'customer_email' => $user->email,
+            'title' => 'Transfer Invoice',
+            'amount' => 30000,
+            'currency' => 'NGN',
+            'status' => 'sent',
+            'issued_at' => now(),
+            'created_by' => $user->id,
+        ]);
+
+        $order = ServiceOrder::create([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'order_code' => 'BO-ORDER-302',
+            'user_id' => $user->id,
+            'service_slug' => 'social-media-design',
+            'service_name' => 'Social Media Design Subscription',
+            'package_code' => 'starter',
+            'package_name' => 'Starter Pack',
+            'currency' => 'NGN',
+            'amount' => 30000,
+            'payment_status' => 'pending',
+            'order_status' => 'awaiting_payment',
+            'progress_percent' => 5,
+            'full_name' => $user->name,
+            'email' => $user->email,
+            'phone' => '+2348108671804',
+            'business_name' => 'Test Co',
+            'project_summary' => 'Need recurring design subscription for social media campaigns.',
+            'wants_account' => false,
+            'invoice_id' => $invoice->id,
+        ]);
+
+        config()->set('bellah.payment.transfer.enabled', true);
+        config()->set('bellah.payment.transfer.account_number', '4210082961');
+        config()->set('bellah.payment.transfer.account_name', 'Bellah Options');
+        config()->set('bellah.payment.transfer.bank_name', 'Fidelity Bank');
+
+        $response = $this->actingAs($user)->post(route('orders.payment.transfer', $order), [
+            'transfer_reference' => 'TRF-1001',
+        ]);
+
+        $response->assertRedirect(route('orders.show', $order));
+
+        $this->assertDatabaseHas('service_orders', [
+            'id' => $order->id,
+            'payment_status' => 'processing',
+        ]);
+
+        $this->assertDatabaseHas('service_order_updates', [
+            'service_order_id' => $order->id,
+            'status' => 'payment_pending_confirmation',
+            'is_public' => 1,
         ]);
     }
 }

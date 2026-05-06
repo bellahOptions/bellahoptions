@@ -7,34 +7,64 @@ import { formatDate, formatMoney, statusLabel } from "./orderUtils";
 import { termsSections } from "@/Pages/Legal/policyData";
 import { resolvePolicySections } from "@/Pages/Legal/policyParser";
 
-export default function OrderPayment({ order, canPay = false, paymentProvider = "paystack", term = null }) {
+export default function OrderPayment({
+    order,
+    canPay = false,
+    paymentProvider = "paystack",
+    paymentGatewayIssue = null,
+    transferPayment = null,
+    term = null,
+}) {
     const { flash, localization } = usePage().props;
     const locale = localization?.locale?.replace("_", "-") || "en-NG";
     const [showTermsModal, setShowTermsModal] = useState(false);
     const [termsAccepted, setTermsAccepted] = useState(false);
+    const [pendingAction, setPendingAction] = useState(null);
+    const [transferReference, setTransferReference] = useState("");
     const termsPreview = useMemo(
         () => resolvePolicySections(term?.content, termsSections).slice(0, 6),
         [term?.content],
+    );
+    const transferEnabled = Boolean(
+        transferPayment?.enabled
+        && transferPayment?.account_number
+        && transferPayment?.account_name
+        && transferPayment?.bank_name,
     );
 
     const startPayment = () => {
         router.post(route("orders.payment.initialize", order.order_code), {}, { preserveScroll: true });
     };
 
-    const handlePayNow = () => {
+    const startTransferPayment = () => {
+        router.post(route("orders.payment.transfer", order.order_code), {
+            transfer_reference: transferReference.trim(),
+        }, { preserveScroll: true });
+    };
+
+    const requestTermsThen = (action) => {
         if (!termsAccepted) {
+            setPendingAction(action);
             setShowTermsModal(true);
 
             return;
         }
 
-        startPayment();
+        action();
     };
+
+    const handlePayNow = () => requestTermsThen(startPayment);
+    const handleTransferSubmit = () => requestTermsThen(startTransferPayment);
 
     const agreeAndContinue = () => {
         setTermsAccepted(true);
         setShowTermsModal(false);
-        startPayment();
+
+        if (pendingAction) {
+            pendingAction();
+        }
+
+        setPendingAction(null);
     };
 
     return (
@@ -84,35 +114,78 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                             <div className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
                                 {flash?.success && <Flash tone="success">{flash.success}</Flash>}
                                 {flash?.error && <Flash tone="error">{flash.error}</Flash>}
+                                {paymentGatewayIssue && <Flash tone="error">{paymentGatewayIssue}</Flash>}
 
-                                <div className="flex items-center gap-3">
-                                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#000285]">
-                                        <CreditCardIcon className="h-6 w-6" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-2xl font-black text-gray-950">{String(paymentProvider).toUpperCase()} Payment</h2>
-                                        <p className="text-sm text-gray-600">Handled securely by your localized payment provider.</p>
-                                    </div>
-                                </div>
-
-                                <p className="mt-6 text-sm leading-7 text-gray-600">
-                                    Card and transfer details are completed on {String(paymentProvider).toUpperCase()} checkout. We only store the payment reference and verification status.
+                                <h2 className="text-2xl font-black text-gray-950">Choose Payment Method</h2>
+                                <p className="mt-2 text-sm leading-7 text-gray-600">
+                                    Complete payment online or pay via direct bank transfer using Bellah Options account details below.
                                 </p>
 
                                 <div className="mt-6 border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-7 text-blue-900">
                                     Before payment continues, you must review and accept the Bellah Options Terms of Service.
                                 </div>
 
-                                {canPay ? (
-                                    <button type="button" onClick={handlePayNow} className="mt-8 inline-flex w-full items-center justify-center gap-2 bg-[#000285] px-6 py-3 text-sm font-black text-white">
-                                        Pay Now With {String(paymentProvider).toUpperCase()}
-                                        <ArrowRightIcon className="h-4 w-4" />
-                                    </button>
-                                ) : (
-                                    <div className="mt-8 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                                        {order.payment_status === "not_required"
-                                            ? "This order is in consultation mode and does not require immediate online payment."
-                                            : "Payment has already been completed for this order."}
+                                <div className="mt-6 border border-gray-200 bg-gray-50 p-5">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#000285]">
+                                            <CreditCardIcon className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-gray-950">{String(paymentProvider).toUpperCase()} Checkout</h3>
+                                            <p className="text-sm text-gray-600">Fast card or transfer payment handled on the secure provider page.</p>
+                                        </div>
+                                    </div>
+
+                                    {canPay ? (
+                                        <button type="button" onClick={handlePayNow} className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-[#000285] px-6 py-3 text-sm font-black text-white">
+                                            Pay Online With {String(paymentProvider).toUpperCase()}
+                                            <ArrowRightIcon className="h-4 w-4" />
+                                        </button>
+                                    ) : (
+                                        <div className="mt-5 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                            {paymentGatewayIssue
+                                                ? "Online payment is temporarily unavailable while gateway setup is completed."
+                                                : order.payment_status === "not_required"
+                                                ? "This order is in consultation mode and does not require immediate online payment."
+                                                : "Payment has already been completed for this order."}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {transferEnabled && (
+                                    <div className="mt-5 border border-gray-200 bg-white p-5">
+                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-gray-500">Pay By Transfer</p>
+                                        <div className="mt-3 space-y-2 text-sm text-gray-700">
+                                            <SummaryRow label="Bank Name" value={transferPayment.bank_name} />
+                                            <SummaryRow label="Account Name" value={transferPayment.account_name} />
+                                            <SummaryRow label="Account Number" value={transferPayment.account_number} />
+                                        </div>
+                                        {transferPayment.instructions && (
+                                            <p className="mt-3 text-sm leading-7 text-gray-600">{transferPayment.instructions}</p>
+                                        )}
+
+                                        {canPay && (
+                                            <>
+                                                <label htmlFor="transfer-reference" className="mt-4 block text-xs font-black uppercase tracking-[0.12em] text-gray-500">
+                                                    Transfer Reference (optional)
+                                                </label>
+                                                <input
+                                                    id="transfer-reference"
+                                                    type="text"
+                                                    value={transferReference}
+                                                    onChange={(event) => setTransferReference(event.target.value)}
+                                                    placeholder="Example: INV-12345"
+                                                    className="mt-2 w-full border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#000285]"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleTransferSubmit}
+                                                    className="mt-4 inline-flex w-full items-center justify-center border border-[#000285] px-6 py-3 text-sm font-black text-[#000285]"
+                                                >
+                                                    I Have Paid By Transfer
+                                                </button>
+                                            </>
+                                        )}
                                     </div>
                                 )}
 
@@ -122,7 +195,10 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                                     </Link>
                                     <button
                                         type="button"
-                                        onClick={() => setShowTermsModal(true)}
+                                        onClick={() => {
+                                            setPendingAction(null);
+                                            setShowTermsModal(true);
+                                        }}
                                         className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-black text-gray-700"
                                     >
                                         Review Terms
@@ -212,6 +288,7 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                                 type="button"
                                 onClick={() => {
                                     setTermsAccepted(false);
+                                    setPendingAction(null);
                                     setShowTermsModal(false);
                                 }}
                                 className="border border-gray-300 px-5 py-3 text-sm font-black text-gray-700"
@@ -223,7 +300,7 @@ export default function OrderPayment({ order, canPay = false, paymentProvider = 
                                 onClick={agreeAndContinue}
                                 className="bg-[#000285] px-5 py-3 text-sm font-black text-white"
                             >
-                                Agree and Continue to Payment
+                                {pendingAction ? "Agree and Continue" : "Agree to Terms"}
                             </button>
                         </div>
                     </div>

@@ -11,9 +11,10 @@ class ServiceOrderCatalog
     {
         /** @var array<string, array<string, mixed>> $services */
         $services = (array) config('service_orders.services', []);
-        $overrides = PlatformSettings::servicePriceOverrides();
+        $legacyPriceOverrides = PlatformSettings::servicePriceOverrides();
+        $packageOverrides = PlatformSettings::servicePackageOverrides();
 
-        foreach ($overrides as $serviceSlug => $packagePrices) {
+        foreach ($legacyPriceOverrides as $serviceSlug => $packagePrices) {
             if (! isset($services[$serviceSlug]) || ! is_array($packagePrices)) {
                 continue;
             }
@@ -30,6 +31,78 @@ class ServiceOrderCatalog
                 }
 
                 $services[$serviceSlug]['packages'][$packageCode]['price'] = $resolvedPrice;
+            }
+        }
+
+        foreach ($packageOverrides as $serviceSlug => $packages) {
+            if (! isset($services[$serviceSlug]) || ! is_array($packages)) {
+                continue;
+            }
+
+            foreach ($packages as $packageCode => $payload) {
+                if (
+                    ! isset($services[$serviceSlug]['packages'][$packageCode])
+                    || ! is_array($services[$serviceSlug]['packages'][$packageCode])
+                    || ! is_array($payload)
+                ) {
+                    continue;
+                }
+
+                $price = is_numeric($payload['price'] ?? null) ? round((float) $payload['price'], 2) : null;
+                $discountPrice = is_numeric($payload['discount_price'] ?? null) ? round((float) $payload['discount_price'], 2) : null;
+                $features = is_array($payload['features'] ?? null) ? array_values($payload['features']) : [];
+
+                if ($price !== null && $price > 0) {
+                    $services[$serviceSlug]['packages'][$packageCode]['price'] = $price;
+                }
+
+                if (
+                    $discountPrice !== null
+                    && $discountPrice > 0
+                    && $discountPrice < (float) ($services[$serviceSlug]['packages'][$packageCode]['price'] ?? 0)
+                ) {
+                    $services[$serviceSlug]['packages'][$packageCode]['original_price'] = (float) ($services[$serviceSlug]['packages'][$packageCode]['price'] ?? 0);
+                    $services[$serviceSlug]['packages'][$packageCode]['price'] = $discountPrice;
+                    $services[$serviceSlug]['packages'][$packageCode]['discount_price'] = $discountPrice;
+                } else {
+                    $services[$serviceSlug]['packages'][$packageCode]['discount_price'] = null;
+                }
+
+                $services[$serviceSlug]['packages'][$packageCode]['is_recommended'] = (bool) ($payload['is_recommended'] ?? false);
+                $services[$serviceSlug]['packages'][$packageCode]['features'] = $features;
+
+                if (is_string($payload['description'] ?? null) && trim((string) $payload['description']) !== '') {
+                    $services[$serviceSlug]['packages'][$packageCode]['description'] = trim((string) $payload['description']);
+                }
+            }
+        }
+
+        $graphicItems = PlatformSettings::graphicDesignItems();
+        if ($graphicItems !== [] && isset($services['graphic-design']) && is_array($services['graphic-design'])) {
+            $packages = [];
+
+            foreach ($graphicItems as $item) {
+                $itemId = trim((string) ($item['id'] ?? ''));
+                $title = trim((string) ($item['title'] ?? ''));
+                $price = round((float) ($item['unit_price'] ?? 0), 2);
+
+                if ($itemId === '' || $title === '' || $price <= 0) {
+                    continue;
+                }
+
+                $packageCode = 'graphic-item-'.$itemId;
+                $packages[$packageCode] = [
+                    'name' => $title,
+                    'price' => $price,
+                    'description' => trim((string) ($item['description'] ?? '')),
+                    'sample_image' => $item['image_path'] ?? null,
+                    'is_recommended' => false,
+                    'features' => [],
+                ];
+            }
+
+            if ($packages !== []) {
+                $services['graphic-design']['packages'] = $packages;
             }
         }
 

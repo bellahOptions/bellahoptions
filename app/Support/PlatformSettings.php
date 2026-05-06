@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\AppSetting;
+use Illuminate\Support\Str;
 
 class PlatformSettings
 {
@@ -11,6 +12,12 @@ class PlatformSettings
     private const HOME_SLIDES_KEY = 'home_slides_json';
 
     private const SERVICE_PRICE_OVERRIDES_KEY = 'service_price_overrides_json';
+
+    private const SERVICE_PACKAGE_OVERRIDES_KEY = 'service_package_overrides_json';
+
+    private const GRAPHIC_DESIGN_ITEMS_KEY = 'graphic_design_items_json';
+
+    private const BRAND_ASSETS_KEY = 'brand_assets_json';
 
     private const MAIN_WEBSITE_URI_KEY = 'main_website_uri';
 
@@ -124,6 +131,45 @@ class PlatformSettings
     }
 
     /**
+     * @return array{logo_path: string, favicon_path: string}
+     */
+    public static function brandAssets(): array
+    {
+        $defaults = self::defaultBrandAssets();
+        $raw = AppSetting::getValue(self::BRAND_ASSETS_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        return [
+            'logo_path' => self::sanitizeAssetPath($decoded['logo_path'] ?? null) ?? $defaults['logo_path'],
+            'favicon_path' => self::sanitizeAssetPath($decoded['favicon_path'] ?? null) ?? $defaults['favicon_path'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $assets
+     */
+    public static function setBrandAssets(array $assets): void
+    {
+        $defaults = self::defaultBrandAssets();
+
+        $payload = [
+            'logo_path' => self::sanitizeAssetPath($assets['logo_path'] ?? null) ?? $defaults['logo_path'],
+            'favicon_path' => self::sanitizeAssetPath($assets['favicon_path'] ?? null) ?? $defaults['favicon_path'],
+        ];
+
+        AppSetting::setValue(self::BRAND_ASSETS_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
      * @return array<string, array<string, float>>
      */
     public static function servicePriceOverrides(): array
@@ -195,6 +241,164 @@ class PlatformSettings
         AppSetting::setValue(self::SERVICE_PRICE_OVERRIDES_KEY, json_encode($normalized, JSON_UNESCAPED_SLASHES));
     }
 
+    /**
+     * @return array<string, array<string, array{price: float|null, discount_price: float|null, is_recommended: bool, features: array<int, string>, description: string|null}>>
+     */
+    public static function servicePackageOverrides(): array
+    {
+        $raw = AppSetting::getValue(self::SERVICE_PACKAGE_OVERRIDES_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $serviceConfig = (array) config('service_orders.services', []);
+        $normalized = [];
+
+        foreach ($decoded as $serviceSlug => $packages) {
+            if (! is_string($serviceSlug) || ! is_array($packages) || ! isset($serviceConfig[$serviceSlug])) {
+                continue;
+            }
+
+            $knownPackages = (array) data_get($serviceConfig, $serviceSlug.'.packages', []);
+
+            foreach ($packages as $packageCode => $value) {
+                if (! is_string($packageCode) || ! is_array($value) || ! isset($knownPackages[$packageCode])) {
+                    continue;
+                }
+
+                $price = is_numeric($value['price'] ?? null) ? round((float) $value['price'], 2) : null;
+                if ($price !== null && $price <= 0) {
+                    $price = null;
+                }
+
+                $discountPrice = is_numeric($value['discount_price'] ?? null) ? round((float) $value['discount_price'], 2) : null;
+                if ($discountPrice !== null && $discountPrice <= 0) {
+                    $discountPrice = null;
+                }
+
+                if ($discountPrice !== null && $price !== null && $discountPrice >= $price) {
+                    $discountPrice = null;
+                }
+
+                $features = self::sanitizeFeatureList($value['features'] ?? []);
+                $description = trim((string) ($value['description'] ?? ''));
+
+                $normalized[$serviceSlug][$packageCode] = [
+                    'price' => $price,
+                    'discount_price' => $discountPrice,
+                    'is_recommended' => (bool) ($value['is_recommended'] ?? false),
+                    'features' => $features,
+                    'description' => $description !== '' ? mb_substr($description, 0, 500) : null,
+                ];
+            }
+        }
+
+        return $normalized;
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     */
+    public static function setServicePackageOverrides(array $overrides): void
+    {
+        $normalized = self::servicePackageOverridesFromInput($overrides);
+
+        AppSetting::setValue(self::SERVICE_PACKAGE_OVERRIDES_KEY, json_encode($normalized, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @return array<int, array{id: string, title: string, description: string, image_path: string|null, unit_price: float}>
+     */
+    public static function graphicDesignItems(): array
+    {
+        $raw = AppSetting::getValue(self::GRAPHIC_DESIGN_ITEMS_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($decoded as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $title = trim((string) ($item['title'] ?? ''));
+            $description = trim((string) ($item['description'] ?? ''));
+            $price = is_numeric($item['unit_price'] ?? null) ? round((float) $item['unit_price'], 2) : 0;
+
+            if ($title === '' || $price <= 0) {
+                continue;
+            }
+
+            $id = trim((string) ($item['id'] ?? ''));
+            if ($id === '') {
+                $id = Str::uuid()->toString();
+            }
+
+            $items[] = [
+                'id' => mb_substr($id, 0, 80),
+                'title' => mb_substr($title, 0, 160),
+                'description' => mb_substr($description, 0, 800),
+                'image_path' => self::sanitizeAssetPath($item['image_path'] ?? null),
+                'unit_price' => $price,
+            ];
+        }
+
+        return array_values($items);
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $items
+     */
+    public static function setGraphicDesignItems(array $items): void
+    {
+        $payload = [];
+
+        foreach ($items as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
+            $title = trim((string) ($item['title'] ?? ''));
+            $description = trim((string) ($item['description'] ?? ''));
+            $price = is_numeric($item['unit_price'] ?? null) ? round((float) $item['unit_price'], 2) : 0;
+
+            if ($title === '' || $price <= 0) {
+                continue;
+            }
+
+            $id = trim((string) ($item['id'] ?? ''));
+            if ($id === '') {
+                $id = Str::uuid()->toString();
+            }
+
+            $payload[] = [
+                'id' => mb_substr($id, 0, 80),
+                'title' => mb_substr($title, 0, 160),
+                'description' => mb_substr($description, 0, 800),
+                'image_path' => self::sanitizeAssetPath($item['image_path'] ?? null),
+                'unit_price' => $price,
+            ];
+        }
+
+        AppSetting::setValue(self::GRAPHIC_DESIGN_ITEMS_KEY, json_encode(array_values($payload), JSON_UNESCAPED_SLASHES));
+    }
+
     public static function siteUrl(): string
     {
         $default = self::defaultSiteUrl();
@@ -224,6 +428,17 @@ class PlatformSettings
             'whatsapp_url' => 'https://wa.link/gy2bys',
             'behance_url' => 'https://www.behance.net/bellahoptionsNG',
             'map_embed_url' => 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126810.84581005335!2d3.040254481676433!3d6.666872574467273!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x103b8d112a733495%3A0xdb046cdd13b275d9!2sBellah%20Options!5e0!3m2!1sen!2sng!4v1760510153493!5m2!1sen!2sng',
+        ];
+    }
+
+    /**
+     * @return array{logo_path: string, favicon_path: string}
+     */
+    private static function defaultBrandAssets(): array
+    {
+        return [
+            'logo_path' => '/logo-06.svg',
+            'favicon_path' => '/images/icon/favicon-32x32.png',
         ];
     }
 
@@ -319,5 +534,91 @@ class PlatformSettings
         }
 
         return $candidate;
+    }
+
+    private static function sanitizeAssetPath(mixed $value): ?string
+    {
+        $sanitized = PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($value);
+
+        return is_string($sanitized) && trim($sanitized) !== ''
+            ? $sanitized
+            : null;
+    }
+
+    /**
+     * @param  mixed  $input
+     * @return array<int, string>
+     */
+    private static function sanitizeFeatureList(mixed $input): array
+    {
+        $items = is_array($input) ? $input : preg_split('/\r\n|\r|\n/', (string) $input);
+
+        if (! is_array($items)) {
+            return [];
+        }
+
+        $features = [];
+
+        foreach ($items as $item) {
+            $feature = trim((string) $item);
+            if ($feature === '') {
+                continue;
+            }
+
+            $features[] = mb_substr($feature, 0, 140);
+        }
+
+        return array_values(array_unique(array_slice($features, 0, 20)));
+    }
+
+    /**
+     * @param  array<string, mixed>  $overrides
+     * @return array<string, array<string, array{price: float|null, discount_price: float|null, is_recommended: bool, features: array<int, string>, description: string|null}>>
+     */
+    private static function servicePackageOverridesFromInput(array $overrides): array
+    {
+        $serviceConfig = (array) config('service_orders.services', []);
+        $normalized = [];
+
+        foreach ($overrides as $serviceSlug => $packages) {
+            if (! is_string($serviceSlug) || ! is_array($packages) || ! isset($serviceConfig[$serviceSlug])) {
+                continue;
+            }
+
+            $knownPackages = (array) data_get($serviceConfig, $serviceSlug.'.packages', []);
+
+            foreach ($packages as $packageCode => $value) {
+                if (! is_string($packageCode) || ! is_array($value) || ! isset($knownPackages[$packageCode])) {
+                    continue;
+                }
+
+                $price = is_numeric($value['price'] ?? null) ? round((float) $value['price'], 2) : null;
+                if ($price !== null && $price <= 0) {
+                    $price = null;
+                }
+
+                $discountPrice = is_numeric($value['discount_price'] ?? null) ? round((float) $value['discount_price'], 2) : null;
+                if ($discountPrice !== null && $discountPrice <= 0) {
+                    $discountPrice = null;
+                }
+
+                if ($discountPrice !== null && $price !== null && $discountPrice >= $price) {
+                    $discountPrice = null;
+                }
+
+                $features = self::sanitizeFeatureList($value['features'] ?? []);
+                $description = trim((string) ($value['description'] ?? ''));
+
+                $normalized[$serviceSlug][$packageCode] = [
+                    'price' => $price,
+                    'discount_price' => $discountPrice,
+                    'is_recommended' => (bool) ($value['is_recommended'] ?? false),
+                    'features' => $features,
+                    'description' => $description !== '' ? mb_substr($description, 0, 500) : null,
+                ];
+            }
+        }
+
+        return $normalized;
     }
 }

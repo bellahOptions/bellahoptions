@@ -10,6 +10,7 @@ class SlideShow extends Model
         'slide_title',
         'text',
         'slide_image',
+        'slide_background',
         'slide_link',
         'slide_link_text',
     ];

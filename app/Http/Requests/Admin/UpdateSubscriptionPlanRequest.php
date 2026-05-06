@@ -28,6 +28,14 @@ class UpdateSubscriptionPlanRequest extends FormRequest
             $fields['short_description'] = trim((string) $this->input('short_description'));
         }
 
+        if ($this->has('long_description')) {
+            $fields['long_description'] = trim((string) $this->input('long_description'));
+        }
+
+        if ($this->has('image_path')) {
+            $fields['image_path'] = trim((string) $this->input('image_path'));
+        }
+
         if ($this->has('billing_cycle')) {
             $fields['billing_cycle'] = strtolower(trim((string) $this->input('billing_cycle')));
         }
@@ -56,6 +64,8 @@ class UpdateSubscriptionPlanRequest extends FormRequest
         return [
             'name' => ['sometimes', 'required', 'string', 'min:3', 'max:160'],
             'short_description' => ['sometimes', 'nullable', 'string', 'max:280'],
+            'long_description' => ['sometimes', 'nullable', 'string', 'max:5000'],
+            'image_path' => ['sometimes', 'nullable', 'string', 'max:255'],
             'billing_cycle' => ['sometimes', 'required', 'string', Rule::in(['monthly', 'quarterly', 'biannually', 'yearly'])],
             'position' => ['sometimes', 'required', 'integer', 'min:0', 'max:1000000'],
             'is_active' => ['sometimes', 'required', 'boolean'],

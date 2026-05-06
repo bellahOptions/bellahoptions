@@ -68,9 +68,43 @@ export default function Services({ services = [] }) {
                                             <div className="mt-6 grid gap-3 sm:grid-cols-3">
                                                 {(service.packages || []).map((plan) => (
                                                     <div key={plan.code} className="border border-gray-100 bg-gray-50 p-4">
-                                                        <p className="font-black text-gray-950">{plan.name}</p>
-                                                        <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(plan.price)}</p>
+                                                        <div className="flex items-start justify-between gap-2">
+                                                            <p className="font-black text-gray-950">{plan.name}</p>
+                                                            {plan.is_recommended && (
+                                                                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-indigo-700">
+                                                                    Recommended
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="mt-2">
+                                                            {plan.discount_price && Number(plan.original_price || 0) > Number(plan.discount_price || 0) ? (
+                                                                <div className="flex items-center gap-2">
+                                                                    <p className="text-sm font-bold text-[#000285]">{formatMoney(plan.discount_price)}</p>
+                                                                    <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(plan.original_price)}</p>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-sm font-bold text-[#000285]">{formatMoney(plan.price)}</p>
+                                                            )}
+                                                        </div>
                                                         <p className="mt-2 text-xs leading-5 text-gray-500">{plan.description}</p>
+                                                        {Array.isArray(plan.features) && plan.features.length > 0 && (
+                                                            <ul className="mt-2 space-y-1">
+                                                                {plan.features.slice(0, 4).map((feature) => (
+                                                                    <li key={`${plan.code}-${feature}`} className="text-[11px] text-gray-600">
+                                                                        - {feature}
+                                                                    </li>
+                                                                ))}
+                                                            </ul>
+                                                        )}
+                                                        {plan.sample_image && (
+                                                            <img
+                                                                src={String(plan.sample_image).startsWith('/') || /^https?:\/\//i.test(String(plan.sample_image))
+                                                                    ? String(plan.sample_image)
+                                                                    : `/${String(plan.sample_image)}`}
+                                                                alt={plan.name}
+                                                                className="mt-3 h-16 w-full rounded object-cover"
+                                                            />
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>
