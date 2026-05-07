@@ -2,36 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BlogPost;
 use App\Support\PlatformSettings;
 use App\Support\ServiceOrderCatalog;
 use App\Support\VisitorLocalization;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Schema;
 
 class SeoController extends Controller
 {
-    /**
-     * @var array<int, string>
-     */
-    private const SERVICE_LANDING_SLUGS = [
-        'graphic-design',
-        'brand-design',
-        'web-design',
-        'mobile-app-development',
-        'ui-ux',
-    ];
-
     public function sitemap(Request $request, ServiceOrderCatalog $serviceOrderCatalog): Response
     {
         $localization = app(VisitorLocalization::class)->resolve($request);
         $baseUrl = PlatformSettings::siteUrl();
-        $now = now()->toAtomString();
         $entries = [];
 
-        $append = function (string $path, string $changeFrequency, string $priority) use (&$entries, $baseUrl, $now): void {
+        $append = function (
+            string $path,
+            string $changeFrequency,
+            string $priority,
+            ?string $lastModified = null
+        ) use (&$entries, $baseUrl): void {
             $entries[] = [
                 'loc' => $this->absoluteUrl($baseUrl, $path),
-                'lastmod' => $now,
+                'lastmod' => $lastModified ?? now()->toAtomString(),
                 'changefreq' => $changeFrequency,
                 'priority' => $priority,
             ];
@@ -39,18 +34,17 @@ class SeoController extends Controller
 
         $append('/', 'daily', '1.0');
         $append('/services', 'weekly', '0.95');
-        $append('/about-us', 'monthly', '0.80');
+        $append('/about-bellah-options', 'monthly', '0.80');
         $append('/gallery', 'weekly', '0.85');
+        $append('/blog', 'daily', '0.88');
+        $append('/events', 'weekly', '0.78');
+        $append('/reviews', 'weekly', '0.80');
         $append('/faqs', 'weekly', '0.75');
         $append('/web-design-samples', 'weekly', '0.85');
         $append('/contact-us', 'weekly', '0.80');
-        $append('/waitlist', 'weekly', '0.60');
         $append('/terms-of-service', 'yearly', '0.40');
-        $append('/smm-form', 'weekly', '0.88');
-
-        foreach (self::SERVICE_LANDING_SLUGS as $serviceSlug) {
-            $append('/services/'.$serviceSlug, 'weekly', '0.90');
-        }
+        $append('/privacy-policy', 'yearly', '0.35');
+        $append('/cookie-policy', 'yearly', '0.35');
 
         foreach (array_keys($serviceOrderCatalog->all()) as $serviceSlug) {
             if (! is_string($serviceSlug) || trim($serviceSlug) === '') {
@@ -58,6 +52,28 @@ class SeoController extends Controller
             }
 
             $append('/order/'.$serviceSlug, 'weekly', '0.88');
+        }
+
+        if (Schema::hasTable('blog_posts')) {
+            BlogPost::query()
+                ->where('is_published', true)
+                ->select(['slug', 'updated_at', 'published_at'])
+                ->orderByDesc('published_at')
+                ->get()
+                ->each(function (BlogPost $post) use ($append): void {
+                    $slug = trim((string) $post->slug);
+
+                    if ($slug === '') {
+                        return;
+                    }
+
+                    $append(
+                        '/blog/'.$slug,
+                        'monthly',
+                        '0.72',
+                        $post->updated_at?->toAtomString() ?? $post->published_at?->toAtomString(),
+                    );
+                });
         }
 
         $urlMap = [];
@@ -82,33 +98,47 @@ class SeoController extends Controller
 
         return response(implode("\n", $xml), 200, [
             'Content-Type' => 'application/xml; charset=UTF-8',
-            'X-Robots-Tag' => 'noarchive',
+            'X-Robots-Tag' => 'index, follow',
             'Content-Language' => str_replace('_', '-', (string) ($localization['locale'] ?? 'en_NG')),
         ]);
     }
 
     public function robots(Request $request): Response
     {
-        $localization = app(VisitorLocalization::class)->resolve($request);
         $baseUrl = PlatformSettings::siteUrl();
         $host = parse_url($baseUrl, PHP_URL_HOST) ?: parse_url((string) config('app.url'), PHP_URL_HOST);
 
-        $lines = [
-            'User-agent: *',
-            'Allow: /',
-            '',
-            'Disallow: /admin',
-            'Disallow: /dashboard',
-            'Disallow: /profile',
-            'Disallow: /orders/',
-            '',
-            'Sitemap: '.$this->absoluteUrl($baseUrl, '/sitemap.xml'),
-            '',
-            '# Visitor localization',
-            '# locale: '.str_replace('_', '-', (string) ($localization['locale'] ?? 'en_NG')),
-            '# country: '.strtoupper((string) ($localization['country_code'] ?? 'NG')),
-            '# currency: '.strtoupper((string) ($localization['currency'] ?? 'NGN')),
+        $privatePaths = [
+            '/admin',
+            '/dashboard',
+            '/profile',
+            '/orders/',
+            '/live-chat/',
+            '/webhooks/',
         ];
+
+        $searchCrawlers = [
+            'Googlebot',
+            'Bingbot',
+            'DuckDuckBot',
+            'Applebot',
+            'YandexBot',
+            'Baiduspider',
+        ];
+
+        $lines = [];
+        foreach ($searchCrawlers as $crawler) {
+            $lines[] = 'User-agent: '.$crawler;
+            $lines[] = 'Allow: /';
+
+            foreach ($privatePaths as $path) {
+                $lines[] = 'Disallow: '.$path;
+            }
+
+            $lines[] = '';
+        }
+
+        $lines[] = 'Sitemap: '.$this->absoluteUrl($baseUrl, '/sitemap.xml');
 
         if (is_string($host) && trim($host) !== '') {
             $lines[] = 'Host: '.trim($host);
@@ -154,21 +184,16 @@ class SeoController extends Controller
             'Primary Public Pages:',
             '- Home: '.$this->absoluteUrl($baseUrl, '/'),
             '- Services: '.$this->absoluteUrl($baseUrl, '/services'),
-            '- About Us: '.$this->absoluteUrl($baseUrl, '/about-us'),
+            '- About Us: '.$this->absoluteUrl($baseUrl, '/about-bellah-options'),
             '- Gallery: '.$this->absoluteUrl($baseUrl, '/gallery'),
+            '- Reviews: '.$this->absoluteUrl($baseUrl, '/reviews'),
             '- FAQs: '.$this->absoluteUrl($baseUrl, '/faqs'),
             '- Web Design Samples: '.$this->absoluteUrl($baseUrl, '/web-design-samples'),
             '- Contact Us: '.$this->absoluteUrl($baseUrl, '/contact-us'),
             '',
-            'Service Landing Pages:',
+            'Service Order Pages:',
         ];
 
-        foreach (self::SERVICE_LANDING_SLUGS as $serviceSlug) {
-            $lines[] = '- '.$this->absoluteUrl($baseUrl, '/services/'.$serviceSlug);
-        }
-
-        $lines[] = '';
-        $lines[] = 'Service Order Pages:';
         foreach (array_keys($serviceOrderCatalog->all()) as $serviceSlug) {
             if (! is_string($serviceSlug) || trim($serviceSlug) === '') {
                 continue;

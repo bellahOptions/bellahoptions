@@ -84,7 +84,7 @@ export default function Blog({ posts = [] }) {
                                     No blog posts published yet.
                                 </h2>
                                 <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
-                                    The first Bellah Options article is being shaped. When the super-admin publishes a post, it will appear here.
+                                    The first Bellah Options article is being shaped. When a post is published, it will appear here.
                                 </p>
                                 <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white">
                                     Ask us a question

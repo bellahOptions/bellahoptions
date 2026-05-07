@@ -2,6 +2,7 @@ import { Head, useForm, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import PublicPageHeader from "@/Components/PublicPageHeader";
+import GoogleReviewsSection from "@/Components/GoogleReviewsSection";
 import { EnvelopeIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
 import HumanVerificationField from "@/Components/HumanVerificationField";
@@ -226,6 +227,12 @@ export default function Contact({
                             </form>
                         </div>
                     </RevealSection>
+
+                    <GoogleReviewsSection
+                        className="bg-white py-16 sm:py-20"
+                        title="What Clients Say Before They Reach Out"
+                        subtitle="Recent Google reviews from businesses and founders who have worked with Bellah Options."
+                    />
                 </main>
             </PageTheme>
         </>

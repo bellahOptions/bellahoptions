@@ -27,7 +27,7 @@ const navLinks = [
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
-    { label: "FAQs", href: "/faqs" },
+    { label: "Reviews", href: "/reviews" },
 ];
 
 const quickLinks = [
@@ -37,7 +37,7 @@ const quickLinks = [
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
-    { label: "FAQs", href: "/faqs" },
+    { label: "Reviews", href: "/reviews" },
     { label: "Contact", href: "/contact-us" },
 ];
 

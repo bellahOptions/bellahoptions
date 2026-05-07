@@ -11,6 +11,7 @@ use App\Mail\InvoicePaidReceiptMail;
 use App\Mail\InvoiceReminderMail;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Support\ClientReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -239,7 +240,11 @@ class InvoiceController extends Controller
         return back()->with('success', "Reminder sent to {$invoice->customer_email}.");
     }
 
-    public function markPaid(MarkInvoicePaidRequest $request, Invoice $invoice): RedirectResponse
+    public function markPaid(
+        MarkInvoicePaidRequest $request,
+        Invoice $invoice,
+        ClientReviewService $clientReviewService
+    ): RedirectResponse
     {
         if ($invoice->status === 'paid') {
             return back()->with('success', "Invoice {$invoice->invoice_number} is already marked as paid.");
@@ -251,15 +256,23 @@ class InvoiceController extends Controller
             'payment_reference' => $request->validated('payment_reference'),
         ]);
 
+        $receiptDeliveryFailed = false;
+
         try {
             Mail::to($invoice->customer_email)->send(new InvoicePaidReceiptMail($invoice->fresh()));
         } catch (Throwable $exception) {
+            $receiptDeliveryFailed = true;
+
             Log::warning('Invoice receipt email failed.', [
                 'invoice_id' => $invoice->id,
                 'customer_email' => $invoice->customer_email,
                 'error' => $exception->getMessage(),
             ]);
+        }
 
+        $clientReviewService->requestFromInvoice($invoice->fresh());
+
+        if ($receiptDeliveryFailed) {
             return back()->with('success', "Invoice {$invoice->invoice_number} marked as paid, but receipt email failed.");
         }
 

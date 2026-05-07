@@ -1,9 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 const createEmptySlide = () => ({
     title: '',
@@ -19,6 +18,7 @@ const PUBLIC_HEADER_PAGES = [
     { key: 'gallery', label: 'Gallery' },
     { key: 'blog', label: 'Blog' },
     { key: 'events', label: 'Events' },
+    { key: 'reviews', label: 'Reviews' },
     { key: 'faqs', label: 'FAQs' },
     { key: 'contact', label: 'Contact' },
     { key: 'web_design_samples', label: 'Web Design Samples' },
@@ -37,7 +37,7 @@ const createDefaultPublicPageHeaders = () => ({
     },
     gallery: {
         title: 'A look at visual systems, campaigns, and brand assets.',
-        text: 'Every project shown here is published directly by Bellah Options super-admin.',
+        text: 'Every project shown here is published directly by the Bellah Options team.',
         background_image: '',
     },
     blog: {
@@ -47,7 +47,12 @@ const createDefaultPublicPageHeaders = () => ({
     },
     events: {
         title: 'Workshops, launches, and creative sessions.',
-        text: 'Events uploaded by the super-admin appear here automatically.',
+        text: 'Events published by the Bellah Options team appear here automatically.',
+        background_image: '',
+    },
+    reviews: {
+        title: 'Google Reviews From Real Clients',
+        text: 'Read public Google feedback from founders, teams, and businesses that worked with Bellah Options.',
         background_image: '',
     },
     faqs: {
@@ -105,13 +110,27 @@ const quillFormats = [
     'link',
 ];
 
+const googleReviewDateFormatter = new Intl.DateTimeFormat('en-NG', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+});
+
+const formatGoogleReviewDate = (value) => {
+    if (!value) {
+        return '';
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? '' : googleReviewDateFormatter.format(date);
+};
+
 function TermsEditor({ label, value, onChange, error }) {
     return (
         <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
             <div className="overflow-hidden rounded-md border border-gray-300 bg-white focus-within:border-indigo-500">
-                <ReactQuill
-                    theme="snow"
+                <RichTextEditor
                     value={value}
                     onChange={onChange}
                     modules={quillModules}
@@ -130,6 +149,7 @@ export default function Settings({
     serviceCatalog = {},
     discountCodes = [],
     subscriptionPlans = [],
+    clientReviews = [],
 }) {
     const { flash } = usePage().props;
 
@@ -156,6 +176,11 @@ export default function Settings({
             ? settings.home_slides
             : [createEmptySlide()],
         public_page_headers: normalizePublicPageHeaders(settings?.public_page_headers),
+        google_reviews_widget_id: settings?.google_reviews?.widget_id || '',
+        google_reviews_widget_version: settings?.google_reviews?.widget_version || 'v2',
+        featured_google_review_ids: Array.isArray(settings?.google_reviews?.featured_review_ids)
+            ? settings.google_reviews.featured_review_ids
+            : [],
         terms: {
             terms_of_service: settings?.terms?.terms_of_service || '',
             privacy_policy: settings?.terms?.privacy_policy || '',
@@ -192,6 +217,15 @@ export default function Settings({
         is_recommended: false,
     });
 
+    const reviewForm = useForm({
+        reviewer_name: '',
+        reviewer_email: '',
+        rating: 5,
+        comment: '',
+        is_public: true,
+        is_featured: false,
+    });
+
     const [copiedLinkId, setCopiedLinkId] = useState(null);
     const [autoSaveState, setAutoSaveState] = useState('idle');
     const autoSaveInitialRender = useRef(true);
@@ -201,6 +235,17 @@ export default function Settings({
     const [selectorFiles, setSelectorFiles] = useState([]);
     const [selectorLoading, setSelectorLoading] = useState(false);
     const [selectorError, setSelectorError] = useState('');
+    const [googleReviewsPreview, setGoogleReviewsPreview] = useState(
+        settings?.google_reviews_preview?.reviews || [],
+    );
+    const [googleReviewsPreviewMeta, setGoogleReviewsPreviewMeta] = useState({
+        success: Boolean(settings?.google_reviews_preview?.success),
+        profile_url: settings?.google_reviews_preview?.profile_url || null,
+        total_review_count: settings?.google_reviews_preview?.total_review_count ?? null,
+        average_rating: settings?.google_reviews_preview?.average_rating ?? null,
+        error: settings?.google_reviews_preview?.error || '',
+    });
+    const [googleReviewsPreviewLoading, setGoogleReviewsPreviewLoading] = useState(false);
 
     const selectedServicePackages = serviceCatalog?.[discountForm.data.service_slug]?.packages || {};
     const selectedPlanPackages = serviceCatalog?.[subscriptionPlanForm.data.service_slug]?.packages || {};
@@ -331,6 +376,108 @@ export default function Settings({
         }
     };
 
+    const refreshGoogleReviewsPreview = async () => {
+        const widgetId = String(data.google_reviews_widget_id || '').trim();
+        const widgetVersion = String(data.google_reviews_widget_version || 'v2').trim() || 'v2';
+
+        setGoogleReviewsPreviewLoading(true);
+
+        try {
+            const response = await window.axios.get(route('admin.settings.google-reviews.preview'), {
+                params: {
+                    widget_id: widgetId,
+                    widget_version: widgetVersion,
+                },
+            });
+
+            const payload = response?.data && typeof response.data === 'object' ? response.data : {};
+            const reviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
+
+            setGoogleReviewsPreview(reviews);
+            setGoogleReviewsPreviewMeta({
+                success: Boolean(payload?.success),
+                profile_url: payload?.profile_url || null,
+                total_review_count: payload?.total_review_count ?? null,
+                average_rating: payload?.average_rating ?? null,
+                error: payload?.error || '',
+            });
+
+            if (reviews.length > 0) {
+                const allowedIds = new Set(reviews.map((review) => String(review.review_id || '')).filter(Boolean));
+                const selectedIds = Array.isArray(data.featured_google_review_ids)
+                    ? data.featured_google_review_ids
+                    : [];
+                const nextSelectedIds = selectedIds
+                    .map((value) => String(value || '').trim())
+                    .filter((value) => allowedIds.has(value));
+
+                if (nextSelectedIds.length !== selectedIds.length) {
+                    setData('featured_google_review_ids', nextSelectedIds);
+                }
+            }
+        } catch (error) {
+            setGoogleReviewsPreviewMeta({
+                success: false,
+                profile_url: null,
+                total_review_count: null,
+                average_rating: null,
+                error: 'Unable to load Google reviews preview right now.',
+            });
+            setGoogleReviewsPreview([]);
+        } finally {
+            setGoogleReviewsPreviewLoading(false);
+        }
+    };
+
+    const toggleFeaturedGoogleReview = (reviewId) => {
+        const normalized = String(reviewId || '').trim();
+
+        if (normalized === '') {
+            return;
+        }
+
+        const selected = Array.isArray(data.featured_google_review_ids)
+            ? data.featured_google_review_ids.map((value) => String(value || '').trim()).filter(Boolean)
+            : [];
+
+        if (selected.includes(normalized)) {
+            setData('featured_google_review_ids', selected.filter((value) => value !== normalized));
+            return;
+        }
+
+        if (selected.length >= 12) {
+            window.alert('You can feature up to 12 reviews.');
+            return;
+        }
+
+        setData('featured_google_review_ids', [...selected, normalized]);
+    };
+
+    useEffect(() => {
+        const widgetId = String(data.google_reviews_widget_id || '').trim();
+        const widgetVersion = String(data.google_reviews_widget_version || '').trim();
+
+        if (widgetId === '' || widgetVersion === '') {
+            setGoogleReviewsPreview([]);
+            setGoogleReviewsPreviewMeta({
+                success: false,
+                profile_url: null,
+                total_review_count: null,
+                average_rating: null,
+                error: 'Add your Featurable widget ID to load Google reviews.',
+            });
+            return;
+        }
+
+        const timer = window.setTimeout(() => {
+            refreshGoogleReviewsPreview();
+        }, 650);
+
+        return () => {
+            window.clearTimeout(timer);
+        };
+    }, [data.google_reviews_widget_id, data.google_reviews_widget_version]);
+
     const submitDiscountCode = (event) => {
         event.preventDefault();
 
@@ -415,6 +562,54 @@ export default function Settings({
         }
 
         router.delete(route('admin.settings.subscription-plans.destroy', subscriptionPlan.id), {
+            preserveScroll: true,
+        });
+    };
+
+    const submitClientReview = (event) => {
+        event.preventDefault();
+
+        reviewForm.post(route('admin.client-reviews.store'), {
+            preserveScroll: true,
+            onSuccess: () => {
+                reviewForm.reset();
+                reviewForm.setData('rating', 5);
+                reviewForm.setData('is_public', true);
+                reviewForm.setData('is_featured', false);
+            },
+        });
+    };
+
+    const toggleClientReviewVisibility = (review) => {
+        router.patch(
+            route('admin.client-reviews.update', review.id),
+            {
+                is_public: !Boolean(review.is_public),
+            },
+            {
+                preserveScroll: true,
+            },
+        );
+    };
+
+    const toggleClientReviewFeatured = (review) => {
+        router.patch(
+            route('admin.client-reviews.update', review.id),
+            {
+                is_featured: !Boolean(review.is_featured),
+            },
+            {
+                preserveScroll: true,
+            },
+        );
+    };
+
+    const deleteClientReview = (review) => {
+        if (!window.confirm('Delete this review?')) {
+            return;
+        }
+
+        router.delete(route('admin.client-reviews.destroy', review.id), {
             preserveScroll: true,
         });
     };
@@ -848,9 +1043,303 @@ export default function Settings({
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Google Reviews Embed</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Connect a free Featurable widget and choose which Google reviews should be featured across public pages.
+                            </p>
+
+                            <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Featurable Widget ID</label>
+                                    <input
+                                        type="text"
+                                        value={data.google_reviews_widget_id || ''}
+                                        onChange={(event) => setData('google_reviews_widget_id', event.target.value)}
+                                        placeholder="842ncdd8-0f40-438d-9c..."
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors.google_reviews_widget_id && (
+                                        <p className="mt-1 text-xs text-red-600">{errors.google_reviews_widget_id}</p>
+                                    )}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Widget API Version</label>
+                                    <select
+                                        value={data.google_reviews_widget_version || 'v2'}
+                                        onChange={(event) => setData('google_reviews_widget_version', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    >
+                                        <option value="v2">v2 (recommended)</option>
+                                        <option value="v1">v1</option>
+                                    </select>
+                                    {errors.google_reviews_widget_version && (
+                                        <p className="mt-1 text-xs text-red-600">{errors.google_reviews_widget_version}</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                <button
+                                    type="button"
+                                    onClick={refreshGoogleReviewsPreview}
+                                    disabled={googleReviewsPreviewLoading}
+                                    className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                                >
+                                    {googleReviewsPreviewLoading ? 'Refreshing...' : 'Refresh Reviews'}
+                                </button>
+                                {googleReviewsPreviewMeta?.profile_url && (
+                                    <a
+                                        href={googleReviewsPreviewMeta.profile_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-semibold text-indigo-700 hover:text-indigo-800"
+                                    >
+                                        Open Google review page
+                                    </a>
+                                )}
+                            </div>
+
+                            {googleReviewsPreviewMeta?.error ? (
+                                <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                                    {googleReviewsPreviewMeta.error}
+                                </p>
+                            ) : null}
+
+                            {(googleReviewsPreviewMeta?.average_rating || googleReviewsPreviewMeta?.total_review_count) && (
+                                <p className="mt-3 text-sm font-medium text-gray-700">
+                                    Average rating: {googleReviewsPreviewMeta.average_rating ?? '-'} / 5
+                                    {' '}({googleReviewsPreviewMeta.total_review_count ?? 0} reviews)
+                                </p>
+                            )}
+
+                            <div className="mt-5">
+                                <p className="text-sm font-semibold text-gray-900">Featured Review Selection</p>
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Selected reviews are shown first on the public website. If none are selected, the latest reviews are used automatically.
+                                </p>
+                                {errors.featured_google_review_ids && (
+                                    <p className="mt-1 text-xs text-red-600">{errors.featured_google_review_ids}</p>
+                                )}
+
+                                {googleReviewsPreview.length === 0 ? (
+                                    <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-600">
+                                        No reviews loaded yet.
+                                    </div>
+                                ) : (
+                                    <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                                        {googleReviewsPreview.map((review) => {
+                                            const reviewId = String(review?.review_id || '');
+                                            const selected = (data.featured_google_review_ids || []).includes(reviewId);
+                                            const stars = Number(review?.rating || 0);
+
+                                            return (
+                                                <label
+                                                    key={reviewId}
+                                                    className={`cursor-pointer rounded-lg border p-3 ${selected ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}
+                                                >
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-gray-900">{review?.reviewer_name || 'Anonymous'}</p>
+                                                            <p className="text-xs text-gray-500">{formatGoogleReviewDate(review?.published_at)}</p>
+                                                        </div>
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={selected}
+                                                            onChange={() => toggleFeaturedGoogleReview(reviewId)}
+                                                            className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                        />
+                                                    </div>
+                                                    <p className="mt-2 text-xs text-amber-600">{'★'.repeat(Math.max(1, Math.min(5, stars)))}</p>
+                                                    <p className="mt-2 text-sm leading-6 text-gray-700">
+                                                        {String(review?.comment || '').trim() || 'No review text provided.'}
+                                                    </p>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Client Reviews Manager</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Add internal reviews with star ratings and control which ones appear publicly. Reviews rated below 4.0 stay private automatically.
+                            </p>
+
+                            <form onSubmit={submitClientReview} className="mt-5 grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Reviewer Name</label>
+                                    <input
+                                        type="text"
+                                        value={reviewForm.data.reviewer_name}
+                                        onChange={(event) => reviewForm.setData('reviewer_name', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {reviewForm.errors.reviewer_name && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.reviewer_name}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Reviewer Email (optional)</label>
+                                    <input
+                                        type="email"
+                                        value={reviewForm.data.reviewer_email}
+                                        onChange={(event) => reviewForm.setData('reviewer_email', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {reviewForm.errors.reviewer_email && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.reviewer_email}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Star Rating</label>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        max="5"
+                                        step="0.1"
+                                        value={reviewForm.data.rating}
+                                        onChange={(event) => reviewForm.setData('rating', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {reviewForm.errors.rating && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.rating}</p>}
+                                </div>
+
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={Boolean(reviewForm.data.is_public)}
+                                            onChange={(event) => reviewForm.setData('is_public', event.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        Public
+                                    </label>
+                                    <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                        <input
+                                            type="checkbox"
+                                            checked={Boolean(reviewForm.data.is_featured)}
+                                            onChange={(event) => reviewForm.setData('is_featured', event.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        />
+                                        Featured
+                                    </label>
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Review Comment</label>
+                                    <textarea
+                                        rows="4"
+                                        value={reviewForm.data.comment}
+                                        onChange={(event) => reviewForm.setData('comment', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {reviewForm.errors.comment && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.comment}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <button
+                                        type="submit"
+                                        disabled={reviewForm.processing}
+                                        className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {reviewForm.processing ? 'Saving...' : 'Add Review'}
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div className="mt-6 overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
+                                        <tr>
+                                            <th className="px-3 py-2 text-left">Reviewer</th>
+                                            <th className="px-3 py-2 text-left">Rating</th>
+                                            <th className="px-3 py-2 text-left">Source</th>
+                                            <th className="px-3 py-2 text-left">Status</th>
+                                            <th className="px-3 py-2 text-left">Review</th>
+                                            <th className="px-3 py-2 text-left">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+                                        {clientReviews.length === 0 && (
+                                            <tr>
+                                                <td className="px-3 py-4 text-sm text-gray-500" colSpan={6}>
+                                                    No client reviews yet.
+                                                </td>
+                                            </tr>
+                                        )}
+
+                                        {clientReviews.map((review) => (
+                                            <tr key={`client-review-${review.id}`}>
+                                                <td className="px-3 py-3">
+                                                    <p className="font-semibold text-gray-900">{review.reviewer_name || 'Anonymous'}</p>
+                                                    <p className="text-xs text-gray-500">{review.reviewer_email || 'No email'}</p>
+                                                </td>
+                                                <td className="px-3 py-3">
+                                                    <p className="text-amber-600">{'★'.repeat(Math.max(1, Math.min(5, Math.round(Number(review.rating || 0)))))}</p>
+                                                    <p className="text-xs text-gray-500">{Number(review.rating || 0).toFixed(1)}/5</p>
+                                                </td>
+                                                <td className="px-3 py-3">
+                                                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                                        review.source === 'admin'
+                                                            ? 'bg-blue-100 text-blue-700'
+                                                            : 'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                        {review.source === 'admin' ? 'Admin' : 'Client'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-3 py-3">
+                                                    <p className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                                        review.is_public ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                    }`}>
+                                                        {review.is_public ? 'Public' : 'Private'}
+                                                    </p>
+                                                    <p className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                                        review.is_featured ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'
+                                                    }`}>
+                                                        {review.is_featured ? 'Featured' : 'Not Featured'}
+                                                    </p>
+                                                </td>
+                                                <td className="px-3 py-3 text-xs leading-6 text-gray-600">
+                                                    {String(review.comment || '').slice(0, 140)}
+                                                    {String(review.comment || '').length > 140 ? '...' : ''}
+                                                </td>
+                                                <td className="px-3 py-3">
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleClientReviewVisibility(review)}
+                                                            className="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                        >
+                                                            {review.is_public ? 'Make Private' : 'Make Public'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleClientReviewFeatured(review)}
+                                                            className="rounded-md border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                                                        >
+                                                            {review.is_featured ? 'Unfeature' : 'Feature'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => deleteClientReview(review)}
+                                                            className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-gray-900">Legal Terms Manager</h3>
                             <p className="mt-1 text-sm text-gray-600">
-                                Super admins can update the Terms of Service, Privacy Policy, and Cookie Policy directly from this dashboard.
+                                Admins can update the Terms of Service, Privacy Policy, and Cookie Policy directly from this dashboard.
                             </p>
                             <p className="mt-1 text-xs text-gray-500">
                                 Use the Quill editor to format headings, paragraphs, lists, and links.

@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\Admin\ClientReviewController as AdminClientReviewController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\ClientReviewController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\LiveChat\CustomerChatController;
 use App\Http\Controllers\LiveChat\StaffChatController;
@@ -33,6 +35,11 @@ Route::get('/blog/{blogPost:slug}', [PagesController::class, 'blogShowPage'])->n
 Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contact');
 Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
 Route::get('/faqs', [PagesController::class, 'faqsPage'])->name('faqs');
+Route::get('/reviews', [PagesController::class, 'reviewsPage'])->name('reviews');
+Route::get('/reviews/submit/{token}', [ClientReviewController::class, 'show'])->name('reviews.submit.show');
+Route::post('/reviews/submit/{token}', [ClientReviewController::class, 'store'])
+    ->middleware('throttle:20,1')
+    ->name('reviews.submit.store');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
 
 //ORDER ROUTES
@@ -76,14 +83,24 @@ Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->name('waitlist.store');
 
 Route::prefix('live-chat')->name('live-chat.')->group(function (): void {
-    Route::get('/session', [CustomerChatController::class, 'session'])->name('session');
-    Route::get('/messages', [CustomerChatController::class, 'messages'])->name('messages');
+    Route::get('/session', [CustomerChatController::class, 'session'])
+        ->middleware('throttle:live-chat-read')
+        ->name('session');
+    Route::get('/messages', [CustomerChatController::class, 'messages'])
+        ->middleware('throttle:live-chat-read')
+        ->name('messages');
     Route::post('/messages', [CustomerChatController::class, 'send'])
         ->middleware('throttle:40,1')
         ->name('messages.send');
-    Route::patch('/close', [CustomerChatController::class, 'close'])->name('close');
-    Route::post('/presence', [CustomerChatController::class, 'presence'])->name('presence');
-    Route::post('/typing', [CustomerChatController::class, 'typing'])->name('typing');
+    Route::patch('/close', [CustomerChatController::class, 'close'])
+        ->middleware('throttle:live-chat-signal')
+        ->name('close');
+    Route::post('/presence', [CustomerChatController::class, 'presence'])
+        ->middleware('throttle:live-chat-signal')
+        ->name('presence');
+    Route::post('/typing', [CustomerChatController::class, 'typing'])
+        ->middleware('throttle:live-chat-signal')
+        ->name('typing');
     Route::post('/messages/{message}/reactions', [CustomerChatController::class, 'react'])
         ->middleware('throttle:120,1')
         ->name('messages.react');
@@ -128,6 +145,10 @@ Route::middleware(['auth', 'verified', 'super-admin'])->group(function (): void 
     Route::post('/admin/settings/discount-codes', [SettingController::class, 'storeDiscount'])->name('admin.settings.discounts.store');
     Route::patch('/admin/settings/discount-codes/{discountCode}/status', [SettingController::class, 'toggleDiscountStatus'])->name('admin.settings.discounts.status');
     Route::delete('/admin/settings/discount-codes/{discountCode}', [SettingController::class, 'destroyDiscount'])->name('admin.settings.discounts.destroy');
+    Route::get('/admin/settings/google-reviews/preview', [SettingController::class, 'previewGoogleReviews'])->name('admin.settings.google-reviews.preview');
+    Route::post('/admin/client-reviews', [AdminClientReviewController::class, 'store'])->name('admin.client-reviews.store');
+    Route::patch('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'update'])->name('admin.client-reviews.update');
+    Route::delete('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'destroy'])->name('admin.client-reviews.destroy');
     Route::post('/admin/settings/subscription-plans', [SettingController::class, 'storeSubscriptionPlan'])->name('admin.settings.subscription-plans.store');
     Route::patch('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'updateSubscriptionPlan'])->name('admin.settings.subscription-plans.update');
     Route::delete('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'destroySubscriptionPlan'])->name('admin.settings.subscription-plans.destroy');

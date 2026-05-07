@@ -17,6 +17,9 @@ class UpdateServicePricingRequest extends FormRequest
         $this->merge([
             'package_overrides' => is_array($this->input('package_overrides')) ? $this->input('package_overrides') : [],
             'graphic_design_items' => is_array($this->input('graphic_design_items')) ? $this->input('graphic_design_items') : [],
+            'social_graphic_trial_fee_ngn' => is_numeric($this->input('social_graphic_trial_fee_ngn'))
+                ? round((float) $this->input('social_graphic_trial_fee_ngn'), 2)
+                : 0,
         ]);
     }
 
@@ -41,6 +44,8 @@ class UpdateServicePricingRequest extends FormRequest
             'graphic_design_items.*.description' => ['nullable', 'string', 'max:800'],
             'graphic_design_items.*.image_path' => ['nullable', 'string', 'max:255'],
             'graphic_design_items.*.unit_price' => ['required', 'numeric', 'min:0.01', 'max:999999999.99'],
+
+            'social_graphic_trial_fee_ngn' => ['required', 'numeric', 'min:0', 'max:999999999.99'],
         ];
     }
 }

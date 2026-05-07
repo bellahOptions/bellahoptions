@@ -7,10 +7,20 @@ import { createRoot } from 'react-dom/client';
 import GlobalPreloader from '@/Components/GlobalPreloader';
 import ClientErrorBoundary from '@/Components/ClientErrorBoundary';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Bellah Options';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: (title) => {
+        const normalized = String(title || '').trim();
+
+        if (normalized === '') {
+            return appName;
+        }
+
+        return normalized.includes(appName)
+            ? normalized
+            : `${normalized} | ${appName}`;
+    },
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.jsx`,

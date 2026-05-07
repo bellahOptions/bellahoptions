@@ -1,0 +1,1 @@
+import{n as e,t,y as n}from"./jsx-runtime-BFeDoU5F.js";import{t as r}from"./app-B8aLXSoG.js";var i=n(t(),1);function a({status:t=500,title:n=null,message:a=null}){return(0,i.jsxs)(i.Fragment,{children:[(0,i.jsx)(e,{title:`${t} Error`}),(0,i.jsx)(r,{status:t,title:n,message:a})]})}export{a as default};

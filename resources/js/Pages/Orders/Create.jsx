@@ -105,6 +105,7 @@ export default function OrderCreate({
     selectedServiceSlug,
     selectedPackageCode,
     visitorLocalization,
+    paymentReadiness = {},
     profileDefaults = {},
 }) {
     const { flash, auth, localization } = usePage().props;
@@ -115,6 +116,9 @@ export default function OrderCreate({
         ? selectedServiceSlug
         : serviceSlug;
     const draftStorageKey = `${orderDraftStoragePrefix}:${serviceSlug}`;
+    const paystackAvailable = Boolean(paymentReadiness?.paystack?.available);
+    const paystackIssue = String(paymentReadiness?.paystack?.message || "").trim();
+    const fallbackAccount = paymentReadiness?.fallback_account || null;
 
     const { data, setData, setError, clearErrors, post, processing, errors } = useForm(
         buildOrderFormSeed(checkoutServices, {
@@ -139,6 +143,9 @@ export default function OrderCreate({
     const activeService = checkoutServices[activeServiceSlug] || null;
     const activePackages = activeService?.packages || {};
     const activePackageEntries = Object.entries(activePackages);
+    const regularPackageEntries = activePackageEntries.filter(([, pack]) => !Boolean(pack?.is_trial));
+    const trialPackageEntry = activePackageEntries.find(([, pack]) => Boolean(pack?.is_trial)) || null;
+    const trialPackageCode = trialPackageEntry?.[0] || "";
     const logoAddonEntries = Object.entries(logoAddons || {});
     const selectedLogoAddon = logoAddons[data.logo_addon_package] || null;
     const autoTimelinePreference = useMemo(
@@ -365,7 +372,7 @@ export default function OrderCreate({
 
     useEffect(() => {
         if (!activePackages[data.service_package]) {
-            const firstPackageCode = activePackageEntries[0]?.[0] || "";
+            const firstPackageCode = regularPackageEntries[0]?.[0] || activePackageEntries[0]?.[0] || "";
             const nextData = {
                 ...data,
                 service_package: firstPackageCode,
@@ -374,7 +381,16 @@ export default function OrderCreate({
             setData("service_package", firstPackageCode);
             validateFields(nextData, ["service_package"]);
         }
-    }, [activePackageEntries, activePackages, data, data.service_package, setData]);
+    }, [activePackageEntries, activePackages, data, data.service_package, regularPackageEntries, setData]);
+
+    useEffect(() => {
+        if (data.service_package !== trialPackageCode || data.discount_code === "") {
+            return;
+        }
+
+        setData("discount_code", "");
+        clearErrors("discount_code");
+    }, [clearErrors, data.discount_code, data.service_package, setData, trialPackageCode]);
 
     useEffect(() => {
         if (data.has_logo !== "no") {
@@ -787,7 +803,7 @@ export default function OrderCreate({
                                     </div>
                                 </div>
 
-                                {(discountCode || data.discount_code) && (
+                                {(discountCode || data.discount_code) && data.service_package !== trialPackageCode && (
                                     <div className="border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-700">
                                         Discount <strong>{data.discount_code || discountCode}</strong> is attached.
                                         {discountSummary ? ` (${discountSummary})` : ""}
@@ -796,6 +812,30 @@ export default function OrderCreate({
                                 {draftRestored && (
                                     <div className="border border-cyan-200 bg-cyan-50 p-5 text-sm text-cyan-800">
                                         We restored your last in-progress draft automatically.
+                                    </div>
+                                )}
+                                {!paystackAvailable && (
+                                    <div className="border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
+                                        <p className="font-black uppercase tracking-[0.14em] text-amber-700">Payment Update</p>
+                                        <p className="mt-2">
+                                            Online Paystack checkout is not available right now.
+                                            {paystackIssue ? ` ${paystackIssue}` : ""}
+                                        </p>
+                                        {fallbackAccount ? (
+                                            <div className="mt-3 space-y-1 text-xs leading-5 text-amber-900">
+                                                <p><strong>Bank:</strong> {fallbackAccount.bank_name}</p>
+                                                <p><strong>Account Name:</strong> {fallbackAccount.account_name}</p>
+                                                <p><strong>Account Number:</strong> {fallbackAccount.account_number}</p>
+                                                {fallbackAccount.instructions && (
+                                                    <p><strong>Instructions:</strong> {fallbackAccount.instructions}</p>
+                                                )}
+                                                <p><strong>Support:</strong> {fallbackAccount.support_email}</p>
+                                            </div>
+                                        ) : (
+                                            <p className="mt-3 text-xs text-amber-800">
+                                                Please continue with your order and our team will share manual payment details.
+                                            </p>
+                                        )}
                                     </div>
                                 )}
                             </aside>
@@ -1002,10 +1042,10 @@ export default function OrderCreate({
                                     <section>
                                         <SectionTitle
                                             title="Choose Package"
-                                            text="Pick the package that best matches the depth and speed of the work."
+                                            text="Pick a regular plan/pack, or choose the trial request option for one-off work outside plans and packs."
                                         />
                                         <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                                            {activePackageEntries.map(([code, pack]) => {
+                                            {regularPackageEntries.map(([code, pack]) => {
                                                 const selected = data.service_package === code;
 
                                                 return (
@@ -1054,6 +1094,32 @@ export default function OrderCreate({
                                                 );
                                             })}
                                         </div>
+                                        {trialPackageEntry && (
+                                            <div className="mt-6 rounded-lg border border-dashed border-[#000285] bg-blue-50 p-5">
+                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">Outside Plans / Packs</p>
+                                                <div className="mt-4">
+                                                    {(() => {
+                                                        const [code, pack] = trialPackageEntry;
+                                                        const selected = data.service_package === code;
+
+                                                        return (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => updateField("service_package", code)}
+                                                                className={`w-full border p-5 text-left transition ${selected ? "border-[#000285] bg-white" : "border-blue-200 bg-blue-50/30 hover:border-blue-300"}`}
+                                                            >
+                                                                <p className="text-lg font-black text-gray-950">{pack.name}</p>
+                                                                <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(pack.price, currency, locale)}</p>
+                                                                <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
+                                                                <p className="mt-3 text-xs font-semibold text-gray-500">
+                                                                    This trial option uses a fixed fee and does not accept discount codes.
+                                                                </p>
+                                                            </button>
+                                                        );
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        )}
                                         {errors.service_package && <p className="mt-3 text-sm text-red-600">{errors.service_package}</p>}
                                     </section>
                                 )}

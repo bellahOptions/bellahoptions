@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\PlatformSettings;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -14,6 +15,16 @@ use Throwable;
 
 class StoreServiceOrderRequest extends FormRequest
 {
+    private const TRIAL_PACKAGE_CODE = 'trial-request';
+
+    /**
+     * @var array<int, string>
+     */
+    private const TRIAL_SERVICE_SLUGS = [
+        'social-media-design',
+        'graphic-design',
+    ];
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -272,8 +283,16 @@ class StoreServiceOrderRequest extends FormRequest
     private function allowedPackageCodes(): array
     {
         $serviceSlug = $this->serviceSlug();
+        $codes = app(ServiceOrderCatalog::class)->packageCodes($serviceSlug);
 
-        return app(ServiceOrderCatalog::class)->packageCodes($serviceSlug);
+        if (
+            in_array($serviceSlug, self::TRIAL_SERVICE_SLUGS, true)
+            && PlatformSettings::socialGraphicTrialFeeNgn() > 0
+        ) {
+            $codes[] = self::TRIAL_PACKAGE_CODE;
+        }
+
+        return array_values(array_unique($codes));
     }
 
     /**

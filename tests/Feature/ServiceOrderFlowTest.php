@@ -11,6 +11,7 @@ use App\Support\PlatformSettings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
 class ServiceOrderFlowTest extends TestCase
@@ -207,6 +208,25 @@ class ServiceOrderFlowTest extends TestCase
             ->assertDontSee('name="design_system_need"', false);
     }
 
+    public function test_order_form_shows_company_account_details_when_paystack_is_unavailable(): void
+    {
+        config()->set('services.paystack.public_key', '');
+        config()->set('services.paystack.secret_key', '');
+        config()->set('bellah.payment.transfer.account_number', '4210082961');
+        config()->set('bellah.payment.transfer.account_name', 'Bellah Options');
+        config()->set('bellah.payment.transfer.bank_name', 'Fidelity Bank');
+
+        $this->get(route('orders.create', 'social-media-design'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Orders/Create')
+                ->where('paymentReadiness.paystack.available', false)
+                ->where('paymentReadiness.fallback_account.account_number', '4210082961')
+                ->where('paymentReadiness.fallback_account.account_name', 'Bellah Options')
+                ->where('paymentReadiness.fallback_account.bank_name', 'Fidelity Bank')
+            );
+    }
+
     public function test_web_design_order_requires_web_specific_brief_fields(): void
     {
         $this->get(route('orders.create', 'web-design'));
@@ -281,6 +301,83 @@ class ServiceOrderFlowTest extends TestCase
             'id' => $order->invoice_id,
             'amount' => 45555.00,
         ]);
+    }
+
+    public function test_social_media_trial_request_uses_configured_trial_fee(): void
+    {
+        PlatformSettings::setSocialGraphicTrialFeeNgn(21500);
+
+        $this->get(route('orders.create', 'social-media-design'));
+
+        $guard = session('service_order_human_check');
+        $guard['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['service_order_human_check' => $guard]);
+
+        $response = $this->post(route('orders.store', 'social-media-design'), [
+            'service_package' => 'trial-request',
+            'full_name' => 'Trial Client',
+            'email' => 'trial@example.com',
+            'phone' => '+2348108671804',
+            'business_name' => 'Trial Studio',
+            'position' => 'Founder',
+            'has_logo' => 'yes',
+            'primary_platforms' => 'Instagram, LinkedIn',
+            'project_summary' => 'Need a one-off social media design trial request outside the regular monthly plans.',
+            'discount_code' => 'START20',
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
+            'website' => '',
+            'company_name' => '',
+        ]);
+
+        $order = ServiceOrder::query()->latest('id')->first();
+
+        $this->assertNotNull($order);
+        $response->assertRedirect(route('orders.payment.show', $order));
+
+        $this->assertDatabaseHas('service_orders', [
+            'id' => $order->id,
+            'service_slug' => 'social-media-design',
+            'package_code' => 'trial-request',
+            'package_name' => 'Trial Design Request',
+            'base_amount' => 21500.00,
+            'amount' => 21500.00,
+            'discount_code' => null,
+            'discount_amount' => 0.00,
+            'payment_status' => 'pending',
+        ]);
+    }
+
+    public function test_trial_request_package_is_rejected_when_trial_fee_is_not_enabled(): void
+    {
+        PlatformSettings::setSocialGraphicTrialFeeNgn(0);
+
+        $this->get(route('orders.create', 'social-media-design'));
+
+        $guard = session('service_order_human_check');
+        $guard['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['service_order_human_check' => $guard]);
+
+        $response = $this->post(route('orders.store', 'social-media-design'), [
+            'service_package' => 'trial-request',
+            'full_name' => 'Trial Disabled',
+            'email' => 'trial-disabled@example.com',
+            'phone' => '+2348108671804',
+            'business_name' => 'Trial Studio',
+            'position' => 'Founder',
+            'has_logo' => 'yes',
+            'primary_platforms' => 'Instagram, LinkedIn',
+            'project_summary' => 'Need a one-off social media design trial request outside the regular monthly plans.',
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
+            'website' => '',
+            'company_name' => '',
+        ]);
+
+        $response->assertSessionHasErrors('service_package');
+        $this->assertDatabaseCount('service_orders', 0);
     }
 
     public function test_payment_initialization_redirects_to_paystack_authorization_url(): void
@@ -414,6 +511,64 @@ class ServiceOrderFlowTest extends TestCase
             'status' => 'paid',
             'payment_reference' => 'BO-CALLBACK-REF',
         ]);
+    }
+
+    public function test_payment_callback_failure_does_not_expose_order_for_unauthorized_session(): void
+    {
+        $user = User::factory()->create();
+
+        $invoice = Invoice::create([
+            'invoice_number' => '251A',
+            'customer_name' => $user->name,
+            'customer_email' => $user->email,
+            'title' => 'Test Invoice',
+            'amount' => 30000,
+            'currency' => 'NGN',
+            'status' => 'sent',
+            'issued_at' => now(),
+            'created_by' => $user->id,
+        ]);
+
+        ServiceOrder::create([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'order_code' => 'BO-ORDER-301A',
+            'user_id' => $user->id,
+            'service_slug' => 'social-media-design',
+            'service_name' => 'Social Media Design Subscription',
+            'package_code' => 'starter',
+            'package_name' => 'Starter Pack',
+            'currency' => 'NGN',
+            'amount' => 30000,
+            'payment_status' => 'processing',
+            'order_status' => 'awaiting_payment',
+            'progress_percent' => 5,
+            'paystack_reference' => 'BO-CALLBACK-FAIL-REF',
+            'full_name' => $user->name,
+            'email' => $user->email,
+            'phone' => '+2348108671804',
+            'business_name' => 'Test Co',
+            'project_summary' => 'Need recurring design subscription for social media campaigns.',
+            'wants_account' => false,
+            'invoice_id' => $invoice->id,
+        ]);
+
+        config()->set('services.paystack.secret_key', 'sk_test_123');
+
+        Http::fake([
+            'https://api.paystack.co/transaction/verify/*' => Http::response([
+                'status' => true,
+                'data' => [
+                    'status' => 'failed',
+                    'amount' => 3000000,
+                    'currency' => 'NGN',
+                    'reference' => 'BO-CALLBACK-FAIL-REF',
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->get(route('orders.payment.callback', ['reference' => 'BO-CALLBACK-FAIL-REF']));
+
+        $response->assertRedirect(route('home'));
     }
 
     public function test_customer_can_submit_transfer_payment_confirmation(): void

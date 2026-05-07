@@ -1,6 +1,7 @@
 import { Head, Link, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import GoogleReviewsSection from "@/Components/GoogleReviewsSection";
 import { resolvePublicAssetUrl } from "@/lib/publicPageHeaders";
 import {
     ArrowRightIcon,
@@ -350,6 +351,12 @@ export default function About() {
                             </Stagger>
                         </div>
                     </RevealSection>
+
+                    <GoogleReviewsSection
+                        className="bg-gray-50 py-16 sm:py-20 lg:py-24"
+                        title="Client Reviews"
+                        subtitle="Google reviews from clients who have partnered with Bellah Options."
+                    />
 
                     <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">

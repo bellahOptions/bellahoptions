@@ -59,7 +59,7 @@ export default function StaffLogin({
                     Admin & Staff Access
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                    For Bellah Options super admins and customer reps.
+                    For Bellah Options senior admins and customer reps.
                 </p>
             </div>
 

@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\EnsureStaffUser;
 use App\Http\Middleware\EnsureSuperAdmin;
+use App\Http\Middleware\AddSecurityHeaders;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ResolveVisitorLocalization;
 use App\Http\Middleware\RestrictPublicAuthWhenLocked;
@@ -29,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             ResolveVisitorLocalization::class,
             HandleInertiaRequests::class,
+            AddSecurityHeaders::class,
             AddLinkHeadersForPreloadedAssets::class,
             RestrictPublicRoutesWhenLocked::class,
         ]);

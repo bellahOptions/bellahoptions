@@ -1,8 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import RichTextEditor from '@/Components/RichTextEditor';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 const emptyPost = {
     title: '',
@@ -291,8 +290,7 @@ function BlogFields({ form, className = '' }) {
 
             <Field label="Post Body" error={form.errors.body} className="md:col-span-2">
                 <div className="overflow-hidden rounded-md border border-gray-300 bg-white focus-within:border-blue-500">
-                    <ReactQuill
-                        theme="snow"
+                    <RichTextEditor
                         value={form.data.body || ''}
                         onChange={(value) => form.setData('body', value)}
                         modules={quillModules}

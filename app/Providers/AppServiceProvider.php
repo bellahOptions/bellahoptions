@@ -60,5 +60,31 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perDay(10)->by($fingerprint),
             ];
         });
+
+        RateLimiter::for('live-chat-read', function (Request $request): array {
+            $token = Str::lower(trim((string) $request->header('X-Live-Chat-Token', $request->query('token', ''))));
+            $fingerprint = implode('|', [
+                (string) $request->ip(),
+                $token !== '' ? $token : 'no-token',
+            ]);
+
+            return [
+                Limit::perMinute(90)->by($fingerprint),
+                Limit::perHour(900)->by($fingerprint),
+            ];
+        });
+
+        RateLimiter::for('live-chat-signal', function (Request $request): array {
+            $token = Str::lower(trim((string) $request->header('X-Live-Chat-Token', $request->query('token', ''))));
+            $fingerprint = implode('|', [
+                (string) $request->ip(),
+                $token !== '' ? $token : 'no-token',
+            ]);
+
+            return [
+                Limit::perMinute(120)->by($fingerprint),
+                Limit::perHour(1200)->by($fingerprint),
+            ];
+        });
     }
 }

@@ -30,6 +30,8 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'contact_map_embed_url',
             'logo_path',
             'favicon_path',
+            'google_reviews_widget_id',
+            'google_reviews_widget_version',
         ] as $field) {
             if ($this->has($field)) {
                 $fields[$field] = trim((string) $this->input($field));
@@ -50,6 +52,12 @@ class UpdatePlatformSettingsRequest extends FormRequest
 
         if ($this->has('terms')) {
             $fields['terms'] = is_array($this->input('terms')) ? $this->input('terms') : null;
+        }
+
+        if ($this->has('featured_google_review_ids')) {
+            $fields['featured_google_review_ids'] = is_array($this->input('featured_google_review_ids'))
+                ? $this->input('featured_google_review_ids')
+                : [];
         }
 
         $this->merge($fields);
@@ -73,6 +81,10 @@ class UpdatePlatformSettingsRequest extends FormRequest
 
             'logo_path' => ['sometimes', 'required', 'string', 'max:255'],
             'favicon_path' => ['sometimes', 'required', 'string', 'max:255'],
+            'google_reviews_widget_id' => ['sometimes', 'nullable', 'string', 'max:160', 'regex:/^[A-Za-z0-9\-]*$/'],
+            'google_reviews_widget_version' => ['sometimes', 'nullable', 'string', 'in:v1,v2'],
+            'featured_google_review_ids' => ['sometimes', 'required', 'array', 'max:20'],
+            'featured_google_review_ids.*' => ['required_with:featured_google_review_ids', 'string', 'max:220'],
 
             'home_slides' => ['sometimes', 'required', 'array', 'min:1', 'max:10'],
             'home_slides.*.title' => ['required_with:home_slides', 'string', 'max:120'],
@@ -102,6 +114,7 @@ class UpdatePlatformSettingsRequest extends FormRequest
         return [
             'home_slides.*.image.regex' => 'Slide image paths may only include letters, numbers, slashes, dots, dashes, and underscores.',
             'home_slides.*.cta_url.regex' => 'Slide CTA URL must start with "https://", "http://", or "/".',
+            'google_reviews_widget_id.regex' => 'Google reviews widget ID may only contain letters, numbers, and dashes.',
         ];
     }
 }

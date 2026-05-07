@@ -14,7 +14,7 @@ export default function Gallery({ projects = [] }) {
                     <PublicPageHeader
                         pageKey="gallery"
                         fallbackTitle="A look at visual systems, campaigns, and brand assets."
-                        fallbackText="Every project shown here is published directly by Bellah Options super-admin."
+                        fallbackText="Every project shown here is published directly by the Bellah Options team."
                     >
                         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
                             <a
@@ -39,7 +39,7 @@ export default function Gallery({ projects = [] }) {
                             <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                                 {!hasProjects && (
                                     <article className="col-span-full border border-blue-100 bg-blue-50 p-6 text-sm font-semibold leading-7 text-blue-900">
-                                        No gallery projects are published yet. Super-admin uploads will appear here once available.
+                                        No gallery projects are published yet. New uploads will appear here once available.
                                     </article>
                                 )}
                                 {projects.map((project) => {

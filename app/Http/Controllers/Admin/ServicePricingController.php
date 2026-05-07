@@ -45,6 +45,7 @@ class ServicePricingController extends Controller
                 ->values(),
             'packageOverrides' => $packageOverrides,
             'graphicDesignItems' => PlatformSettings::graphicDesignItems(),
+            'socialGraphicTrialFeeNgn' => PlatformSettings::socialGraphicTrialFeeNgn(),
         ]);
     }
 
@@ -54,6 +55,7 @@ class ServicePricingController extends Controller
 
         PlatformSettings::setServicePackageOverrides((array) ($payload['package_overrides'] ?? []));
         PlatformSettings::setGraphicDesignItems((array) ($payload['graphic_design_items'] ?? []));
+        PlatformSettings::setSocialGraphicTrialFeeNgn((float) ($payload['social_graphic_trial_fee_ngn'] ?? 0));
 
         return back()->with('success', 'Service pricing updated successfully.');
     }

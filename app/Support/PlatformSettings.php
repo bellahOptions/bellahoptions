@@ -17,6 +17,10 @@ class PlatformSettings
 
     private const GRAPHIC_DESIGN_ITEMS_KEY = 'graphic_design_items_json';
 
+    private const SOCIAL_GRAPHIC_TRIAL_FEE_KEY = 'social_graphic_trial_fee_ngn';
+
+    private const GOOGLE_REVIEWS_CONFIG_KEY = 'google_reviews_config_json';
+
     private const BRAND_ASSETS_KEY = 'brand_assets_json';
 
     private const PUBLIC_PAGE_HEADERS_KEY = 'public_page_headers_json';
@@ -460,6 +464,109 @@ class PlatformSettings
         AppSetting::setValue(self::GRAPHIC_DESIGN_ITEMS_KEY, json_encode(array_values($payload), JSON_UNESCAPED_SLASHES));
     }
 
+    public static function socialGraphicTrialFeeNgn(): float
+    {
+        $raw = AppSetting::getValue(self::SOCIAL_GRAPHIC_TRIAL_FEE_KEY);
+
+        if (! is_string($raw) || trim($raw) === '' || ! is_numeric($raw)) {
+            return 0.0;
+        }
+
+        $fee = round((float) $raw, 2);
+
+        return $fee > 0 ? $fee : 0.0;
+    }
+
+    public static function setSocialGraphicTrialFeeNgn(float $feeNgn): void
+    {
+        $normalized = round($feeNgn, 2);
+
+        AppSetting::setValue(
+            self::SOCIAL_GRAPHIC_TRIAL_FEE_KEY,
+            $normalized > 0 ? (string) $normalized : '0',
+        );
+    }
+
+    /**
+     * @return array{widget_id: string, widget_version: string, featured_review_ids: array<int, string>}
+     */
+    public static function googleReviewsConfig(): array
+    {
+        $defaults = self::defaultGoogleReviewsConfig();
+        $raw = AppSetting::getValue(self::GOOGLE_REVIEWS_CONFIG_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        $widgetId = trim((string) ($decoded['widget_id'] ?? ''));
+        $widgetVersion = strtolower(trim((string) ($decoded['widget_version'] ?? $defaults['widget_version'])));
+        $featuredIds = is_array($decoded['featured_review_ids'] ?? null)
+            ? $decoded['featured_review_ids']
+            : [];
+
+        if ($widgetVersion !== 'v1' && $widgetVersion !== 'v2') {
+            $widgetVersion = $defaults['widget_version'];
+        }
+
+        $sanitizedFeaturedIds = [];
+        foreach ($featuredIds as $value) {
+            $id = trim((string) $value);
+            if ($id === '') {
+                continue;
+            }
+
+            $sanitizedFeaturedIds[] = mb_substr($id, 0, 220);
+        }
+
+        return [
+            'widget_id' => mb_substr($widgetId, 0, 160),
+            'widget_version' => $widgetVersion,
+            'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $config
+     */
+    public static function setGoogleReviewsConfig(array $config): void
+    {
+        $defaults = self::defaultGoogleReviewsConfig();
+
+        $widgetId = trim((string) ($config['widget_id'] ?? ''));
+        $widgetVersion = strtolower(trim((string) ($config['widget_version'] ?? $defaults['widget_version'])));
+        $featuredIds = is_array($config['featured_review_ids'] ?? null)
+            ? $config['featured_review_ids']
+            : [];
+
+        if ($widgetVersion !== 'v1' && $widgetVersion !== 'v2') {
+            $widgetVersion = $defaults['widget_version'];
+        }
+
+        $sanitizedFeaturedIds = [];
+        foreach ($featuredIds as $value) {
+            $id = trim((string) $value);
+            if ($id === '') {
+                continue;
+            }
+
+            $sanitizedFeaturedIds[] = mb_substr($id, 0, 220);
+        }
+
+        $payload = [
+            'widget_id' => mb_substr($widgetId, 0, 160),
+            'widget_version' => $widgetVersion,
+            'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
+        ];
+
+        AppSetting::setValue(self::GOOGLE_REVIEWS_CONFIG_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
+    }
+
     public static function siteUrl(): string
     {
         $default = self::defaultSiteUrl();
@@ -521,7 +628,7 @@ class PlatformSettings
             ],
             'gallery' => [
                 'title' => 'A look at visual systems, campaigns, and brand assets.',
-                'text' => 'Every project shown here is published directly by Bellah Options super-admin.',
+                'text' => 'Every project shown here is published directly by the Bellah Options team.',
                 'background_image' => null,
             ],
             'blog' => [
@@ -531,7 +638,12 @@ class PlatformSettings
             ],
             'events' => [
                 'title' => 'Workshops, launches, and creative sessions.',
-                'text' => 'Events uploaded by the super-admin appear here automatically.',
+                'text' => 'Events published by the Bellah Options team appear here automatically.',
+                'background_image' => null,
+            ],
+            'reviews' => [
+                'title' => 'Google Reviews From Real Clients',
+                'text' => 'Read public Google feedback from founders, teams, and businesses that worked with Bellah Options.',
                 'background_image' => null,
             ],
             'faqs' => [
@@ -557,6 +669,18 @@ class PlatformSettings
         $configured = trim((string) config('app.url', 'http://localhost'));
 
         return self::normalizeHttpUrl($configured, 'http://localhost');
+    }
+
+    /**
+     * @return array{widget_id: string, widget_version: string, featured_review_ids: array<int, string>}
+     */
+    private static function defaultGoogleReviewsConfig(): array
+    {
+        return [
+            'widget_id' => '',
+            'widget_version' => 'v2',
+            'featured_review_ids' => [],
+        ];
     }
 
     /**

@@ -1426,7 +1426,7 @@ function formatRole(role) {
     }
 
     const labels = {
-        super_admin: 'Super Admin',
+        super_admin: 'Administrator',
         customer_rep: 'Customer Representative',
         admin: 'Admin',
         staff: 'Staff',

@@ -144,7 +144,7 @@ class PagesController extends Controller
                     'title' => $project->title,
                     'service' => $project->category ?: 'Creative Work',
                     'image' => $this->publicAssetUrl($project->image_path) ?? '/logo-07.svg',
-                    'summary' => $project->description ?: 'Uploaded by Bellah Options super-admin.',
+                    'summary' => $project->description ?: 'Uploaded by the Bellah Options team.',
                     'href' => PublicContentSecurity::sanitizeRelativePathOrHttpUrl($project->project_url) ?: '/gallery',
                 ])
                 ->values();
@@ -318,6 +318,11 @@ class PagesController extends Controller
         return Inertia::render('Faqs', [
             'faqs' => $faqs,
         ]);
+    }
+
+    public function reviewsPage()
+    {
+        return Inertia::render('Reviews');
     }
 
     private function publicAssetUrl(?string $path): ?string

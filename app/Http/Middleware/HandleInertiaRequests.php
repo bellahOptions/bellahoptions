@@ -2,8 +2,10 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\ClientReview;
 use App\Support\PlatformSettings;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -68,6 +70,26 @@ class HandleInertiaRequests extends Middleware
             ],
             'branding' => PlatformSettings::brandAssets(),
             'publicPageHeaders' => PlatformSettings::publicPageHeaders(),
+            'googleReviews' => PlatformSettings::googleReviewsConfig(),
+            'publicClientReviews' => fn (): array => ! Schema::hasTable('client_reviews')
+                ? []
+                : ClientReview::query()
+                    ->publiclyVisible()
+                    ->orderByDesc('is_featured')
+                    ->orderByDesc('published_at')
+                    ->latest('id')
+                    ->limit(80)
+                    ->get()
+                    ->map(fn (ClientReview $review): array => [
+                        'id' => $review->id,
+                        'reviewer_name' => $review->reviewer_name ?: 'Anonymous',
+                        'rating' => $review->rating !== null ? (float) $review->rating : 0,
+                        'comment' => $review->comment ?: '',
+                        'published_at' => $review->published_at?->toDateString(),
+                        'is_featured' => (bool) $review->is_featured,
+                    ])
+                    ->values()
+                    ->all(),
         ];
     }
 }

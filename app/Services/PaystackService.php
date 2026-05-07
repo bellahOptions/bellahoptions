@@ -63,6 +63,48 @@ class PaystackService
     }
 
     /**
+     * @return array{available: bool, message: string}
+     */
+    public function healthCheck(): array
+    {
+        try {
+            $response = Http::timeout(8)
+                ->withToken($this->secretKey())
+                ->acceptJson()
+                ->get('https://api.paystack.co/bank', [
+                    'country' => 'nigeria',
+                    'perPage' => 1,
+                ]);
+        } catch (\Throwable) {
+            return [
+                'available' => false,
+                'message' => 'Paystack is temporarily unreachable.',
+            ];
+        }
+
+        if (! $response->successful()) {
+            return [
+                'available' => false,
+                'message' => 'Paystack is currently unavailable.',
+            ];
+        }
+
+        /** @var array<string, mixed> $payload */
+        $payload = (array) $response->json();
+        if (! ((bool) ($payload['status'] ?? false))) {
+            return [
+                'available' => false,
+                'message' => 'Paystack health check failed.',
+            ];
+        }
+
+        return [
+            'available' => true,
+            'message' => '',
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function validatedPayload(Response $response): array

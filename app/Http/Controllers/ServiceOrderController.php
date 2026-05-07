@@ -16,6 +16,8 @@ use App\Models\Term;
 use App\Services\FlutterwaveService;
 use App\Models\User;
 use App\Services\PaystackService;
+use App\Support\ClientReviewService;
+use App\Support\PlatformSettings;
 use App\Support\VisitorLocalization;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Auth\Events\Registered;
@@ -23,6 +25,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -36,7 +39,22 @@ use Throwable;
 
 class ServiceOrderController extends Controller
 {
-    public function create(Request $request, string $serviceSlug, ServiceOrderCatalog $catalog): Response
+    private const TRIAL_PACKAGE_CODE = 'trial-request';
+
+    /**
+     * @var array<int, string>
+     */
+    private const TRIAL_SERVICE_SLUGS = [
+        'social-media-design',
+        'graphic-design',
+    ];
+
+    public function create(
+        Request $request,
+        string $serviceSlug,
+        ServiceOrderCatalog $catalog,
+        PaystackService $paystackService
+    ): Response
     {
         $localization = app(VisitorLocalization::class)->resolve($request);
         $service = $catalog->service($serviceSlug);
@@ -53,6 +71,7 @@ class ServiceOrderController extends Controller
             $checkoutServices[$slug] = $this->localizeServicePackages(
                 $serviceEntry,
                 (string) $localization['currency'],
+                $slug,
             );
         }
 
@@ -62,12 +81,18 @@ class ServiceOrderController extends Controller
         }
 
         $selectedPackageCode = trim((string) $request->query('package', ''));
-        if ($selectedPackageCode !== '' && ! is_array($catalog->package($selectedServiceSlug, $selectedPackageCode))) {
+        if (
+            $selectedPackageCode !== ''
+            && ! is_array($catalog->package($selectedServiceSlug, $selectedPackageCode))
+            && ! $this->isTrialPackageSelection($selectedServiceSlug, $selectedPackageCode)
+        ) {
             $selectedPackageCode = '';
         }
 
         $logoAddons = $this->localizeLogoAddons($catalog->logoAddons(), (string) $localization['currency']);
-        $discount = $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
+        $discount = $this->isTrialPackageSelection($selectedServiceSlug, $selectedPackageCode)
+            ? null
+            : $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
 
         $humanCheck = $this->createHumanVerificationChallenge($request);
 
@@ -82,6 +107,7 @@ class ServiceOrderController extends Controller
             'selectedServiceSlug' => $selectedServiceSlug,
             'selectedPackageCode' => $selectedPackageCode !== '' ? $selectedPackageCode : null,
             'visitorLocalization' => $localization,
+            'paymentReadiness' => $this->orderFormPaymentReadiness($localization, $paystackService),
             'profileDefaults' => [
                 'name' => $request->user()?->name,
                 'email' => $request->user()?->email,
@@ -100,7 +126,10 @@ class ServiceOrderController extends Controller
         $payload = $request->validated();
         $localization = app(VisitorLocalization::class)->resolve($request);
         $packageCode = (string) $payload['service_package'];
-        $package = $catalog->package($serviceSlug, $packageCode);
+        $isTrialOrder = $this->isTrialPackageSelection($serviceSlug, $packageCode);
+        $package = $isTrialOrder
+            ? $this->trialPackageData($serviceSlug)
+            : $catalog->package($serviceSlug, $packageCode);
         $logoAddonCode = trim((string) ($payload['logo_addon_package'] ?? ''));
         $logoAddon = $logoAddonCode !== '' ? $catalog->logoAddon($logoAddonCode) : null;
 
@@ -141,8 +170,12 @@ class ServiceOrderController extends Controller
         }
 
         $submittedDiscountCode = strtoupper(trim((string) ($payload['discount_code'] ?? '')));
-        if ($submittedDiscountCode === '') {
+        if ($submittedDiscountCode === '' && ! $isTrialOrder) {
             $submittedDiscountCode = strtoupper(trim((string) $request->session()->get('checkout_discount_code', '')));
+        }
+
+        if ($isTrialOrder) {
+            $submittedDiscountCode = '';
         }
 
         $discount = null;
@@ -203,7 +236,7 @@ class ServiceOrderController extends Controller
                 'preferred_style' => $payload['preferred_style'] ?? null,
                 'deliverables' => $payload['deliverables'] ?? null,
                 'additional_details' => $payload['additional_details'] ?? null,
-                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog, $logoAddonCode, $logoAddonAmountNgn, $logoAddon),
+                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog, $logoAddonCode, $logoAddonAmountNgn, $logoAddon, $isTrialOrder),
                 'wants_account' => (bool) ($payload['create_account'] ?? false),
                 'created_by_ip' => $request->ip(),
                 'user_agent' => Str::limit((string) $request->userAgent(), 1000),
@@ -556,6 +589,99 @@ class ServiceOrderController extends Controller
     }
 
     /**
+     * @param  array<string, mixed>  $localization
+     * @return array{
+     *   preferred_provider:string,
+     *   paystack:array{available:bool,message:string},
+     *   fallback_account:?array{
+     *     account_number:string,
+     *     account_name:string,
+     *     bank_name:string,
+     *     instructions:string,
+     *     support_email:string
+     *   }
+     * }
+     */
+    private function orderFormPaymentReadiness(array $localization, PaystackService $paystackService): array
+    {
+        $preferredProvider = strtolower(trim((string) ($localization['payment_processor'] ?? 'paystack')));
+        $paystack = $this->resolvePaystackReadiness($paystackService);
+        $fallbackAccount = ! $paystack['available']
+            ? $this->resolveTransferFallbackDetails()
+            : null;
+
+        return [
+            'preferred_provider' => $preferredProvider,
+            'paystack' => $paystack,
+            'fallback_account' => $fallbackAccount,
+        ];
+    }
+
+    /**
+     * @return array{available:bool,message:string}
+     */
+    private function resolvePaystackReadiness(PaystackService $paystackService): array
+    {
+        $gatewayIssue = $this->paymentGatewayIssue('paystack');
+        if ($gatewayIssue !== null) {
+            return [
+                'available' => false,
+                'message' => $gatewayIssue,
+            ];
+        }
+
+        if (app()->environment('testing')) {
+            return [
+                'available' => true,
+                'message' => '',
+            ];
+        }
+
+        if (! app()->isProduction()) {
+            return [
+                'available' => true,
+                'message' => '',
+            ];
+        }
+
+        $cacheKey = 'paystack:health-check:v1';
+
+        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($paystackService): array {
+            return $paystackService->healthCheck();
+        });
+    }
+
+    /**
+     * @return array{
+     *   account_number:string,
+     *   account_name:string,
+     *   bank_name:string,
+     *   instructions:string,
+     *   support_email:string
+     * }|null
+     */
+    private function resolveTransferFallbackDetails(): ?array
+    {
+        $accountNumber = trim((string) config('bellah.payment.transfer.account_number', ''));
+        $accountName = trim((string) config('bellah.payment.transfer.account_name', ''));
+        $bankName = trim((string) config('bellah.payment.transfer.bank_name', ''));
+        $instructions = trim((string) config('bellah.payment.transfer.instructions', ''));
+        $supportEmail = trim((string) config('bellah.invoice.company_email', 'support@bellahoptions.com'));
+
+        if ($accountNumber === '' || $accountName === '' || $bankName === '') {
+            return null;
+        }
+
+        return [
+            'account_number' => $accountNumber,
+            'account_name' => $accountName,
+            'bank_name' => $bankName,
+            'instructions' => $instructions,
+            'support_email' => $supportEmail,
+        ];
+    }
+
+    /**
      * @return array<int, string>
      */
     private function checkoutServiceSlugs(): array
@@ -567,7 +693,7 @@ class ServiceOrderController extends Controller
      * @param  array<string, mixed>  $serviceEntry
      * @return array<string, mixed>
      */
-    private function localizeServicePackages(array $serviceEntry, string $currency): array
+    private function localizeServicePackages(array $serviceEntry, string $currency, string $serviceSlug): array
     {
         $packages = (array) ($serviceEntry['packages'] ?? []);
         $localizedPackages = [];
@@ -587,6 +713,18 @@ class ServiceOrderController extends Controller
                 'price' => $this->convertAmountFromNgn($priceNgn, $currency),
                 'base_price_ngn' => $originalPriceNgn,
                 'discount_price' => $discountPriceNgn !== null ? $this->convertAmountFromNgn($discountPriceNgn, $currency) : null,
+            ];
+        }
+
+        $trialPackage = $this->trialPackageData($serviceSlug);
+        if (is_array($trialPackage)) {
+            $trialPriceNgn = round((float) ($trialPackage['price'] ?? 0), 2);
+            $localizedPackages[self::TRIAL_PACKAGE_CODE] = [
+                ...$trialPackage,
+                'is_trial' => true,
+                'price' => $this->convertAmountFromNgn($trialPriceNgn, $currency),
+                'base_price_ngn' => $trialPriceNgn,
+                'discount_price' => null,
             ];
         }
 
@@ -644,8 +782,6 @@ class ServiceOrderController extends Controller
             return redirect()->route('home')->with('error', 'Payment order was not found.');
         }
 
-        $request->session()->put('service_order_access.'.$serviceOrder->uuid, true);
-
         try {
             $verification = $provider === 'flutterwave'
                 ? $flutterwaveService->verify($reference)
@@ -664,9 +800,11 @@ class ServiceOrderController extends Controller
             $isSuccess = $provider === 'flutterwave'
                 ? in_array($status, ['successful', 'completed', 'success'], true)
                 : $status === 'success';
+            $hasTrustedMetadata = $this->paymentMetadataMatchesOrder($serviceOrder, $provider, $data);
 
-            if ($isSuccess && $amount >= $expectedAmount && $currency === $expectedCurrency) {
+            if ($isSuccess && $amount >= $expectedAmount && $currency === $expectedCurrency && $hasTrustedMetadata) {
                 $this->markOrderPaid($serviceOrder, $reference, $data);
+                $request->session()->put('service_order_access.'.$serviceOrder->uuid, true);
 
                 return redirect()->route('orders.show', $serviceOrder)->with('success', 'Payment confirmed successfully.');
             }
@@ -675,7 +813,7 @@ class ServiceOrderController extends Controller
                 'payment_status' => 'failed',
             ]);
 
-            return redirect()->route('orders.payment.show', $serviceOrder)->with('error', 'Payment could not be verified. Please try again.');
+            return $this->paymentVerificationFailedRedirect($request, $serviceOrder);
         } catch (Throwable $exception) {
             Log::warning('Payment callback verification failed.', [
                 'order_id' => $serviceOrder->id,
@@ -684,7 +822,7 @@ class ServiceOrderController extends Controller
                 'error' => $exception->getMessage(),
             ]);
 
-            return redirect()->route('orders.payment.show', $serviceOrder)->with('error', 'Payment verification is temporarily unavailable.');
+            return $this->paymentVerificationFailedRedirect($request, $serviceOrder, true);
         }
     }
 
@@ -873,11 +1011,16 @@ class ServiceOrderController extends Controller
         return $payload;
     }
 
-    public function storeUpdate(StoreServiceOrderUpdateRequest $request, ServiceOrder $serviceOrder): RedirectResponse
+    public function storeUpdate(
+        StoreServiceOrderUpdateRequest $request,
+        ServiceOrder $serviceOrder,
+        ClientReviewService $clientReviewService
+    ): RedirectResponse
     {
         abort_unless((bool) $request->user()?->isStaff(), 403);
 
         $data = $request->validated();
+        $previousStatus = (string) $serviceOrder->order_status;
 
         $serviceOrder->update([
             'order_status' => $data['status'],
@@ -892,6 +1035,10 @@ class ServiceOrderController extends Controller
             'is_public' => (bool) ($data['is_public'] ?? true),
             'created_by' => $request->user()?->id,
         ]);
+
+        if ($previousStatus !== 'completed' && $data['status'] === 'completed') {
+            $clientReviewService->requestFromServiceOrder($serviceOrder->fresh());
+        }
 
         return back()->with('success', 'Service order progress has been updated.');
     }
@@ -1064,6 +1211,76 @@ class ServiceOrderController extends Controller
         return (bool) $request->session()->get('service_order_access.'.$serviceOrder->uuid, false);
     }
 
+    private function paymentVerificationFailedRedirect(
+        Request $request,
+        ServiceOrder $serviceOrder,
+        bool $isTemporary = false
+    ): RedirectResponse {
+        $message = $isTemporary
+            ? 'Payment verification is temporarily unavailable. Please try again.'
+            : 'Payment could not be verified. Please try again.';
+
+        if ($this->hasOrderAccess($request, $serviceOrder)) {
+            return redirect()->route('orders.payment.show', $serviceOrder)->with('error', $message);
+        }
+
+        return redirect()->route('home')->with('error', $message);
+    }
+
+    /**
+     * @param  array<string, mixed>  $gatewayData
+     */
+    private function paymentMetadataMatchesOrder(ServiceOrder $serviceOrder, string $provider, array $gatewayData): bool
+    {
+        $metadataCandidates = [
+            data_get($gatewayData, 'metadata'),
+            data_get($gatewayData, 'meta'),
+            data_get($gatewayData, 'meta_data'),
+        ];
+
+        foreach ($metadataCandidates as $metadataCandidate) {
+            if (! is_array($metadataCandidate)) {
+                continue;
+            }
+
+            $encryptedPayload = trim((string) ($metadataCandidate['bo_payload'] ?? ''));
+            if ($encryptedPayload === '') {
+                continue;
+            }
+
+            try {
+                $decrypted = Crypt::decryptString($encryptedPayload);
+                $decoded = json_decode($decrypted, true);
+            } catch (Throwable) {
+                return false;
+            }
+
+            if (! is_array($decoded)) {
+                return false;
+            }
+
+            $payloadOrderUuid = trim((string) ($decoded['order_uuid'] ?? ''));
+            $payloadProvider = strtolower(trim((string) ($decoded['provider'] ?? '')));
+            $expectedProvider = strtolower(trim($provider));
+
+            if (
+                $payloadOrderUuid === ''
+                || ! hash_equals((string) $serviceOrder->uuid, $payloadOrderUuid)
+            ) {
+                return false;
+            }
+
+            if ($payloadProvider !== '' && $payloadProvider !== $expectedProvider) {
+                return false;
+            }
+
+            return true;
+        }
+
+        // Allow legacy transactions that were initialized before metadata was enforced.
+        return true;
+    }
+
     /**
      * @param  array<string, mixed>  $gatewayData
      */
@@ -1151,6 +1368,7 @@ class ServiceOrderController extends Controller
         string $logoAddonCode = '',
         float $logoAddonAmountNgn = 0.0,
         ?array $logoAddon = null,
+        bool $isTrialOrder = false,
     ): array
     {
         $serviceSpecific = [];
@@ -1172,6 +1390,7 @@ class ServiceOrderController extends Controller
         }
 
         return array_filter([
+            'is_trial_request' => $isTrialOrder,
             'has_logo' => $payload['has_logo'] ?? null,
             'logo_design_interest' => $payload['logo_design_interest'] ?? null,
             'logo_addon' => $logoAddonCode !== '' && is_array($logoAddon) ? [
@@ -1183,6 +1402,38 @@ class ServiceOrderController extends Controller
             'timeline_preference' => $payload['timeline_preference'] ?? null,
             'service_specific' => $serviceSpecific !== [] ? $serviceSpecific : null,
         ], static fn (mixed $value): bool => $value !== null && $value !== []);
+    }
+
+    private function isTrialPackageSelection(string $serviceSlug, string $packageCode): bool
+    {
+        return $packageCode === self::TRIAL_PACKAGE_CODE
+            && is_array($this->trialPackageData($serviceSlug));
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function trialPackageData(string $serviceSlug): ?array
+    {
+        if (! in_array($serviceSlug, self::TRIAL_SERVICE_SLUGS, true)) {
+            return null;
+        }
+
+        $feeNgn = PlatformSettings::socialGraphicTrialFeeNgn();
+
+        if ($feeNgn <= 0) {
+            return null;
+        }
+
+        return [
+            'name' => 'Trial Design Request',
+            'price' => $feeNgn,
+            'description' => 'A one-off trial request outside regular plans and packs.',
+            'features' => [
+                'Single trial request',
+                'Available for social media or graphic design',
+            ],
+        ];
     }
 
     /**

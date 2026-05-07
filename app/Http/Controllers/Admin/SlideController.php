@@ -189,7 +189,7 @@ class SlideController extends Controller
             'file' => [
                 'required',
                 'file',
-                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/svg+xml,image/avif,video/mp4,video/webm,video/ogg,video/quicktime',
+                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/avif,video/mp4,video/webm,video/ogg,video/quicktime',
                 'max:51200',
             ],
         ]);
@@ -218,24 +218,6 @@ class SlideController extends Controller
                 'url' => $publicPath,
                 'media_type' => 'video',
                 'message' => 'Video uploaded successfully.',
-            ], 201);
-        }
-
-        if ($extension === 'svg') {
-            $storedPath = $file->storePublicly('slide-images', 'public');
-            if (! is_string($storedPath) || $storedPath === '') {
-                throw ValidationException::withMessages([
-                    'file' => 'Unable to upload the selected SVG file.',
-                ]);
-            }
-
-            $publicPath = '/storage/'.$storedPath;
-
-            return response()->json([
-                'path' => $publicPath,
-                'url' => $publicPath,
-                'media_type' => 'image',
-                'message' => 'Image uploaded successfully.',
             ], 201);
         }
 

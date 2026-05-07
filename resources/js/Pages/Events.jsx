@@ -16,7 +16,7 @@ export default function Events({ events = [] }) {
                     <PublicPageHeader
                         pageKey="events"
                         fallbackTitle="Workshops, launches, and creative sessions."
-                        fallbackText="Events uploaded by the super-admin appear here automatically."
+                        fallbackText="Events published by the Bellah Options team appear here automatically."
                         eyebrow="Events"
                     />
 
@@ -67,7 +67,7 @@ export default function Events({ events = [] }) {
                                     No public events yet.
                                 </h2>
                                 <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
-                                    The next Bellah Options session is being shaped. When the super-admin publishes an event, it will appear here with the full details.
+                                    The next Bellah Options session is being shaped. When a new event is published, it will appear here with the full details.
                                 </p>
                                 <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white">
                                     Ask about upcoming events

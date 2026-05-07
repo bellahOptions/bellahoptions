@@ -87,7 +87,7 @@ class GalleryProjectController extends Controller
             'file' => [
                 'required',
                 'file',
-                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/svg+xml,image/avif',
+                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/avif',
                 'max:8192',
             ],
         ]);
@@ -100,23 +100,6 @@ class GalleryProjectController extends Controller
         }
 
         $extension = strtolower($file->getClientOriginalExtension());
-
-        if ($extension === 'svg') {
-            $storedPath = $file->storePublicly('gallery-projects', 'public');
-            if (! is_string($storedPath) || $storedPath === '') {
-                throw ValidationException::withMessages([
-                    'file' => 'Unable to upload the selected SVG file.',
-                ]);
-            }
-
-            $publicPath = '/storage/'.$storedPath;
-
-            return response()->json([
-                'path' => $publicPath,
-                'url' => $publicPath,
-                'message' => 'Image uploaded successfully.',
-            ], 201);
-        }
 
         try {
             $storedPath = $converter->storePublicWebp($file, 'gallery-projects');

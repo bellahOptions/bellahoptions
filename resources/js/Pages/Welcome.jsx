@@ -2,6 +2,8 @@ import { Head, Link } from "@inertiajs/react";
 import Slider from "@/Components/Slider";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
+import GoogleReviewsSection from "@/Components/GoogleReviewsSection";
+import ClientReviewsSection from "@/Components/ClientReviewsSection";
 import {
     ArrowRightIcon,
     BoltIcon,
@@ -265,7 +267,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                                         </h2>
                                     </div>
                                     <p className="max-w-2xl text-base leading-8 text-gray-600 lg:justify-self-end">
-                                        These packages are selected by the Bellah Options team and can include active discounts, recommendations, and homepage feature status from the super-admin pricing panel.
+                                        These packages are selected by the Bellah Options team and can include active discounts, recommendations, and homepage feature status from the admin pricing panel.
                                     </p>
                                 </div>
 
@@ -348,6 +350,17 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                             </div>
                         </RevealSection>
                     )}
+
+                    <ClientReviewsSection
+                        className="bg-white py-16 sm:py-20 lg:py-24"
+                        title="Verified Client Reviews"
+                        subtitle="Recent client feedback with star ratings from completed Bellah Options projects."
+                    />
+
+                    <GoogleReviewsSection
+                        title="Trusted By Real Clients"
+                        subtitle="Real Google feedback from businesses and founders we have worked with."
+                    />
 
                     <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

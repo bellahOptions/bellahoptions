@@ -75,7 +75,12 @@ function imageSrc(path) {
     return /^https?:\/\//i.test(path) ? path : path.startsWith('/') ? path : `/${path}`;
 }
 
-export default function ServicePricing({ services = [], packageOverrides = {}, graphicDesignItems = [] }) {
+export default function ServicePricing({
+    services = [],
+    packageOverrides = {},
+    graphicDesignItems = [],
+    socialGraphicTrialFeeNgn = 0,
+}) {
     const { flash } = usePage().props;
 
     const editableServices = useMemo(
@@ -86,6 +91,7 @@ export default function ServicePricing({ services = [], packageOverrides = {}, g
     const form = useForm({
         package_overrides: buildInitialPackageOverrides(services, packageOverrides),
         graphic_design_items: normalizeGraphicItems(graphicDesignItems),
+        social_graphic_trial_fee_ngn: toPrice(socialGraphicTrialFeeNgn),
     });
 
     const [selectorOpen, setSelectorOpen] = useState(false);
@@ -127,6 +133,9 @@ export default function ServicePricing({ services = [], packageOverrides = {}, g
                     unit_price: item.unit_price === '' ? 0 : Number(item.unit_price),
                 }))
                 .filter((item) => item.title !== '' && item.unit_price > 0),
+            social_graphic_trial_fee_ngn: form.data.social_graphic_trial_fee_ngn === ''
+                ? 0
+                : Number(form.data.social_graphic_trial_fee_ngn),
         };
 
         form.transform(() => payload).patch(route('admin.service-pricing.update'), {
@@ -329,6 +338,27 @@ export default function ServicePricing({ services = [], packageOverrides = {}, g
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Social & Graphic Trial Fee</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Set the fixed fee used when clients choose the trial request option outside regular plans/packs.
+                            </p>
+                            <div className="mt-4 max-w-sm">
+                                <label className="mb-1 block text-sm font-medium text-gray-700">Trial Fee (NGN)</label>
+                                <input
+                                    type="number"
+                                    min="0"
+                                    step="0.01"
+                                    value={form.data.social_graphic_trial_fee_ngn ?? ''}
+                                    onChange={(event) => form.setData('social_graphic_trial_fee_ngn', event.target.value)}
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Set to 0 to disable the trial option on the public order form.
+                                </p>
                             </div>
                         </div>
 

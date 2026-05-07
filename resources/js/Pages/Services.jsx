@@ -2,6 +2,8 @@ import { Head, Link } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import PublicPageHeader from "@/Components/PublicPageHeader";
+import GoogleReviewsSection from "@/Components/GoogleReviewsSection";
+import ClientReviewsSection from "@/Components/ClientReviewsSection";
 import {
     ArrowRightIcon,
     CheckCircleIcon,
@@ -132,6 +134,18 @@ export default function Services({ services = [] }) {
                             </Link>
                         </div>
                     </RevealSection>
+
+                    <ClientReviewsSection
+                        className="bg-white py-16 sm:py-20"
+                        title="Client Project Ratings"
+                        subtitle="Star-rated feedback from clients who completed projects with Bellah Options."
+                    />
+
+                    <GoogleReviewsSection
+                        className="bg-gray-50 py-16 sm:py-20"
+                        title="Service Feedback From Google"
+                        subtitle="A quick look at what clients say about working with Bellah Options."
+                    />
                 </main>
             </PageTheme>
         </>
