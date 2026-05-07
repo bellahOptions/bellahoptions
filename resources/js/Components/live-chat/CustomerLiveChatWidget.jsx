@@ -2,7 +2,6 @@ import { AnimatePresence, motion } from 'motion/react';
 import { usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const CHAT_TOKEN_STORAGE_KEY = 'bellah_live_chat_token';
 const QUICK_REACTIONS = ['👍', '❤️', '😂', '🙏'];
 
 function formatTime(value) {
@@ -172,7 +171,6 @@ export default function CustomerLiveChatWidget({ show = true }) {
     };
 
     const callChatApi = async (url, options = {}) => {
-        const token = window.localStorage.getItem(CHAT_TOKEN_STORAGE_KEY) ?? '';
         const response = await fetch(url, {
             method: options.method ?? 'GET',
             credentials: 'same-origin',
@@ -181,7 +179,6 @@ export default function CustomerLiveChatWidget({ show = true }) {
                 'Content-Type': 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
                 'X-CSRF-TOKEN': csrfToken(),
-                ...(token ? { 'X-Live-Chat-Token': token } : {}),
                 ...(options.headers ?? {}),
             },
             body: options.body ? JSON.stringify(options.body) : undefined,
@@ -192,12 +189,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
             throw new Error('Request failed');
         }
 
-        const payload = await response.json();
-        if (payload?.token) {
-            window.localStorage.setItem(CHAT_TOKEN_STORAGE_KEY, payload.token);
-        }
-
-        return payload;
+        return response.json();
     };
 
     const bootstrapSession = async () => {
@@ -215,9 +207,6 @@ export default function CustomerLiveChatWidget({ show = true }) {
 
             if ((payload?.thread?.guest_name ?? '').trim() !== '') {
                 setGuestName(payload.thread.guest_name);
-            }
-            if ((payload?.thread?.guest_email ?? '').trim() !== '') {
-                setGuestEmail(payload.thread.guest_email);
             }
 
             hasBootstrappedRef.current = true;

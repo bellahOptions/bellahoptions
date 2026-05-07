@@ -8,7 +8,7 @@ use App\Http\Controllers\Admin\GalleryProjectController;
 use App\Http\Controllers\Admin\ServicePricingController;
 use App\Http\Controllers\Admin\SlideController;
 
-Route::middleware(['auth', 'verified', 'super-admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('service-pricing', [ServicePricingController::class, 'edit'])->name('service-pricing.edit');
     Route::patch('service-pricing', [ServicePricingController::class, 'update'])->name('service-pricing.update');
     Route::get('slides/media', [SlideController::class, 'mediaIndex'])->name('slides.media.index');

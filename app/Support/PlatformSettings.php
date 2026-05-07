@@ -488,7 +488,7 @@ class PlatformSettings
     }
 
     /**
-     * @return array{widget_id: string, widget_version: string, featured_review_ids: array<int, string>}
+     * @return array{place_id: string, featured_review_ids: array<int, string>}
      */
     public static function googleReviewsConfig(): array
     {
@@ -504,15 +504,10 @@ class PlatformSettings
             return $defaults;
         }
 
-        $widgetId = trim((string) ($decoded['widget_id'] ?? ''));
-        $widgetVersion = strtolower(trim((string) ($decoded['widget_version'] ?? $defaults['widget_version'])));
+        $placeId = trim((string) ($decoded['place_id'] ?? ($decoded['widget_id'] ?? '')));
         $featuredIds = is_array($decoded['featured_review_ids'] ?? null)
             ? $decoded['featured_review_ids']
             : [];
-
-        if ($widgetVersion !== 'v1' && $widgetVersion !== 'v2') {
-            $widgetVersion = $defaults['widget_version'];
-        }
 
         $sanitizedFeaturedIds = [];
         foreach ($featuredIds as $value) {
@@ -525,8 +520,7 @@ class PlatformSettings
         }
 
         return [
-            'widget_id' => mb_substr($widgetId, 0, 160),
-            'widget_version' => $widgetVersion,
+            'place_id' => mb_substr($placeId, 0, 512),
             'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
         ];
     }
@@ -538,15 +532,10 @@ class PlatformSettings
     {
         $defaults = self::defaultGoogleReviewsConfig();
 
-        $widgetId = trim((string) ($config['widget_id'] ?? ''));
-        $widgetVersion = strtolower(trim((string) ($config['widget_version'] ?? $defaults['widget_version'])));
+        $placeId = trim((string) ($config['place_id'] ?? ($config['widget_id'] ?? '')));
         $featuredIds = is_array($config['featured_review_ids'] ?? null)
             ? $config['featured_review_ids']
             : [];
-
-        if ($widgetVersion !== 'v1' && $widgetVersion !== 'v2') {
-            $widgetVersion = $defaults['widget_version'];
-        }
 
         $sanitizedFeaturedIds = [];
         foreach ($featuredIds as $value) {
@@ -559,8 +548,7 @@ class PlatformSettings
         }
 
         $payload = [
-            'widget_id' => mb_substr($widgetId, 0, 160),
-            'widget_version' => $widgetVersion,
+            'place_id' => mb_substr($placeId, 0, 512),
             'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
         ];
 
@@ -672,13 +660,12 @@ class PlatformSettings
     }
 
     /**
-     * @return array{widget_id: string, widget_version: string, featured_review_ids: array<int, string>}
+     * @return array{place_id: string, featured_review_ids: array<int, string>}
      */
     private static function defaultGoogleReviewsConfig(): array
     {
         return [
-            'widget_id' => '',
-            'widget_version' => 'v2',
+            'place_id' => '',
             'featured_review_ids' => [],
         ];
     }

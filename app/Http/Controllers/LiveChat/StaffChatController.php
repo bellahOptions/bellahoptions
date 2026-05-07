@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Inertia\Inertia;
@@ -35,7 +36,9 @@ class StaffChatController extends Controller
             'after_id' => ['nullable', 'integer', 'min:0'],
         ]);
 
+        $staffId = (int) $request->user()?->id;
         $threads = LiveChatThread::query()
+            ->where('assigned_staff_id', $staffId)
             ->with([
                 'customerUser:id,name,email',
                 'assignedStaff:id,name',
@@ -60,7 +63,10 @@ class StaffChatController extends Controller
         $selectedThreadId = (int) ($validated['thread_id'] ?? ($threads->first()?->id ?? 0));
         $afterId = (int) ($validated['after_id'] ?? 0);
         $selectedThread = $selectedThreadId > 0
-            ? LiveChatThread::query()->with(['customerUser:id,name,email', 'assignedStaff:id,name'])->find($selectedThreadId)
+            ? LiveChatThread::query()
+                ->where('assigned_staff_id', $staffId)
+                ->with(['customerUser:id,name,email', 'assignedStaff:id,name'])
+                ->find($selectedThreadId)
             : null;
 
         $messages = collect();
@@ -125,6 +131,7 @@ class StaffChatController extends Controller
     public function messages(Request $request, LiveChatThread $thread): JsonResponse
     {
         $this->touchPresence($request);
+        $thread = $this->authorizeThreadAccess($request, $thread);
 
         $validated = $request->validate([
             'after_id' => ['nullable', 'integer', 'min:0'],
@@ -154,6 +161,7 @@ class StaffChatController extends Controller
     public function send(Request $request, LiveChatThread $thread): JsonResponse
     {
         $this->touchPresence($request);
+        $thread = $this->authorizeThreadAccess($request, $thread);
 
         $validated = $request->validate([
             'message' => ['required', 'string', 'min:1', 'max:2000'],
@@ -208,6 +216,7 @@ class StaffChatController extends Controller
     public function updateStatus(Request $request, LiveChatThread $thread): JsonResponse
     {
         $this->touchPresence($request);
+        $thread = $this->authorizeThreadAccess($request, $thread);
 
         $validated = $request->validate([
             'status' => ['required', 'in:open,closed'],
@@ -237,12 +246,13 @@ class StaffChatController extends Controller
 
         return response()->json([
             'thread' => $this->selectedThreadPayload($thread->fresh(['customerUser:id,name,email', 'assignedStaff:id,name'])),
-        ]);
+        ])->withCookie(Cookie::forget('chat_token'));
     }
 
     public function join(Request $request, LiveChatThread $thread): JsonResponse
     {
         $this->touchPresence($request);
+        $thread = $this->authorizeThreadAccess($request, $thread, true);
 
         $staff = $request->user();
         $thread->forceFill([
@@ -261,6 +271,7 @@ class StaffChatController extends Controller
     public function typing(Request $request, LiveChatThread $thread): JsonResponse
     {
         $this->touchPresence($request);
+        $thread = $this->authorizeThreadAccess($request, $thread);
 
         $validated = $request->validate([
             'is_typing' => ['required', 'boolean'],
@@ -285,6 +296,7 @@ class StaffChatController extends Controller
         ]);
 
         $thread = LiveChatThread::query()->findOrFail($message->live_chat_thread_id);
+        $thread = $this->authorizeThreadAccess($request, $thread);
         $emoji = trim((string) $validated['emoji']);
         if ($emoji === '') {
             abort(422);
@@ -336,6 +348,24 @@ class StaffChatController extends Controller
                 'last_seen_at' => now(),
             ]
         );
+    }
+
+    private function authorizeThreadAccess(Request $request, LiveChatThread $thread, bool $allowUnassigned = false): LiveChatThread
+    {
+        $staffId = (int) $request->user()?->id;
+        if ($staffId <= 0) {
+            abort(403);
+        }
+
+        if ((int) ($thread->assigned_staff_id ?? 0) === $staffId) {
+            return $thread;
+        }
+
+        if ($allowUnassigned && $thread->assigned_staff_id === null) {
+            return $thread;
+        }
+
+        abort(403);
     }
 
     private function threadPayload(LiveChatThread $thread): array

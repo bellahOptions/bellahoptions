@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\ClientReview;
+use App\Support\GooglePlacesReviews;
 use App\Support\PlatformSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -34,6 +35,8 @@ class HandleInertiaRequests extends Middleware
     {
         $user = $request->user();
         $visitorLocalization = (array) $request->attributes->get('visitor_localization', []);
+        $googleReviewsConfig = PlatformSettings::googleReviewsConfig();
+        $googleReviewsPreview = GooglePlacesReviews::fetchPreview((string) ($googleReviewsConfig['place_id'] ?? ''));
 
         return [
             ...parent::share($request),
@@ -70,7 +73,15 @@ class HandleInertiaRequests extends Middleware
             ],
             'branding' => PlatformSettings::brandAssets(),
             'publicPageHeaders' => PlatformSettings::publicPageHeaders(),
-            'googleReviews' => PlatformSettings::googleReviewsConfig(),
+            'googleReviews' => [
+                ...$googleReviewsConfig,
+                'success' => (bool) ($googleReviewsPreview['success'] ?? false),
+                'profile_url' => $googleReviewsPreview['profile_url'] ?? null,
+                'total_review_count' => $googleReviewsPreview['total_review_count'] ?? null,
+                'average_rating' => $googleReviewsPreview['average_rating'] ?? null,
+                'reviews' => is_array($googleReviewsPreview['reviews'] ?? null) ? $googleReviewsPreview['reviews'] : [],
+                'error' => $googleReviewsPreview['error'] ?? null,
+            ],
             'publicClientReviews' => fn (): array => ! Schema::hasTable('client_reviews')
                 ? []
                 : ClientReview::query()

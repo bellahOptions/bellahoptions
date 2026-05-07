@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\LiveChat;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\MessageResource;
 use App\Models\Faq;
 use App\Models\LiveChatMessage;
 use App\Models\LiveChatStaffPresence;
@@ -10,7 +11,7 @@ use App\Models\LiveChatThread;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cookie;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
@@ -21,15 +22,20 @@ class CustomerChatController extends Controller
     {
         $user = $request->user();
         $token = $this->extractToken($request);
+        if (! $user && ! $token) {
+            $token = (string) Str::uuid();
+        }
+
         $thread = $this->findThread($user, $token);
 
         if (! $thread) {
-            return response()->json([
-                'token' => $token,
+            $response = response()->json([
                 'thread' => null,
                 'messages' => [],
                 'faqs' => $this->faqPayload(),
             ]);
+
+            return $this->withGuestTokenCookie($response, $user, $token);
         }
 
         $this->touchCustomerPresence($thread, true);
@@ -42,12 +48,13 @@ class CustomerChatController extends Controller
             ->reverse()
             ->values();
 
-        return response()->json([
-            'token' => $thread->visitor_token ?? $token,
+        $response = response()->json([
             'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
-            'messages' => $messages->map(fn (LiveChatMessage $message): array => $this->messagePayload($message))->values(),
+            'messages' => MessageResource::collection($messages),
             'faqs' => $this->faqPayload(),
         ]);
+
+        return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
     }
 
     public function messages(Request $request): JsonResponse
@@ -62,11 +69,12 @@ class CustomerChatController extends Controller
         $thread = $this->findThread($user, $token);
 
         if (! $thread) {
-            return response()->json([
-                'token' => $token,
+            $response = response()->json([
                 'thread' => null,
                 'messages' => [],
             ]);
+
+            return $this->withGuestTokenCookie($response, $user, $token);
         }
 
         $this->touchCustomerPresence($thread, true);
@@ -84,11 +92,12 @@ class CustomerChatController extends Controller
             $thread->refresh();
         }
 
-        return response()->json([
-            'token' => $thread->visitor_token ?? $token,
+        $response = response()->json([
             'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
-            'messages' => $messages->map(fn (LiveChatMessage $message): array => $this->messagePayload($message))->values(),
+            'messages' => MessageResource::collection($messages),
         ]);
+
+        return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
     }
 
     public function send(Request $request): JsonResponse
@@ -118,12 +127,13 @@ class CustomerChatController extends Controller
                 ->first();
 
             if ($deduplicated) {
-                return response()->json([
+                $response = response()->json([
                     'deduplicated' => true,
-                    'token' => $thread->visitor_token ?? $token,
                     'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
-                    'message' => $this->messagePayload($deduplicated->loadMissing('reactions')),
+                    'message' => MessageResource::make($deduplicated->loadMissing('reactions')),
                 ]);
+
+                return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
             }
         }
 
@@ -147,11 +157,12 @@ class CustomerChatController extends Controller
             'customer_typing_at' => null,
         ])->save();
 
-        return response()->json([
-            'token' => $thread->visitor_token ?? $token,
+        $response = response()->json([
             'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
-            'message' => $this->messagePayload($message->loadMissing('reactions')),
+            'message' => MessageResource::make($message->loadMissing('reactions')),
         ], 201);
+
+        return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
     }
 
     public function close(Request $request): JsonResponse
@@ -162,9 +173,8 @@ class CustomerChatController extends Controller
 
         if (! $thread) {
             return response()->json([
-                'token' => $token,
                 'thread' => null,
-            ], 404);
+            ], 404)->withCookie(Cookie::forget('chat_token'));
         }
 
         $wasOpen = $thread->status !== 'closed';
@@ -190,9 +200,8 @@ class CustomerChatController extends Controller
         }
 
         return response()->json([
-            'token' => $thread->visitor_token ?? $token,
             'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
-        ]);
+        ])->withCookie(Cookie::forget('chat_token'));
     }
 
     public function presence(Request $request): JsonResponse
@@ -206,20 +215,22 @@ class CustomerChatController extends Controller
         $thread = $this->findThread($user, $token);
 
         if (! $thread) {
-            return response()->json([
-                'token' => $token,
+            $response = response()->json([
                 'thread' => null,
                 'ok' => true,
             ]);
+
+            return $this->withGuestTokenCookie($response, $user, $token);
         }
 
         $this->touchCustomerPresence($thread, (bool) ($validated['is_online'] ?? true));
 
-        return response()->json([
-            'token' => $thread->visitor_token ?? $token,
+        $response = response()->json([
             'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
             'ok' => true,
         ]);
+
+        return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
     }
 
     public function typing(Request $request): JsonResponse
@@ -233,11 +244,12 @@ class CustomerChatController extends Controller
         $thread = $this->findThread($user, $token);
 
         if (! $thread) {
-            return response()->json([
-                'token' => $token,
+            $response = response()->json([
                 'thread' => null,
                 'ok' => true,
             ]);
+
+            return $this->withGuestTokenCookie($response, $user, $token);
         }
 
         $thread->forceFill([
@@ -246,11 +258,12 @@ class CustomerChatController extends Controller
             'customer_last_seen_at' => now(),
         ])->save();
 
-        return response()->json([
-            'token' => $thread->visitor_token ?? $token,
+        $response = response()->json([
             'thread' => $this->threadPayload($thread->fresh(['assignedStaff:id,name'])),
             'ok' => true,
         ]);
+
+        return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
     }
 
     public function react(Request $request, LiveChatMessage $message): JsonResponse
@@ -274,9 +287,11 @@ class CustomerChatController extends Controller
 
         $this->toggleReaction($message, $emoji, $user?->id, $thread->visitor_token ?? $token);
 
-        return response()->json([
-            'message' => $this->messagePayload($message->fresh()->load('reactions')),
+        $response = response()->json([
+            'message' => MessageResource::make($message->fresh()->load('reactions')),
         ]);
+
+        return $this->withGuestTokenCookie($response, $user, $thread->visitor_token ?? $token);
     }
 
     private function resolveThreadForOutboundMessage(?User $user, ?string &$token, array $validated): LiveChatThread
@@ -364,7 +379,7 @@ class CustomerChatController extends Controller
 
     private function extractToken(Request $request): ?string
     {
-        $rawToken = $request->header('X-Live-Chat-Token', $request->query('token'));
+        $rawToken = $request->cookie('chat_token');
         if (! is_string($rawToken)) {
             return null;
         }
@@ -402,8 +417,6 @@ class CustomerChatController extends Controller
             'id' => $thread->id,
             'status' => $thread->status,
             'guest_name' => $thread->guest_name,
-            'guest_email' => $thread->guest_email,
-            'assigned_staff_name' => $thread->assignedStaff?->name,
             'last_message_at' => $thread->last_message_at?->toDateTimeString(),
             'unread_from_staff' => $customerUnread,
             'customer_is_online' => (bool) $thread->customer_is_online,
@@ -416,26 +429,24 @@ class CustomerChatController extends Controller
         ];
     }
 
-    private function messagePayload(LiveChatMessage $message): array
+    private function withGuestTokenCookie(JsonResponse $response, ?User $user, ?string $token): JsonResponse
     {
-        $reactionSummary = $message->reactions
-            ->groupBy('emoji')
-            ->map(fn (Collection $group): array => [
-                'emoji' => $group->first()?->emoji,
-                'count' => $group->count(),
-            ])
-            ->values()
-            ->all();
+        if ($user || ! $token) {
+            return $response;
+        }
 
-        return [
-            'id' => $message->id,
-            'sender_type' => $message->sender_type,
-            'sender_name' => $message->sender_name,
-            'client_message_id' => $message->client_message_id,
-            'body' => $message->body,
-            'created_at' => $message->created_at?->toDateTimeString(),
-            'reactions' => $reactionSummary,
-        ];
+        return $response->withCookie(
+            cookie()->forever(
+                name: 'chat_token',
+                value: $token,
+                path: '/',
+                domain: null,
+                secure: true,
+                httpOnly: true,
+                raw: false,
+                sameSite: 'Strict'
+            )
+        );
     }
 
     /**

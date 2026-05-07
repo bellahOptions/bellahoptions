@@ -1,1 +1,0 @@
-import{t as e,y as t}from"./jsx-runtime-BFeDoU5F.js";var n=t(e(),1);function r({message:e,className:t=``,...r}){return e?(0,n.jsx)(`p`,{...r,className:`text-sm text-red-600 `+t,children:e}):null}export{r as t};

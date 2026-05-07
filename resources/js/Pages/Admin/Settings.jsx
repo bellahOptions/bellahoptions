@@ -159,7 +159,6 @@ export default function Settings({
     const {
         data,
         setData,
-        patch,
         errors,
     } = useForm({
         maintenance_mode: Boolean(settings?.maintenance_mode),
@@ -176,8 +175,7 @@ export default function Settings({
             ? settings.home_slides
             : [createEmptySlide()],
         public_page_headers: normalizePublicPageHeaders(settings?.public_page_headers),
-        google_reviews_widget_id: settings?.google_reviews?.widget_id || '',
-        google_reviews_widget_version: settings?.google_reviews?.widget_version || 'v2',
+        google_reviews_place_id: settings?.google_reviews?.place_id || '',
         featured_google_review_ids: Array.isArray(settings?.google_reviews?.featured_review_ids)
             ? settings.google_reviews.featured_review_ids
             : [],
@@ -228,8 +226,10 @@ export default function Settings({
 
     const [copiedLinkId, setCopiedLinkId] = useState(null);
     const [autoSaveState, setAutoSaveState] = useState('idle');
-    const autoSaveInitialRender = useRef(true);
     const autoSaveTimer = useRef(null);
+    const autoSaveLastSavedSignature = useRef('');
+    const autoSaveRequestId = useRef(0);
+    const [autoSaveUpdatedAt, setAutoSaveUpdatedAt] = useState(null);
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [selectorTarget, setSelectorTarget] = useState('logo_path');
     const [selectorFiles, setSelectorFiles] = useState([]);
@@ -249,10 +249,15 @@ export default function Settings({
 
     const selectedServicePackages = serviceCatalog?.[discountForm.data.service_slug]?.packages || {};
     const selectedPlanPackages = serviceCatalog?.[subscriptionPlanForm.data.service_slug]?.packages || {};
+    const autoSaveSignature = useMemo(() => JSON.stringify(data), [data]);
 
     useEffect(() => {
-        if (autoSaveInitialRender.current) {
-            autoSaveInitialRender.current = false;
+        if (autoSaveLastSavedSignature.current === '') {
+            autoSaveLastSavedSignature.current = autoSaveSignature;
+            return;
+        }
+
+        if (autoSaveSignature === autoSaveLastSavedSignature.current) {
             return;
         }
 
@@ -261,12 +266,31 @@ export default function Settings({
         }
 
         setAutoSaveState('saving');
+        const requestId = autoSaveRequestId.current + 1;
+        autoSaveRequestId.current = requestId;
+
         autoSaveTimer.current = window.setTimeout(() => {
-            patch(route('admin.settings.update'), {
+            const payload = JSON.parse(autoSaveSignature);
+
+            router.patch(route('admin.settings.update'), payload, {
                 preserveScroll: true,
                 preserveState: true,
-                onSuccess: () => setAutoSaveState('saved'),
-                onError: () => setAutoSaveState('error'),
+                onSuccess: () => {
+                    if (requestId !== autoSaveRequestId.current) {
+                        return;
+                    }
+
+                    autoSaveLastSavedSignature.current = autoSaveSignature;
+                    setAutoSaveState('saved');
+                    setAutoSaveUpdatedAt(new Date());
+                },
+                onError: () => {
+                    if (requestId !== autoSaveRequestId.current) {
+                        return;
+                    }
+
+                    setAutoSaveState('error');
+                },
             });
         }, 900);
 
@@ -275,7 +299,43 @@ export default function Settings({
                 window.clearTimeout(autoSaveTimer.current);
             }
         };
-    }, [data, patch]);
+    }, [autoSaveSignature]);
+
+    const autoSaveStatusText = useMemo(() => {
+        if (autoSaveState === 'saving') {
+            return 'Autosave: saving changes...';
+        }
+
+        if (autoSaveState === 'saved') {
+            if (!autoSaveUpdatedAt) {
+                return 'Autosave: all changes saved.';
+            }
+
+            return `Autosave: saved at ${autoSaveUpdatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+        }
+
+        if (autoSaveState === 'error') {
+            return 'Autosave: failed. Keep editing; retry will run automatically.';
+        }
+
+        return 'Autosave: ready.';
+    }, [autoSaveState, autoSaveUpdatedAt]);
+
+    const autoSaveStatusClassName = useMemo(() => {
+        if (autoSaveState === 'saving') {
+            return 'border-blue-200 bg-blue-50 text-blue-800';
+        }
+
+        if (autoSaveState === 'saved') {
+            return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+        }
+
+        if (autoSaveState === 'error') {
+            return 'border-red-200 bg-red-50 text-red-800';
+        }
+
+        return 'border-gray-200 bg-white text-gray-700';
+    }, [autoSaveState]);
 
     const updateSlide = (index, field, value) => {
         const nextSlides = [...(data.home_slides || [])];
@@ -377,16 +437,14 @@ export default function Settings({
     };
 
     const refreshGoogleReviewsPreview = async () => {
-        const widgetId = String(data.google_reviews_widget_id || '').trim();
-        const widgetVersion = String(data.google_reviews_widget_version || 'v2').trim() || 'v2';
+        const placeId = String(data.google_reviews_place_id || '').trim();
 
         setGoogleReviewsPreviewLoading(true);
 
         try {
             const response = await window.axios.get(route('admin.settings.google-reviews.preview'), {
                 params: {
-                    widget_id: widgetId,
-                    widget_version: widgetVersion,
+                    place_id: placeId,
                 },
             });
 
@@ -454,17 +512,16 @@ export default function Settings({
     };
 
     useEffect(() => {
-        const widgetId = String(data.google_reviews_widget_id || '').trim();
-        const widgetVersion = String(data.google_reviews_widget_version || '').trim();
+        const placeId = String(data.google_reviews_place_id || '').trim();
 
-        if (widgetId === '' || widgetVersion === '') {
+        if (placeId === '') {
             setGoogleReviewsPreview([]);
             setGoogleReviewsPreviewMeta({
                 success: false,
                 profile_url: null,
                 total_review_count: null,
                 average_rating: null,
-                error: 'Add your Featurable widget ID to load Google reviews.',
+                error: 'Add your Google Place ID to load Google reviews.',
             });
             return;
         }
@@ -476,7 +533,7 @@ export default function Settings({
         return () => {
             window.clearTimeout(timer);
         };
-    }, [data.google_reviews_widget_id, data.google_reviews_widget_version]);
+    }, [data.google_reviews_place_id]);
 
     const submitDiscountCode = (event) => {
         event.preventDefault();
@@ -637,13 +694,6 @@ export default function Settings({
                             {flash.error}
                         </div>
                     )}
-
-                    <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
-                        {autoSaveState === 'saving' && 'Saving changes...'}
-                        {autoSaveState === 'saved' && 'All changes saved automatically.'}
-                        {autoSaveState === 'error' && 'Autosave failed for one or more fields. Keep editing and we will retry.'}
-                        {autoSaveState === 'idle' && 'Changes save automatically while you edit.'}
-                    </div>
 
                     <form onSubmit={(event) => event.preventDefault()} className="space-y-6">
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -1045,37 +1095,25 @@ export default function Settings({
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-gray-900">Google Reviews Embed</h3>
                             <p className="mt-1 text-sm text-gray-600">
-                                Connect a free Featurable widget and choose which Google reviews should be featured across public pages.
+                                Use your Google Business Place ID and server-side Google Places API key to load live Google reviews across public pages.
                             </p>
 
-                            <div className="mt-5 grid gap-4 md:grid-cols-2">
+                            <div className="mt-5 grid gap-4 md:grid-cols-1">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Featurable Widget ID</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Google Place ID</label>
                                     <input
                                         type="text"
-                                        value={data.google_reviews_widget_id || ''}
-                                        onChange={(event) => setData('google_reviews_widget_id', event.target.value)}
-                                        placeholder="842ncdd8-0f40-438d-9c..."
+                                        value={data.google_reviews_place_id || ''}
+                                        onChange={(event) => setData('google_reviews_place_id', event.target.value)}
+                                        placeholder="ChIJxxxxxxxxxxxxxxxxxxxxxxx"
                                         className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
                                     />
-                                    {errors.google_reviews_widget_id && (
-                                        <p className="mt-1 text-xs text-red-600">{errors.google_reviews_widget_id}</p>
+                                    {errors.google_reviews_place_id && (
+                                        <p className="mt-1 text-xs text-red-600">{errors.google_reviews_place_id}</p>
                                     )}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Widget API Version</label>
-                                    <select
-                                        value={data.google_reviews_widget_version || 'v2'}
-                                        onChange={(event) => setData('google_reviews_widget_version', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                                    >
-                                        <option value="v2">v2 (recommended)</option>
-                                        <option value="v1">v1</option>
-                                    </select>
-                                    {errors.google_reviews_widget_version && (
-                                        <p className="mt-1 text-xs text-red-600">{errors.google_reviews_widget_version}</p>
-                                    )}
+                                    <p className="mt-2 text-xs text-gray-500">
+                                        Server key required: set <code>GOOGLE_MAPS_PLACES_API_KEY</code> in your environment.
+                                    </p>
                                 </div>
                             </div>
 
@@ -1906,6 +1944,12 @@ export default function Settings({
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div className="pointer-events-none fixed right-4 top-20 z-[90]">
+                <div className={`rounded-lg border px-3 py-2 text-xs font-semibold shadow-sm ${autoSaveStatusClassName}`}>
+                    {autoSaveStatusText}
                 </div>
             </div>
 

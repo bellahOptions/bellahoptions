@@ -15,12 +15,12 @@ use App\Models\ServiceOrder;
 use App\Models\SubscriptionPlan;
 use App\Models\Term;
 use App\Support\PlatformSettings;
+use App\Support\GooglePlacesReviews;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
@@ -53,8 +53,7 @@ class SettingController extends Controller
                 'public_page_headers' => PlatformSettings::publicPageHeaders(),
                 'google_reviews' => $googleReviewsConfig,
                 'google_reviews_preview' => $this->fetchGoogleReviewsPreview(
-                    $googleReviewsConfig['widget_id'],
-                    $googleReviewsConfig['widget_version'],
+                    $googleReviewsConfig['place_id'],
                 ),
                 'terms' => $this->policyTermsPayload(),
             ],
@@ -185,18 +184,14 @@ class SettingController extends Controller
         }
 
         if (
-            array_key_exists('google_reviews_widget_id', $payload)
-            || array_key_exists('google_reviews_widget_version', $payload)
+            array_key_exists('google_reviews_place_id', $payload)
             || array_key_exists('featured_google_review_ids', $payload)
         ) {
             $current = PlatformSettings::googleReviewsConfig();
             PlatformSettings::setGoogleReviewsConfig([
-                'widget_id' => array_key_exists('google_reviews_widget_id', $payload)
-                    ? (string) $payload['google_reviews_widget_id']
-                    : $current['widget_id'],
-                'widget_version' => array_key_exists('google_reviews_widget_version', $payload)
-                    ? (string) $payload['google_reviews_widget_version']
-                    : $current['widget_version'],
+                'place_id' => array_key_exists('google_reviews_place_id', $payload)
+                    ? (string) $payload['google_reviews_place_id']
+                    : $current['place_id'],
                 'featured_review_ids' => array_key_exists('featured_google_review_ids', $payload)
                     ? (array) $payload['featured_google_review_ids']
                     : $current['featured_review_ids'],
@@ -214,13 +209,9 @@ class SettingController extends Controller
     {
         abort_unless((bool) $request->user()?->canManageSettings(), 403);
 
-        $widgetId = trim((string) $request->query('widget_id', ''));
-        $widgetVersion = strtolower(trim((string) $request->query('widget_version', 'v2')));
-        if ($widgetVersion !== 'v1' && $widgetVersion !== 'v2') {
-            $widgetVersion = 'v2';
-        }
+        $placeId = trim((string) $request->query('place_id', ''));
 
-        $preview = $this->fetchGoogleReviewsPreview($widgetId, $widgetVersion);
+        $preview = $this->fetchGoogleReviewsPreview($placeId, true);
 
         return response()->json($preview);
     }
@@ -610,8 +601,7 @@ class SettingController extends Controller
     /**
      * @return array{
      *   success: bool,
-     *   widget_id: string,
-     *   widget_version: string,
+     *   place_id: string,
      *   profile_url: string|null,
      *   total_review_count: int|null,
      *   average_rating: float|null,
@@ -619,186 +609,8 @@ class SettingController extends Controller
      *   error: string|null
      * }
      */
-    private function fetchGoogleReviewsPreview(string $widgetId, string $widgetVersion): array
+    private function fetchGoogleReviewsPreview(string $placeId, bool $forceFresh = false): array
     {
-        $widgetId = trim($widgetId);
-        $widgetVersion = strtolower(trim($widgetVersion));
-
-        if ($widgetVersion !== 'v1' && $widgetVersion !== 'v2') {
-            $widgetVersion = 'v2';
-        }
-
-        if ($widgetId === '') {
-            return [
-                'success' => false,
-                'widget_id' => '',
-                'widget_version' => $widgetVersion,
-                'profile_url' => null,
-                'total_review_count' => null,
-                'average_rating' => null,
-                'reviews' => [],
-                'error' => 'Add your Featurable widget ID to load Google reviews.',
-            ];
-        }
-
-        try {
-            $response = Http::acceptJson()
-                ->timeout(10)
-                ->get("https://featurable.com/api/{$widgetVersion}/widgets/{$widgetId}");
-        } catch (Throwable $exception) {
-            Log::warning('Google reviews preview fetch failed.', [
-                'widget_version' => $widgetVersion,
-                'message' => $exception->getMessage(),
-            ]);
-
-            return [
-                'success' => false,
-                'widget_id' => $widgetId,
-                'widget_version' => $widgetVersion,
-                'profile_url' => null,
-                'total_review_count' => null,
-                'average_rating' => null,
-                'reviews' => [],
-                'error' => 'Unable to reach the reviews provider right now.',
-            ];
-        }
-
-        if (! $response->ok()) {
-            return [
-                'success' => false,
-                'widget_id' => $widgetId,
-                'widget_version' => $widgetVersion,
-                'profile_url' => null,
-                'total_review_count' => null,
-                'average_rating' => null,
-                'reviews' => [],
-                'error' => 'Could not load reviews for this widget ID.',
-            ];
-        }
-
-        $payload = $response->json();
-        if (! is_array($payload) || (bool) ($payload['success'] ?? false) !== true) {
-            return [
-                'success' => false,
-                'widget_id' => $widgetId,
-                'widget_version' => $widgetVersion,
-                'profile_url' => null,
-                'total_review_count' => null,
-                'average_rating' => null,
-                'reviews' => [],
-                'error' => 'The provider rejected this widget ID or has no published reviews.',
-            ];
-        }
-
-        if ($widgetVersion === 'v2') {
-            $rawReviews = (array) data_get($payload, 'widget.reviews', []);
-            $profileUrl = data_get($payload, 'widget.gbpLocationSummary.writeAReviewUri');
-            $totalReviewCount = data_get($payload, 'widget.gbpLocationSummary.reviewsCount');
-            $averageRating = data_get($payload, 'widget.gbpLocationSummary.rating');
-
-            $reviews = collect($rawReviews)
-                ->filter(fn (mixed $review): bool => is_array($review))
-                ->map(function (array $review): array {
-                    $ratingValue = (int) round((float) data_get($review, 'rating.value', 0));
-
-                    return [
-                        'review_id' => mb_substr(trim((string) ($review['id'] ?? '')), 0, 220),
-                        'reviewer_name' => mb_substr(trim((string) data_get($review, 'author.name', 'Anonymous')), 0, 160),
-                        'reviewer_avatar' => $this->sanitizePreviewHttpUrl(
-                            data_get($review, 'author.photoUrl')
-                                ?: data_get($review, 'author.avatarUrl')
-                        ),
-                        'rating' => max(1, min(5, $ratingValue)),
-                        'comment' => mb_substr(trim((string) ($review['text'] ?? '')), 0, 3000),
-                        'published_at' => $this->normalizeDateString(
-                            (string) ($review['publishedAt'] ?? '')
-                        ),
-                        'review_url' => $this->sanitizePreviewHttpUrl($review['url'] ?? null),
-                    ];
-                })
-                ->filter(fn (array $review): bool => $review['review_id'] !== '')
-                ->take(50)
-                ->values()
-                ->all();
-
-            return [
-                'success' => true,
-                'widget_id' => $widgetId,
-                'widget_version' => $widgetVersion,
-                'profile_url' => $this->sanitizePreviewHttpUrl(is_string($profileUrl) ? $profileUrl : null),
-                'total_review_count' => is_numeric($totalReviewCount) ? (int) $totalReviewCount : null,
-                'average_rating' => is_numeric($averageRating) ? round((float) $averageRating, 2) : null,
-                'reviews' => $reviews,
-                'error' => null,
-            ];
-        }
-
-        $rawReviews = (array) ($payload['reviews'] ?? []);
-        $reviews = collect($rawReviews)
-            ->filter(fn (mixed $review): bool => is_array($review))
-            ->map(function (array $review): array {
-                $ratingValue = (int) round((float) ($review['starRating'] ?? 0));
-
-                return [
-                    'review_id' => mb_substr(trim((string) ($review['reviewId'] ?? '')), 0, 220),
-                    'reviewer_name' => mb_substr(trim((string) data_get($review, 'reviewer.displayName', 'Anonymous')), 0, 160),
-                    'reviewer_avatar' => $this->sanitizePreviewHttpUrl(data_get($review, 'reviewer.profilePhotoUrl')),
-                    'rating' => max(1, min(5, $ratingValue)),
-                    'comment' => mb_substr(trim((string) ($review['comment'] ?? '')), 0, 3000),
-                    'published_at' => $this->normalizeDateString(
-                        (string) ($review['createTime'] ?? '')
-                    ),
-                    'review_url' => null,
-                ];
-            })
-            ->filter(fn (array $review): bool => $review['review_id'] !== '')
-            ->take(50)
-            ->values()
-            ->all();
-
-        return [
-            'success' => true,
-            'widget_id' => $widgetId,
-            'widget_version' => $widgetVersion,
-            'profile_url' => $this->sanitizePreviewHttpUrl(
-                is_string($payload['profileUrl'] ?? null) ? $payload['profileUrl'] : null
-            ),
-            'total_review_count' => is_numeric($payload['totalReviewCount'] ?? null)
-                ? (int) $payload['totalReviewCount']
-                : null,
-            'average_rating' => is_numeric($payload['averageRating'] ?? null)
-                ? round((float) $payload['averageRating'], 2)
-                : null,
-            'reviews' => $reviews,
-            'error' => null,
-        ];
-    }
-
-    private function sanitizePreviewHttpUrl(mixed $value): ?string
-    {
-        $candidate = trim((string) $value);
-
-        if ($candidate === '' || ! filter_var($candidate, FILTER_VALIDATE_URL)) {
-            return null;
-        }
-
-        $scheme = strtolower((string) parse_url($candidate, PHP_URL_SCHEME));
-
-        return in_array($scheme, ['http', 'https'], true) ? $candidate : null;
-    }
-
-    private function normalizeDateString(string $value): ?string
-    {
-        $candidate = trim($value);
-
-        if ($candidate === '') {
-            return null;
-        }
-
-        try {
-            return \Carbon\Carbon::parse($candidate)->toIso8601String();
-        } catch (Throwable) {
-            return null;
-        }
+        return GooglePlacesReviews::fetchPreview($placeId, $forceFresh);
     }
 }

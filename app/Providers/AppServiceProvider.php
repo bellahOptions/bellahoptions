@@ -62,7 +62,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('live-chat-read', function (Request $request): array {
-            $token = Str::lower(trim((string) $request->header('X-Live-Chat-Token', $request->query('token', ''))));
+            $token = Str::lower(trim((string) $request->cookie('chat_token', '')));
             $fingerprint = implode('|', [
                 (string) $request->ip(),
                 $token !== '' ? $token : 'no-token',
@@ -75,7 +75,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         RateLimiter::for('live-chat-signal', function (Request $request): array {
-            $token = Str::lower(trim((string) $request->header('X-Live-Chat-Token', $request->query('token', ''))));
+            $token = Str::lower(trim((string) $request->cookie('chat_token', '')));
             $fingerprint = implode('|', [
                 (string) $request->ip(),
                 $token !== '' ? $token : 'no-token',

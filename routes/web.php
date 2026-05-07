@@ -139,7 +139,7 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
         ->name('admin.service-orders.updates.store');
 });
 
-Route::middleware(['auth', 'verified', 'super-admin'])->group(function (): void {
+Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function (): void {
     Route::get('/admin/settings', [SettingController::class, 'edit'])->name('admin.settings.edit');
     Route::patch('/admin/settings', [SettingController::class, 'update'])->name('admin.settings.update');
     Route::post('/admin/settings/discount-codes', [SettingController::class, 'storeDiscount'])->name('admin.settings.discounts.store');

@@ -7,6 +7,7 @@ use App\Models\LiveChatStaffPresence;
 use App\Models\LiveChatThread;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class LiveChatFlowTest extends TestCase
@@ -15,13 +16,13 @@ class LiveChatFlowTest extends TestCase
 
     public function test_guest_can_start_a_live_chat_and_restore_session_with_token(): void
     {
-        $createResponse = $this
-            ->withHeader('X-Live-Chat-Token', 'guest-test-token-001')
-            ->postJson(route('live-chat.messages.send'), [
-                'guest_name' => 'Visitor Jane',
-                'guest_email' => 'visitor@example.test',
-                'message' => 'Hello, I need help with my order.',
-            ]);
+        $token = 'guest-test-token-001';
+
+        $createResponse = $this->chatJson('POST', route('live-chat.messages.send'), [
+            'guest_name' => 'Visitor Jane',
+            'guest_email' => 'visitor@example.test',
+            'message' => 'Hello, I need help with my order.',
+        ], $token);
 
         $createResponse
             ->assertCreated()
@@ -32,14 +33,12 @@ class LiveChatFlowTest extends TestCase
 
         $this->assertDatabaseHas('live_chat_threads', [
             'id' => $threadId,
-            'visitor_token' => 'guest-test-token-001',
+            'visitor_token' => $token,
             'guest_name' => 'Visitor Jane',
             'status' => 'open',
         ]);
 
-        $sessionResponse = $this
-            ->withHeader('X-Live-Chat-Token', 'guest-test-token-001')
-            ->getJson(route('live-chat.session'));
+        $sessionResponse = $this->chatJson('GET', route('live-chat.session'), [], $token);
 
         $sessionResponse
             ->assertOk()
@@ -68,6 +67,9 @@ class LiveChatFlowTest extends TestCase
         $staff = User::factory()->create([
             'role' => User::ROLE_CUSTOMER_REP,
         ]);
+        $thread->forceFill([
+            'assigned_staff_id' => $staff->id,
+        ])->save();
 
         $overviewResponse = $this
             ->actingAs($staff)
@@ -108,30 +110,26 @@ class LiveChatFlowTest extends TestCase
         $token = 'dedupe-test-token-001';
         $clientMessageId = 'client-msg-abc-001';
 
-        $firstSend = $this
-            ->withHeader('X-Live-Chat-Token', $token)
-            ->postJson(route('live-chat.messages.send'), [
-                'guest_name' => 'Guest Alex',
-                'guest_email' => 'alex@example.test',
-                'message' => 'Need support with billing.',
-                'client_message_id' => $clientMessageId,
-            ]);
+        $firstSend = $this->chatJson('POST', route('live-chat.messages.send'), [
+            'guest_name' => 'Guest Alex',
+            'guest_email' => 'alex@example.test',
+            'message' => 'Need support with billing.',
+            'client_message_id' => $clientMessageId,
+        ], $token);
 
         $firstSend
             ->assertCreated()
-            ->assertJsonPath('message.client_message_id', $clientMessageId);
+            ->assertJsonPath('message.sender_type', 'customer');
 
         $threadId = (int) $firstSend->json('thread.id');
         $firstMessageId = (int) $firstSend->json('message.id');
 
-        $duplicateSend = $this
-            ->withHeader('X-Live-Chat-Token', $token)
-            ->postJson(route('live-chat.messages.send'), [
-                'guest_name' => 'Guest Alex',
-                'guest_email' => 'alex@example.test',
-                'message' => 'Need support with billing.',
-                'client_message_id' => $clientMessageId,
-            ]);
+        $duplicateSend = $this->chatJson('POST', route('live-chat.messages.send'), [
+            'guest_name' => 'Guest Alex',
+            'guest_email' => 'alex@example.test',
+            'message' => 'Need support with billing.',
+            'client_message_id' => $clientMessageId,
+        ], $token);
 
         $duplicateSend
             ->assertOk()
@@ -140,34 +138,41 @@ class LiveChatFlowTest extends TestCase
 
         $this->assertDatabaseCount('live_chat_messages', 1);
 
-        $reactResponse = $this
-            ->withHeader('X-Live-Chat-Token', $token)
-            ->postJson(route('live-chat.messages.react', ['message' => $firstMessageId]), [
-                'emoji' => '👍',
-            ]);
+        $reactResponse = $this->chatJson('POST', route('live-chat.messages.react', ['message' => $firstMessageId]), [
+            'emoji' => '👍',
+        ], $token);
 
         $reactResponse
             ->assertOk()
             ->assertJsonPath('message.reactions.0.emoji', '👍')
             ->assertJsonPath('message.reactions.0.count', 1);
 
-        $unreactResponse = $this
-            ->withHeader('X-Live-Chat-Token', $token)
-            ->postJson(route('live-chat.messages.react', ['message' => $firstMessageId]), [
-                'emoji' => '👍',
-            ]);
+        $unreactResponse = $this->chatJson('POST', route('live-chat.messages.react', ['message' => $firstMessageId]), [
+            'emoji' => '👍',
+        ], $token);
 
         $unreactResponse
             ->assertOk()
             ->assertJsonCount(0, 'message.reactions');
 
-        $closeResponse = $this
-            ->withHeader('X-Live-Chat-Token', $token)
-            ->patchJson(route('live-chat.close'));
+        $closeResponse = $this->chatJson('PATCH', route('live-chat.close'), [], $token);
 
         $closeResponse
             ->assertOk()
             ->assertJsonPath('thread.id', $threadId)
-            ->assertJsonPath('thread.status', 'closed');
+            ->assertJsonPath('thread.status', 'closed')
+            ->assertCookieExpired('chat_token');
+    }
+
+    private function chatJson(string $method, string $uri, array $payload = [], ?string $token = null): TestResponse
+    {
+        $cookies = $token ? ['chat_token' => $token] : [];
+        $server = [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+        ];
+        $content = $payload === [] ? null : json_encode($payload, JSON_THROW_ON_ERROR);
+
+        return $this->call($method, $uri, [], $cookies, [], $server, $content);
     }
 }

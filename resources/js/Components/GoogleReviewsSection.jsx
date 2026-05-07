@@ -1,7 +1,5 @@
 import { useMemo } from 'react';
 import { Link, usePage } from '@inertiajs/react';
-import { ReactGoogleReviews } from 'react-google-reviews';
-import 'react-google-reviews/dist/index.css';
 import { RevealSection } from '@/Components/MotionReveal';
 
 const reviewDateFormatter = new Intl.DateTimeFormat('en-NG', {
@@ -12,28 +10,13 @@ const reviewDateFormatter = new Intl.DateTimeFormat('en-NG', {
 
 function normalizeReview(rawReview) {
     const source = rawReview && typeof rawReview === 'object' ? rawReview : {};
-    const reviewId = String(source?.reviewId || source?.id || '').trim();
-    const reviewerName = String(
-        source?.reviewer?.displayName
-        || source?.author?.name
-        || source?.reviewerName
-        || 'Anonymous',
-    ).trim();
-    const reviewerPhoto = String(
-        source?.reviewer?.profilePhotoUrl
-        || source?.author?.photoUrl
-        || source?.author?.avatarUrl
-        || '',
-    ).trim();
-    const ratingNumber = Number(
-        source?.starRating
-        ?? source?.rating?.value
-        ?? source?.rating
-        ?? 0,
-    );
+    const reviewId = String(source?.review_id || source?.reviewId || source?.id || '').trim();
+    const reviewerName = String(source?.reviewer_name || source?.reviewerName || source?.reviewer?.displayName || 'Anonymous').trim();
+    const reviewerPhoto = String(source?.reviewer_avatar || source?.reviewerPhoto || source?.reviewer?.profilePhotoUrl || '').trim();
+    const ratingNumber = Number(source?.rating ?? source?.starRating ?? source?.rating?.value ?? 0);
     const rating = Math.max(1, Math.min(5, Number.isFinite(ratingNumber) ? Math.round(ratingNumber) : 0));
     const comment = String(source?.comment || source?.text || '').trim();
-    const createdAt = source?.createTime || source?.publishedAt || source?.published_at || null;
+    const createdAt = source?.published_at || source?.publishedAt || source?.createTime || null;
 
     if (reviewId === '') {
         return null;
@@ -79,20 +62,39 @@ export default function GoogleReviewsSection({
     useFeaturedSelection = true,
 }) {
     const { googleReviews = {} } = usePage().props;
-    const widgetId = String(googleReviews?.widget_id || '').trim();
-    const widgetVersion = String(googleReviews?.widget_version || 'v2').trim() || 'v2';
+    const rawReviews = Array.isArray(googleReviews?.reviews) ? googleReviews.reviews : [];
     const featuredReviewIds = Array.isArray(googleReviews?.featured_review_ids)
         ? googleReviews.featured_review_ids.map((value) => String(value || '').trim()).filter(Boolean)
         : [];
-
-    const featuredReviewIdSet = useMemo(
-        () => new Set(featuredReviewIds),
-        [featuredReviewIds],
+    const featuredReviewIdSet = useMemo(() => new Set(featuredReviewIds), [featuredReviewIds]);
+    const normalized = useMemo(
+        () => rawReviews.map((review) => normalizeReview(review)).filter(Boolean),
+        [rawReviews],
     );
+    const source = useMemo(() => {
+        if (!useFeaturedSelection || featuredReviewIds.length === 0) {
+            return normalized;
+        }
 
-    if (widgetId === '') {
+        return featuredReviewIds
+            .map((id) => normalized.find((review) => review.reviewId === id))
+            .filter(Boolean);
+    }, [useFeaturedSelection, featuredReviewIds, normalized]);
+    const visible = Number.isFinite(Number(maxVisible)) && Number(maxVisible) > 0
+        ? source.slice(0, Number(maxVisible))
+        : source;
+    const fallback = visible.length > 0
+        ? visible
+        : (Number.isFinite(Number(maxVisible)) && Number(maxVisible) > 0
+            ? normalized.slice(0, Number(maxVisible))
+            : normalized);
+
+    if (fallback.length === 0) {
         return null;
     }
+
+    const mobileSlides = chunkReviews(fallback, 1);
+    const desktopSlides = chunkReviews(fallback, 3);
 
     return (
         <RevealSection className={className}>
@@ -108,129 +110,83 @@ export default function GoogleReviewsSection({
                 </div>
 
                 <div className="mt-8">
-                    <ReactGoogleReviews
-                        featurableId={widgetId}
-                        widgetVersion={widgetVersion}
-                        layout="custom"
-                        dateDisplay="absolute"
-                        nameDisplay="fullNames"
-                        maxCharacters={320}
-                        hideEmptyReviews
-                        renderer={(reviews) => {
-                            const normalized = (Array.isArray(reviews) ? reviews : [])
-                                .map((review) => normalizeReview(review))
-                                .filter(Boolean);
+                    <div className="md:hidden">
+                        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+                            {mobileSlides.map((slide, slideIndex) => (
+                                <div key={`mobile-slide-${slideIndex}`} className="w-full shrink-0 snap-start">
+                                    {slide.map((review) => {
+                                        const reviewId = review.reviewId;
+                                        const reviewerName = review.reviewerName;
+                                        const reviewerPhoto = review.reviewerPhoto;
+                                        const rating = review.rating;
+                                        const comment = review.comment;
 
-                            const source = useFeaturedSelection && featuredReviewIds.length > 0
-                                ? featuredReviewIds
-                                    .map((id) => normalized.find((review) => review.reviewId === id))
-                                    .filter(Boolean)
-                                : normalized;
-
-                            const visible = Number.isFinite(Number(maxVisible)) && Number(maxVisible) > 0
-                                ? source.slice(0, Number(maxVisible))
-                                : source;
-
-                            const fallback = visible.length > 0
-                                ? visible
-                                : (Number.isFinite(Number(maxVisible)) && Number(maxVisible) > 0
-                                    ? normalized.slice(0, Number(maxVisible))
-                                    : normalized);
-
-                            if (fallback.length === 0) {
-                                return (
-                                    <div className="rounded-lg border border-gray-200 bg-white p-6 text-center text-sm text-gray-600">
-                                        Reviews are loading. Please check back shortly.
-                                    </div>
-                                );
-                            }
-
-                            const mobileSlides = chunkReviews(fallback, 1);
-                            const desktopSlides = chunkReviews(fallback, 3);
-
-                            return (
-                                <>
-                                    <div className="md:hidden">
-                                        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-                                            {mobileSlides.map((slide, slideIndex) => (
-                                                <div key={`mobile-slide-${slideIndex}`} className="w-full shrink-0 snap-start">
-                                                    {slide.map((review) => {
-                                                        const reviewId = review.reviewId;
-                                                        const reviewerName = review.reviewerName;
-                                                        const reviewerPhoto = review.reviewerPhoto;
-                                                        const rating = review.rating;
-                                                        const comment = review.comment;
-
-                                                        return (
-                                                            <article key={reviewId} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                                                <div className="flex items-center gap-3">
-                                                                    {reviewerPhoto ? (
-                                                                        <img src={reviewerPhoto} alt={reviewerName} className="h-10 w-10 rounded-full object-cover" />
-                                                                    ) : (
-                                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-[#000285]">
-                                                                            {reviewerName.slice(0, 1).toUpperCase()}
-                                                                        </div>
-                                                                    )}
-                                                                    <div>
-                                                                        <p className="text-sm font-semibold text-gray-900">{reviewerName}</p>
-                                                                        <p className="text-xs text-gray-500">{formatReviewDate(review.createdAt)}</p>
-                                                                    </div>
-                                                                </div>
-                                                                <p className="mt-3 text-sm text-amber-600">{'★'.repeat(rating)}</p>
-                                                                <p className="mt-3 text-sm leading-7 text-gray-700">
-                                                                    {comment || 'No review text provided.'}
-                                                                </p>
-                                                            </article>
-                                                        );
-                                                    })}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div className="hidden md:block">
-                                        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-                                            {desktopSlides.map((slide, slideIndex) => (
-                                                <div key={`desktop-slide-${slideIndex}`} className="w-full shrink-0 snap-start">
-                                                    <div className="grid grid-cols-3 gap-4">
-                                                        {slide.map((review) => {
-                                                            const reviewId = review.reviewId;
-                                                            const reviewerName = review.reviewerName;
-                                                            const reviewerPhoto = review.reviewerPhoto;
-                                                            const rating = review.rating;
-                                                            const comment = review.comment;
-
-                                                            return (
-                                                                <article key={reviewId} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                                                    <div className="flex items-center gap-3">
-                                                                        {reviewerPhoto ? (
-                                                                            <img src={reviewerPhoto} alt={reviewerName} className="h-10 w-10 rounded-full object-cover" />
-                                                                        ) : (
-                                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-[#000285]">
-                                                                                {reviewerName.slice(0, 1).toUpperCase()}
-                                                                            </div>
-                                                                        )}
-                                                                        <div>
-                                                                            <p className="text-sm font-semibold text-gray-900">{reviewerName}</p>
-                                                                            <p className="text-xs text-gray-500">{formatReviewDate(review.createdAt)}</p>
-                                                                        </div>
-                                                                    </div>
-                                                                    <p className="mt-3 text-sm text-amber-600">{'★'.repeat(rating)}</p>
-                                                                    <p className="mt-3 text-sm leading-7 text-gray-700">
-                                                                        {comment || 'No review text provided.'}
-                                                                    </p>
-                                                                </article>
-                                                            );
-                                                        })}
+                                        return (
+                                            <article key={reviewId} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                                                <div className="flex items-center gap-3">
+                                                    {reviewerPhoto ? (
+                                                        <img src={reviewerPhoto} alt={reviewerName} className="h-10 w-10 rounded-full object-cover" />
+                                                    ) : (
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-[#000285]">
+                                                            {reviewerName.slice(0, 1).toUpperCase()}
+                                                        </div>
+                                                    )}
+                                                    <div>
+                                                        <p className="text-sm font-semibold text-gray-900">{reviewerName}</p>
+                                                        <p className="text-xs text-gray-500">{formatReviewDate(review.createdAt)}</p>
                                                     </div>
                                                 </div>
-                                            ))}
-                                        </div>
+                                                <p className="mt-3 text-sm text-amber-600">{'★'.repeat(rating)}</p>
+                                                <p className="mt-3 text-sm leading-7 text-gray-700">
+                                                    {comment || 'No review text provided.'}
+                                                </p>
+                                            </article>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="hidden md:block">
+                        <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
+                            {desktopSlides.map((slide, slideIndex) => (
+                                <div key={`desktop-slide-${slideIndex}`} className="w-full shrink-0 snap-start">
+                                    <div className="grid grid-cols-3 gap-4">
+                                        {slide.map((review) => {
+                                            const reviewId = review.reviewId;
+                                            const reviewerName = review.reviewerName;
+                                            const reviewerPhoto = review.reviewerPhoto;
+                                            const rating = review.rating;
+                                            const comment = review.comment;
+
+                                            return (
+                                                <article key={reviewId} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                                                    <div className="flex items-center gap-3">
+                                                        {reviewerPhoto ? (
+                                                            <img src={reviewerPhoto} alt={reviewerName} className="h-10 w-10 rounded-full object-cover" />
+                                                        ) : (
+                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-[#000285]">
+                                                                {reviewerName.slice(0, 1).toUpperCase()}
+                                                            </div>
+                                                        )}
+                                                        <div>
+                                                            <p className="text-sm font-semibold text-gray-900">{reviewerName}</p>
+                                                            <p className="text-xs text-gray-500">{formatReviewDate(review.createdAt)}</p>
+                                                        </div>
+                                                    </div>
+                                                    <p className="mt-3 text-sm text-amber-600">{'★'.repeat(rating)}</p>
+                                                    <p className="mt-3 text-sm leading-7 text-gray-700">
+                                                        {comment || 'No review text provided.'}
+                                                    </p>
+                                                </article>
+                                            );
+                                        })}
                                     </div>
-                                </>
-                            );
-                        }}
-                    />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 {useFeaturedSelection && featuredReviewIdSet.size > 0 ? (
