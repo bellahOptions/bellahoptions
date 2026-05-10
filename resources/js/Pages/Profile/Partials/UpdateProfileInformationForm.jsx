@@ -13,7 +13,7 @@ export default function UpdateProfileInformation({
 }) {
     const user = usePage().props.auth.user;
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
+    const { data, setData, patch, errors, processing, recentlySuccessful, isDirty } =
         useForm({
             name: user.name,
             email: user.email,
@@ -76,6 +76,11 @@ export default function UpdateProfileInformation({
             clearProfilePhoto: false,
             clearCompanyLogo: false,
         };
+        const hasQueuedFileOperation = queuedOptions.clearProfilePhoto || queuedOptions.clearCompanyLogo;
+
+        if (!isDirty && !hasQueuedFileOperation) {
+            return;
+        }
 
         submitProfileUpdate({
             ...queuedOptions,
@@ -89,7 +94,7 @@ export default function UpdateProfileInformation({
                 }
             },
         });
-    }, [processing, submitProfileUpdate]);
+    }, [isDirty, processing, submitProfileUpdate]);
 
     const queueAutosave = useCallback((options = {}) => {
         mergeAutosaveOptions(options);
