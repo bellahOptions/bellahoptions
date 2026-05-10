@@ -1,6 +1,6 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
 import CustomerLiveChatWidget from "@/Components/live-chat/CustomerLiveChatWidget";
-import { Link } from "@inertiajs/react";
+import { Link, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
@@ -86,6 +86,8 @@ function FooterLink({ href, children }) {
 }
 
 export default function PageTheme({ children }) {
+    const user = usePage().props?.auth?.user;
+    const isLoggedIn = Boolean(user?.id);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -179,12 +181,34 @@ export default function PageTheme({ children }) {
                     </div>
 
                     <div className="hidden items-center gap-3 md:flex">
-                        <Link
-                            href="/login"
-                            className="rounded-lg px-4 py-2 text-sm font-black text-gray-700 transition hover:text-[#000285]"
-                        >
-                            Log In
-                        </Link>
+                        {isLoggedIn ? (
+                            <Link
+                                href={route("dashboard")}
+                                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-black text-gray-700 transition hover:text-[#000285]"
+                            >
+                                <span className="h-8 w-8 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                                    {user?.profile_photo_url ? (
+                                        <img
+                                            src={user.profile_photo_url}
+                                            alt={user?.name || "User"}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <span className="flex h-full w-full items-center justify-center text-xs font-black text-gray-600">
+                                            {(user?.name || "U").slice(0, 1).toUpperCase()}
+                                        </span>
+                                    )}
+                                </span>
+                                Dashboard
+                            </Link>
+                        ) : (
+                            <Link
+                                href="/login"
+                                className="rounded-lg px-4 py-2 text-sm font-black text-gray-700 transition hover:text-[#000285]"
+                            >
+                                Log In
+                            </Link>
+                        )}
                         <Link
                             href="/order/social-media-design" 
                             className="group inline-flex items-center gap-2 rounded-lg bg-[#000285] px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-blue-800"
@@ -239,13 +263,24 @@ export default function PageTheme({ children }) {
                                     Get Started
                                     <ArrowRightIcon className="h-4 w-4" />
                                 </Link>
-                                <Link
-                                    href="/login"
-                                    className="flex items-center justify-center rounded-lg border border-gray-200 px-5 py-3 text-sm font-black text-gray-700"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    Log In
-                                </Link>
+                                {!isLoggedIn && (
+                                    <Link
+                                        href="/login"
+                                        className="flex items-center justify-center rounded-lg border border-gray-200 px-5 py-3 text-sm font-black text-gray-700"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Log In
+                                    </Link>
+                                )}
+                                {isLoggedIn && (
+                                    <Link
+                                        href={route("dashboard")}
+                                        className="flex items-center justify-center rounded-lg border border-gray-200 px-5 py-3 text-sm font-black text-gray-700"
+                                        onClick={() => setIsMenuOpen(false)}
+                                    >
+                                        Dashboard
+                                    </Link>
+                                )}
                             </div>
                         </motion.div>
                     )}

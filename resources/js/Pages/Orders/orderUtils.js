@@ -35,6 +35,8 @@ export function buildOrderFormSeed(checkoutServices, defaults = {}) {
         position: "",
         business_website: "",
         has_logo: "",
+        has_content: "",
+        content_development_interest: "",
         logo_design_interest: "",
         logo_addon_package: "",
         project_summary: "",
@@ -56,6 +58,7 @@ export function buildOrderFormSeed(checkoutServices, defaults = {}) {
         company_name: "",
         contact_notes: "",
         discount_code: defaults.discount_code || "",
+        prospect_draft_token: defaults.prospect_draft_token || "",
     };
 
     Object.values(checkoutServices || {}).forEach((service) => {

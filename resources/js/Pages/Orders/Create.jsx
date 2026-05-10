@@ -29,6 +29,8 @@ const errorStepMap = {
     business_name: 3,
     business_website: 3,
     has_logo: 3,
+    has_content: 3,
+    content_development_interest: 3,
     logo_design_interest: 3,
     logo_addon_package: 3,
     project_summary: 3,
@@ -129,6 +131,7 @@ export default function OrderCreate({
             form_rendered_at: formRenderedAt || 0,
             turnstile_token: "",
             discount_code: discountCode || "",
+            prospect_draft_token: "",
         }),
     );
 
@@ -139,6 +142,10 @@ export default function OrderCreate({
     const turnstileContainerRef = useRef(null);
     const turnstileWidgetIdRef = useRef(null);
     const hasAttemptedDraftRestoreRef = useRef(false);
+    const prospectDraftSaveRef = useRef({
+        lastFingerprint: "",
+        inFlight: false,
+    });
 
     const activeService = checkoutServices[activeServiceSlug] || null;
     const activePackages = activeService?.packages || {};
@@ -212,6 +219,16 @@ export default function OrderCreate({
 
         if (fieldName === "has_logo") {
             return ["yes", "no"].includes(normalized) ? null : "Please tell us whether you already have a logo.";
+        }
+
+        if (fieldName === "has_content") {
+            return ["yes", "no"].includes(normalized) ? null : "Please tell us whether you already have content for the designs.";
+        }
+
+        if (fieldName === "content_development_interest") {
+            if (nextData.has_content !== "no") return null;
+            if (!["yes", "no"].includes(normalized)) return "Please tell us whether you want us to develop content for your designs.";
+            return null;
         }
 
         if (fieldName === "logo_design_interest") {
@@ -407,6 +424,13 @@ export default function OrderCreate({
     }, [clearErrors, data.has_logo, data.logo_addon_package, data.logo_design_interest, setData]);
 
     useEffect(() => {
+        if (data.has_content !== "no" && data.content_development_interest !== "") {
+            setData("content_development_interest", "");
+            clearErrors("content_development_interest");
+        }
+    }, [clearErrors, data.content_development_interest, data.has_content, setData]);
+
+    useEffect(() => {
         if (data.logo_design_interest !== "yes" && data.logo_addon_package !== "") {
             setData("logo_addon_package", "");
             clearErrors("logo_addon_package");
@@ -495,6 +519,91 @@ export default function OrderCreate({
     }, [activeServiceSlug, currentStep, data, draftStorageKey]);
 
     useEffect(() => {
+        if (isAuthenticated || auth?.user || typeof window === "undefined") {
+            return;
+        }
+
+        const fullName = String(data.full_name || "").trim();
+        const email = String(data.email || "").trim().toLowerCase();
+        const phone = String(data.phone || "").trim();
+        const businessName = String(data.business_name || "").trim();
+
+        if (fullName === "" && email === "" && phone === "" && businessName === "") {
+            return;
+        }
+
+        const lightweightDraftPayload = Object.fromEntries(
+            Object.entries(data).filter(([fieldName, value]) => {
+                if (sensitiveDraftFields.has(fieldName) || fieldName === "prospect_draft_token") {
+                    return false;
+                }
+
+                if (typeof value === "boolean") {
+                    return value;
+                }
+
+                return String(value || "").trim() !== "";
+            }),
+        );
+
+        const fingerprint = JSON.stringify({
+            service_slug: activeServiceSlug,
+            current_step: currentStep,
+            service_package: data.service_package || "",
+            full_name: fullName,
+            email,
+            phone,
+            business_name: businessName,
+            draft_payload: lightweightDraftPayload,
+        });
+
+        if (prospectDraftSaveRef.current.lastFingerprint === fingerprint) {
+            return;
+        }
+
+        const timerId = window.setTimeout(async () => {
+            if (prospectDraftSaveRef.current.inFlight) {
+                return;
+            }
+
+            prospectDraftSaveRef.current.inFlight = true;
+
+            try {
+                const response = await window.axios.post(
+                    route("orders.prospect-draft.store", { serviceSlug: activeServiceSlug }),
+                    {
+                        draft_token: data.prospect_draft_token || null,
+                        current_step: currentStep,
+                        service_package: data.service_package || null,
+                        full_name: fullName || null,
+                        email: email || null,
+                        phone: phone || null,
+                        business_name: businessName || null,
+                        draft_payload: lightweightDraftPayload,
+                    },
+                );
+
+                if (response?.data?.saved) {
+                    prospectDraftSaveRef.current.lastFingerprint = fingerprint;
+
+                    const nextToken = String(response?.data?.draft_token || "").trim();
+                    if (nextToken && nextToken !== data.prospect_draft_token) {
+                        setData("prospect_draft_token", nextToken);
+                    }
+                }
+            } catch {
+                // keep local draft flow resilient if network save fails
+            } finally {
+                prospectDraftSaveRef.current.inFlight = false;
+            }
+        }, 1500);
+
+        return () => {
+            window.clearTimeout(timerId);
+        };
+    }, [activeServiceSlug, auth?.user, currentStep, data, isAuthenticated, setData]);
+
+    useEffect(() => {
         if (!autoTimelinePreference || data.timeline_preference === autoTimelinePreference) {
             return;
         }
@@ -577,11 +686,12 @@ export default function OrderCreate({
             ["Service", activeService?.name || activeServiceSlug],
             ["Package", packageData?.name || "Not selected"],
             ["Logo", data.has_logo === "yes" ? "Client already has a logo" : data.has_logo === "no" ? "Client needs logo support" : "Not answered"],
+            ["Content", data.has_content === "yes" ? "Client already has content" : data.has_content === "no" ? (data.content_development_interest === "yes" ? "Client needs Bellah content development" : "Client will provide content later") : "Not answered"],
             ["Logo Add-on", selectedLogoAddon?.name || (data.logo_design_interest === "no" ? "No add-on selected" : "Not selected")],
             ["Amount", packageData ? formatMoney(packageData.price, currency, locale) : "Pending"],
             ["Order Total", formatMoney((Number(packageData?.price || 0) + Number(selectedLogoAddon?.price || 0)), currency, locale)],
         ];
-    }, [activePackages, activeService?.name, activeServiceSlug, currency, data.business_name, data.email, data.full_name, data.has_logo, data.logo_design_interest, data.service_package, locale, selectedLogoAddon]);
+    }, [activePackages, activeService?.name, activeServiceSlug, currency, data.business_name, data.content_development_interest, data.email, data.full_name, data.has_content, data.has_logo, data.logo_design_interest, data.service_package, locale, selectedLogoAddon]);
 
     const fieldsForStep = (stepNumber, nextData) => {
         if (stepNumber === 1) {
@@ -600,6 +710,7 @@ export default function OrderCreate({
                 "business_name",
                 "business_website",
                 "has_logo",
+                "has_content",
                 "project_summary",
                 "project_goals",
                 "target_audience",
@@ -616,6 +727,10 @@ export default function OrderCreate({
                 if (nextData.logo_design_interest === "yes") {
                     fields.push("logo_addon_package");
                 }
+            }
+
+            if (nextData.has_content === "no") {
+                fields.push("content_development_interest");
             }
 
             return fields;
@@ -954,6 +1069,22 @@ export default function OrderCreate({
                                                     <option value="no">No, we need logo support</option>
                                                 </select>
                                             </Field>
+                                            <Field label="Do You Already Have Content for the Designs?" error={errors.has_content}>
+                                                <select value={data.has_content} onChange={(event) => updateField("has_content", event.target.value, ["content_development_interest"])} className={inputClassName}>
+                                                    <option value="">Select an option</option>
+                                                    <option value="yes">Yes, content is available</option>
+                                                    <option value="no">No, content is not available yet</option>
+                                                </select>
+                                            </Field>
+                                            {data.has_content === "no" && (
+                                                <Field label="Do You Want Bellah to Develop Content for the Designs?" error={errors.content_development_interest}>
+                                                    <select value={data.content_development_interest} onChange={(event) => updateField("content_development_interest", event.target.value)} className={inputClassName}>
+                                                        <option value="">Select an option</option>
+                                                        <option value="yes">Yes, please develop content</option>
+                                                        <option value="no">No, we will provide content later</option>
+                                                    </select>
+                                                </Field>
+                                            )}
                                             {data.has_logo === "no" && (
                                                 <Field label="Do You Want Us to Design a Logo?" error={errors.logo_design_interest}>
                                                     <select value={data.logo_design_interest} onChange={(event) => updateField("logo_design_interest", event.target.value, ["logo_addon_package"])} className={inputClassName}>

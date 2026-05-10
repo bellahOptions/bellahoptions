@@ -52,15 +52,12 @@ export default function Login({
         <GuestLayout>
             <Head title="Sign In" />
 
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
+            <div className="leading-tight">
+                <h2 className="mt-2 text-3xl font-semibold text-gray-900">
                     Welcome Back
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-                    Sign in to your account
                 </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Access your dashboard.
+                <p className="text-sm leading-6 text-gray-600">
+                    Access your account.
                 </p>
             </div>
 

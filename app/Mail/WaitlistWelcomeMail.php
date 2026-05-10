@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\UsesEmailTemplateLibrary;
 use App\Models\Waitlist;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -12,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 
 class WaitlistWelcomeMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, UsesEmailTemplateLibrary;
 
     /**
      * Create a new message instance.
@@ -28,8 +29,12 @@ class WaitlistWelcomeMail extends Mailable
         $senderName = (string) config('bellah.marketing.sender_name', 'Bellah Options');
 
         return new Envelope(
-            subject: "You're on the Bellah Options waitlist",
-            from: new Address($senderEmail, $senderName),
+            subject: $this->resolveTemplateSubject(
+                'waitlist_welcome',
+                "You're on the Bellah Options waitlist",
+                $this->templateFields(),
+            ),
+            from: $this->resolveTemplateFromAddress('waitlist_welcome', $senderEmail, $senderName),
         );
     }
 
@@ -38,8 +43,23 @@ class WaitlistWelcomeMail extends Mailable
      */
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.waitlist-welcome',
+        return $this->resolveTemplateContent(
+            'waitlist_welcome',
+            'emails.waitlist-welcome',
+            $this->templateFields(),
         );
+    }
+
+    /**
+     * @return array<string, scalar|null>
+     */
+    private function templateFields(): array
+    {
+        return [
+            'customer_name' => (string) ($this->waitlist->name ?: 'Customer'),
+            'customer_email' => (string) $this->waitlist->email,
+            'recipient_name' => (string) ($this->waitlist->name ?: 'Customer'),
+            'recipient_email' => (string) $this->waitlist->email,
+        ];
     }
 }

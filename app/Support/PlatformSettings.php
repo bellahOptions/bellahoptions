@@ -27,6 +27,12 @@ class PlatformSettings
 
     private const MAIN_WEBSITE_URI_KEY = 'main_website_uri';
 
+    private const MANAGE_HIRES_LANDING_KEY = 'manage_hires_landing_json';
+
+    private const EMAIL_TEMPLATE_LIBRARY_KEY = 'email_template_library_json';
+
+    private const INVOICE_STYLE_KEY = 'invoice_style_json';
+
     /**
      * @return array{phone: string, email: string, location: string, whatsapp_url: string, behance_url: string, map_embed_url: string}
      */
@@ -573,6 +579,228 @@ class PlatformSettings
     }
 
     /**
+     * @return array<string, array{
+     *   name:string,
+     *   subject_template:string,
+     *   from_email:string,
+     *   html_template:string,
+     *   builder_layout:array<int, array<string, mixed>>
+     * }>
+     */
+    public static function emailTemplateLibrary(): array
+    {
+        $defaults = self::defaultEmailTemplateLibrary();
+        $raw = AppSetting::getValue(self::EMAIL_TEMPLATE_LIBRARY_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        $result = [];
+
+        foreach ($defaults as $key => $defaultTemplate) {
+            $candidate = is_array($decoded[$key] ?? null) ? $decoded[$key] : [];
+            $name = trim((string) ($candidate['name'] ?? ''));
+            $subjectTemplate = trim((string) ($candidate['subject_template'] ?? ''));
+            $fromEmail = self::sanitizeEmailAddress((string) ($candidate['from_email'] ?? ''));
+            $htmlTemplate = trim((string) ($candidate['html_template'] ?? ''));
+            $builderLayout = is_array($candidate['builder_layout'] ?? null)
+                ? $candidate['builder_layout']
+                : [];
+
+            $result[$key] = [
+                'name' => $name !== '' ? mb_substr($name, 0, 120) : $defaultTemplate['name'],
+                'subject_template' => $subjectTemplate !== '' ? mb_substr($subjectTemplate, 0, 255) : $defaultTemplate['subject_template'],
+                'from_email' => $fromEmail !== '' ? $fromEmail : (string) ($defaultTemplate['from_email'] ?? ''),
+                'html_template' => $htmlTemplate !== '' ? mb_substr($htmlTemplate, 0, 200000) : $defaultTemplate['html_template'],
+                'builder_layout' => $builderLayout,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public static function setEmailTemplateLibrary(array $payload): void
+    {
+        $defaults = self::defaultEmailTemplateLibrary();
+        $sanitized = [];
+
+        foreach ($defaults as $key => $defaultTemplate) {
+            $candidate = is_array($payload[$key] ?? null) ? $payload[$key] : [];
+            $name = trim((string) ($candidate['name'] ?? $defaultTemplate['name']));
+            $subjectTemplate = trim((string) ($candidate['subject_template'] ?? $defaultTemplate['subject_template']));
+            $fromEmail = self::sanitizeEmailAddress((string) ($candidate['from_email'] ?? ($defaultTemplate['from_email'] ?? '')));
+            $htmlTemplate = trim((string) ($candidate['html_template'] ?? $defaultTemplate['html_template']));
+            $builderLayout = is_array($candidate['builder_layout'] ?? null)
+                ? $candidate['builder_layout']
+                : [];
+
+            $sanitized[$key] = [
+                'name' => mb_substr($name, 0, 120),
+                'subject_template' => mb_substr($subjectTemplate, 0, 255),
+                'from_email' => $fromEmail,
+                'html_template' => mb_substr($htmlTemplate, 0, 200000),
+                'builder_layout' => $builderLayout,
+            ];
+        }
+
+        AppSetting::setValue(self::EMAIL_TEMPLATE_LIBRARY_KEY, json_encode($sanitized, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @return array{
+     *   primary_color:string,
+     *   accent_color:string,
+     *   text_color:string,
+     *   company_lines:array<int,string>,
+     *   footer_note:string
+     * }
+     */
+    public static function invoiceStyle(): array
+    {
+        $defaults = self::defaultInvoiceStyle();
+        $raw = AppSetting::getValue(self::INVOICE_STYLE_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        $primaryColor = self::normalizeHexColor((string) ($decoded['primary_color'] ?? ''), $defaults['primary_color']);
+        $accentColor = self::normalizeHexColor((string) ($decoded['accent_color'] ?? ''), $defaults['accent_color']);
+        $textColor = self::normalizeHexColor((string) ($decoded['text_color'] ?? ''), $defaults['text_color']);
+        $footerNote = trim((string) ($decoded['footer_note'] ?? ''));
+        $companyLines = self::sanitizeFeatureList($decoded['company_lines'] ?? []);
+
+        return [
+            'primary_color' => $primaryColor,
+            'accent_color' => $accentColor,
+            'text_color' => $textColor,
+            'company_lines' => $companyLines !== [] ? $companyLines : $defaults['company_lines'],
+            'footer_note' => $footerNote !== '' ? mb_substr($footerNote, 0, 320) : $defaults['footer_note'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public static function setInvoiceStyle(array $payload): void
+    {
+        $defaults = self::defaultInvoiceStyle();
+        $companyLines = self::sanitizeFeatureList($payload['company_lines'] ?? $defaults['company_lines']);
+        $footerNote = trim((string) ($payload['footer_note'] ?? $defaults['footer_note']));
+
+        $sanitized = [
+            'primary_color' => self::normalizeHexColor((string) ($payload['primary_color'] ?? ''), $defaults['primary_color']),
+            'accent_color' => self::normalizeHexColor((string) ($payload['accent_color'] ?? ''), $defaults['accent_color']),
+            'text_color' => self::normalizeHexColor((string) ($payload['text_color'] ?? ''), $defaults['text_color']),
+            'company_lines' => $companyLines !== [] ? $companyLines : $defaults['company_lines'],
+            'footer_note' => $footerNote !== '' ? mb_substr($footerNote, 0, 320) : $defaults['footer_note'],
+        ];
+
+        AppSetting::setValue(self::INVOICE_STYLE_KEY, json_encode($sanitized, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @return array{
+     *   badge:string,
+     *   package_name:string,
+     *   monthly_price_ngn:float,
+     *   tagline:string,
+     *   description:string,
+     *   highlights:array<int,string>,
+     *   exclusions_note:string,
+     *   primary_cta_label:string,
+     *   primary_cta_url:string,
+     *   secondary_cta_label:string,
+     *   secondary_cta_url:string
+     * }
+     */
+    public static function manageHiresLanding(): array
+    {
+        $defaults = self::defaultManageHiresLanding();
+        $raw = AppSetting::getValue(self::MANAGE_HIRES_LANDING_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        $badge = trim((string) ($decoded['badge'] ?? ''));
+        $packageName = trim((string) ($decoded['package_name'] ?? ''));
+        $tagline = trim((string) ($decoded['tagline'] ?? ''));
+        $description = trim((string) ($decoded['description'] ?? ''));
+        $exclusionsNote = trim((string) ($decoded['exclusions_note'] ?? ''));
+        $primaryCtaLabel = trim((string) ($decoded['primary_cta_label'] ?? ''));
+        $primaryCtaUrl = trim((string) ($decoded['primary_cta_url'] ?? ''));
+        $secondaryCtaLabel = trim((string) ($decoded['secondary_cta_label'] ?? ''));
+        $secondaryCtaUrl = trim((string) ($decoded['secondary_cta_url'] ?? ''));
+        $monthlyPriceNgn = is_numeric($decoded['monthly_price_ngn'] ?? null)
+            ? max(0, round((float) $decoded['monthly_price_ngn'], 2))
+            : $defaults['monthly_price_ngn'];
+        $highlights = self::sanitizeFeatureList($decoded['highlights'] ?? []);
+
+        return [
+            'badge' => $badge !== '' ? mb_substr($badge, 0, 80) : $defaults['badge'],
+            'package_name' => $packageName !== '' ? mb_substr($packageName, 0, 120) : $defaults['package_name'],
+            'monthly_price_ngn' => $monthlyPriceNgn > 0 ? $monthlyPriceNgn : $defaults['monthly_price_ngn'],
+            'tagline' => $tagline !== '' ? mb_substr($tagline, 0, 180) : $defaults['tagline'],
+            'description' => $description !== '' ? mb_substr($description, 0, 1000) : $defaults['description'],
+            'highlights' => $highlights !== [] ? $highlights : $defaults['highlights'],
+            'exclusions_note' => $exclusionsNote !== '' ? mb_substr($exclusionsNote, 0, 260) : $defaults['exclusions_note'],
+            'primary_cta_label' => $primaryCtaLabel !== '' ? mb_substr($primaryCtaLabel, 0, 80) : $defaults['primary_cta_label'],
+            'primary_cta_url' => self::sanitizeAssetPath($primaryCtaUrl) ?? $defaults['primary_cta_url'],
+            'secondary_cta_label' => $secondaryCtaLabel !== '' ? mb_substr($secondaryCtaLabel, 0, 80) : $defaults['secondary_cta_label'],
+            'secondary_cta_url' => self::sanitizeAssetPath($secondaryCtaUrl) ?? $defaults['secondary_cta_url'],
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public static function setManageHiresLanding(array $payload): void
+    {
+        $defaults = self::defaultManageHiresLanding();
+        $merged = [
+            ...$defaults,
+            ...$payload,
+        ];
+
+        AppSetting::setValue(self::MANAGE_HIRES_LANDING_KEY, json_encode([
+            'badge' => mb_substr(trim((string) ($merged['badge'] ?? $defaults['badge'])), 0, 80),
+            'package_name' => mb_substr(trim((string) ($merged['package_name'] ?? $defaults['package_name'])), 0, 120),
+            'monthly_price_ngn' => max(0, round((float) ($merged['monthly_price_ngn'] ?? $defaults['monthly_price_ngn']), 2)),
+            'tagline' => mb_substr(trim((string) ($merged['tagline'] ?? $defaults['tagline'])), 0, 180),
+            'description' => mb_substr(trim((string) ($merged['description'] ?? $defaults['description'])), 0, 1000),
+            'highlights' => self::sanitizeFeatureList($merged['highlights'] ?? $defaults['highlights']),
+            'exclusions_note' => mb_substr(trim((string) ($merged['exclusions_note'] ?? $defaults['exclusions_note'])), 0, 260),
+            'primary_cta_label' => mb_substr(trim((string) ($merged['primary_cta_label'] ?? $defaults['primary_cta_label'])), 0, 80),
+            'primary_cta_url' => self::sanitizeAssetPath($merged['primary_cta_url'] ?? $defaults['primary_cta_url']) ?? $defaults['primary_cta_url'],
+            'secondary_cta_label' => mb_substr(trim((string) ($merged['secondary_cta_label'] ?? $defaults['secondary_cta_label'])), 0, 80),
+            'secondary_cta_url' => self::sanitizeAssetPath($merged['secondary_cta_url'] ?? $defaults['secondary_cta_url']) ?? $defaults['secondary_cta_url'],
+        ], JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
      * @return array{phone: string, email: string, location: string, whatsapp_url: string, behance_url: string, map_embed_url: string}
      */
     private static function defaultContactInfo(): array
@@ -649,6 +877,207 @@ class PlatformSettings
                 'text' => 'A focused set of live web experiences from Bellah Options projects.',
                 'background_image' => null,
             ],
+            'manage_hires' => [
+                'title' => 'Dedicated unlimited design support for growth-stage teams.',
+                'text' => 'Scale brand and social design execution with one retained creative partner.',
+                'background_image' => null,
+            ],
+        ];
+    }
+
+    /**
+     * @return array{
+     *   badge:string,
+     *   package_name:string,
+     *   monthly_price_ngn:float,
+     *   tagline:string,
+     *   description:string,
+     *   highlights:array<int,string>,
+     *   exclusions_note:string,
+     *   primary_cta_label:string,
+     *   primary_cta_url:string,
+     *   secondary_cta_label:string,
+     *   secondary_cta_url:string
+     * }
+     */
+    private static function defaultManageHiresLanding(): array
+    {
+        return [
+            'badge' => 'Dedicated Design Retainer',
+            'package_name' => 'Manage Your Hires',
+            'monthly_price_ngn' => 220000,
+            'tagline' => 'Unlimited design requests managed by a dedicated Bellah creative team.',
+            'description' => 'This plan is for teams that need consistent design output without hiring full-time in-house designers. It covers design services only and excludes UI/UX.',
+            'highlights' => [
+                'Dedicated design team support',
+                'Unlimited design requests (fair use)',
+                'Batch delivery during work hours',
+                'Brand-consistent design production',
+            ],
+            'exclusions_note' => 'UI/UX design is excluded from this package.',
+            'primary_cta_label' => 'Start This Plan',
+            'primary_cta_url' => '/contact-us',
+            'secondary_cta_label' => 'Discuss Scope',
+            'secondary_cta_url' => '/services',
+        ];
+    }
+
+    /**
+     * @return array<string, array{name:string,subject_template:string,from_email:string,html_template:string,builder_layout:array<int, array<string,mixed>>}>
+     */
+    private static function defaultEmailTemplateLibrary(): array
+    {
+        return [
+            'invoice_issued' => [
+                'name' => 'Invoice Issued',
+                'subject_template' => 'Customer Invoice: {{invoice_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'invoice_paid_receipt' => [
+                'name' => 'Invoice Paid Receipt',
+                'subject_template' => 'Payment receipt for invoice {{invoice_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'invoice_reminder' => [
+                'name' => 'Invoice Reminder',
+                'subject_template' => 'Reminder: invoice {{invoice_number}} is pending',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'service_order_summary' => [
+                'name' => 'Service Order Summary',
+                'subject_template' => 'Order Received: {{service_name}} ({{order_code}})',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'service_order_payment_thank_you' => [
+                'name' => 'Service Order Payment Thank You',
+                'subject_template' => 'Thank you for your purchase ({{order_code}})',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'service_order_content_request' => [
+                'name' => 'Service Order Content Request',
+                'subject_template' => 'Next step: share your content/assets ({{order_code}})',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'support_ticket_created_customer' => [
+                'name' => 'Support Ticket Created (Customer)',
+                'subject_template' => 'Support ticket received: {{ticket_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'support_ticket_staff_reply' => [
+                'name' => 'Support Ticket Staff Reply',
+                'subject_template' => 'We replied to your ticket {{ticket_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'waitlist_welcome' => [
+                'name' => 'Waitlist Welcome',
+                'subject_template' => 'You are on the Bellah Options waitlist',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'invoice_issued_admin_alert' => [
+                'name' => 'Invoice Issued Admin Alert',
+                'subject_template' => 'Admin Alert: Invoice {{invoice_number}} {{invoice_action}} to {{customer_email}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'service_order_submitted_admin_alert' => [
+                'name' => 'Service Order Submitted Admin Alert',
+                'subject_template' => 'New service order: {{service_name}} ({{order_code}})',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'support_ticket_created_admin_alert' => [
+                'name' => 'Support Ticket Created Admin Alert',
+                'subject_template' => 'New support ticket: {{ticket_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'support_ticket_customer_reply_admin_alert' => [
+                'name' => 'Support Ticket Customer Reply Admin Alert',
+                'subject_template' => 'Customer replied: {{ticket_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'support_ticket_unanswered_reminder' => [
+                'name' => 'Support Ticket Unanswered Reminder',
+                'subject_template' => 'Reminder: unanswered ticket {{ticket_number}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'waitlist_admin_alert' => [
+                'name' => 'Waitlist Admin Alert',
+                'subject_template' => 'New waitlist signup: {{customer_email}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'contact_submission_admin_alert' => [
+                'name' => 'Contact Submission Admin Alert',
+                'subject_template' => 'New contact form submission from {{customer_name}}',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'staff_login_otp' => [
+                'name' => 'Staff Login OTP',
+                'subject_template' => 'Your Bellah Options staff login OTP',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'client_review_request' => [
+                'name' => 'Client Review Request',
+                'subject_template' => 'How was your experience with Bellah Options?',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+        ];
+    }
+
+    /**
+     * @return array{
+     *   primary_color:string,
+     *   accent_color:string,
+     *   text_color:string,
+     *   company_lines:array<int,string>,
+     *   footer_note:string
+     * }
+     */
+    private static function defaultInvoiceStyle(): array
+    {
+        return [
+            'primary_color' => '#0f1f33',
+            'accent_color' => '#11845b',
+            'text_color' => '#182433',
+            'company_lines' => [
+                'Baba Ode, Onibukun Ota',
+                'Ogun State, NG (BN3668420)',
+                '(234) 810 867 1804',
+            ],
+            'footer_note' => 'Generated by Bellah Options',
         ];
     }
 
@@ -755,6 +1184,25 @@ class PlatformSettings
         }
 
         return $candidate;
+    }
+
+    private static function normalizeHexColor(string $value, string $fallback): string
+    {
+        $candidate = strtoupper(trim($value));
+        if (preg_match('/^#[0-9A-F]{6}$/', $candidate) === 1) {
+            return $candidate;
+        }
+
+        return strtoupper(trim($fallback));
+    }
+
+    private static function sanitizeEmailAddress(string $value): string
+    {
+        $candidate = strtolower(trim($value));
+
+        return filter_var($candidate, FILTER_VALIDATE_EMAIL)
+            ? $candidate
+            : '';
     }
 
     private static function sanitizeAssetPath(mixed $value): ?string

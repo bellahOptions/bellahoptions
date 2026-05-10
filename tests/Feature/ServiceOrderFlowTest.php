@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Mail\AbandonedOrderProspectAdminAlertMail;
+use App\Mail\AbandonedOrderProspectReminderMail;
 use App\Mail\ServiceOrderSubmittedAdminAlertMail;
 use App\Models\DiscountCode;
 use App\Models\Invoice;
+use App\Models\OrderProspect;
 use App\Models\ServiceOrder;
 use App\Models\User;
 use App\Support\PlatformSettings;
@@ -49,6 +52,7 @@ class ServiceOrderFlowTest extends TestCase
             'position' => 'Founder',
             'business_website' => 'https://adalabs.test',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'primary_platforms' => 'Instagram, LinkedIn',
             'timeline_preference' => 'Start next week',
             'project_summary' => 'We need monthly social media design support for product campaigns and launch storytelling.',
@@ -116,6 +120,7 @@ class ServiceOrderFlowTest extends TestCase
             'business_name' => 'Promo Labs',
             'position' => 'Founder',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'project_summary' => 'Need monthly social media design support for launch and promotional campaign visuals.',
             'discount_code' => 'START20',
             'primary_platforms' => 'Instagram, LinkedIn',
@@ -161,6 +166,7 @@ class ServiceOrderFlowTest extends TestCase
             'business_name' => 'Grace Studios',
             'position' => 'Creative Director',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'primary_platforms' => 'Instagram, LinkedIn',
             'project_summary' => 'We need design assets for product posters and launch communication campaigns.',
             'human_check_answer' => $guard['answer'],
@@ -242,6 +248,7 @@ class ServiceOrderFlowTest extends TestCase
             'phone' => '+2348108671804',
             'business_name' => 'Maya Ventures',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'project_summary' => 'We need a conversion-first website to position our offer and support online sales.',
             'website_type' => 'business-site',
             'required_pages' => 'Home, About, Services, Contact',
@@ -278,6 +285,7 @@ class ServiceOrderFlowTest extends TestCase
             'phone' => '+2348108671804',
             'business_name' => 'Override Studio',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'project_summary' => 'Need social media design support and we want current admin-updated package pricing applied.',
             'primary_platforms' => 'Instagram',
             'human_check_answer' => $guard['answer'],
@@ -321,6 +329,7 @@ class ServiceOrderFlowTest extends TestCase
             'business_name' => 'Trial Studio',
             'position' => 'Founder',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'primary_platforms' => 'Instagram, LinkedIn',
             'project_summary' => 'Need a one-off social media design trial request outside the regular monthly plans.',
             'discount_code' => 'START20',
@@ -367,6 +376,7 @@ class ServiceOrderFlowTest extends TestCase
             'business_name' => 'Trial Studio',
             'position' => 'Founder',
             'has_logo' => 'yes',
+            'has_content' => 'yes',
             'primary_platforms' => 'Instagram, LinkedIn',
             'project_summary' => 'Need a one-off social media design trial request outside the regular monthly plans.',
             'human_check_answer' => $guard['answer'],
@@ -630,5 +640,125 @@ class ServiceOrderFlowTest extends TestCase
             'status' => 'payment_pending_confirmation',
             'is_public' => 1,
         ]);
+    }
+
+    public function test_guest_order_prospect_draft_is_saved_for_follow_up(): void
+    {
+        $response = $this->postJson(route('orders.prospect-draft.store', ['serviceSlug' => 'social-media-design']), [
+            'current_step' => 3,
+            'service_package' => 'starter',
+            'full_name' => 'Prospect User',
+            'email' => 'prospect@example.com',
+            'phone' => '+2348100000000',
+            'business_name' => 'Prospect Studio',
+            'draft_payload' => [
+                'project_summary' => 'Need design support for weekly campaign visuals.',
+            ],
+        ]);
+
+        $response
+            ->assertOk()
+            ->assertJson([
+                'saved' => true,
+            ]);
+
+        $token = (string) $response->json('draft_token');
+        $this->assertNotSame('', trim($token));
+
+        $this->assertDatabaseHas('order_prospects', [
+            'uuid' => $token,
+            'service_slug' => 'social-media-design',
+            'service_package' => 'starter',
+            'email' => 'prospect@example.com',
+            'status' => OrderProspect::STATUS_ACTIVE,
+        ]);
+    }
+
+    public function test_order_submission_marks_matching_prospect_as_converted(): void
+    {
+        $this->get(route('orders.create', 'social-media-design'));
+        $guard = session('service_order_human_check');
+        $guard['issued_at'] = now()->subSeconds(8)->timestamp;
+        session(['service_order_human_check' => $guard]);
+
+        $prospect = OrderProspect::create([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'service_slug' => 'social-media-design',
+            'service_name' => 'Social Media Design',
+            'service_package' => 'starter',
+            'status' => OrderProspect::STATUS_ACTIVE,
+            'full_name' => 'Conversion Prospect',
+            'email' => 'convert@example.com',
+            'phone' => '+2348101234567',
+            'business_name' => 'Convert Studio',
+            'last_activity_at' => now()->subHours(2),
+        ]);
+
+        $response = $this->post(route('orders.store', 'social-media-design'), [
+            'service_package' => 'starter',
+            'full_name' => 'Conversion Prospect',
+            'email' => 'convert@example.com',
+            'phone' => '+2348101234567',
+            'business_name' => 'Convert Studio',
+            'position' => 'Founder',
+            'has_logo' => 'yes',
+            'has_content' => 'yes',
+            'primary_platforms' => 'Instagram, LinkedIn',
+            'project_summary' => 'Need monthly social media creatives with templates for campaigns.',
+            'human_check_answer' => $guard['answer'],
+            'human_check_nonce' => $guard['nonce'],
+            'form_rendered_at' => $guard['issued_at'],
+            'website' => '',
+            'company_name' => '',
+            'prospect_draft_token' => $prospect->uuid,
+        ]);
+
+        $order = ServiceOrder::query()->latest('id')->first();
+        $this->assertNotNull($order);
+        $response->assertRedirect(route('orders.payment.show', $order));
+
+        $prospect->refresh();
+
+        $this->assertSame(OrderProspect::STATUS_CONVERTED, (string) $prospect->status);
+        $this->assertSame($order->id, $prospect->service_order_id);
+        $this->assertNotNull($prospect->converted_at);
+    }
+
+    public function test_abandoned_order_prospect_command_sends_reminder_and_admin_alert(): void
+    {
+        Mail::fake();
+        config()->set('bellah.prospects.abandon_after_hours', 24);
+        config()->set('bellah.prospects.admin_notification_emails', ['ops@bellahoptions.com']);
+
+        $prospect = OrderProspect::create([
+            'uuid' => (string) \Illuminate\Support\Str::uuid(),
+            'service_slug' => 'social-media-design',
+            'service_name' => 'Social Media Design',
+            'service_package' => 'starter',
+            'status' => OrderProspect::STATUS_ACTIVE,
+            'full_name' => 'Dormant Prospect',
+            'email' => 'dormant@example.com',
+            'phone' => '+2348103332211',
+            'business_name' => 'Dormant Studio',
+            'last_activity_at' => now()->subHours(26),
+        ]);
+
+        $this->artisan('prospects:send-abandoned-order-reminders')
+            ->assertExitCode(0);
+
+        Mail::assertSent(AbandonedOrderProspectReminderMail::class, function (AbandonedOrderProspectReminderMail $mail) use ($prospect): bool {
+            return $mail->prospect->id === $prospect->id && $mail->hasTo('dormant@example.com');
+        });
+
+        Mail::assertSent(AbandonedOrderProspectAdminAlertMail::class, function (AbandonedOrderProspectAdminAlertMail $mail) use ($prospect): bool {
+            return $mail->prospect->id === $prospect->id && $mail->hasTo('ops@bellahoptions.com');
+        });
+
+        $prospect->refresh();
+
+        $this->assertSame(OrderProspect::STATUS_ABANDONED, (string) $prospect->status);
+        $this->assertNotNull($prospect->abandoned_at);
+        $this->assertNotNull($prospect->reminder_sent_at);
+        $this->assertNotNull($prospect->admin_notified_at);
     }
 }

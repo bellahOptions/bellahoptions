@@ -12,7 +12,26 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'first_name', 'last_name', 'email', 'password', 'role', 'address'])]
+#[Fillable([
+    'name',
+    'first_name',
+    'last_name',
+    'email',
+    'password',
+    'role',
+    'address',
+    'profile_photo_path',
+    'company_name',
+    'company_logo_path',
+    'company_registration_number',
+    'company_tax_id',
+    'social_media_info',
+    'business_number',
+    'business_official_email',
+    'business_address',
+    'company_address',
+    'company_website',
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -94,5 +113,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function liveChatPresence(): HasOne
     {
         return $this->hasOne(LiveChatStaffPresence::class);
+    }
+
+    public function supportTickets(): HasMany
+    {
+        return $this->hasMany(SupportTicket::class);
     }
 }

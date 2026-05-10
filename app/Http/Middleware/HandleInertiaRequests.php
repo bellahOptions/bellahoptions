@@ -7,6 +7,7 @@ use App\Support\GooglePlacesReviews;
 use App\Support\PlatformSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -57,6 +58,17 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'role' => $user->role,
                     'address' => $user->address,
+                    'profile_photo_url' => $user->profile_photo_path
+                        ? Storage::disk('public')->url($user->profile_photo_path)
+                        : null,
+                    'company_name' => $user->company_name,
+                    'company_logo_url' => $user->company_logo_path
+                        ? Storage::disk('public')->url($user->company_logo_path)
+                        : null,
+                    'social_media_info' => $user->social_media_info,
+                    'business_number' => $user->business_number,
+                    'business_official_email' => $user->business_official_email,
+                    'business_address' => $user->business_address,
                     'is_staff' => $user->isStaff(),
                     'is_super_admin' => $user->isSuperAdmin(),
                     'can_manage_invoices' => $user->canManageInvoices(),

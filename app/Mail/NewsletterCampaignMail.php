@@ -17,11 +17,15 @@ class NewsletterCampaignMail extends Mailable
     public function __construct(
         public string $subjectLine,
         public string $htmlBody,
+        public ?string $fromEmail = null,
     ) {}
 
     public function envelope(): Envelope
     {
-        $senderEmail = (string) config('bellah.marketing.sender_email', 'sales@bellahoptions.com');
+        $configuredSender = (string) config('bellah.marketing.sender_email', 'sales@bellahoptions.com');
+        $senderEmail = filter_var((string) $this->fromEmail, FILTER_VALIDATE_EMAIL)
+            ? strtolower(trim((string) $this->fromEmail))
+            : $configuredSender;
         $senderName = (string) config('bellah.marketing.sender_name', 'Bellah Options');
 
         return new Envelope(
@@ -40,4 +44,3 @@ class NewsletterCampaignMail extends Mailable
         );
     }
 }
-

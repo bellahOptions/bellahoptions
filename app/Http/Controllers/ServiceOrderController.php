@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreServiceOrderRequest;
 use App\Http\Requests\StoreServiceOrderUpdateRequest;
+use App\Mail\InvoicePaidReceiptMail;
 use App\Mail\InvoiceIssuedMail;
+use App\Mail\ServiceOrderContentAssetRequestMail;
 use App\Mail\ServiceOrderClientSummaryMail;
+use App\Mail\ServiceOrderPaymentThankYouMail;
 use App\Mail\ServiceOrderSubmittedAdminAlertMail;
 use App\Models\Customer;
 use App\Models\DiscountCode;
 use App\Models\Invoice;
+use App\Models\OrderProspect;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
 use App\Models\Term;
@@ -112,6 +116,84 @@ class ServiceOrderController extends Controller
                 'name' => $request->user()?->name,
                 'email' => $request->user()?->email,
             ],
+        ]);
+    }
+
+    public function saveProspectDraft(Request $request, string $serviceSlug, ServiceOrderCatalog $catalog): JsonResponse
+    {
+        if ($request->user() !== null) {
+            return response()->json([
+                'saved' => false,
+                'reason' => 'authenticated-user',
+            ]);
+        }
+
+        $service = $catalog->service($serviceSlug);
+        abort_unless(is_array($service), 404);
+
+        $validated = $request->validate([
+            'draft_token' => ['nullable', 'uuid'],
+            'current_step' => ['nullable', 'integer', 'min:1', 'max:6'],
+            'service_package' => ['nullable', 'string', 'max:80'],
+            'full_name' => ['nullable', 'string', 'max:120'],
+            'email' => ['nullable', 'email:rfc', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:40'],
+            'business_name' => ['nullable', 'string', 'max:180'],
+            'draft_payload' => ['nullable', 'array'],
+        ]);
+
+        $fullName = trim((string) ($validated['full_name'] ?? ''));
+        $email = strtolower(trim((string) ($validated['email'] ?? '')));
+        $phone = trim((string) ($validated['phone'] ?? ''));
+        $businessName = trim((string) ($validated['business_name'] ?? ''));
+
+        if ($fullName === '' && $email === '' && $phone === '' && $businessName === '') {
+            return response()->json([
+                'saved' => false,
+                'reason' => 'insufficient-data',
+            ]);
+        }
+
+        $token = trim((string) ($validated['draft_token'] ?? ''));
+        if ($token === '') {
+            $token = (string) Str::uuid();
+        }
+
+        $prospect = OrderProspect::query()->where('uuid', $token)->first();
+        if ($prospect && $prospect->status === OrderProspect::STATUS_CONVERTED) {
+            $token = (string) Str::uuid();
+            $prospect = null;
+        }
+
+        if (! $prospect) {
+            $prospect = new OrderProspect();
+            $prospect->uuid = $token;
+        }
+
+        $prospect->fill([
+            'user_id' => null,
+            'service_slug' => $serviceSlug,
+            'service_name' => (string) ($service['name'] ?? ucfirst(str_replace('-', ' ', $serviceSlug))),
+            'service_package' => trim((string) ($validated['service_package'] ?? '')) ?: null,
+            'current_step' => (int) ($validated['current_step'] ?? 1),
+            'status' => OrderProspect::STATUS_ACTIVE,
+            'full_name' => $fullName !== '' ? $fullName : null,
+            'email' => $email !== '' ? $email : null,
+            'phone' => $phone !== '' ? $phone : null,
+            'business_name' => $businessName !== '' ? $businessName : null,
+            'draft_payload' => $this->sanitizeProspectDraftPayload((array) ($validated['draft_payload'] ?? [])),
+            'source_url' => Str::limit((string) $request->headers->get('referer', ''), 255),
+            'ip_address' => $request->ip(),
+            'user_agent' => Str::limit((string) $request->userAgent(), 1000),
+            'last_activity_at' => now(),
+            'abandoned_at' => null,
+        ]);
+
+        $prospect->save();
+
+        return response()->json([
+            'saved' => true,
+            'draft_token' => (string) $prospect->uuid,
         ]);
     }
 
@@ -316,6 +398,8 @@ class ServiceOrderController extends Controller
                 'error' => $exception->getMessage(),
             ]);
         }
+
+        $this->markProspectAsConverted((string) ($payload['prospect_draft_token'] ?? ''), $order);
 
         if ($requiresConsultation) {
             return redirect()
@@ -1322,6 +1406,16 @@ class ServiceOrderController extends Controller
                 'gateway_status' => $gatewayData['status'] ?? null,
             ]);
         });
+
+        try {
+            $this->sendPostPaymentClientEmails($serviceOrder->fresh('invoice'));
+        } catch (Throwable $exception) {
+            Log::warning('Post-payment client email sequence failed.', [
+                'service_order_id' => $serviceOrder->id,
+                'reference' => $reference,
+                'error' => $exception->getMessage(),
+            ]);
+        }
     }
 
     private function generateInvoiceNumber(): string
@@ -1392,6 +1486,8 @@ class ServiceOrderController extends Controller
         return array_filter([
             'is_trial_request' => $isTrialOrder,
             'has_logo' => $payload['has_logo'] ?? null,
+            'has_content' => $payload['has_content'] ?? null,
+            'content_development_interest' => $payload['content_development_interest'] ?? null,
             'logo_design_interest' => $payload['logo_design_interest'] ?? null,
             'logo_addon' => $logoAddonCode !== '' && is_array($logoAddon) ? [
                 'package_code' => $logoAddonCode,
@@ -1522,6 +1618,192 @@ class ServiceOrderController extends Controller
 
         Mail::to($order->email)->send(new InvoiceIssuedMail($order->invoice));
         Mail::to($order->email)->send(new ServiceOrderClientSummaryMail($order));
+    }
+
+    private function sendPostPaymentClientEmails(?ServiceOrder $order): void
+    {
+        if (! $order instanceof ServiceOrder) {
+            return;
+        }
+
+        $order->loadMissing('invoice');
+        $recipient = trim((string) $order->email);
+
+        if ($recipient === '') {
+            return;
+        }
+
+        if ($order->invoice) {
+            Mail::to($recipient)->send(new InvoicePaidReceiptMail($order->invoice->fresh()));
+        }
+
+        Mail::to($recipient)->send(new ServiceOrderPaymentThankYouMail($order));
+
+        $hasContentReady = data_get($order->brief_payload, 'has_content') === 'yes';
+        $hasBrandAssetsReady = data_get($order->brief_payload, 'has_logo') === 'yes';
+
+        if ($hasContentReady || $hasBrandAssetsReady) {
+            Mail::to($recipient)->send(new ServiceOrderContentAssetRequestMail($order, $hasContentReady, $hasBrandAssetsReady));
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    private function sanitizeProspectDraftPayload(array $payload): array
+    {
+        $sensitiveKeys = [
+            'password',
+            'password_confirmation',
+            'human_check_answer',
+            'human_check_nonce',
+            'form_rendered_at',
+            'turnstile_token',
+            'website',
+            'company_name',
+            'contact_notes',
+            'prospect_draft_token',
+            'draft_token',
+        ];
+
+        $clean = [];
+        $count = 0;
+
+        foreach ($payload as $key => $value) {
+            if ($count >= 80) {
+                break;
+            }
+
+            if (! is_string($key)) {
+                continue;
+            }
+
+            $key = trim($key);
+            if ($key === '' || in_array($key, $sensitiveKeys, true)) {
+                continue;
+            }
+
+            $cleanValue = $this->sanitizeProspectDraftValue($value);
+
+            if ($cleanValue === null || $cleanValue === '') {
+                continue;
+            }
+
+            $clean[$key] = $cleanValue;
+            $count++;
+        }
+
+        return $clean;
+    }
+
+    /**
+     * @return array<string, mixed>|string|int|float|bool|null
+     */
+    private function sanitizeProspectDraftValue(mixed $value, int $depth = 0): array|string|int|float|bool|null
+    {
+        if ($depth > 3) {
+            return null;
+        }
+
+        if ($value === null || is_bool($value) || is_int($value) || is_float($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $trimmed = trim($value);
+
+            return $trimmed === '' ? null : Str::limit($trimmed, 3000, '');
+        }
+
+        if (! is_array($value)) {
+            return null;
+        }
+
+        $clean = [];
+        $index = 0;
+
+        foreach ($value as $nestedKey => $nestedValue) {
+            if ($index >= 40) {
+                break;
+            }
+
+            if (! is_string($nestedKey) && ! is_int($nestedKey)) {
+                continue;
+            }
+
+            $normalizedKey = is_string($nestedKey) ? trim($nestedKey) : $nestedKey;
+            if ($normalizedKey === '') {
+                continue;
+            }
+
+            $cleanValue = $this->sanitizeProspectDraftValue($nestedValue, $depth + 1);
+            if ($cleanValue === null || $cleanValue === '') {
+                continue;
+            }
+
+            $clean[$normalizedKey] = $cleanValue;
+            $index++;
+        }
+
+        return $clean;
+    }
+
+    private function markProspectAsConverted(string $draftToken, ServiceOrder $order): void
+    {
+        $prospects = collect();
+        $token = trim($draftToken);
+
+        if ($token !== '' && Str::isUuid($token)) {
+            $tokenMatch = OrderProspect::query()
+                ->where('uuid', $token)
+                ->first();
+
+            if ($tokenMatch) {
+                $prospects->push($tokenMatch);
+            }
+        }
+
+        $email = strtolower(trim((string) $order->email));
+        $phone = trim((string) $order->phone);
+
+        if ($email !== '' || $phone !== '') {
+            $fallbackMatches = OrderProspect::query()
+                ->whereNull('converted_at')
+                ->where('status', '!=', OrderProspect::STATUS_CONVERTED)
+                ->where('service_slug', (string) $order->service_slug)
+                ->where('created_at', '>=', now()->subDays(21))
+                ->where(function ($query) use ($email, $phone): void {
+                    if ($email !== '') {
+                        $query->orWhereRaw('LOWER(email) = ?', [$email]);
+                    }
+
+                    if ($phone !== '') {
+                        $query->orWhere('phone', $phone);
+                    }
+                })
+                ->orderByDesc('id')
+                ->limit(5)
+                ->get();
+
+            $prospects = $prospects->concat($fallbackMatches);
+        }
+
+        $prospects
+            ->unique('id')
+            ->each(function (OrderProspect $prospect) use ($order): void {
+                $prospect->fill([
+                    'user_id' => $order->user_id,
+                    'service_order_id' => $order->id,
+                    'service_slug' => (string) $order->service_slug,
+                    'service_name' => (string) $order->service_name,
+                    'service_package' => (string) $order->package_code,
+                    'status' => OrderProspect::STATUS_CONVERTED,
+                    'converted_at' => now(),
+                    'abandoned_at' => null,
+                ]);
+                $prospect->save();
+            });
     }
 
     /**

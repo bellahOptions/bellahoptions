@@ -22,6 +22,7 @@ const PUBLIC_HEADER_PAGES = [
     { key: 'faqs', label: 'FAQs' },
     { key: 'contact', label: 'Contact' },
     { key: 'web_design_samples', label: 'Web Design Samples' },
+    { key: 'manage_hires', label: 'Manage Your Hires' },
 ];
 
 const createDefaultPublicPageHeaders = () => ({
@@ -70,6 +71,30 @@ const createDefaultPublicPageHeaders = () => ({
         text: 'A focused set of live web experiences from Bellah Options projects.',
         background_image: '',
     },
+    manage_hires: {
+        title: 'Dedicated unlimited design support for growth-stage teams.',
+        text: 'Scale brand and social design execution with one retained creative partner.',
+        background_image: '',
+    },
+});
+
+const createDefaultManageHiresLanding = () => ({
+    badge: 'Dedicated Design Retainer',
+    package_name: 'Manage Your Hires',
+    monthly_price_ngn: 220000,
+    tagline: 'Unlimited design requests managed by a dedicated Bellah creative team.',
+    description: 'This plan is for teams that need consistent design output without hiring full-time in-house designers. It covers design services only and excludes UI/UX.',
+    highlights: [
+        'Dedicated design team support',
+        'Unlimited design requests (fair use)',
+        'Batch delivery during work hours',
+        'Brand-consistent design production',
+    ],
+    exclusions_note: 'UI/UX design is excluded from this package.',
+    primary_cta_label: 'Start This Plan',
+    primary_cta_url: '/contact-us',
+    secondary_cta_label: 'Discuss Scope',
+    secondary_cta_url: '/services',
 });
 
 const normalizePublicPageHeaders = (headers) => {
@@ -87,6 +112,30 @@ const normalizePublicPageHeaders = (headers) => {
             }];
         }),
     );
+};
+
+const normalizeManageHiresLanding = (payload) => {
+    const defaults = createDefaultManageHiresLanding();
+    const source = payload && typeof payload === 'object' ? payload : {};
+    const candidateHighlights = Array.isArray(source?.highlights) ? source.highlights : [];
+    const normalizedHighlights = candidateHighlights
+        .map((item) => String(item || '').trim())
+        .filter(Boolean)
+        .slice(0, 12);
+
+    return {
+        badge: String(source?.badge || defaults.badge),
+        package_name: String(source?.package_name || defaults.package_name),
+        monthly_price_ngn: Number(source?.monthly_price_ngn ?? defaults.monthly_price_ngn) || defaults.monthly_price_ngn,
+        tagline: String(source?.tagline || defaults.tagline),
+        description: String(source?.description || defaults.description),
+        highlights: normalizedHighlights.length > 0 ? normalizedHighlights : defaults.highlights,
+        exclusions_note: String(source?.exclusions_note || defaults.exclusions_note),
+        primary_cta_label: String(source?.primary_cta_label || defaults.primary_cta_label),
+        primary_cta_url: String(source?.primary_cta_url || defaults.primary_cta_url),
+        secondary_cta_label: String(source?.secondary_cta_label || defaults.secondary_cta_label),
+        secondary_cta_url: String(source?.secondary_cta_url || defaults.secondary_cta_url),
+    };
 };
 
 const quillModules = {
@@ -175,6 +224,7 @@ export default function Settings({
             ? settings.home_slides
             : [createEmptySlide()],
         public_page_headers: normalizePublicPageHeaders(settings?.public_page_headers),
+        manage_hires_landing: normalizeManageHiresLanding(settings?.manage_hires_landing),
         google_reviews_place_id: settings?.google_reviews?.place_id || '',
         featured_google_review_ids: Array.isArray(settings?.google_reviews?.featured_review_ids)
             ? settings.google_reviews.featured_review_ids
@@ -370,6 +420,13 @@ export default function Settings({
                 ...(data.public_page_headers?.[pageKey] || {}),
                 [field]: value,
             },
+        });
+    };
+
+    const updateManageHiresLanding = (field, value) => {
+        setData('manage_hires_landing', {
+            ...(data.manage_hires_landing || createDefaultManageHiresLanding()),
+            [field]: value,
         });
     };
 
@@ -1089,6 +1146,138 @@ export default function Settings({
                                         </div>
                                     );
                                 })}
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Manage Your Hires Landing Page</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Configure the dedicated unlimited design retainer landing page content and pricing.
+                            </p>
+
+                            <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Badge</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.badge || ''}
+                                        onChange={(event) => updateManageHiresLanding('badge', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.badge'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.badge']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Package Name</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.package_name || ''}
+                                        onChange={(event) => updateManageHiresLanding('package_name', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.package_name'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.package_name']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Monthly Price (NGN)</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        step="1"
+                                        value={data.manage_hires_landing?.monthly_price_ngn ?? 0}
+                                        onChange={(event) => updateManageHiresLanding('monthly_price_ngn', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.monthly_price_ngn'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.monthly_price_ngn']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Tagline</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.tagline || ''}
+                                        onChange={(event) => updateManageHiresLanding('tagline', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.tagline'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.tagline']}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+                                    <textarea
+                                        rows="3"
+                                        value={data.manage_hires_landing?.description || ''}
+                                        onChange={(event) => updateManageHiresLanding('description', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.description'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.description']}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Highlights (one per line)</label>
+                                    <textarea
+                                        rows="5"
+                                        value={(data.manage_hires_landing?.highlights || []).join('\n')}
+                                        onChange={(event) => updateManageHiresLanding('highlights', event.target.value.split(/\r?\n/))}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.highlights'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.highlights']}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Exclusions Note</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.exclusions_note || ''}
+                                        onChange={(event) => updateManageHiresLanding('exclusions_note', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.exclusions_note'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.exclusions_note']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Primary CTA Label</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.primary_cta_label || ''}
+                                        onChange={(event) => updateManageHiresLanding('primary_cta_label', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.primary_cta_label'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.primary_cta_label']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Primary CTA URL</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.primary_cta_url || ''}
+                                        onChange={(event) => updateManageHiresLanding('primary_cta_url', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.primary_cta_url'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.primary_cta_url']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Secondary CTA Label</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.secondary_cta_label || ''}
+                                        onChange={(event) => updateManageHiresLanding('secondary_cta_label', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.secondary_cta_label'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.secondary_cta_label']}</p>}
+                                </div>
+
+                                <div>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Secondary CTA URL</label>
+                                    <input
+                                        type="text"
+                                        value={data.manage_hires_landing?.secondary_cta_url || ''}
+                                        onChange={(event) => updateManageHiresLanding('secondary_cta_url', event.target.value)}
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    />
+                                    {errors['manage_hires_landing.secondary_cta_url'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.secondary_cta_url']}</p>}
+                                </div>
                             </div>
                         </div>
 

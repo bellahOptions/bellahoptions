@@ -21,3 +21,5 @@ Artisan::command('native:jump {--host=127.0.0.1} {--port=8000}', function () {
 })->purpose('Show the local app URL entry point for native/web access');
 
 Schedule::command('invoices:send-reminders')->dailyAt('09:00');
+Schedule::command('support-tickets:send-unanswered-reminders')->hourlyAt(15);
+Schedule::command('prospects:send-abandoned-order-reminders')->hourlyAt(20);

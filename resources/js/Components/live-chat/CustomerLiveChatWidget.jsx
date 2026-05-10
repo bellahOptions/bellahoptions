@@ -456,7 +456,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
     const offlineOneWayMode = Number(thread?.online_staff_count ?? 0) === 0;
 
     return (
-        <div className="fixed bottom-5 right-5 z-[70]">
+        <div className="fixed md:bottom-5 bottom-14 md:right-5 right-3 z-[70]">
             <AnimatePresence>
                 {showNudge && shouldAlert && (
                     <motion.div

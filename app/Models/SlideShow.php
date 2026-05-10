@@ -14,6 +14,7 @@ class SlideShow extends Model
         'content_media_type',
         'content_media_path',
         'content_media_position',
+        'content_media_alignment',
         'layout_style',
         'content_alignment',
         'title_animation',

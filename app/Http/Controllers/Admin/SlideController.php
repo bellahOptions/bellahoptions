@@ -25,6 +25,9 @@ class SlideController extends Controller
     private const CONTENT_MEDIA_POSITIONS = ['top', 'center', 'bottom'];
 
     /** @var array<int, string> */
+    private const CONTENT_MEDIA_ALIGNMENTS = ['left', 'center', 'right'];
+
+    /** @var array<int, string> */
     private const LAYOUT_STYLES = ['center', 'split-left', 'split-right'];
 
     /** @var array<int, string> */
@@ -53,6 +56,7 @@ class SlideController extends Controller
         $hasContentMediaTypeColumn = Schema::hasColumn('slide_shows', 'content_media_type');
         $hasContentMediaPathColumn = Schema::hasColumn('slide_shows', 'content_media_path');
         $hasContentMediaPositionColumn = Schema::hasColumn('slide_shows', 'content_media_position');
+        $hasContentMediaAlignmentColumn = Schema::hasColumn('slide_shows', 'content_media_alignment');
         $hasLayoutStyleColumn = Schema::hasColumn('slide_shows', 'layout_style');
         $hasContentAlignmentColumn = Schema::hasColumn('slide_shows', 'content_alignment');
         $hasTitleAnimationColumn = Schema::hasColumn('slide_shows', 'title_animation');
@@ -71,6 +75,9 @@ class SlideController extends Controller
         }
         if ($hasContentMediaPositionColumn) {
             $columns[] = 'content_media_position';
+        }
+        if ($hasContentMediaAlignmentColumn) {
+            $columns[] = 'content_media_alignment';
         }
         if ($hasLayoutStyleColumn) {
             $columns[] = 'layout_style';
@@ -104,6 +111,7 @@ class SlideController extends Controller
                     'content_media_type' => $this->normalizeContentMediaType($hasContentMediaTypeColumn ? $slide->content_media_type : null),
                     'content_media_path' => $hasContentMediaPathColumn ? $slide->content_media_path : null,
                     'content_media_position' => $this->normalizeContentMediaPosition($hasContentMediaPositionColumn ? $slide->content_media_position : null) ?? 'center',
+                    'content_media_alignment' => $this->normalizeContentMediaAlignment($hasContentMediaAlignmentColumn ? $slide->content_media_alignment : null) ?? 'center',
                     'layout_style' => $this->normalizeLayoutStyle($hasLayoutStyleColumn ? $slide->layout_style : null),
                     'content_alignment' => $this->normalizeContentAlignment($hasContentAlignmentColumn ? $slide->content_alignment : null),
                     'title_animation' => $this->normalizeAnimationStyle($hasTitleAnimationColumn ? $slide->title_animation : null),
@@ -192,6 +200,7 @@ class SlideController extends Controller
                 'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/avif,video/mp4,video/webm,video/ogg,video/quicktime',
                 'max:51200',
             ],
+            'crop_aspect' => ['nullable', 'string', 'in:free,1:1,4:3,16:9,3:4,9:16'],
         ]);
 
         $file = $validated['file'] ?? null;
@@ -222,7 +231,13 @@ class SlideController extends Controller
         }
 
         try {
-            $storedPath = $converter->storePublicWebp($file, 'slide-images');
+            $storedPath = $converter->storePublicWebp(
+                $file,
+                'slide-images',
+                'public',
+                82,
+                $validated['crop_aspect'] ?? null,
+            );
         } catch (\RuntimeException $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
@@ -236,6 +251,44 @@ class SlideController extends Controller
             'url' => $publicPath,
             'media_type' => 'image',
             'message' => 'Image uploaded successfully.',
+        ], 201);
+    }
+
+    public function crop(Request $request, WebpImageConverter $converter): JsonResponse
+    {
+        $validated = $request->validate([
+            'path' => ['required', 'string', 'max:255'],
+            'crop_aspect' => ['required', 'string', 'in:1:1,4:3,16:9,3:4,9:16'],
+        ]);
+
+        $path = PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($validated['path'] ?? null);
+        if (! is_string($path) || ! PublicContentSecurity::isSafeRelativePath($path)) {
+            throw ValidationException::withMessages([
+                'path' => 'Please provide a valid public media path.',
+            ]);
+        }
+
+        try {
+            $storedPath = $converter->cropExistingPublicImageToWebp(
+                $path,
+                'slide-images',
+                'public',
+                82,
+                (string) $validated['crop_aspect'],
+            );
+        } catch (\RuntimeException $exception) {
+            throw ValidationException::withMessages([
+                'path' => $exception->getMessage(),
+            ]);
+        }
+
+        $publicPath = '/storage/'.$storedPath;
+
+        return response()->json([
+            'path' => $publicPath,
+            'url' => $publicPath,
+            'media_type' => 'image',
+            'message' => 'Image cropped successfully.',
         ], 201);
     }
 
@@ -257,6 +310,7 @@ class SlideController extends Controller
             ),
             'content_media_type' => $this->normalizeContentMediaType($request->input('content_media_type')),
             'content_media_position' => $this->normalizeContentMediaPosition($request->input('content_media_position')),
+            'content_media_alignment' => $this->normalizeContentMediaAlignment($request->input('content_media_alignment')),
             'layout_style' => $this->normalizeLayoutStyle($request->input('layout_style')),
             'content_alignment' => $this->normalizeContentAlignment($request->input('content_alignment')),
             'title_animation' => $this->normalizeAnimationStyle($request->input('title_animation')),
@@ -294,6 +348,7 @@ class SlideController extends Controller
             ],
             'content_media_type' => ['nullable', 'string', 'in:image,video'],
             'content_media_position' => ['nullable', 'string', 'in:top,center,bottom'],
+            'content_media_alignment' => ['nullable', 'string', 'in:left,center,right'],
             'content_media_path' => [
                 'nullable',
                 'string',
@@ -340,6 +395,7 @@ class SlideController extends Controller
             'content_media_type' => $contentMediaPath ? $contentMediaType : null,
             'content_media_path' => $contentMediaPath,
             'content_media_position' => $this->normalizeContentMediaPosition($payload['content_media_position'] ?? null) ?? 'center',
+            'content_media_alignment' => $this->normalizeContentMediaAlignment($payload['content_media_alignment'] ?? null) ?? 'center',
             'layout_style' => $this->normalizeLayoutStyle($payload['layout_style'] ?? null) ?? 'center',
             'content_alignment' => $this->normalizeContentAlignment($payload['content_alignment'] ?? null) ?? 'center',
             'title_animation' => $this->normalizeAnimationStyle($payload['title_animation'] ?? null) ?? 'fade-up',
@@ -355,6 +411,9 @@ class SlideController extends Controller
         }
         if (! Schema::hasColumn('slide_shows', 'content_media_position')) {
             unset($data['content_media_position']);
+        }
+        if (! Schema::hasColumn('slide_shows', 'content_media_alignment')) {
+            unset($data['content_media_alignment']);
         }
 
         return $data;
@@ -465,6 +524,16 @@ class SlideController extends Controller
         }
 
         return in_array($candidate, self::CONTENT_MEDIA_POSITIONS, true) ? $candidate : null;
+    }
+
+    private function normalizeContentMediaAlignment(mixed $value): ?string
+    {
+        $candidate = strtolower(trim((string) $value));
+        if ($candidate === '') {
+            return null;
+        }
+
+        return in_array($candidate, self::CONTENT_MEDIA_ALIGNMENTS, true) ? $candidate : null;
     }
 
     private function normalizeContentAlignment(mixed $value): ?string

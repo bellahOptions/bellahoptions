@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\UsesEmailTemplateLibrary;
 use App\Models\Invoice;
 use App\Support\InvoicePdfBuilder;
 use Illuminate\Bus\Queueable;
@@ -14,7 +15,7 @@ use Illuminate\Queue\SerializesModels;
 
 class InvoiceIssuedMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, UsesEmailTemplateLibrary;
 
     /**
      * Create a new message instance.
@@ -30,8 +31,12 @@ class InvoiceIssuedMail extends Mailable
         $senderName = (string) config('bellah.invoice.company_name', 'Bellah Options');
 
         return new Envelope(
-            subject: 'Customer Invoice: '.$this->invoice->invoice_number,
-            from: new Address($senderEmail, $senderName),
+            subject: $this->resolveTemplateSubject(
+                'invoice_issued',
+                'Customer Invoice: '.$this->invoice->invoice_number,
+                $this->templateFields(),
+            ),
+            from: $this->resolveTemplateFromAddress('invoice_issued', $senderEmail, $senderName),
         );
     }
 
@@ -42,8 +47,10 @@ class InvoiceIssuedMail extends Mailable
     {
         $this->invoice->loadMissing('serviceOrder');
 
-        return new Content(
-            view: 'emails.invoice-issued',
+        return $this->resolveTemplateContent(
+            'invoice_issued',
+            'emails.invoice-issued',
+            $this->templateFields(),
         );
     }
 
@@ -60,6 +67,22 @@ class InvoiceIssuedMail extends Mailable
                 fn (): string => app(InvoicePdfBuilder::class)->buildInvoice($this->invoice),
                 $filename,
             )->withMime('application/pdf'),
+        ];
+    }
+
+    /**
+     * @return array<string, scalar|null>
+     */
+    private function templateFields(): array
+    {
+        $this->invoice->loadMissing('serviceOrder');
+
+        return [
+            'customer_name' => (string) ($this->invoice->customer_name ?: 'Customer'),
+            'customer_email' => (string) $this->invoice->customer_email,
+            'invoice_number' => (string) $this->invoice->invoice_number,
+            'order_code' => (string) ($this->invoice->serviceOrder?->order_code ?: ''),
+            'service_name' => (string) ($this->invoice->title ?: ''),
         ];
     }
 }

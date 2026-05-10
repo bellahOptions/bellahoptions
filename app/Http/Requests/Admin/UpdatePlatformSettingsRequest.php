@@ -49,6 +49,10 @@ class UpdatePlatformSettingsRequest extends FormRequest
             $fields['public_page_headers'] = is_array($this->input('public_page_headers')) ? $this->input('public_page_headers') : [];
         }
 
+        if ($this->has('manage_hires_landing')) {
+            $fields['manage_hires_landing'] = is_array($this->input('manage_hires_landing')) ? $this->input('manage_hires_landing') : [];
+        }
+
         if ($this->has('terms')) {
             $fields['terms'] = is_array($this->input('terms')) ? $this->input('terms') : null;
         }
@@ -97,6 +101,20 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'public_page_headers.*.text' => ['nullable', 'string', 'max:500'],
             'public_page_headers.*.background_image' => ['nullable', 'string', 'max:255'],
 
+            'manage_hires_landing' => ['sometimes', 'required', 'array'],
+            'manage_hires_landing.badge' => ['nullable', 'string', 'max:80'],
+            'manage_hires_landing.package_name' => ['nullable', 'string', 'max:120'],
+            'manage_hires_landing.monthly_price_ngn' => ['nullable', 'numeric', 'min:0', 'max:999999999'],
+            'manage_hires_landing.tagline' => ['nullable', 'string', 'max:180'],
+            'manage_hires_landing.description' => ['nullable', 'string', 'max:1000'],
+            'manage_hires_landing.highlights' => ['nullable', 'array', 'max:12'],
+            'manage_hires_landing.highlights.*' => ['nullable', 'string', 'max:140'],
+            'manage_hires_landing.exclusions_note' => ['nullable', 'string', 'max:260'],
+            'manage_hires_landing.primary_cta_label' => ['nullable', 'string', 'max:80'],
+            'manage_hires_landing.primary_cta_url' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+            'manage_hires_landing.secondary_cta_label' => ['nullable', 'string', 'max:80'],
+            'manage_hires_landing.secondary_cta_url' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+
             'terms' => ['sometimes', 'nullable', 'array'],
             'terms.terms_of_service' => ['nullable', 'string', 'max:200000'],
             'terms.privacy_policy' => ['nullable', 'string', 'max:200000'],
@@ -113,6 +131,8 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'home_slides.*.image.regex' => 'Slide image paths may only include letters, numbers, slashes, dots, dashes, and underscores.',
             'home_slides.*.cta_url.regex' => 'Slide CTA URL must start with "https://", "http://", or "/".',
             'google_reviews_place_id.max' => 'Google Place ID must be 512 characters or fewer.',
+            'manage_hires_landing.primary_cta_url.regex' => 'Manage Hires primary CTA URL must start with "https://", "http://", or "/".',
+            'manage_hires_landing.secondary_cta_url.regex' => 'Manage Hires secondary CTA URL must start with "https://", "http://", or "/".',
         ];
     }
 }

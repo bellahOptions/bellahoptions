@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\UsesEmailTemplateLibrary;
 use App\Models\ClientReview;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -12,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 
 class ClientReviewRequestMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, UsesEmailTemplateLibrary;
 
     /**
      * Create a new message instance.
@@ -28,8 +29,12 @@ class ClientReviewRequestMail extends Mailable
         $senderName = (string) config('bellah.invoice.company_name', 'Bellah Options');
 
         return new Envelope(
-            subject: 'How was your experience with Bellah Options?',
-            from: new Address($senderEmail, $senderName),
+            subject: $this->resolveTemplateSubject(
+                'client_review_request',
+                'How was your experience with Bellah Options?',
+                $this->templateFields(),
+            ),
+            from: $this->resolveTemplateFromAddress('client_review_request', $senderEmail, $senderName),
         );
     }
 
@@ -38,12 +43,26 @@ class ClientReviewRequestMail extends Mailable
      */
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.client-review-request',
-            with: [
+        return $this->resolveTemplateContent(
+            'client_review_request',
+            'emails.client-review-request',
+            $this->templateFields(),
+            [
                 'review' => $this->review,
                 'reviewLink' => route('reviews.submit.show', $this->review->review_token),
             ],
         );
+    }
+
+    /**
+     * @return array<string, scalar|null>
+     */
+    private function templateFields(): array
+    {
+        return [
+            'customer_name' => (string) ($this->review->name ?: 'Customer'),
+            'customer_email' => (string) $this->review->email,
+            'review_link' => route('reviews.submit.show', $this->review->review_token),
+        ];
     }
 }

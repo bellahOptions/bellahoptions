@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\UsesEmailTemplateLibrary;
 use App\Models\ServiceOrder;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -12,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 
 class ServiceOrderClientSummaryMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, UsesEmailTemplateLibrary;
 
     /**
      * Create a new message instance.
@@ -28,8 +29,12 @@ class ServiceOrderClientSummaryMail extends Mailable
         $senderName = (string) config('bellah.invoice.company_name', 'Bellah Options');
 
         return new Envelope(
-            subject: sprintf('Order Received: %s (%s)', $this->order->service_name, $this->order->order_code),
-            from: new Address($senderEmail, $senderName),
+            subject: $this->resolveTemplateSubject(
+                'service_order_summary',
+                sprintf('Order Received: %s (%s)', $this->order->service_name, $this->order->order_code),
+                $this->templateFields(),
+            ),
+            from: $this->resolveTemplateFromAddress('service_order_summary', $senderEmail, $senderName),
         );
     }
 
@@ -40,8 +45,26 @@ class ServiceOrderClientSummaryMail extends Mailable
     {
         $this->order->loadMissing('invoice');
 
-        return new Content(
-            view: 'emails.service-order-client-summary',
+        return $this->resolveTemplateContent(
+            'service_order_summary',
+            'emails.service-order-client-summary',
+            $this->templateFields(),
         );
+    }
+
+    /**
+     * @return array<string, scalar|null>
+     */
+    private function templateFields(): array
+    {
+        $this->order->loadMissing('invoice');
+
+        return [
+            'customer_name' => (string) ($this->order->name ?: 'Customer'),
+            'customer_email' => (string) $this->order->email,
+            'order_code' => (string) $this->order->order_code,
+            'service_name' => (string) $this->order->service_name,
+            'invoice_number' => (string) ($this->order->invoice?->invoice_number ?: ''),
+        ];
     }
 }

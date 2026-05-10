@@ -10,9 +10,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'name',
     'audience',
+    'campaign_type',
+    'preview_text',
+    'from_email',
     'subject_template',
     'html_template',
     'dynamic_fields',
+    'audience_filters',
+    'builder_layout',
     'is_active',
     'last_sent_at',
     'last_sent_count',
@@ -30,6 +35,8 @@ class Newsletter extends Model
     {
         return [
             'dynamic_fields' => 'array',
+            'audience_filters' => 'array',
+            'builder_layout' => 'array',
             'is_active' => 'boolean',
             'last_sent_at' => 'datetime',
             'last_sent_count' => 'integer',
@@ -46,4 +53,3 @@ class Newsletter extends Model
         return $this->belongsTo(User::class, 'last_sent_by');
     }
 }
-

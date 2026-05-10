@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\UsesEmailTemplateLibrary;
 use App\Models\User;
 use App\Support\StaffOtpChallenge;
 use Illuminate\Bus\Queueable;
@@ -12,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 
 class StaffLoginOtpMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, UsesEmailTemplateLibrary;
 
     /**
      * Create a new message instance.
@@ -24,8 +25,16 @@ class StaffLoginOtpMail extends Mailable
      */
     public function envelope(): Envelope
     {
+        $senderEmail = (string) config('mail.from.address', 'no-reply@bellahoptions.com');
+        $senderName = (string) config('mail.from.name', 'Bellah Options');
+
         return new Envelope(
-            subject: 'Your Bellah Options staff login OTP',
+            subject: $this->resolveTemplateSubject(
+                'staff_login_otp',
+                'Your Bellah Options staff login OTP',
+                $this->templateFields(),
+            ),
+            from: $this->resolveTemplateFromAddress('staff_login_otp', $senderEmail, $senderName),
         );
     }
 
@@ -34,13 +43,28 @@ class StaffLoginOtpMail extends Mailable
      */
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.staff-login-otp',
-            with: [
+        return $this->resolveTemplateContent(
+            'staff_login_otp',
+            'emails.staff-login-otp',
+            $this->templateFields(),
+            [
                 'user' => $this->user,
                 'otpCode' => $this->otpCode,
                 'expiresInMinutes' => StaffOtpChallenge::EXPIRES_IN_MINUTES,
             ],
         );
+    }
+
+    /**
+     * @return array<string, scalar|null>
+     */
+    private function templateFields(): array
+    {
+        return [
+            'customer_name' => (string) ($this->user->name ?: 'Staff'),
+            'customer_email' => (string) $this->user->email,
+            'otp_code' => (string) $this->otpCode,
+            'otp_expires_in_minutes' => (string) StaffOtpChallenge::EXPIRES_IN_MINUTES,
+        ];
     }
 }

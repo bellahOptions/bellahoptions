@@ -41,6 +41,7 @@ class SeoController extends Controller
         $append('/reviews', 'weekly', '0.80');
         $append('/faqs', 'weekly', '0.75');
         $append('/web-design-samples', 'weekly', '0.85');
+        $append('/manage-your-hires', 'weekly', '0.82');
         $append('/contact-us', 'weekly', '0.80');
         $append('/terms-of-service', 'yearly', '0.40');
         $append('/privacy-policy', 'yearly', '0.35');
@@ -189,6 +190,7 @@ class SeoController extends Controller
             '- Reviews: '.$this->absoluteUrl($baseUrl, '/reviews'),
             '- FAQs: '.$this->absoluteUrl($baseUrl, '/faqs'),
             '- Web Design Samples: '.$this->absoluteUrl($baseUrl, '/web-design-samples'),
+            '- Manage Your Hires: '.$this->absoluteUrl($baseUrl, '/manage-your-hires'),
             '- Contact Us: '.$this->absoluteUrl($baseUrl, '/contact-us'),
             '',
             'Service Order Pages:',

@@ -34,6 +34,7 @@ const fallbackSlides = [
         content_media_type: "",
         content_media_path: "",
         content_media_position: "center",
+        content_media_alignment: "center",
         layout_style: "center",
         content_alignment: "center",
         title_animation: "fade-up",
@@ -52,6 +53,7 @@ const fallbackSlides = [
         content_media_type: "",
         content_media_path: "",
         content_media_position: "center",
+        content_media_alignment: "center",
         layout_style: "center",
         content_alignment: "center",
         title_animation: "fade-up",
@@ -70,6 +72,7 @@ const fallbackSlides = [
         content_media_type: "",
         content_media_path: "",
         content_media_position: "center",
+        content_media_alignment: "center",
         layout_style: "center",
         content_alignment: "center",
         title_animation: "fade-up",
@@ -123,6 +126,12 @@ function normalizeContentMediaPosition(value) {
     const candidate = String(value || "").trim().toLowerCase();
 
     return ["top", "center", "bottom"].includes(candidate) ? candidate : "center";
+}
+
+function normalizeContentMediaAlignment(value) {
+    const candidate = String(value || "").trim().toLowerCase();
+
+    return ["left", "center", "right"].includes(candidate) ? candidate : "center";
 }
 
 function normalizeAnimation(value, fallback = "fade-up") {
@@ -217,7 +226,7 @@ function SlideCallToAction({ slide, children }) {
     );
 }
 
-function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center" }) {
+function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center", mediaAlignment = "center" }) {
     const path = slideImageSrc(slide?.content_media_path);
     if (!path) {
         return null;
@@ -228,6 +237,11 @@ function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center" }) {
         ? "object-top"
         : mediaPosition === "bottom"
             ? "object-bottom"
+            : "object-center";
+    const alignmentClass = mediaAlignment === "left"
+        ? "object-left"
+        : mediaAlignment === "right"
+            ? "object-right"
             : "object-center";
 
     return (
@@ -240,7 +254,7 @@ function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center" }) {
             {mediaType === "video" ? (
                 <video
                     src={path}
-                    className={`h-[260px] w-full object-cover ${positionClass} sm:h-[320px] lg:h-[360px]`}
+                    className={`h-[260px] w-full object-cover ${positionClass} ${alignmentClass} sm:h-[320px] lg:h-[360px]`}
                     autoPlay
                     loop
                     muted
@@ -251,7 +265,7 @@ function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center" }) {
                 <img
                     src={path}
                     alt={slide?.slide_title || "Slide media"}
-                    className={`h-[260px] w-full object-cover ${positionClass} sm:h-[320px] lg:h-[360px]`}
+                    className={`h-[260px] w-full object-cover ${positionClass} ${alignmentClass} sm:h-[320px] lg:h-[360px]`}
                 />
             )}
         </motion.div>
@@ -266,6 +280,7 @@ function SlideContent({ slide, index }) {
     const mediaAnimation = normalizeAnimation(slide?.media_animation, "zoom-in");
     const buttonAnimation = normalizeAnimation(slide?.button_animation, "fade-up");
     const mediaPosition = normalizeContentMediaPosition(slide?.content_media_position);
+    const mediaAlignment = normalizeContentMediaAlignment(slide?.content_media_alignment);
 
     const hasForegroundMedia = Boolean(slideImageSrc(slide?.content_media_path));
     const useSplitLayout = hasForegroundMedia && layoutStyle !== "center";
@@ -318,6 +333,7 @@ function SlideContent({ slide, index }) {
                             slide={slide}
                             mediaAnimation={mediaAnimation}
                             mediaPosition={mediaPosition}
+                            mediaAlignment={mediaAlignment}
                         />
                     </div>
                 </div>
@@ -355,6 +371,7 @@ function SlideContent({ slide, index }) {
                         slide={slide}
                         mediaAnimation={mediaAnimation}
                         mediaPosition={mediaPosition}
+                        mediaAlignment={mediaAlignment}
                     />
                 </div>
             )}

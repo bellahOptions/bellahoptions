@@ -14,7 +14,7 @@
 
         body {
             margin: 0;
-            color: #182433;
+            color: {{ $invoiceStyle['text_color'] ?? '#182433' }};
             font-family: DejaVu Sans, Arial, sans-serif;
             font-size: 12px;
             line-height: 1.4;
@@ -40,8 +40,8 @@
         }
 
         .status.paid {
-            border-color: #11845b;
-            color: #11845b;
+            border-color: {{ $invoiceStyle['accent_color'] ?? '#11845B' }};
+            color: {{ $invoiceStyle['accent_color'] ?? '#11845B' }};
         }
 
         .header {
@@ -63,7 +63,7 @@
             margin: 0 0 8px;
             font-size: 22px;
             font-weight: 700;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
         }
 
         .company-line {
@@ -84,7 +84,7 @@
             margin: 10px 0 2px;
             font-size: 22px;
             font-weight: 700;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
         }
 
         .meta {
@@ -97,7 +97,7 @@
             margin: 16px 0 6px;
             font-size: 13px;
             font-weight: 700;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
         }
 
         .invoiced-to {
@@ -152,7 +152,7 @@
         .totals td:last-child {
             text-align: right;
             font-weight: 700;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
         }
 
         .totals .grand td {
@@ -160,7 +160,7 @@
             padding-top: 8px;
             font-size: 13px;
             font-weight: 700;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
         }
 
         .transactions {
@@ -180,7 +180,7 @@
             margin: 0 0 6px;
             font-size: 12px;
             font-weight: 700;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
         }
 
         .transfer-line {
@@ -222,7 +222,7 @@
             padding-top: 6px;
             text-align: right;
             font-size: 13px;
-            color: #0f1f33;
+            color: {{ $invoiceStyle['primary_color'] ?? '#0F1F33' }};
             font-weight: 700;
         }
 
@@ -246,9 +246,13 @@
                     @else
                         <p class="company-fallback">{{ $companyName }}</p>
                     @endif
-                    <p class="company-line">Baba Ode, Onibukun Ota</p>
-                    <p class="company-line">Ogun State, NG (BN3668420)</p>
-                    <p class="company-line">(234) 810 867 1804</p>
+                    @forelse($companyLines as $line)
+                        <p class="company-line">{{ $line }}</p>
+                    @empty
+                        <p class="company-line">Baba Ode, Onibukun Ota</p>
+                        <p class="company-line">Ogun State, NG (BN3668420)</p>
+                        <p class="company-line">(234) 810 867 1804</p>
+                    @endforelse
                 </td>
                 <td class="payment-tip">
                     {{ $transferPayment['instructions'] ?: 'Include the invoice number as payment reference when making transfer.' }}
@@ -334,7 +338,7 @@
         </table>
 
         <p class="balance">Balance: {{ $balance }}</p>
-        <p class="generated">PDF Generated on {{ $generatedAt }}</p>
+        <p class="generated">{{ $footerNote }} - PDF Generated on {{ $generatedAt }}</p>
     </div>
 </body>
 </html>

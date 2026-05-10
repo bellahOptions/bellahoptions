@@ -8,6 +8,17 @@ class NewsletterTemplating
      * @var array<string, string>
      */
     private const BUILTIN_PLACEHOLDERS = [
+        'customer_name' => 'Customer full name',
+        'customer_first_name' => 'Customer first name',
+        'customer_last_name' => 'Customer last name',
+        'customer_email' => 'Customer email address',
+        'order_code' => 'Order code',
+        'service_name' => 'Service name',
+        'invoice_number' => 'Invoice number',
+        'invoice_action' => 'Invoice action (issued/resent)',
+        'payment_status' => 'Payment status',
+        'ticket_number' => 'Support ticket number',
+        'ticket_subject' => 'Support ticket subject',
         'recipient_name' => 'Recipient full name',
         'recipient_first_name' => 'Recipient first name',
         'recipient_last_name' => 'Recipient last name',
@@ -19,6 +30,8 @@ class NewsletterTemplating
         'contact_email' => 'Default marketing contact email',
         'contact_phone' => 'Default marketing contact phone',
         'contact_whatsapp_url' => 'Default WhatsApp URL',
+        'estimated_timeline' => 'Estimated delivery timeline text',
+        'review_link' => 'Review submission URL',
         'current_year' => 'Current 4-digit year',
         'sent_at' => 'Send timestamp (UTC)',
     ];
@@ -73,4 +86,3 @@ class NewsletterTemplating
         );
     }
 }
-

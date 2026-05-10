@@ -56,14 +56,11 @@ export default function Register({
             <Head title="Create Account" />
 
             <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
-                    Join Bellah Options
-                </p>
                 <h2 className="mt-2 text-3xl font-semibold text-slate-900">
                     Create your account
                 </h2>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Register to access your Bellah Options client experience.
+                    Register to join our community of Smart Business owners
                 </p>
             </div>
 

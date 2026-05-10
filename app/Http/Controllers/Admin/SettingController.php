@@ -51,6 +51,7 @@ class SettingController extends Controller
                 'favicon_path' => PlatformSettings::brandAssets()['favicon_path'],
                 'home_slides' => PlatformSettings::homeSlides(),
                 'public_page_headers' => PlatformSettings::publicPageHeaders(),
+                'manage_hires_landing' => PlatformSettings::manageHiresLanding(),
                 'google_reviews' => $googleReviewsConfig,
                 'google_reviews_preview' => $this->fetchGoogleReviewsPreview(
                     $googleReviewsConfig['place_id'],
@@ -181,6 +182,10 @@ class SettingController extends Controller
 
         if (array_key_exists('public_page_headers', $payload) && is_array($payload['public_page_headers'])) {
             PlatformSettings::setPublicPageHeaders($payload['public_page_headers']);
+        }
+
+        if (array_key_exists('manage_hires_landing', $payload) && is_array($payload['manage_hires_landing'])) {
+            PlatformSettings::setManageHiresLanding($payload['manage_hires_landing']);
         }
 
         if (

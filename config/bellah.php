@@ -56,4 +56,22 @@ return [
             (string) env('BELLAH_INVOICE_ADMIN_NOTIFICATION_EMAILS', env('BELLAH_WAITLIST_ADMIN_EMAILS', 'bellahoptions@gmail.com')),
         )),
     ],
+
+    'prospects' => [
+        'abandon_after_hours' => (int) env('BELLAH_PROSPECT_ABANDON_AFTER_HOURS', 24),
+        'admin_notification_emails' => $normalizeEmails((string) env(
+            'BELLAH_PROSPECT_ADMIN_NOTIFICATION_EMAILS',
+            (string) env('BELLAH_ORDER_ADMIN_NOTIFICATION_EMAILS', env('BELLAH_WAITLIST_ADMIN_EMAILS', 'bellahoptions@gmail.com')),
+        )),
+    ],
+
+    'support' => [
+        'admin_notification_emails' => $normalizeEmails((string) env(
+            'BELLAH_SUPPORT_ADMIN_NOTIFICATION_EMAILS',
+            (string) env('BELLAH_ORDER_ADMIN_NOTIFICATION_EMAILS', env('BELLAH_WAITLIST_ADMIN_EMAILS', 'bellahoptions@gmail.com')),
+        )),
+        'unanswered_reminder_after_hours' => (int) env('BELLAH_SUPPORT_UNANSWERED_REMINDER_AFTER_HOURS', 24),
+        'reminder_recurrence_hours' => (int) env('BELLAH_SUPPORT_REMINDER_RECURRENCE_HOURS', 24),
+        'max_unanswered_reminders' => (int) env('BELLAH_SUPPORT_MAX_UNANSWERED_REMINDERS', 7),
+    ],
 ];

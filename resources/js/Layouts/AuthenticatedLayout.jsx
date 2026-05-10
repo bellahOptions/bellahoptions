@@ -16,6 +16,7 @@ export default function AuthenticatedLayout({ header, children }) {
 
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+    const userInitials = getUserInitials(user?.name);
 
     const navItems = isStaff
         ? [
@@ -29,6 +30,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 label: 'Live Chat',
                 href: route('admin.live-chat.index'),
                 active: route().current('admin.live-chat.*'),
+                show: true,
+            },
+            {
+                label: 'Support Tickets',
+                href: route('admin.support-tickets.index'),
+                active: route().current('admin.support-tickets.*'),
                 show: true,
             },
             {
@@ -47,6 +54,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 label: 'Settings',
                 href: route('admin.settings.edit'),
                 active: route().current('admin.settings.*'),
+                show: canManageSettings,
+            },
+            {
+                label: 'Email Center',
+                href: route('admin.email-center.index'),
+                active: route().current('admin.email-center.*'),
                 show: canManageSettings,
             },
             {
@@ -86,7 +99,38 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: canManagePublicContent,
             },
         ].filter((item) => item.show)
-        : [];
+        : [
+            {
+                label: 'Order New Service',
+                href: route('orders.create', 'social-media-design'),
+                active: route().current('orders.create'),
+                show: true,
+            },
+            {
+                label: 'Job Progress/Mgt',
+                href: route('dashboard.orders'),
+                active: route().current('dashboard.orders'),
+                show: true,
+            },
+            {
+                label: 'Manage Referrals',
+                href: route('dashboard.referrals'),
+                active: route().current('dashboard.referrals'),
+                show: true,
+            },
+            {
+                label: 'Manage your hires',
+                href: route('dashboard.hires'),
+                active: route().current('dashboard.hires'),
+                show: true,
+            },
+            {
+                label: 'Support Tickets',
+                href: route('dashboard.support'),
+                active: route().current('dashboard.support'),
+                show: true,
+            },
+        ].filter((item) => item.show);
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -111,8 +155,17 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 <div className="border-t border-gray-100 p-4">
                     <div className="rounded-xl bg-gray-50 p-4">
-                        <p className="truncate text-sm font-bold text-gray-900">{user.name}</p>
-                        <p className="mt-1 truncate text-xs text-gray-500">{user.email}</p>
+                        <div className="mb-3 flex items-center gap-3">
+                            <Avatar
+                                photoUrl={user?.profile_photo_url}
+                                initials={userInitials}
+                                sizeClassName="h-11 w-11"
+                            />
+                            <div className="min-w-0">
+                                <p className="truncate text-sm font-bold text-gray-900">{user.name}</p>
+                                <p className="mt-0.5 truncate text-xs text-gray-500">{user.email}</p>
+                            </div>
+                        </div>
                         <div className="mt-4 grid grid-cols-2 gap-2">
                             <Link
                                 href={route('profile.edit')}
@@ -175,8 +228,13 @@ export default function AuthenticatedLayout({ header, children }) {
                                     <span className="inline-flex rounded-md">
                                         <button
                                             type="button"
-                                            className="inline-flex items-center rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition hover:text-gray-700 focus:outline-none"
+                                            className="inline-flex items-center gap-2 rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition hover:text-gray-700 focus:outline-none"
                                         >
+                                            <Avatar
+                                                photoUrl={user?.profile_photo_url}
+                                                initials={userInitials}
+                                                sizeClassName="h-8 w-8"
+                                            />
                                             {user.name}
 
                                             <svg
@@ -241,6 +299,7 @@ export default function AuthenticatedLayout({ header, children }) {
             </div>
 
             {isStaff ? <StaffLiveChatDock /> : <CustomerLiveChatWidget show />}
+
         </div>
     );
 }
@@ -259,4 +318,38 @@ function SidebarLink({ href, active, onClick, children }) {
             {children}
         </Link>
     );
+}
+
+function Avatar({ photoUrl, initials, sizeClassName = 'h-9 w-9' }) {
+    if (photoUrl) {
+        return (
+            <img
+                src={photoUrl}
+                alt="Profile avatar"
+                className={`${sizeClassName} rounded-full border border-gray-200 object-cover`}
+            />
+        );
+    }
+
+    return (
+        <div
+            className={`${sizeClassName} flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-blue-700`}
+        >
+            {initials}
+        </div>
+    );
+}
+
+function getUserInitials(name = '') {
+    const parts = String(name).trim().split(/\s+/).filter(Boolean);
+
+    if (parts.length === 0) {
+        return 'BO';
+    }
+
+    if (parts.length === 1) {
+        return parts[0].slice(0, 2).toUpperCase();
+    }
+
+    return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
 }

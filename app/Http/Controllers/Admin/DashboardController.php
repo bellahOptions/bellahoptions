@@ -10,6 +10,7 @@ use App\Models\LiveChatStaffPresence;
 use App\Models\LiveChatThread;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
+use App\Models\SupportTicket;
 use App\Models\User;
 use App\Support\PlatformSettings;
 use Illuminate\Database\Eloquent\Builder;
@@ -170,8 +171,8 @@ class DashboardController extends Controller
             $query->whereNull('role')->orWhere('role', 'user');
         })->count();
 
-        $openSupportTickets = ServiceOrder::query()
-            ->whereNotIn('order_status', ['completed', 'cancelled'])
+        $openSupportTickets = SupportTicket::query()
+            ->where('status', SupportTicket::STATUS_OPEN)
             ->count();
 
         $kpis = [
@@ -359,7 +360,7 @@ class DashboardController extends Controller
             'total_customers' => User::query()->where(function (Builder $query): void {
                 $query->whereNull('role')->orWhere('role', 'user');
             })->where('created_at', '>=', $currentWindowStart)->count(),
-            'open_support_tickets' => ServiceOrder::query()->whereNotIn('order_status', ['completed', 'cancelled'])->where('created_at', '>=', $currentWindowStart)->count(),
+            'open_support_tickets' => SupportTicket::query()->where('status', SupportTicket::STATUS_OPEN)->where('created_at', '>=', $currentWindowStart)->count(),
             default => 0,
         };
 
@@ -371,7 +372,7 @@ class DashboardController extends Controller
             'total_customers' => User::query()->where(function (Builder $query): void {
                 $query->whereNull('role')->orWhere('role', 'user');
             })->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->count(),
-            'open_support_tickets' => ServiceOrder::query()->whereNotIn('order_status', ['completed', 'cancelled'])->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->count(),
+            'open_support_tickets' => SupportTicket::query()->where('status', SupportTicket::STATUS_OPEN)->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->count(),
             default => 0,
         };
 
@@ -402,7 +403,7 @@ class DashboardController extends Controller
                 'total_customers' => (float) User::query()->where(function (Builder $query): void {
                     $query->whereNull('role')->orWhere('role', 'user');
                 })->whereDate('created_at', $date)->count(),
-                'open_support_tickets' => (float) ServiceOrder::query()->whereNotIn('order_status', ['completed', 'cancelled'])->whereDate('created_at', $date)->count(),
+                'open_support_tickets' => (float) SupportTicket::query()->where('status', SupportTicket::STATUS_OPEN)->whereDate('created_at', $date)->count(),
                 default => 0.0,
             };
         }

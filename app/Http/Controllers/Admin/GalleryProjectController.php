@@ -90,6 +90,7 @@ class GalleryProjectController extends Controller
                 'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/avif',
                 'max:8192',
             ],
+            'crop_aspect' => ['nullable', 'string', 'in:free,1:1,4:3,16:9,3:4,9:16'],
         ]);
 
         $file = $validated['file'] ?? null;
@@ -102,7 +103,13 @@ class GalleryProjectController extends Controller
         $extension = strtolower($file->getClientOriginalExtension());
 
         try {
-            $storedPath = $converter->storePublicWebp($file, 'gallery-projects');
+            $storedPath = $converter->storePublicWebp(
+                $file,
+                'gallery-projects',
+                'public',
+                82,
+                $validated['crop_aspect'] ?? null,
+            );
         } catch (\RuntimeException $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
@@ -115,6 +122,43 @@ class GalleryProjectController extends Controller
             'path' => $publicPath,
             'url' => $publicPath,
             'message' => 'Image uploaded successfully.',
+        ], 201);
+    }
+
+    public function crop(Request $request, WebpImageConverter $converter): JsonResponse
+    {
+        $validated = $request->validate([
+            'path' => ['required', 'string', 'max:255'],
+            'crop_aspect' => ['required', 'string', 'in:1:1,4:3,16:9,3:4,9:16'],
+        ]);
+
+        $path = PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($validated['path'] ?? null);
+        if (! is_string($path) || ! PublicContentSecurity::isSafeRelativePath($path)) {
+            throw ValidationException::withMessages([
+                'path' => 'Please provide a valid public media path.',
+            ]);
+        }
+
+        try {
+            $storedPath = $converter->cropExistingPublicImageToWebp(
+                $path,
+                'gallery-projects',
+                'public',
+                82,
+                (string) $validated['crop_aspect'],
+            );
+        } catch (\RuntimeException $exception) {
+            throw ValidationException::withMessages([
+                'path' => $exception->getMessage(),
+            ]);
+        }
+
+        $publicPath = '/storage/'.$storedPath;
+
+        return response()->json([
+            'path' => $publicPath,
+            'url' => $publicPath,
+            'message' => 'Image cropped successfully.',
         ], 201);
     }
 

@@ -39,6 +39,23 @@ function fileUploadError(error) {
     return 'Upload failed. Please try another image.';
 }
 
+function canCropImage(path, extension = '') {
+    const ext = String(extension || '').trim().toLowerCase()
+        || String(path || '').split(/[?#]/)[0].split('.').pop()?.toLowerCase()
+        || '';
+
+    return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'avif'].includes(ext);
+}
+
+const cropAspectOptions = [
+    { value: 'free', label: 'No Crop' },
+    { value: '1:1', label: 'Square (1:1)' },
+    { value: '4:3', label: 'Landscape (4:3)' },
+    { value: '16:9', label: 'Widescreen (16:9)' },
+    { value: '3:4', label: 'Portrait (3:4)' },
+    { value: '9:16', label: 'Mobile (9:16)' },
+];
+
 export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
     const { flash } = usePage().props;
     const [editingId, setEditingId] = useState(null);
@@ -48,6 +65,11 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [selectorTarget, setSelectorTarget] = useState('create');
     const [selectorSearch, setSelectorSearch] = useState('');
+    const [cropAspectByTarget, setCropAspectByTarget] = useState({
+        create: 'free',
+        edit: 'free',
+        selector: '1:1',
+    });
     const [uploadState, setUploadState] = useState({
         create: { uploading: false, error: '' },
         edit: { uploading: false, error: '' },
@@ -174,6 +196,10 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
 
         const body = new FormData();
         body.append('file', file);
+        const selectedCrop = cropAspectByTarget[target] || 'free';
+        if (selectedCrop) {
+            body.append('crop_aspect', selectedCrop);
+        }
 
         try {
             const response = await window.axios.post(route('admin.gallery.media.upload'), body, {
@@ -211,6 +237,39 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
         form.setData('image_path', path);
 
         closeMediaSelector();
+    };
+
+    const cropAndSelectFile = async (file) => {
+        const path = String(file?.path || '');
+        if (path === '') {
+            return;
+        }
+        if (!canCropImage(path, file?.extension || '')) {
+            selectFile(path);
+
+            return;
+        }
+
+        setMediaLoading(true);
+        setMediaError('');
+        try {
+            const response = await window.axios.post(route('admin.gallery.media.crop'), {
+                path,
+                crop_aspect: cropAspectByTarget.selector || '1:1',
+            });
+
+            const croppedPath = String(response?.data?.path || '');
+            if (croppedPath === '') {
+                throw new Error('Crop response did not include a path.');
+            }
+
+            selectFile(croppedPath);
+            await refreshMediaLibrary();
+        } catch (error) {
+            setMediaError(fileUploadError(error));
+        } finally {
+            setMediaLoading(false);
+        }
     };
 
     return (
@@ -254,6 +313,8 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                             form={createForm}
                             className="mt-5"
                             uploadStatus={uploadState.create}
+                            cropAspect={cropAspectByTarget.create}
+                            onChangeCropAspect={(value) => setCropAspectByTarget((current) => ({ ...current, create: value }))}
                             onUpload={(file) => uploadImage('create', file)}
                             onOpenMediaSelector={() => openMediaSelector('create')}
                         />
@@ -280,6 +341,8 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                                 <GalleryFields
                                                     form={editForm}
                                                     uploadStatus={uploadState.edit}
+                                                    cropAspect={cropAspectByTarget.edit}
+                                                    onChangeCropAspect={(value) => setCropAspectByTarget((current) => ({ ...current, edit: value }))}
                                                     onUpload={(file) => uploadImage('edit', file)}
                                                     onOpenMediaSelector={() => openMediaSelector('edit')}
                                                 />
@@ -382,6 +445,17 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                             placeholder="Search media by file name or path"
                             className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none sm:w-auto sm:flex-1"
                         />
+                        <select
+                            value={cropAspectByTarget.selector}
+                            onChange={(event) => setCropAspectByTarget((current) => ({ ...current, selector: event.target.value }))}
+                            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                        >
+                            {cropAspectOptions.filter((option) => option.value !== 'free').map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    Crop Before Use: {option.label}
+                                </option>
+                            ))}
+                        </select>
                         <button
                             type="button"
                             onClick={refreshMediaLibrary}
@@ -400,10 +474,8 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                         ) : (
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 {filteredFiles.map((file) => (
-                                    <button
+                                    <div
                                         key={file.path}
-                                        type="button"
-                                        onClick={() => selectFile(file.path)}
                                         className="group overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-blue-400 hover:shadow-sm"
                                     >
                                         <div className="h-28 w-full overflow-hidden bg-gray-50">
@@ -417,8 +489,26 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                             <p className="truncate text-xs font-semibold text-gray-900">{file.name}</p>
                                             <p className="truncate text-[11px] text-gray-500">{file.path}</p>
                                             <p className="text-[11px] text-gray-500">{formatFileSize(Number(file.size || 0))}</p>
+                                            <div className="mt-2 flex flex-wrap gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => selectFile(file.path)}
+                                                    className="rounded border border-blue-200 px-2 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-50"
+                                                >
+                                                    Use
+                                                </button>
+                                                {canCropImage(file.path, file.extension) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => cropAndSelectFile(file)}
+                                                        className="rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        Crop & Use
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-                                    </button>
+                                    </div>
                                 ))}
                             </div>
                         )}
@@ -429,7 +519,15 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
     );
 }
 
-function GalleryFields({ form, className = '', uploadStatus, onUpload, onOpenMediaSelector }) {
+function GalleryFields({
+    form,
+    className = '',
+    uploadStatus,
+    cropAspect = 'free',
+    onChangeCropAspect,
+    onUpload,
+    onOpenMediaSelector,
+}) {
     return (
         <div className={`grid gap-4 md:grid-cols-2 ${className}`}>
             <Field label="Title" error={form.errors.title} className="md:col-span-2">
@@ -474,6 +572,8 @@ function GalleryFields({ form, className = '', uploadStatus, onUpload, onOpenMed
                 <ImageUploadField
                     imagePath={form.data.image_path}
                     uploadStatus={uploadStatus}
+                    cropAspect={cropAspect}
+                    onChangeCropAspect={onChangeCropAspect}
                     onUpload={onUpload}
                     onOpenMediaSelector={onOpenMediaSelector}
                     onClear={() => form.setData('image_path', '')}
@@ -516,7 +616,15 @@ function GalleryFields({ form, className = '', uploadStatus, onUpload, onOpenMed
     );
 }
 
-function ImageUploadField({ imagePath, uploadStatus, onUpload, onOpenMediaSelector, onClear }) {
+function ImageUploadField({
+    imagePath,
+    uploadStatus,
+    cropAspect = 'free',
+    onChangeCropAspect,
+    onUpload,
+    onOpenMediaSelector,
+    onClear,
+}) {
     const inputRef = useRef(null);
     const [dragging, setDragging] = useState(false);
 
@@ -551,6 +659,17 @@ function ImageUploadField({ imagePath, uploadStatus, onUpload, onOpenMediaSelect
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-sm text-gray-700">Drag and drop an image here, or upload/select one.</p>
                     <div className="flex flex-wrap gap-2">
+                        <select
+                            value={cropAspect}
+                            onChange={(event) => onChangeCropAspect?.(event.target.value)}
+                            className="rounded-md border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-gray-700"
+                        >
+                            {cropAspectOptions.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
                         <button
                             type="button"
                             onClick={() => inputRef.current?.click()}

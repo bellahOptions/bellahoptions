@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Mail\Concerns\UsesEmailTemplateLibrary;
 use App\Models\Waitlist;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -12,7 +13,7 @@ use Illuminate\Queue\SerializesModels;
 
 class WaitlistAdminAlertMail extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable, SerializesModels, UsesEmailTemplateLibrary;
 
     /**
      * Create a new message instance.
@@ -28,8 +29,12 @@ class WaitlistAdminAlertMail extends Mailable
         $senderName = (string) config('bellah.marketing.sender_name', 'Bellah Options');
 
         return new Envelope(
-            subject: 'New Bellah Options waitlist signup',
-            from: new Address($senderEmail, $senderName),
+            subject: $this->resolveTemplateSubject(
+                'waitlist_admin_alert',
+                'New Bellah Options waitlist signup',
+                $this->templateFields(),
+            ),
+            from: $this->resolveTemplateFromAddress('waitlist_admin_alert', $senderEmail, $senderName),
         );
     }
 
@@ -38,8 +43,23 @@ class WaitlistAdminAlertMail extends Mailable
      */
     public function content(): Content
     {
-        return new Content(
-            view: 'emails.waitlist-admin-alert',
+        return $this->resolveTemplateContent(
+            'waitlist_admin_alert',
+            'emails.waitlist-admin-alert',
+            $this->templateFields(),
         );
+    }
+
+    /**
+     * @return array<string, scalar|null>
+     */
+    private function templateFields(): array
+    {
+        return [
+            'customer_name' => (string) ($this->waitlist->name ?: 'Prospect'),
+            'customer_email' => (string) $this->waitlist->email,
+            'recipient_name' => (string) ($this->waitlist->name ?: 'Prospect'),
+            'recipient_email' => (string) $this->waitlist->email,
+        ];
     }
 }
