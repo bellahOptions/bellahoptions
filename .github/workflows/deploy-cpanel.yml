@@ -19,6 +19,7 @@ jobs:
       FTP_PROTOCOL: ${{ secrets.CPANEL_FTP_PROTOCOL != '' && secrets.CPANEL_FTP_PROTOCOL || 'ftps' }}
       FTP_PORT: ${{ secrets.CPANEL_FTP_PORT != '' && secrets.CPANEL_FTP_PORT || '21' }}
       FTP_TIMEOUT: ${{ secrets.CPANEL_FTP_TIMEOUT != '' && secrets.CPANEL_FTP_TIMEOUT || '120000' }}
+      PUBLIC_HTML_PATH: ${{ secrets.CPANEL_PUBLIC_HTML_PATH != '' && secrets.CPANEL_PUBLIC_HTML_PATH || '/public_html' }}
 
     steps:
       - name: Checkout
@@ -75,6 +76,19 @@ jobs:
             **/storage/framework/sessions/**
             **/storage/framework/testing/**
             **/storage/framework/views/**
+
+      - name: Copy public/build to /public_html/build
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          protocol: ${{ env.FTP_PROTOCOL }}
+          port: ${{ env.FTP_PORT }}
+          timeout: ${{ env.FTP_TIMEOUT }}
+          local-dir: ./public/build/
+          server-dir: ${{ env.PUBLIC_HTML_PATH }}/build/
+          state-name: .ftp-deploy-sync-public-build-state.json
 
       - name: Run post-deploy tasks over SSH (optional)
         if: ${{ secrets.CPANEL_SSH_HOST != '' && secrets.CPANEL_SSH_USER != '' && secrets.CPANEL_SSH_KEY != '' }}

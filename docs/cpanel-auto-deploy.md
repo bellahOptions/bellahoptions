@@ -29,6 +29,7 @@ Optional (recommended):
 - `CPANEL_FTP_PROTOCOL` (`ftps`, `ftp`, or `ftps-legacy`; default is `ftps`)
 - `CPANEL_FTP_PORT` (default `21`)
 - `CPANEL_FTP_TIMEOUT` (milliseconds, default `120000`)
+- `CPANEL_PUBLIC_HTML_PATH` (default `/public_html`; set your absolute cPanel path if needed)
 
 Optional SSH post-deploy:
 
@@ -50,7 +51,8 @@ The workflow:
 1. Installs production PHP dependencies in CI (`composer install --no-dev ...`)
 2. Builds frontend assets (`npm ci && npm run build`)
 3. Uploads project files to cPanel via FTP/FTPS
-4. Optionally runs post-deploy Laravel tasks over SSH
+4. Copies `public/build` to `/public_html/build` after successful deploy
+5. Optionally runs post-deploy Laravel tasks over SSH
 
 Excluded from upload:
 
