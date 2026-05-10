@@ -34,7 +34,6 @@ export default function UpdateProfileInformation({
         clearProfilePhoto: false,
         clearCompanyLogo: false,
     });
-    const hasMountedFieldAutosaveRef = useRef(false);
     const hasMountedProfilePhotoAutosaveRef = useRef(false);
     const hasMountedCompanyLogoAutosaveRef = useRef(false);
 
@@ -133,22 +132,10 @@ export default function UpdateProfileInformation({
     }, [data.company_logo, user.company_logo_url]);
 
     useEffect(() => {
-        if (!hasMountedFieldAutosaveRef.current) {
-            hasMountedFieldAutosaveRef.current = true;
-            return;
+        if (!processing) {
+            flushQueuedAutosave();
         }
-
-        flushQueuedAutosave();
-    }, [
-        data.address,
-        data.business_address,
-        data.business_number,
-        data.business_official_email,
-        data.company_name,
-        data.name,
-        data.social_media_info,
-        flushQueuedAutosave,
-    ]);
+    }, [processing, flushQueuedAutosave]);
 
     useEffect(() => {
         if (!hasMountedProfilePhotoAutosaveRef.current) {
