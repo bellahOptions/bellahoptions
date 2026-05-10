@@ -28,6 +28,7 @@ Route::get('/contact-us', [PagesController::class, 'contactPage'])->name('contac
 Route::get('/events', [PagesController::class, 'eventsPage'])->name('events');
 Route::get('/faqs', [PagesController::class, 'faqsPage'])->name('faqs');
 Route::get('/reviews', [PagesController::class, 'reviewsPage'])->name('reviews');
+Route::get('/seo-modules-and-functions', [PagesController::class, 'seoModulesFunctionsPage'])->name('seo.modules-functions');
 Route::get('/reviews/submit/{token}', [ClientReviewController::class, 'show'])->name('reviews.submit.show');
 Route::post('/reviews/submit/{token}', [ClientReviewController::class, 'store'])
     ->middleware('throttle:20,1')

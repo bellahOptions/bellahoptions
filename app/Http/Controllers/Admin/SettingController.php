@@ -129,7 +129,7 @@ class SettingController extends Controller
         ]);
     }
 
-    public function update(UpdatePlatformSettingsRequest $request): RedirectResponse
+    public function update(UpdatePlatformSettingsRequest $request): RedirectResponse|JsonResponse
     {
         $payload = $request->validated();
 
@@ -210,6 +210,13 @@ class SettingController extends Controller
 
         if (is_array($payload['terms'] ?? null)) {
             $this->savePolicyTerms((array) $payload['terms']);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Platform settings updated successfully.',
+            ]);
         }
 
         return back()->with('success', 'Platform settings updated successfully.');

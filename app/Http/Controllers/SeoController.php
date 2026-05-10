@@ -39,6 +39,7 @@ class SeoController extends Controller
         $append('/blog', 'daily', '0.88');
         $append('/events', 'weekly', '0.78');
         $append('/reviews', 'weekly', '0.80');
+        $append('/seo-modules-and-functions', 'weekly', '0.78');
         $append('/faqs', 'weekly', '0.75');
         $append('/web-design-samples', 'weekly', '0.85');
         $append('/manage-your-hires', 'weekly', '0.82');
@@ -188,6 +189,7 @@ class SeoController extends Controller
             '- About Us: '.$this->absoluteUrl($baseUrl, '/about-bellah-options'),
             '- Gallery: '.$this->absoluteUrl($baseUrl, '/gallery'),
             '- Reviews: '.$this->absoluteUrl($baseUrl, '/reviews'),
+            '- SEO Modules and Functions: '.$this->absoluteUrl($baseUrl, '/seo-modules-and-functions'),
             '- FAQs: '.$this->absoluteUrl($baseUrl, '/faqs'),
             '- Web Design Samples: '.$this->absoluteUrl($baseUrl, '/web-design-samples'),
             '- Manage Your Hires: '.$this->absoluteUrl($baseUrl, '/manage-your-hires'),

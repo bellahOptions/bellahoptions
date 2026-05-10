@@ -959,6 +959,11 @@ class PlatformSettings
                 'text' => 'Scale brand and social design execution with one retained creative partner.',
                 'background_image' => null,
             ],
+            'seo_modules_functions' => [
+                'title' => 'SEO modules and functions built for measurable visibility.',
+                'text' => 'Structured SEO modules that improve crawl quality, content relevance, and conversion-focused search performance.',
+                'background_image' => null,
+            ],
         ];
     }
 
@@ -1163,6 +1168,17 @@ class PlatformSettings
                     'path' => '/manage-your-hires',
                     'meta_title' => 'Manage Your Hires | Bellah Options',
                     'meta_description' => 'Dedicated unlimited design support for growth-stage teams with one retained creative partner.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'seo_modules_functions' => [
+                    'path' => '/seo-modules-and-functions',
+                    'meta_title' => 'SEO Modules and Functions | Bellah Options',
+                    'meta_description' => 'Explore Bellah Options SEO modules and core functions for technical health, content visibility, and search growth.',
                     'canonical_url' => null,
                     'keywords' => null,
                     'robots' => null,

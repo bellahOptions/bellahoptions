@@ -23,6 +23,7 @@ const PUBLIC_HEADER_PAGES = [
     { key: 'contact', label: 'Contact' },
     { key: 'web_design_samples', label: 'Web Design Samples' },
     { key: 'manage_hires', label: 'Manage Your Hires' },
+    { key: 'seo_modules_functions', label: 'SEO Modules and Functions' },
 ];
 
 const SEO_PUBLIC_PAGES = [
@@ -38,6 +39,7 @@ const SEO_PUBLIC_PAGES = [
     { key: 'contact', label: 'Contact' },
     { key: 'web_design_samples', label: 'Web Design Samples' },
     { key: 'manage_hires', label: 'Manage Hires' },
+    { key: 'seo_modules_functions', label: 'SEO Modules and Functions' },
     { key: 'order', label: 'Order Page (Wildcard)' },
     { key: 'terms', label: 'Terms of Service' },
     { key: 'privacy', label: 'Privacy Policy' },
@@ -93,6 +95,11 @@ const createDefaultPublicPageHeaders = () => ({
     manage_hires: {
         title: 'Dedicated unlimited design support for growth-stage teams.',
         text: 'Scale brand and social design execution with one retained creative partner.',
+        background_image: '',
+    },
+    seo_modules_functions: {
+        title: 'SEO modules and functions built for measurable visibility.',
+        text: 'Structured SEO modules that improve crawl quality, content relevance, and conversion-focused search performance.',
         background_image: '',
     },
 });
@@ -157,6 +164,7 @@ const createDefaultPublicSeo = () => ({
         contact: { path: '/contact-us', meta_title: 'Contact Bellah Options', meta_description: 'Contact Bellah Options to discuss your brand, design, or digital project and get a tailored next step.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'website' },
         web_design_samples: { path: '/web-design-samples', meta_title: 'Web Design Samples | Bellah Options', meta_description: 'Browse web design samples and live website experiences delivered by Bellah Options.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'website' },
         manage_hires: { path: '/manage-your-hires', meta_title: 'Manage Your Hires | Bellah Options', meta_description: 'Dedicated unlimited design support for growth-stage teams with one retained creative partner.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'website' },
+        seo_modules_functions: { path: '/seo-modules-and-functions', meta_title: 'SEO Modules and Functions | Bellah Options', meta_description: 'Explore Bellah Options SEO modules and core functions for technical health, content visibility, and search growth.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'website' },
         order: { path: '/order/*', meta_title: 'Start a Service Request | Bellah Options', meta_description: 'Start your Bellah Options service request and submit your project details for branding, design, or web delivery.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'website' },
         terms: { path: '/terms-of-service', meta_title: 'Terms of Service | Bellah Options', meta_description: 'Review Bellah Options terms of service, billing policies, and delivery conditions.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'article' },
         privacy: { path: '/privacy-policy', meta_title: 'Privacy Policy | Bellah Options', meta_description: 'Understand how Bellah Options collects, uses, and protects your personal data.', canonical_url: '', keywords: '', robots: '', og_image: '', twitter_image: '', og_type: 'article' },
@@ -297,6 +305,8 @@ export default function Settings({
         data,
         setData,
         errors,
+        setError,
+        clearErrors,
     } = useForm({
         maintenance_mode: Boolean(settings?.maintenance_mode),
         website_uri: settings?.website_uri || '',
@@ -411,26 +421,40 @@ export default function Settings({
         autoSaveTimer.current = window.setTimeout(() => {
             const payload = JSON.parse(autoSaveSignature);
 
-            router.patch(route('admin.settings.update'), payload, {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
+            window.axios.patch(route('admin.settings.update'), payload, {
+                headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+                .then(() => {
                     if (requestId !== autoSaveRequestId.current) {
                         return;
                     }
 
+                    clearErrors();
                     autoSaveLastSavedSignature.current = autoSaveSignature;
                     setAutoSaveState('saved');
                     setAutoSaveUpdatedAt(new Date());
-                },
-                onError: () => {
+                })
+                .catch((error) => {
                     if (requestId !== autoSaveRequestId.current) {
                         return;
                     }
 
+                    const responseErrors = error?.response?.data?.errors;
+                    if (responseErrors && typeof responseErrors === 'object') {
+                        const normalizedErrors = Object.fromEntries(
+                            Object.entries(responseErrors).map(([field, messages]) => [
+                                field,
+                                Array.isArray(messages) ? String(messages[0] ?? '') : String(messages ?? ''),
+                            ]),
+                        );
+                        setError(normalizedErrors);
+                    }
+
                     setAutoSaveState('error');
-                },
-            });
+                });
         }, 900);
 
         return () => {
@@ -438,7 +462,7 @@ export default function Settings({
                 window.clearTimeout(autoSaveTimer.current);
             }
         };
-    }, [autoSaveSignature]);
+    }, [autoSaveSignature, clearErrors, setError]);
 
     const autoSaveStatusText = useMemo(() => {
         if (autoSaveState === 'saving') {

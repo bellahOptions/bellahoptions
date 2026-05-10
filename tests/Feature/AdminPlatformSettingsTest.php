@@ -66,6 +66,23 @@ class AdminPlatformSettingsTest extends TestCase
             : null);
     }
 
+    public function test_super_admin_settings_update_returns_json_for_ajax_requests(): void
+    {
+        $superAdmin = User::factory()->create([
+            'role' => User::ROLE_SUPER_ADMIN,
+        ]);
+
+        $this->actingAs($superAdmin)
+            ->patchJson(route('admin.settings.update'), [
+                'maintenance_mode' => true,
+            ])
+            ->assertOk()
+            ->assertJson([
+                'success' => true,
+                'message' => 'Platform settings updated successfully.',
+            ]);
+    }
+
     public function test_customer_rep_cannot_access_platform_settings(): void
     {
         $customerRep = User::factory()->create([

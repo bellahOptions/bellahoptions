@@ -19,7 +19,8 @@ class SeoEndpointsTest extends TestCase
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
             ->assertSee('<?xml version="1.0" encoding="UTF-8"?>', false)
             ->assertSee('<loc>https://bellahoptions.com</loc>', false)
-            ->assertSee('<loc>https://bellahoptions.com/services</loc>', false);
+            ->assertSee('<loc>https://bellahoptions.com/services</loc>', false)
+            ->assertSee('<loc>https://bellahoptions.com/seo-modules-and-functions</loc>', false);
     }
 
     public function test_robots_and_llms_reference_configured_website_uri(): void
@@ -36,7 +37,7 @@ class SeoEndpointsTest extends TestCase
             ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
             ->assertSee('Main URL: https://bellahoptions.com')
             ->assertSee('Sitemap: https://bellahoptions.com/sitemap.xml')
-            ->assertSee('Primary Public Pages:');
+            ->assertSee('Primary Public Pages:')
+            ->assertSee('- SEO Modules and Functions: https://bellahoptions.com/seo-modules-and-functions');
     }
 }
-

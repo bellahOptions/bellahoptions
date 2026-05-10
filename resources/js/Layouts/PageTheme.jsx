@@ -24,6 +24,7 @@ import {
 const navLinks = [
     { label: "About Us", href: "/about-bellah-options" },
     { label: "Services", href: "/services" },
+    { label: "SEO", href: "/seo-modules-and-functions" },
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },
@@ -34,6 +35,7 @@ const quickLinks = [
     { label: "Home", href: "/" },
     { label: "About Us", href: "/about-bellah-options" },
     { label: "Services", href: "/services" },
+    { label: "SEO", href: "/seo-modules-and-functions" },
     { label: "Gallery", href: "/gallery" },
     { label: "Blog", href: "/blog" },
     { label: "Events", href: "/events" },

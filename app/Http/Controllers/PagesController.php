@@ -339,6 +339,48 @@ class PagesController extends Controller
         return Inertia::render('Reviews');
     }
 
+    public function seoModulesFunctionsPage()
+    {
+        return Inertia::render('SeoModulesFunctions', [
+            'modules' => [
+                [
+                    'title' => 'Technical SEO Module',
+                    'description' => 'Covers crawlability, indexation, HTTPS integrity, core page speed, and schema health.',
+                ],
+                [
+                    'title' => 'On-Page SEO Module',
+                    'description' => 'Aligns page titles, headings, keyword intent, and internal linking for stronger relevance.',
+                ],
+                [
+                    'title' => 'Local SEO Module',
+                    'description' => 'Improves location signals, business profile consistency, and local visibility performance.',
+                ],
+                [
+                    'title' => 'Content SEO Module',
+                    'description' => 'Builds structured topic clusters and editorial optimization for discovery and engagement.',
+                ],
+            ],
+            'functions' => [
+                [
+                    'title' => 'Keyword Mapping',
+                    'description' => 'Maps target search intent to service pages, blog pages, and conversion-focused content.',
+                ],
+                [
+                    'title' => 'Metadata Optimization',
+                    'description' => 'Improves title tags, meta descriptions, and Open Graph tags to support search and social CTR.',
+                ],
+                [
+                    'title' => 'Schema & Rich Results',
+                    'description' => 'Implements structured data to increase SERP clarity and rich result eligibility.',
+                ],
+                [
+                    'title' => 'SEO Monitoring',
+                    'description' => 'Tracks rankings, index status, broken links, and technical regressions for ongoing improvements.',
+                ],
+            ],
+        ]);
+    }
+
     private function publicAssetUrl(?string $path): ?string
     {
         $sanitized = PublicContentSecurity::sanitizeRelativePathOrHttpUrl($path);
