@@ -1,5 +1,6 @@
 import InputError from '@/Components/InputError';
 import HumanVerificationField from '@/Components/HumanVerificationField';
+import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -127,12 +128,11 @@ export default function StaffLogin({
                     <label htmlFor="password" className="text-sm font-medium text-slate-700">
                         Password
                     </label>
-                    <input
+                    <PasswordInput
                         id="password"
-                        type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         autoComplete="current-password"
                         onChange={(event) => setData('password', event.target.value)}
                         required

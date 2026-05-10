@@ -112,7 +112,8 @@ class DashboardController extends Controller
 
         return [
             'user' => [
-                'id' => $user->id,
+                'id' => (string) ($user->uuid ?: $user->id),
+                'uuid' => (string) ($user->uuid ?: $user->id),
                 'name' => $user->name,
                 'email' => $user->email,
             ],
@@ -131,7 +132,7 @@ class DashboardController extends Controller
                 'community_url' => $communityUrl,
             ],
             'referral' => [
-                'link' => url('/register?ref='.$user->id),
+                'link' => url('/register?ref='.($user->uuid ?: $user->id)),
                 'friends_referred' => 0,
                 'discount_earned' => round($completedJobs * 15, 2),
                 'monthly' => $referralMonthly,

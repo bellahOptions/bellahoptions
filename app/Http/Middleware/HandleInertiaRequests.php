@@ -51,7 +51,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'auth' => [
                 'user' => $user ? [
-                    'id' => $user->id,
+                    'id' => (string) ($user->uuid ?: $user->id),
+                    'uuid' => (string) ($user->uuid ?: $user->id),
+                    'legacy_id' => $user->id,
                     'name' => $user->name,
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,

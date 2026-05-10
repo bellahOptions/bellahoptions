@@ -4,13 +4,14 @@ import PrimaryButton from '@/Components/PrimaryButton';
 import TextInput from '@/Components/TextInput';
 import { Transition } from '@headlessui/react';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 export default function UpdateProfileInformation({
     mustVerifyEmail,
     status,
     className = '',
 }) {
+    const AUTOSAVE_DEBOUNCE_MS = 650;
     const user = usePage().props.auth.user;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
@@ -29,6 +30,26 @@ export default function UpdateProfileInformation({
 
     const [profilePhotoPreview, setProfilePhotoPreview] = useState(user.profile_photo_url || null);
     const [companyLogoPreview, setCompanyLogoPreview] = useState(user.company_logo_url || null);
+    const autosaveTimeoutRef = useRef(null);
+    const hasMountedFieldAutosaveRef = useRef(false);
+    const hasMountedProfilePhotoAutosaveRef = useRef(false);
+    const hasMountedCompanyLogoAutosaveRef = useRef(false);
+
+    const submitProfileUpdate = useCallback((options = {}) => {
+        patch(route('profile.update'), {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                if (options.clearProfilePhoto) {
+                    setData('profile_photo', null);
+                }
+
+                if (options.clearCompanyLogo) {
+                    setData('company_logo', null);
+                }
+            },
+        });
+    }, [patch, setData]);
 
     useEffect(() => {
         if (!(data.profile_photo instanceof File)) {
@@ -60,12 +81,85 @@ export default function UpdateProfileInformation({
         };
     }, [data.company_logo, user.company_logo_url]);
 
+    useEffect(() => {
+        if (!hasMountedFieldAutosaveRef.current) {
+            hasMountedFieldAutosaveRef.current = true;
+
+            return undefined;
+        }
+
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+        }
+
+        autosaveTimeoutRef.current = setTimeout(() => {
+            autosaveTimeoutRef.current = null;
+            submitProfileUpdate();
+        }, AUTOSAVE_DEBOUNCE_MS);
+
+        return () => {
+            if (autosaveTimeoutRef.current) {
+                clearTimeout(autosaveTimeoutRef.current);
+                autosaveTimeoutRef.current = null;
+            }
+        };
+    }, [
+        AUTOSAVE_DEBOUNCE_MS,
+        data.address,
+        data.business_address,
+        data.business_number,
+        data.business_official_email,
+        data.company_name,
+        data.name,
+        data.social_media_info,
+        submitProfileUpdate,
+    ]);
+
+    useEffect(() => {
+        if (!hasMountedProfilePhotoAutosaveRef.current) {
+            hasMountedProfilePhotoAutosaveRef.current = true;
+
+            return;
+        }
+
+        if (!(data.profile_photo instanceof File)) {
+            return;
+        }
+
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+            autosaveTimeoutRef.current = null;
+        }
+
+        submitProfileUpdate({ clearProfilePhoto: true });
+    }, [data.profile_photo, submitProfileUpdate]);
+
+    useEffect(() => {
+        if (!hasMountedCompanyLogoAutosaveRef.current) {
+            hasMountedCompanyLogoAutosaveRef.current = true;
+
+            return;
+        }
+
+        if (!(data.company_logo instanceof File)) {
+            return;
+        }
+
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+            autosaveTimeoutRef.current = null;
+        }
+
+        submitProfileUpdate({ clearCompanyLogo: true });
+    }, [data.company_logo, submitProfileUpdate]);
+
     const submit = (e) => {
         e.preventDefault();
-
-        patch(route('profile.update'), {
-            forceFormData: true,
-        });
+        if (autosaveTimeoutRef.current) {
+            clearTimeout(autosaveTimeoutRef.current);
+            autosaveTimeoutRef.current = null;
+        }
+        submitProfileUpdate();
     };
 
     return (
@@ -77,6 +171,9 @@ export default function UpdateProfileInformation({
 
                 <p className="mt-1 text-sm text-gray-600">
                     Update your account profile information.
+                </p>
+                <p className="mt-1 text-xs text-gray-500">
+                    Changes save automatically as you type or upload files.
                 </p>
             </header>
 

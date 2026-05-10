@@ -11,8 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Str;
 
 #[Fillable([
+    'uuid',
     'name',
     'first_name',
     'last_name',
@@ -41,6 +43,15 @@ class User extends Authenticatable implements MustVerifyEmail
     public const ROLE_SUPER_ADMIN = 'super_admin';
 
     public const ROLE_CUSTOMER_REP = 'customer_rep';
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $user): void {
+            if (! is_string($user->uuid) || trim($user->uuid) === '') {
+                $user->uuid = (string) Str::uuid();
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -118,5 +129,27 @@ class User extends Authenticatable implements MustVerifyEmail
     public function supportTickets(): HasMany
     {
         return $this->hasMany(SupportTicket::class);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
+    public function resolveRouteBinding($value, $field = null): ?self
+    {
+        if ($field !== null) {
+            return parent::resolveRouteBinding($value, $field);
+        }
+
+        $lookup = trim((string) $value);
+        if ($lookup === '') {
+            return null;
+        }
+
+        return static::query()
+            ->where('uuid', $lookup)
+            ->orWhere('id', ctype_digit($lookup) ? (int) $lookup : -1)
+            ->first();
     }
 }

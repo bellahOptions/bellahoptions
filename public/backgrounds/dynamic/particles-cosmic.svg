@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Particles Cosmic">
+  <defs>
+    <linearGradient id="cosmic-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="55%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#cosmic-grad)"/>
+  <g fill="#ffffff" opacity="0.4">
+    <circle cx="140" cy="160" r="3"/><circle cx="380" cy="120" r="4"/><circle cx="590" cy="210" r="3"/>
+    <circle cx="780" cy="130" r="4"/><circle cx="990" cy="260" r="3"/><circle cx="1200" cy="170" r="4"/>
+    <circle cx="1460" cy="210" r="3"/><circle cx="250" cy="700" r="4"/><circle cx="620" cy="760" r="3"/>
+    <circle cx="930" cy="670" r="4"/><circle cx="1260" cy="730" r="3"/>
+  </g>
+</svg>

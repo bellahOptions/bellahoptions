@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Particles Ocean">
+  <defs>
+    <linearGradient id="ocean-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#000285"/>
+      <stop offset="55%" stop-color="#0891b2"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#ocean-grad)"/>
+  <g fill="#ffffff" opacity="0.35">
+    <circle cx="160" cy="180" r="4"/><circle cx="330" cy="280" r="3"/><circle cx="560" cy="140" r="5"/>
+    <circle cx="760" cy="320" r="3"/><circle cx="980" cy="210" r="4"/><circle cx="1210" cy="290" r="3"/>
+    <circle cx="1420" cy="180" r="5"/><circle cx="280" cy="620" r="4"/><circle cx="540" cy="700" r="3"/>
+    <circle cx="860" cy="640" r="5"/><circle cx="1110" cy="740" r="3"/><circle cx="1360" cy="620" r="4"/>
+  </g>
+</svg>

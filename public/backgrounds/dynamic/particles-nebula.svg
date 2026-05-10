@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Particles Nebula">
+  <defs>
+    <linearGradient id="nebula-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e1b4b"/>
+      <stop offset="55%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#db2777"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#nebula-grad)"/>
+  <ellipse cx="420" cy="300" rx="300" ry="170" fill="#c4b5fd" opacity="0.2"/>
+  <ellipse cx="1120" cy="520" rx="340" ry="200" fill="#f9a8d4" opacity="0.18"/>
+</svg>

@@ -1,4 +1,5 @@
 import InputError from '@/Components/InputError';
+import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -36,12 +37,11 @@ export default function ConfirmPassword() {
                     <label htmlFor="password" className="text-sm font-medium text-slate-700">
                         Password
                     </label>
-                    <input
+                    <PasswordInput
                         id="password"
-                        type="password"
                         name="password"
                         value={data.password}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
                         onChange={(e) => setData('password', e.target.value)}
                         required
                     />

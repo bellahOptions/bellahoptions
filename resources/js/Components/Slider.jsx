@@ -22,6 +22,26 @@ const BACKGROUND_THEMES = {
         gradient: "from-[#0f172a] via-[#7c3aed] to-[#0369a1]",
         particleColors: ["#ffffff", "#a78bfa", "#38bdf8"],
     },
+    "particles-sunset": {
+        gradient: "from-[#7f1d1d] via-[#ea580c] to-[#f59e0b]",
+        particleColors: ["#fff7ed", "#fdba74", "#fca5a5"],
+    },
+    "particles-nebula": {
+        gradient: "from-[#1e1b4b] via-[#7c3aed] to-[#db2777]",
+        particleColors: ["#f5d0fe", "#c4b5fd", "#f9a8d4"],
+    },
+    "particles-forest": {
+        gradient: "from-[#022c22] via-[#0f766e] to-[#65a30d]",
+        particleColors: ["#d1fae5", "#99f6e4", "#bef264"],
+    },
+    "particles-midnight": {
+        gradient: "from-[#020617] via-[#1d4ed8] to-[#0f172a]",
+        particleColors: ["#dbeafe", "#93c5fd", "#67e8f9"],
+    },
+    "particles-ember": {
+        gradient: "from-[#431407] via-[#dc2626] to-[#f97316]",
+        particleColors: ["#ffedd5", "#fdba74", "#fca5a5"],
+    },
 };
 
 const fallbackSlides = [
@@ -246,7 +266,7 @@ function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center", medi
 
     return (
         <motion.div
-            className="relative overflow-hidden rounded-2xl border border-white/25 bg-white/10 shadow-2xl backdrop-blur-sm"
+            className="relative overflow-hidden rounded-2xl"
             initial={resolveAnimationVariant(mediaAnimation).hidden}
             animate={resolveAnimationVariant(mediaAnimation).visible}
             transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}

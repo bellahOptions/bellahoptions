@@ -67,6 +67,11 @@ const backgroundPreviewClasses = {
     'particles-ocean': 'bg-gradient-to-br from-[#000285] via-[#0891b2] to-[#111827]',
     'particles-aurora': 'bg-gradient-to-br from-[#111827] via-[#2563eb] to-[#0f766e]',
     'particles-cosmic': 'bg-gradient-to-br from-[#0f172a] via-[#7c3aed] to-[#0369a1]',
+    'particles-sunset': 'bg-gradient-to-br from-[#7f1d1d] via-[#ea580c] to-[#f59e0b]',
+    'particles-nebula': 'bg-gradient-to-br from-[#1e1b4b] via-[#7c3aed] to-[#db2777]',
+    'particles-forest': 'bg-gradient-to-br from-[#022c22] via-[#0f766e] to-[#65a30d]',
+    'particles-midnight': 'bg-gradient-to-br from-[#020617] via-[#1d4ed8] to-[#0f172a]',
+    'particles-ember': 'bg-gradient-to-br from-[#431407] via-[#dc2626] to-[#f97316]',
 };
 
 function slideImageSrc(path) {
@@ -762,12 +767,11 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                             )}
                             {dynamicBackgrounds.map((option) => {
                                 const optionId = String(option.id || '');
+                                const downloadUrl = slideImageSrc(option.download_url || '');
 
                                 return (
-                                    <button
+                                    <div
                                         key={optionId}
-                                        type="button"
-                                        onClick={() => selectBackground(optionId)}
                                         className="rounded-md border border-gray-200 text-left transition hover:border-blue-400 hover:shadow-sm"
                                     >
                                         <div className={`h-28 w-full ${backgroundPreviewClasses[optionId] || 'bg-gradient-to-br from-slate-800 to-slate-600'}`} />
@@ -775,8 +779,26 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                                             <p className="text-sm font-semibold text-gray-900">{option.label || optionId}</p>
                                             <p className="text-xs text-gray-500">{option.description || ''}</p>
                                             <p className="text-[11px] font-semibold text-blue-700">{optionId}</p>
+                                            <div className="mt-2 flex flex-wrap gap-1">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => selectBackground(optionId)}
+                                                    className="rounded border border-blue-200 px-2 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-50"
+                                                >
+                                                    Use
+                                                </button>
+                                                {downloadUrl && (
+                                                    <a
+                                                        href={downloadUrl}
+                                                        download
+                                                        className="rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                                                    >
+                                                        Download
+                                                    </a>
+                                                )}
+                                            </div>
                                         </div>
-                                    </button>
+                                    </div>
                                 );
                             })}
                         </div>

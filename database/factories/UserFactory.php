@@ -28,6 +28,7 @@ class UserFactory extends Factory
         $lastName = fake()->lastName();
 
         return [
+            'uuid' => (string) Str::uuid(),
             'name' => "{$firstName} {$lastName}",
             'first_name' => $firstName,
             'last_name' => $lastName,

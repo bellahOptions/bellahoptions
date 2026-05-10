@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Particles Forest">
+  <defs>
+    <linearGradient id="forest-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#022c22"/>
+      <stop offset="55%" stop-color="#0f766e"/>
+      <stop offset="100%" stop-color="#65a30d"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#forest-grad)"/>
+  <g fill="#d1fae5" opacity="0.3">
+    <circle cx="170" cy="170" r="4"/><circle cx="360" cy="260" r="3"/><circle cx="610" cy="190" r="4"/>
+    <circle cx="860" cy="300" r="3"/><circle cx="1090" cy="220" r="4"/><circle cx="1300" cy="310" r="3"/>
+    <circle cx="1480" cy="190" r="4"/>
+  </g>
+</svg>

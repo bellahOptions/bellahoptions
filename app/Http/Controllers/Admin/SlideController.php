@@ -420,7 +420,7 @@ class SlideController extends Controller
     }
 
     /**
-     * @return array{files: array<int, array<string, mixed>>, dynamic_backgrounds: array<int, array{id: string, label: string, description: string}>}
+     * @return array{files: array<int, array<string, mixed>>, dynamic_backgrounds: array<int, array{id: string, label: string, description: string, download_url: string}>}
      */
     private function mediaLibraryPayload(): array
     {

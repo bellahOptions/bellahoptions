@@ -90,7 +90,7 @@ class UserWorkspaceController extends Controller
 
         return Inertia::render('Dashboard/Referrals', [
             'referral' => [
-                'link' => url('/register?ref='.$user->id),
+                'link' => url('/register?ref='.($user->uuid ?: $user->id)),
                 'completed_orders' => $completedOrders,
                 'estimated_discount' => $estimatedDiscount,
                 'monthly' => $monthly,

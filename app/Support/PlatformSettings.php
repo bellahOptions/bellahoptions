@@ -25,6 +25,8 @@ class PlatformSettings
 
     private const PUBLIC_PAGE_HEADERS_KEY = 'public_page_headers_json';
 
+    private const PUBLIC_SEO_SETTINGS_KEY = 'public_seo_settings_json';
+
     private const MAIN_WEBSITE_URI_KEY = 'main_website_uri';
 
     private const MANAGE_HIRES_LANDING_KEY = 'manage_hires_landing_json';
@@ -238,6 +240,81 @@ class PlatformSettings
         }
 
         AppSetting::setValue(self::PUBLIC_PAGE_HEADERS_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * @return array{
+     *   global: array{
+     *     default_title:string,
+     *     default_description:string,
+     *     default_keywords:string|null,
+     *     default_robots:string,
+     *     default_og_image:string|null,
+     *     default_twitter_image:string|null,
+     *     twitter_card:string,
+     *     twitter_site:string|null
+     *   },
+     *   pages: array<string, array{
+     *     path:string,
+     *     meta_title:string,
+     *     meta_description:string,
+     *     canonical_url:string|null,
+     *     keywords:string|null,
+     *     robots:string|null,
+     *     og_image:string|null,
+     *     twitter_image:string|null,
+     *     og_type:string
+     *   }>
+     * }
+     */
+    public static function publicSeoSettings(): array
+    {
+        $defaults = self::defaultPublicSeoSettings();
+        $raw = AppSetting::getValue(self::PUBLIC_SEO_SETTINGS_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return $defaults;
+        }
+
+        $decoded = json_decode($raw, true);
+        if (! is_array($decoded)) {
+            return $defaults;
+        }
+
+        $globalInput = is_array($decoded['global'] ?? null) ? $decoded['global'] : [];
+        $pageInput = is_array($decoded['pages'] ?? null) ? $decoded['pages'] : [];
+
+        $result = $defaults;
+        $result['global'] = self::sanitizeSeoGlobalSettings($globalInput, $defaults['global']);
+
+        foreach ($defaults['pages'] as $pageKey => $pageDefaults) {
+            $candidate = is_array($pageInput[$pageKey] ?? null) ? $pageInput[$pageKey] : [];
+            $result['pages'][$pageKey] = self::sanitizeSeoPageSettings($candidate, $pageDefaults);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    public static function setPublicSeoSettings(array $payload): void
+    {
+        $defaults = self::defaultPublicSeoSettings();
+        $globalInput = is_array($payload['global'] ?? null) ? $payload['global'] : [];
+        $pagesInput = is_array($payload['pages'] ?? null) ? $payload['pages'] : [];
+
+        $sanitized = [
+            'global' => self::sanitizeSeoGlobalSettings($globalInput, $defaults['global']),
+            'pages' => [],
+        ];
+
+        foreach ($defaults['pages'] as $pageKey => $pageDefaults) {
+            $candidate = is_array($pagesInput[$pageKey] ?? null) ? $pagesInput[$pageKey] : [];
+            $sanitized['pages'][$pageKey] = self::sanitizeSeoPageSettings($candidate, $pageDefaults);
+        }
+
+        AppSetting::setValue(self::PUBLIC_SEO_SETTINGS_KEY, json_encode($sanitized, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -923,6 +1000,225 @@ class PlatformSettings
     }
 
     /**
+     * @return array{
+     *   global: array{
+     *     default_title:string,
+     *     default_description:string,
+     *     default_keywords:string|null,
+     *     default_robots:string,
+     *     default_og_image:string|null,
+     *     default_twitter_image:string|null,
+     *     twitter_card:string,
+     *     twitter_site:string|null
+     *   },
+     *   pages: array<string, array{
+     *     path:string,
+     *     meta_title:string,
+     *     meta_description:string,
+     *     canonical_url:string|null,
+     *     keywords:string|null,
+     *     robots:string|null,
+     *     og_image:string|null,
+     *     twitter_image:string|null,
+     *     og_type:string
+     *   }>
+     * }
+     */
+    private static function defaultPublicSeoSettings(): array
+    {
+        return [
+            'global' => [
+                'default_title' => 'Bellah Options | Creative Branding, Design, and Digital Solutions',
+                'default_description' => 'Bellah Options helps businesses grow with branding, graphic design, social media design, websites, and digital product experiences.',
+                'default_keywords' => 'branding agency, graphic design, web design, ui ux, nigeria creative agency',
+                'default_robots' => 'index,follow,max-snippet:-1,max-image-preview:large,max-video-preview:-1',
+                'default_og_image' => '/images/og-image.jpg',
+                'default_twitter_image' => '/images/og-image.jpg',
+                'twitter_card' => 'summary_large_image',
+                'twitter_site' => '@bellahoptions',
+            ],
+            'pages' => [
+                'home' => [
+                    'path' => '/',
+                    'meta_title' => 'Bellah Options | Creative Branding, Design, and Digital Solutions',
+                    'meta_description' => 'Bellah Options is a creative design and technology agency helping businesses scale with brand design, graphic design, web design, and UI/UX services.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'about' => [
+                    'path' => '/about-bellah-options',
+                    'meta_title' => 'About Bellah Options | Creative Brand and Digital Agency',
+                    'meta_description' => 'Learn about Bellah Options, our creative process, and how we help startups and businesses build clear digital presence.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'services' => [
+                    'path' => '/services',
+                    'meta_title' => 'Services | Bellah Options',
+                    'meta_description' => 'Explore Bellah Options services for branding, graphic design, social media content, websites, and product interface design.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'gallery' => [
+                    'path' => '/gallery',
+                    'meta_title' => 'Gallery | Bellah Options',
+                    'meta_description' => 'See portfolio projects and published client work from Bellah Options across branding, marketing visuals, and digital experiences.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'blog' => [
+                    'path' => '/blog',
+                    'meta_title' => 'Blog | Bellah Options',
+                    'meta_description' => 'Read practical insights from Bellah Options on branding, design systems, content strategy, and business growth.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'blog_post' => [
+                    'path' => '/blog/*',
+                    'meta_title' => 'Bellah Options Blog Article',
+                    'meta_description' => 'Read this Bellah Options article for practical branding, design, and digital growth insights.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'article',
+                ],
+                'events' => [
+                    'path' => '/events',
+                    'meta_title' => 'Events | Bellah Options',
+                    'meta_description' => 'View Bellah Options events, workshops, and creative sessions for founders, teams, and growing brands.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'reviews' => [
+                    'path' => '/reviews',
+                    'meta_title' => 'Reviews | Bellah Options',
+                    'meta_description' => 'Read verified Bellah Options client reviews, ratings, and Google feedback from completed projects.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'faqs' => [
+                    'path' => '/faqs',
+                    'meta_title' => 'FAQs | Bellah Options',
+                    'meta_description' => 'Find clear answers to frequently asked questions about Bellah Options services, delivery, timelines, and process.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'contact' => [
+                    'path' => '/contact-us',
+                    'meta_title' => 'Contact Bellah Options',
+                    'meta_description' => 'Contact Bellah Options to discuss your brand, design, or digital project and get a tailored next step.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'web_design_samples' => [
+                    'path' => '/web-design-samples',
+                    'meta_title' => 'Web Design Samples | Bellah Options',
+                    'meta_description' => 'Browse web design samples and live website experiences delivered by Bellah Options.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'manage_hires' => [
+                    'path' => '/manage-your-hires',
+                    'meta_title' => 'Manage Your Hires | Bellah Options',
+                    'meta_description' => 'Dedicated unlimited design support for growth-stage teams with one retained creative partner.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'order' => [
+                    'path' => '/order/*',
+                    'meta_title' => 'Start a Service Request | Bellah Options',
+                    'meta_description' => 'Start your Bellah Options service request and submit your project details for branding, design, or web delivery.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'website',
+                ],
+                'terms' => [
+                    'path' => '/terms-of-service',
+                    'meta_title' => 'Terms of Service | Bellah Options',
+                    'meta_description' => 'Review Bellah Options terms of service, billing policies, and delivery conditions.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'article',
+                ],
+                'privacy' => [
+                    'path' => '/privacy-policy',
+                    'meta_title' => 'Privacy Policy | Bellah Options',
+                    'meta_description' => 'Understand how Bellah Options collects, uses, and protects your personal data.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'article',
+                ],
+                'cookie' => [
+                    'path' => '/cookie-policy',
+                    'meta_title' => 'Cookie Policy | Bellah Options',
+                    'meta_description' => 'Learn how Bellah Options uses cookies and tracking technologies across public pages.',
+                    'canonical_url' => null,
+                    'keywords' => null,
+                    'robots' => null,
+                    'og_image' => null,
+                    'twitter_image' => null,
+                    'og_type' => 'article',
+                ],
+            ],
+        ];
+    }
+
+    /**
      * @return array<string, array{name:string,subject_template:string,from_email:string,html_template:string,builder_layout:array<int, array<string,mixed>>}>
      */
     private static function defaultEmailTemplateLibrary(): array
@@ -1186,6 +1482,93 @@ class PlatformSettings
         return $candidate;
     }
 
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $defaults
+     * @return array{
+     *     default_title:string,
+     *     default_description:string,
+     *     default_keywords:string|null,
+     *     default_robots:string,
+     *     default_og_image:string|null,
+     *     default_twitter_image:string|null,
+     *     twitter_card:string,
+     *     twitter_site:string|null
+     * }
+     */
+    private static function sanitizeSeoGlobalSettings(array $payload, array $defaults): array
+    {
+        $title = trim((string) ($payload['default_title'] ?? ''));
+        $description = trim((string) ($payload['default_description'] ?? ''));
+        $keywords = trim((string) ($payload['default_keywords'] ?? ''));
+        $robots = trim((string) ($payload['default_robots'] ?? ''));
+        $twitterCard = trim((string) ($payload['twitter_card'] ?? ''));
+        $twitterSite = trim((string) ($payload['twitter_site'] ?? ''));
+
+        if (! in_array($twitterCard, ['summary', 'summary_large_image'], true)) {
+            $twitterCard = (string) $defaults['twitter_card'];
+        }
+
+        return [
+            'default_title' => $title !== '' ? mb_substr($title, 0, 180) : (string) $defaults['default_title'],
+            'default_description' => $description !== '' ? mb_substr($description, 0, 320) : (string) $defaults['default_description'],
+            'default_keywords' => $keywords !== '' ? mb_substr($keywords, 0, 350) : ($defaults['default_keywords'] ?? null),
+            'default_robots' => $robots !== '' ? mb_substr($robots, 0, 160) : (string) $defaults['default_robots'],
+            'default_og_image' => self::sanitizeAssetPath($payload['default_og_image'] ?? null) ?? ($defaults['default_og_image'] ?? null),
+            'default_twitter_image' => self::sanitizeAssetPath($payload['default_twitter_image'] ?? null) ?? ($defaults['default_twitter_image'] ?? null),
+            'twitter_card' => $twitterCard,
+            'twitter_site' => $twitterSite !== '' ? mb_substr($twitterSite, 0, 80) : ($defaults['twitter_site'] ?? null),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @param  array<string, mixed>  $defaults
+     * @return array{
+     *   path:string,
+     *   meta_title:string,
+     *   meta_description:string,
+     *   canonical_url:string|null,
+     *   keywords:string|null,
+     *   robots:string|null,
+     *   og_image:string|null,
+     *   twitter_image:string|null,
+     *   og_type:string
+     * }
+     */
+    private static function sanitizeSeoPageSettings(array $payload, array $defaults): array
+    {
+        $title = trim((string) ($payload['meta_title'] ?? ''));
+        $description = trim((string) ($payload['meta_description'] ?? ''));
+        $path = trim((string) ($payload['path'] ?? ''));
+        $keywords = trim((string) ($payload['keywords'] ?? ''));
+        $robots = trim((string) ($payload['robots'] ?? ''));
+        $canonicalUrl = trim((string) ($payload['canonical_url'] ?? ''));
+        $ogType = strtolower(trim((string) ($payload['og_type'] ?? '')));
+
+        if (! in_array($ogType, ['website', 'article'], true)) {
+            $ogType = (string) $defaults['og_type'];
+        }
+
+        if ($path === '') {
+            $path = (string) $defaults['path'];
+        }
+
+        $normalizedPath = str_starts_with($path, '/') ? $path : '/'.$path;
+
+        return [
+            'path' => mb_substr($normalizedPath, 0, 255),
+            'meta_title' => $title !== '' ? mb_substr($title, 0, 180) : (string) $defaults['meta_title'],
+            'meta_description' => $description !== '' ? mb_substr($description, 0, 320) : (string) $defaults['meta_description'],
+            'canonical_url' => self::sanitizeAssetPath($canonicalUrl),
+            'keywords' => $keywords !== '' ? mb_substr($keywords, 0, 350) : null,
+            'robots' => $robots !== '' ? mb_substr($robots, 0, 160) : null,
+            'og_image' => self::sanitizeAssetPath($payload['og_image'] ?? null),
+            'twitter_image' => self::sanitizeAssetPath($payload['twitter_image'] ?? null),
+            'og_type' => $ogType,
+        ];
+    }
+
     private static function normalizeHexColor(string $value, string $fallback): string
     {
         $candidate = strtoupper(trim($value));
@@ -1215,7 +1598,6 @@ class PlatformSettings
     }
 
     /**
-     * @param  mixed  $input
      * @return array<int, string>
      */
     private static function sanitizeFeatureList(mixed $input): array

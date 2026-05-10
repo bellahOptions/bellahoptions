@@ -150,8 +150,12 @@ class UserController extends Controller
      */
     private function mapUser(User $user): array
     {
+        $publicIdentifier = (string) ($user->uuid ?: $user->id);
+
         return [
-            'id' => $user->id,
+            'id' => $publicIdentifier,
+            'uuid' => $publicIdentifier,
+            'legacy_id' => $user->id,
             'name' => $user->name,
             'first_name' => $user->first_name,
             'last_name' => $user->last_name,

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Particles Aurora">
+  <defs>
+    <linearGradient id="aurora-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="55%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#aurora-grad)"/>
+  <path d="M0 520 C250 460, 460 680, 760 590 C980 520, 1210 360, 1600 470 L1600 900 L0 900 Z" fill="#67e8f9" opacity="0.2"/>
+  <g fill="#dbeafe" opacity="0.35">
+    <circle cx="180" cy="220" r="4"/><circle cx="430" cy="170" r="3"/><circle cx="640" cy="300" r="4"/>
+    <circle cx="890" cy="250" r="3"/><circle cx="1110" cy="150" r="5"/><circle cx="1320" cy="230" r="3"/>
+    <circle cx="1490" cy="320" r="4"/>
+  </g>
+</svg>

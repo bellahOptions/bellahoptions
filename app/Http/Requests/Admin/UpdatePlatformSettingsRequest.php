@@ -49,6 +49,10 @@ class UpdatePlatformSettingsRequest extends FormRequest
             $fields['public_page_headers'] = is_array($this->input('public_page_headers')) ? $this->input('public_page_headers') : [];
         }
 
+        if ($this->has('public_seo')) {
+            $fields['public_seo'] = is_array($this->input('public_seo')) ? $this->input('public_seo') : [];
+        }
+
         if ($this->has('manage_hires_landing')) {
             $fields['manage_hires_landing'] = is_array($this->input('manage_hires_landing')) ? $this->input('manage_hires_landing') : [];
         }
@@ -101,6 +105,28 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'public_page_headers.*.text' => ['nullable', 'string', 'max:500'],
             'public_page_headers.*.background_image' => ['nullable', 'string', 'max:255'],
 
+            'public_seo' => ['sometimes', 'required', 'array'],
+            'public_seo.global' => ['required_with:public_seo', 'array'],
+            'public_seo.global.default_title' => ['nullable', 'string', 'max:180'],
+            'public_seo.global.default_description' => ['nullable', 'string', 'max:320'],
+            'public_seo.global.default_keywords' => ['nullable', 'string', 'max:350'],
+            'public_seo.global.default_robots' => ['nullable', 'string', 'max:160'],
+            'public_seo.global.default_og_image' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+            'public_seo.global.default_twitter_image' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+            'public_seo.global.twitter_card' => ['nullable', 'string', 'in:summary,summary_large_image'],
+            'public_seo.global.twitter_site' => ['nullable', 'string', 'max:80'],
+            'public_seo.pages' => ['required_with:public_seo', 'array'],
+            'public_seo.pages.*' => ['required_with:public_seo.pages', 'array'],
+            'public_seo.pages.*.path' => ['nullable', 'string', 'max:255', 'regex:/^\/.*/'],
+            'public_seo.pages.*.meta_title' => ['nullable', 'string', 'max:180'],
+            'public_seo.pages.*.meta_description' => ['nullable', 'string', 'max:320'],
+            'public_seo.pages.*.canonical_url' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+            'public_seo.pages.*.keywords' => ['nullable', 'string', 'max:350'],
+            'public_seo.pages.*.robots' => ['nullable', 'string', 'max:160'],
+            'public_seo.pages.*.og_image' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+            'public_seo.pages.*.twitter_image' => ['nullable', 'string', 'max:255', 'regex:/^(https?:\/\/|\/).+/i'],
+            'public_seo.pages.*.og_type' => ['nullable', 'string', 'in:website,article'],
+
             'manage_hires_landing' => ['sometimes', 'required', 'array'],
             'manage_hires_landing.badge' => ['nullable', 'string', 'max:80'],
             'manage_hires_landing.package_name' => ['nullable', 'string', 'max:120'],
@@ -133,6 +159,12 @@ class UpdatePlatformSettingsRequest extends FormRequest
             'google_reviews_place_id.max' => 'Google Place ID must be 512 characters or fewer.',
             'manage_hires_landing.primary_cta_url.regex' => 'Manage Hires primary CTA URL must start with "https://", "http://", or "/".',
             'manage_hires_landing.secondary_cta_url.regex' => 'Manage Hires secondary CTA URL must start with "https://", "http://", or "/".',
+            'public_seo.global.default_og_image.regex' => 'Default OG image must start with "https://", "http://", or "/".',
+            'public_seo.global.default_twitter_image.regex' => 'Default Twitter image must start with "https://", "http://", or "/".',
+            'public_seo.pages.*.canonical_url.regex' => 'Canonical URL must start with "https://", "http://", or "/".',
+            'public_seo.pages.*.path.regex' => 'SEO page path must start with "/".',
+            'public_seo.pages.*.og_image.regex' => 'OG image must start with "https://", "http://", or "/".',
+            'public_seo.pages.*.twitter_image.regex' => 'Twitter image must start with "https://", "http://", or "/".',
         ];
     }
 }

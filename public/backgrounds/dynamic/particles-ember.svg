@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="Particles Ember">
+  <defs>
+    <linearGradient id="ember-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#431407"/>
+      <stop offset="55%" stop-color="#dc2626"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#ember-grad)"/>
+  <g fill="#ffedd5" opacity="0.34">
+    <circle cx="180" cy="180" r="3"/><circle cx="420" cy="280" r="4"/><circle cx="670" cy="180" r="3"/>
+    <circle cx="900" cy="260" r="4"/><circle cx="1170" cy="170" r="3"/><circle cx="1390" cy="260" r="4"/>
+  </g>
+</svg>
