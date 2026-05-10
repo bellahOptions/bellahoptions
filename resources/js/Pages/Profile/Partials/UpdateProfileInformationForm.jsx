@@ -11,7 +11,6 @@ export default function UpdateProfileInformation({
     status,
     className = '',
 }) {
-    const AUTOSAVE_DEBOUNCE_MS = 650;
     const user = usePage().props.auth.user;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } =
@@ -30,7 +29,11 @@ export default function UpdateProfileInformation({
 
     const [profilePhotoPreview, setProfilePhotoPreview] = useState(user.profile_photo_url || null);
     const [companyLogoPreview, setCompanyLogoPreview] = useState(user.company_logo_url || null);
-    const autosaveTimeoutRef = useRef(null);
+    const autosaveQueuedRef = useRef(false);
+    const autosaveOptionQueueRef = useRef({
+        clearProfilePhoto: false,
+        clearCompanyLogo: false,
+    });
     const hasMountedFieldAutosaveRef = useRef(false);
     const hasMountedProfilePhotoAutosaveRef = useRef(false);
     const hasMountedCompanyLogoAutosaveRef = useRef(false);
@@ -48,8 +51,56 @@ export default function UpdateProfileInformation({
                     setData('company_logo', null);
                 }
             },
+            onFinish: () => {
+                if (typeof options.onFinish === 'function') {
+                    options.onFinish();
+                }
+            },
         });
     }, [patch, setData]);
+
+    const mergeAutosaveOptions = useCallback((options = {}) => {
+        autosaveOptionQueueRef.current = {
+            clearProfilePhoto: autosaveOptionQueueRef.current.clearProfilePhoto || Boolean(options.clearProfilePhoto),
+            clearCompanyLogo: autosaveOptionQueueRef.current.clearCompanyLogo || Boolean(options.clearCompanyLogo),
+        };
+    }, []);
+
+    const flushQueuedAutosave = useCallback(() => {
+        if (processing || !autosaveQueuedRef.current) {
+            return;
+        }
+
+        autosaveQueuedRef.current = false;
+        const queuedOptions = autosaveOptionQueueRef.current;
+        autosaveOptionQueueRef.current = {
+            clearProfilePhoto: false,
+            clearCompanyLogo: false,
+        };
+
+        submitProfileUpdate({
+            ...queuedOptions,
+            onFinish: () => {
+                if (
+                    autosaveQueuedRef.current ||
+                    autosaveOptionQueueRef.current.clearProfilePhoto ||
+                    autosaveOptionQueueRef.current.clearCompanyLogo
+                ) {
+                    flushQueuedAutosave();
+                }
+            },
+        });
+    }, [processing, submitProfileUpdate]);
+
+    const queueAutosave = useCallback((options = {}) => {
+        mergeAutosaveOptions(options);
+        autosaveQueuedRef.current = true;
+        flushQueuedAutosave();
+    }, [flushQueuedAutosave, mergeAutosaveOptions]);
+
+    const handleFieldBlur = useCallback(() => {
+        queueAutosave();
+    }, [queueAutosave]);
 
     useEffect(() => {
         if (!(data.profile_photo instanceof File)) {
@@ -84,27 +135,11 @@ export default function UpdateProfileInformation({
     useEffect(() => {
         if (!hasMountedFieldAutosaveRef.current) {
             hasMountedFieldAutosaveRef.current = true;
-
-            return undefined;
+            return;
         }
 
-        if (autosaveTimeoutRef.current) {
-            clearTimeout(autosaveTimeoutRef.current);
-        }
-
-        autosaveTimeoutRef.current = setTimeout(() => {
-            autosaveTimeoutRef.current = null;
-            submitProfileUpdate();
-        }, AUTOSAVE_DEBOUNCE_MS);
-
-        return () => {
-            if (autosaveTimeoutRef.current) {
-                clearTimeout(autosaveTimeoutRef.current);
-                autosaveTimeoutRef.current = null;
-            }
-        };
+        flushQueuedAutosave();
     }, [
-        AUTOSAVE_DEBOUNCE_MS,
         data.address,
         data.business_address,
         data.business_number,
@@ -112,7 +147,7 @@ export default function UpdateProfileInformation({
         data.company_name,
         data.name,
         data.social_media_info,
-        submitProfileUpdate,
+        flushQueuedAutosave,
     ]);
 
     useEffect(() => {
@@ -126,13 +161,8 @@ export default function UpdateProfileInformation({
             return;
         }
 
-        if (autosaveTimeoutRef.current) {
-            clearTimeout(autosaveTimeoutRef.current);
-            autosaveTimeoutRef.current = null;
-        }
-
-        submitProfileUpdate({ clearProfilePhoto: true });
-    }, [data.profile_photo, submitProfileUpdate]);
+        queueAutosave({ clearProfilePhoto: true });
+    }, [data.profile_photo, queueAutosave]);
 
     useEffect(() => {
         if (!hasMountedCompanyLogoAutosaveRef.current) {
@@ -145,20 +175,16 @@ export default function UpdateProfileInformation({
             return;
         }
 
-        if (autosaveTimeoutRef.current) {
-            clearTimeout(autosaveTimeoutRef.current);
-            autosaveTimeoutRef.current = null;
-        }
-
-        submitProfileUpdate({ clearCompanyLogo: true });
-    }, [data.company_logo, submitProfileUpdate]);
+        queueAutosave({ clearCompanyLogo: true });
+    }, [data.company_logo, queueAutosave]);
 
     const submit = (e) => {
         e.preventDefault();
-        if (autosaveTimeoutRef.current) {
-            clearTimeout(autosaveTimeoutRef.current);
-            autosaveTimeoutRef.current = null;
-        }
+        autosaveQueuedRef.current = false;
+        autosaveOptionQueueRef.current = {
+            clearProfilePhoto: false,
+            clearCompanyLogo: false,
+        };
         submitProfileUpdate();
     };
 
@@ -173,7 +199,7 @@ export default function UpdateProfileInformation({
                     Update your account profile information.
                 </p>
                 <p className="mt-1 text-xs text-gray-500">
-                    Changes save automatically as you type or upload files.
+                    Changes save automatically when you leave a field or upload files.
                 </p>
             </header>
 
@@ -186,6 +212,7 @@ export default function UpdateProfileInformation({
                         className="mt-1 block w-full"
                         value={data.name}
                         onChange={(e) => setData('name', e.target.value)}
+                        onBlur={handleFieldBlur}
                         required
                         isFocused
                         autoComplete="name"
@@ -248,6 +275,7 @@ export default function UpdateProfileInformation({
                         className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                         value={data.address}
                         onChange={(e) => setData('address', e.target.value)}
+                        onBlur={handleFieldBlur}
                     />
 
                     <InputError className="mt-2" message={errors.address} />
@@ -267,6 +295,7 @@ export default function UpdateProfileInformation({
                                 className="mt-1 block w-full"
                                 value={data.company_name}
                                 onChange={(e) => setData('company_name', e.target.value)}
+                                onBlur={handleFieldBlur}
                             />
                             <InputError className="mt-2" message={errors.company_name} />
                         </div>
@@ -278,6 +307,7 @@ export default function UpdateProfileInformation({
                                 className="mt-1 block w-full"
                                 value={data.business_number}
                                 onChange={(e) => setData('business_number', e.target.value)}
+                                onBlur={handleFieldBlur}
                             />
                             <InputError className="mt-2" message={errors.business_number} />
                         </div>
@@ -313,6 +343,7 @@ export default function UpdateProfileInformation({
                                 className="mt-1 block w-full"
                                 value={data.business_official_email}
                                 onChange={(e) => setData('business_official_email', e.target.value)}
+                                onBlur={handleFieldBlur}
                             />
                             <InputError className="mt-2" message={errors.business_official_email} />
                         </div>
@@ -324,6 +355,7 @@ export default function UpdateProfileInformation({
                                 className="mt-1 block w-full"
                                 value={data.social_media_info}
                                 onChange={(e) => setData('social_media_info', e.target.value)}
+                                onBlur={handleFieldBlur}
                                 placeholder="@brandname, facebook.com/brandname"
                             />
                             <InputError className="mt-2" message={errors.social_media_info} />
@@ -338,6 +370,7 @@ export default function UpdateProfileInformation({
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
                             value={data.business_address}
                             onChange={(e) => setData('business_address', e.target.value)}
+                            onBlur={handleFieldBlur}
                         />
                         <InputError className="mt-2" message={errors.business_address} />
                     </div>
