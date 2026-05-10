@@ -1,0 +1,91 @@
+name: Deploy to cPanel
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: cpanel-production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      APP_ENV: production
+      FTP_PROTOCOL: ${{ secrets.CPANEL_FTP_PROTOCOL != '' && secrets.CPANEL_FTP_PROTOCOL || 'ftps' }}
+      FTP_PORT: ${{ secrets.CPANEL_FTP_PORT != '' && secrets.CPANEL_FTP_PORT || '21' }}
+      FTP_TIMEOUT: ${{ secrets.CPANEL_FTP_TIMEOUT != '' && secrets.CPANEL_FTP_TIMEOUT || '120000' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install PHP dependencies
+        run: composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build frontend assets
+        run: npm run build
+
+      - name: Deploy to cPanel via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.6
+        with:
+          server: ${{ secrets.CPANEL_FTP_HOST }}
+          username: ${{ secrets.CPANEL_FTP_USERNAME }}
+          password: ${{ secrets.CPANEL_FTP_PASSWORD }}
+          protocol: ${{ env.FTP_PROTOCOL }}
+          port: ${{ env.FTP_PORT }}
+          timeout: ${{ env.FTP_TIMEOUT }}
+          local-dir: ./
+          server-dir: ${{ secrets.CPANEL_DEPLOY_PATH }}/
+          state-name: .ftp-deploy-sync-state.json
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/.github/**
+            **/tests/**
+            **/.editorconfig
+            **/.env
+            **/.env.*
+            **/README.md
+            **/.vscode/**
+            **/.idea/**
+            **/.phpunit.result.cache
+            **/storage/logs/**
+            **/storage/framework/cache/**
+            **/storage/framework/sessions/**
+            **/storage/framework/testing/**
+            **/storage/framework/views/**
+
+      - name: Run post-deploy tasks over SSH (optional)
+        if: ${{ secrets.CPANEL_SSH_HOST != '' && secrets.CPANEL_SSH_USER != '' && secrets.CPANEL_SSH_KEY != '' }}
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.CPANEL_SSH_HOST }}
+          username: ${{ secrets.CPANEL_SSH_USER }}
+          key: ${{ secrets.CPANEL_SSH_KEY }}
+          port: ${{ secrets.CPANEL_SSH_PORT != '' && secrets.CPANEL_SSH_PORT || '22' }}
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${{ secrets.CPANEL_DEPLOY_PATH }}"
+            bash scripts/deploy/cpanel-post-deploy.sh
