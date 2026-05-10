@@ -1215,7 +1215,7 @@ function AnimationField({ label, value, error, onChange }) {
 function ForegroundMediaPreview({ mediaPath, isVideo }) {
     if (!mediaPath) {
         return (
-            <div className="flex h-36 w-full items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-400">
+            <div className="flex h-36 w-full items-center justify-center bg-gray-50 text-xs font-semibold text-gray-400">
                 No Foreground Media
             </div>
         );
@@ -1225,7 +1225,7 @@ function ForegroundMediaPreview({ mediaPath, isVideo }) {
         return (
             <video
                 src={mediaPath}
-                className="h-36 w-full rounded-md border border-gray-200 object-cover"
+                className="h-36 w-full object-cover"
                 muted
                 loop
                 autoPlay
@@ -1239,7 +1239,7 @@ function ForegroundMediaPreview({ mediaPath, isVideo }) {
         <img
             src={mediaPath}
             alt="Foreground media preview"
-            className="h-36 w-full rounded-md border border-gray-200 object-cover"
+            className="h-36 w-full object-cover"
         />
     );
 }

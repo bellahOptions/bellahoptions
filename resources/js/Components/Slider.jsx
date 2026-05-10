@@ -266,7 +266,7 @@ function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center", medi
 
     return (
         <motion.div
-            className="relative overflow-hidden rounded-2xl"
+            className="relative overflow-hidden"
             initial={resolveAnimationVariant(mediaAnimation).hidden}
             animate={resolveAnimationVariant(mediaAnimation).visible}
             transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}
