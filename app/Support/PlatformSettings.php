@@ -603,7 +603,7 @@ class PlatformSettings
         }
 
         return [
-            'place_id' => mb_substr($placeId, 0, 512),
+            'place_id' => mb_substr($placeId !== '' ? $placeId : (string) $defaults['place_id'], 0, 512),
             'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
         ];
     }
@@ -1406,7 +1406,7 @@ class PlatformSettings
     private static function defaultGoogleReviewsConfig(): array
     {
         return [
-            'place_id' => '',
+            'place_id' => 'ChIJlTRzKhGNOxAR2XWyE91sBNs',
             'featured_review_ids' => [],
         ];
     }

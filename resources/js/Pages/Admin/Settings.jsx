@@ -420,11 +420,15 @@ export default function Settings({
 
         autoSaveTimer.current = window.setTimeout(() => {
             const payload = JSON.parse(autoSaveSignature);
+            const csrfToken = document
+                ?.querySelector('meta[name="csrf-token"]')
+                ?.getAttribute('content');
 
             window.axios.patch(route('admin.settings.update'), payload, {
                 headers: {
                     Accept: 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
+                    ...(csrfToken ? { 'X-CSRF-TOKEN': csrfToken } : {}),
                 },
             })
                 .then(() => {
@@ -443,6 +447,7 @@ export default function Settings({
                     }
 
                     const responseErrors = error?.response?.data?.errors;
+
                     if (responseErrors && typeof responseErrors === 'object') {
                         const normalizedErrors = Object.fromEntries(
                             Object.entries(responseErrors).map(([field, messages]) => [
@@ -450,6 +455,7 @@ export default function Settings({
                                 Array.isArray(messages) ? String(messages[0] ?? '') : String(messages ?? ''),
                             ]),
                         );
+
                         setError(normalizedErrors);
                     }
 
