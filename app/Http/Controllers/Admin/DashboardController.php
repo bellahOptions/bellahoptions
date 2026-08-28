@@ -40,7 +40,7 @@ class DashboardController extends Controller
     {
         $orders = ServiceOrder::query()
             ->where('user_id', $user->id)
-            ->with(['updates' => static fn (Builder $query) => $query->where('is_public', true)->latest('id')])
+            ->with(['updates' => static fn ($query) => $query->where('is_public', true)->latest('id')])
             ->latest('id')
             ->limit(60)
             ->get();

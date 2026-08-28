@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreInvoiceRequest extends FormRequest
 {
@@ -30,9 +31,12 @@ class StoreInvoiceRequest extends FormRequest
             'customer_occupation' => ['nullable', 'string', Rule::in(config('occupations.list', []))],
             'title' => ['required', 'string', 'min:3', 'max:180'],
             'description' => ['nullable', 'string', 'max:2500'],
-            'amount' => ['required', 'numeric', 'min:1', 'max:999999999.99'],
             'currency' => ['required', 'string', Rule::in(['NGN', 'USD', 'EUR', 'GBP'])],
             'due_date' => ['nullable', 'date', 'after_or_equal:today'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.description' => ['required', 'string', 'min:2', 'max:255'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:100000'],
+            'items.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999999.99'],
         ];
     }
 
@@ -44,6 +48,23 @@ class StoreInvoiceRequest extends FormRequest
         return [
             'customer_occupation.in' => 'Please choose a valid occupation from the provided list.',
             'customer_name.regex' => 'Please enter a valid customer name.',
+            'items.required' => 'Add at least one line item.',
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator): void {
+            $items = (array) $this->input('items', []);
+            $total = array_reduce(
+                $items,
+                fn (float $carry, mixed $item): float => $carry + ((float) ($item['quantity'] ?? 0) * (float) ($item['unit_price'] ?? 0)),
+                0.0,
+            );
+
+            if ($total < 1) {
+                $validator->errors()->add('items', 'The invoice total must be at least 1.');
+            }
+        });
     }
 }

@@ -1631,9 +1631,6 @@ class ServiceOrderController extends Controller
             'human_check_nonce',
             'form_rendered_at',
             'turnstile_token',
-            'website',
-            'company_name',
-            'contact_notes',
             'prospect_draft_token',
             'draft_token',
         ];

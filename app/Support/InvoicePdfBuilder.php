@@ -17,13 +17,27 @@ class InvoicePdfBuilder
         $invoiceDate = $invoice->issued_at?->format('d/m/Y') ?? now()->format('d/m/Y');
         $dueDate = $invoice->due_date?->format('d/m/Y') ?? $invoiceDate;
         $amount = (float) $invoice->amount;
-        $invoice->loadMissing('customer:id,address,company', 'serviceOrder');
+        $invoice->loadMissing('customer:id,address,company', 'serviceOrder', 'items');
 
         $description = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
 
         if (filled($invoice->description)) {
             $description .= ' - '.trim((string) $invoice->description);
         }
+
+        $lineItems = $invoice->items->isNotEmpty()
+            ? $invoice->items->map(fn ($item): array => [
+                'description' => (string) $item->description,
+                'quantity' => (int) $item->quantity,
+                'unit_price' => $this->formatCurrency((float) $item->unit_price, (string) $invoice->currency),
+                'amount' => $this->formatCurrency((float) $item->amount, (string) $invoice->currency),
+            ])->all()
+            : [[
+                'description' => $description,
+                'quantity' => 1,
+                'unit_price' => $this->formatCurrency($amount, (string) $invoice->currency),
+                'amount' => $this->formatCurrency($amount, (string) $invoice->currency),
+            ]];
 
         $customerAddress = trim((string) ($invoice->customer?->address ?? ''));
         $customerCompany = trim((string) ($invoice->customer?->company ?? ''));
@@ -56,6 +70,7 @@ class InvoicePdfBuilder
             'statusLabel' => $invoice->status === 'paid' ? 'PAID' : 'UNPAID',
             'recipientLines' => $recipientLines,
             'description' => $description,
+            'lineItems' => $lineItems,
             'subtotal' => $this->formatCurrency($subtotal, (string) $invoice->currency),
             'vatRate' => $vatRate,
             'vatAmount' => $this->formatCurrency($vatAmount, (string) $invoice->currency),
@@ -108,13 +123,27 @@ class InvoicePdfBuilder
         $receiptDate = $invoice->paid_at?->format('d/m/Y') ?? now()->format('d/m/Y');
         $dueDate = $invoice->due_date?->format('d/m/Y') ?? $invoiceDate;
         $amount = (float) $invoice->amount;
-        $invoice->loadMissing('customer:id,address,company', 'serviceOrder');
+        $invoice->loadMissing('customer:id,address,company', 'serviceOrder', 'items');
 
         $description = trim((string) $invoice->title) !== '' ? (string) $invoice->title : 'Service';
 
         if (filled($invoice->description)) {
             $description .= ' - '.trim((string) $invoice->description);
         }
+
+        $lineItems = $invoice->items->isNotEmpty()
+            ? $invoice->items->map(fn ($item): array => [
+                'description' => (string) $item->description,
+                'quantity' => (int) $item->quantity,
+                'unit_price' => $this->formatCurrency((float) $item->unit_price, (string) $invoice->currency),
+                'amount' => $this->formatCurrency((float) $item->amount, (string) $invoice->currency),
+            ])->all()
+            : [[
+                'description' => $description,
+                'quantity' => 1,
+                'unit_price' => $this->formatCurrency($amount, (string) $invoice->currency),
+                'amount' => $this->formatCurrency($amount, (string) $invoice->currency),
+            ]];
 
         $customerAddress = trim((string) ($invoice->customer?->address ?? ''));
         $customerCompany = trim((string) ($invoice->customer?->company ?? ''));
@@ -148,6 +177,7 @@ class InvoicePdfBuilder
             'statusLabel' => 'PAID',
             'recipientLines' => $recipientLines,
             'description' => $description,
+            'lineItems' => $lineItems,
             'subtotal' => $this->formatCurrency($subtotal, (string) $invoice->currency),
             'vatRate' => $vatRate,
             'vatAmount' => $this->formatCurrency($vatAmount, (string) $invoice->currency),

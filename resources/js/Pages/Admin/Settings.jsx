@@ -4,28 +4,6 @@ import RichTextEditor from '@/Components/RichTextEditor';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-const createEmptySlide = () => ({
-    title: '',
-    subtitle: '',
-    image: '',
-    cta_label: '',
-    cta_url: '',
-});
-
-const PUBLIC_HEADER_PAGES = [
-    { key: 'about', label: 'About Us' },
-    { key: 'services', label: 'Services' },
-    { key: 'gallery', label: 'Gallery' },
-    { key: 'blog', label: 'Blog' },
-    { key: 'events', label: 'Events' },
-    { key: 'reviews', label: 'Reviews' },
-    { key: 'faqs', label: 'FAQs' },
-    { key: 'contact', label: 'Contact' },
-    { key: 'web_design_samples', label: 'Web Design Samples' },
-    { key: 'manage_hires', label: 'Manage Your Hires' },
-    { key: 'seo_modules_functions', label: 'SEO Modules and Functions' },
-];
-
 const SEO_PUBLIC_PAGES = [
     { key: 'home', label: 'Home' },
     { key: 'about', label: 'About' },
@@ -45,100 +23,6 @@ const SEO_PUBLIC_PAGES = [
     { key: 'privacy', label: 'Privacy Policy' },
     { key: 'cookie', label: 'Cookie Policy' },
 ];
-
-const createDefaultPublicPageHeaders = () => ({
-    about: {
-        title: 'We are a creative tech agency built for ambitious brands.',
-        text: 'Bellah Options helps businesses grow faster through brand identity, graphic design, social media content, websites, and product experiences that look polished and work clearly.',
-        background_image: '',
-    },
-    services: {
-        title: 'Creative services built for launch, growth, and consistency.',
-        text: 'Choose the service lane that matches your next move. Every package is structured to make the brief clearer and the output easier to use.',
-        background_image: '',
-    },
-    gallery: {
-        title: 'A look at visual systems, campaigns, and brand assets.',
-        text: 'Every project shown here is published directly by the Bellah Options team.',
-        background_image: '',
-    },
-    blog: {
-        title: 'Ideas on branding, content, design, and digital growth.',
-        text: 'Notes from Bellah Options for founders, creators, and growing teams building stronger digital presence.',
-        background_image: '',
-    },
-    events: {
-        title: 'Workshops, launches, and creative sessions.',
-        text: 'Events published by the Bellah Options team appear here automatically.',
-        background_image: '',
-    },
-    reviews: {
-        title: 'Google Reviews From Real Clients',
-        text: 'Read public Google feedback from founders, teams, and businesses that worked with Bellah Options.',
-        background_image: '',
-    },
-    faqs: {
-        title: 'Frequently Asked Questions',
-        text: 'Clear answers to common questions about Bellah Options services, process, timelines, and delivery.',
-        background_image: '',
-    },
-    contact: {
-        title: 'Tell us what you are building.',
-        text: 'Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step.',
-        background_image: '',
-    },
-    web_design_samples: {
-        title: 'Web Design Samples',
-        text: 'A focused set of live web experiences from Bellah Options projects.',
-        background_image: '',
-    },
-    manage_hires: {
-        title: 'Dedicated unlimited design support for growth-stage teams.',
-        text: 'Scale brand and social design execution with one retained creative partner.',
-        background_image: '',
-    },
-    seo_modules_functions: {
-        title: 'SEO modules and functions built for measurable visibility.',
-        text: 'Structured SEO modules that improve crawl quality, content relevance, and conversion-focused search performance.',
-        background_image: '',
-    },
-});
-
-const createDefaultManageHiresLanding = () => ({
-    badge: 'Dedicated Design Retainer',
-    package_name: 'Manage Your Hires',
-    monthly_price_ngn: 220000,
-    tagline: 'Unlimited design requests managed by a dedicated Bellah creative team.',
-    description: 'This plan is for teams that need consistent design output without hiring full-time in-house designers. It covers design services only and excludes UI/UX.',
-    highlights: [
-        'Dedicated design team support',
-        'Unlimited design requests (fair use)',
-        'Batch delivery during work hours',
-        'Brand-consistent design production',
-    ],
-    exclusions_note: 'UI/UX design is excluded from this package.',
-    primary_cta_label: 'Start This Plan',
-    primary_cta_url: '/contact-us',
-    secondary_cta_label: 'Discuss Scope',
-    secondary_cta_url: '/services',
-});
-
-const normalizePublicPageHeaders = (headers) => {
-    const defaults = createDefaultPublicPageHeaders();
-    const source = headers && typeof headers === 'object' ? headers : {};
-
-    return Object.fromEntries(
-        Object.entries(defaults).map(([key, fallback]) => {
-            const candidate = source?.[key] && typeof source[key] === 'object' ? source[key] : {};
-
-            return [key, {
-                title: String(candidate?.title || fallback.title),
-                text: String(candidate?.text || fallback.text),
-                background_image: String(candidate?.background_image || ''),
-            }];
-        }),
-    );
-};
 
 const createDefaultPublicSeo = () => ({
     global: {
@@ -207,30 +91,6 @@ const normalizePublicSeo = (payload) => {
             twitter_site: String(sourceGlobal?.twitter_site || defaults.global.twitter_site),
         },
         pages: normalizedPages,
-    };
-};
-
-const normalizeManageHiresLanding = (payload) => {
-    const defaults = createDefaultManageHiresLanding();
-    const source = payload && typeof payload === 'object' ? payload : {};
-    const candidateHighlights = Array.isArray(source?.highlights) ? source.highlights : [];
-    const normalizedHighlights = candidateHighlights
-        .map((item) => String(item || '').trim())
-        .filter(Boolean)
-        .slice(0, 12);
-
-    return {
-        badge: String(source?.badge || defaults.badge),
-        package_name: String(source?.package_name || defaults.package_name),
-        monthly_price_ngn: Number(source?.monthly_price_ngn ?? defaults.monthly_price_ngn) || defaults.monthly_price_ngn,
-        tagline: String(source?.tagline || defaults.tagline),
-        description: String(source?.description || defaults.description),
-        highlights: normalizedHighlights.length > 0 ? normalizedHighlights : defaults.highlights,
-        exclusions_note: String(source?.exclusions_note || defaults.exclusions_note),
-        primary_cta_label: String(source?.primary_cta_label || defaults.primary_cta_label),
-        primary_cta_url: String(source?.primary_cta_url || defaults.primary_cta_url),
-        secondary_cta_label: String(source?.secondary_cta_label || defaults.secondary_cta_label),
-        secondary_cta_url: String(source?.secondary_cta_url || defaults.secondary_cta_url),
     };
 };
 
@@ -318,16 +178,7 @@ export default function Settings({
         contact_map_embed_url: settings?.contact_map_embed_url || '',
         logo_path: settings?.logo_path || '/logo-06.svg',
         favicon_path: settings?.favicon_path || '/favicon.ico',
-        home_slides: Array.isArray(settings?.home_slides) && settings.home_slides.length > 0
-            ? settings.home_slides
-            : [createEmptySlide()],
-        public_page_headers: normalizePublicPageHeaders(settings?.public_page_headers),
         public_seo: normalizePublicSeo(settings?.public_seo),
-        manage_hires_landing: normalizeManageHiresLanding(settings?.manage_hires_landing),
-        google_reviews_place_id: settings?.google_reviews?.place_id || '',
-        featured_google_review_ids: Array.isArray(settings?.google_reviews?.featured_review_ids)
-            ? settings.google_reviews.featured_review_ids
-            : [],
         terms: {
             terms_of_service: settings?.terms?.terms_of_service || '',
             privacy_policy: settings?.terms?.privacy_policy || '',
@@ -379,22 +230,12 @@ export default function Settings({
     const autoSaveLastSavedSignature = useRef('');
     const autoSaveRequestId = useRef(0);
     const [autoSaveUpdatedAt, setAutoSaveUpdatedAt] = useState(null);
+    const [autoSaveErrorDetail, setAutoSaveErrorDetail] = useState('');
     const [selectorOpen, setSelectorOpen] = useState(false);
     const [selectorTarget, setSelectorTarget] = useState('logo_path');
     const [selectorFiles, setSelectorFiles] = useState([]);
     const [selectorLoading, setSelectorLoading] = useState(false);
     const [selectorError, setSelectorError] = useState('');
-    const [googleReviewsPreview, setGoogleReviewsPreview] = useState(
-        settings?.google_reviews_preview?.reviews || [],
-    );
-    const [googleReviewsPreviewMeta, setGoogleReviewsPreviewMeta] = useState({
-        success: Boolean(settings?.google_reviews_preview?.success),
-        profile_url: settings?.google_reviews_preview?.profile_url || null,
-        total_review_count: settings?.google_reviews_preview?.total_review_count ?? null,
-        average_rating: settings?.google_reviews_preview?.average_rating ?? null,
-        error: settings?.google_reviews_preview?.error || '',
-    });
-    const [googleReviewsPreviewLoading, setGoogleReviewsPreviewLoading] = useState(false);
 
     const selectedServicePackages = serviceCatalog?.[discountForm.data.service_slug]?.packages || {};
     const selectedPlanPackages = serviceCatalog?.[subscriptionPlanForm.data.service_slug]?.packages || {};
@@ -437,6 +278,7 @@ export default function Settings({
                     }
 
                     clearErrors();
+                    setAutoSaveErrorDetail('');
                     autoSaveLastSavedSignature.current = autoSaveSignature;
                     setAutoSaveState('saved');
                     setAutoSaveUpdatedAt(new Date());
@@ -447,6 +289,7 @@ export default function Settings({
                     }
 
                     const responseErrors = error?.response?.data?.errors;
+                    let detail = String(error?.response?.data?.message || error?.message || 'Unknown error.');
 
                     if (responseErrors && typeof responseErrors === 'object') {
                         const normalizedErrors = Object.fromEntries(
@@ -457,8 +300,14 @@ export default function Settings({
                         );
 
                         setError(normalizedErrors);
+
+                        const [firstField, firstMessage] = Object.entries(normalizedErrors)[0] || [];
+                        if (firstField) {
+                            detail = `${firstField}: ${firstMessage}`;
+                        }
                     }
 
+                    setAutoSaveErrorDetail(detail);
                     setAutoSaveState('error');
                 });
         }, 900);
@@ -484,11 +333,13 @@ export default function Settings({
         }
 
         if (autoSaveState === 'error') {
-            return 'Autosave: failed. Keep editing; retry will run automatically.';
+            return autoSaveErrorDetail
+                ? `Autosave failed: ${autoSaveErrorDetail}`
+                : 'Autosave failed. Fix the highlighted field to retry.';
         }
 
         return 'Autosave: ready.';
-    }, [autoSaveState, autoSaveUpdatedAt]);
+    }, [autoSaveState, autoSaveUpdatedAt, autoSaveErrorDetail]);
 
     const autoSaveStatusClassName = useMemo(() => {
         if (autoSaveState === 'saving') {
@@ -506,39 +357,10 @@ export default function Settings({
         return 'border-gray-200 bg-white text-gray-700';
     }, [autoSaveState]);
 
-    const updateSlide = (index, field, value) => {
-        const nextSlides = [...(data.home_slides || [])];
-        nextSlides[index] = {
-            ...(nextSlides[index] || createEmptySlide()),
-            [field]: value,
-        };
-
-        setData('home_slides', nextSlides);
-    };
-
-    const addSlide = () => {
-        setData('home_slides', [...(data.home_slides || []), createEmptySlide()]);
-    };
-
-    const removeSlide = (index) => {
-        const nextSlides = [...(data.home_slides || [])].filter((_, currentIndex) => currentIndex !== index);
-        setData('home_slides', nextSlides.length > 0 ? nextSlides : [createEmptySlide()]);
-    };
-
     const updateTermContent = (field, value) => {
         setData('terms', {
             ...(data.terms || {}),
             [field]: value,
-        });
-    };
-
-    const updatePublicHeader = (pageKey, field, value) => {
-        setData('public_page_headers', {
-            ...(data.public_page_headers || {}),
-            [pageKey]: {
-                ...(data.public_page_headers?.[pageKey] || {}),
-                [field]: value,
-            },
         });
     };
 
@@ -571,22 +393,7 @@ export default function Settings({
         });
     };
 
-    const updateManageHiresLanding = (field, value) => {
-        setData('manage_hires_landing', {
-            ...(data.manage_hires_landing || createDefaultManageHiresLanding()),
-            [field]: value,
-        });
-    };
-
     const applySelectorValue = (target, value) => {
-        if (target.startsWith('public_page_headers.')) {
-            const [, pageKey, field] = target.split('.');
-            if (pageKey && field) {
-                updatePublicHeader(pageKey, field, value);
-            }
-            return;
-        }
-
         if (target.startsWith('public_seo.pages.')) {
             const [, , pageKey, field] = target.split('.');
             if (pageKey && field) {
@@ -656,105 +463,6 @@ export default function Settings({
             window.alert('Upload failed. Please try another file.');
         }
     };
-
-    const refreshGoogleReviewsPreview = async () => {
-        const placeId = String(data.google_reviews_place_id || '').trim();
-
-        setGoogleReviewsPreviewLoading(true);
-
-        try {
-            const response = await window.axios.get(route('admin.settings.google-reviews.preview'), {
-                params: {
-                    place_id: placeId,
-                },
-            });
-
-            const payload = response?.data && typeof response.data === 'object' ? response.data : {};
-            const reviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
-
-            setGoogleReviewsPreview(reviews);
-            setGoogleReviewsPreviewMeta({
-                success: Boolean(payload?.success),
-                profile_url: payload?.profile_url || null,
-                total_review_count: payload?.total_review_count ?? null,
-                average_rating: payload?.average_rating ?? null,
-                error: payload?.error || '',
-            });
-
-            if (reviews.length > 0) {
-                const allowedIds = new Set(reviews.map((review) => String(review.review_id || '')).filter(Boolean));
-                const selectedIds = Array.isArray(data.featured_google_review_ids)
-                    ? data.featured_google_review_ids
-                    : [];
-                const nextSelectedIds = selectedIds
-                    .map((value) => String(value || '').trim())
-                    .filter((value) => allowedIds.has(value));
-
-                if (nextSelectedIds.length !== selectedIds.length) {
-                    setData('featured_google_review_ids', nextSelectedIds);
-                }
-            }
-        } catch (error) {
-            setGoogleReviewsPreviewMeta({
-                success: false,
-                profile_url: null,
-                total_review_count: null,
-                average_rating: null,
-                error: 'Unable to load Google reviews preview right now.',
-            });
-            setGoogleReviewsPreview([]);
-        } finally {
-            setGoogleReviewsPreviewLoading(false);
-        }
-    };
-
-    const toggleFeaturedGoogleReview = (reviewId) => {
-        const normalized = String(reviewId || '').trim();
-
-        if (normalized === '') {
-            return;
-        }
-
-        const selected = Array.isArray(data.featured_google_review_ids)
-            ? data.featured_google_review_ids.map((value) => String(value || '').trim()).filter(Boolean)
-            : [];
-
-        if (selected.includes(normalized)) {
-            setData('featured_google_review_ids', selected.filter((value) => value !== normalized));
-            return;
-        }
-
-        if (selected.length >= 12) {
-            window.alert('You can feature up to 12 reviews.');
-            return;
-        }
-
-        setData('featured_google_review_ids', [...selected, normalized]);
-    };
-
-    useEffect(() => {
-        const placeId = String(data.google_reviews_place_id || '').trim();
-
-        if (placeId === '') {
-            setGoogleReviewsPreview([]);
-            setGoogleReviewsPreviewMeta({
-                success: false,
-                profile_url: null,
-                total_review_count: null,
-                average_rating: null,
-                error: 'Add your Google Place ID to load Google reviews.',
-            });
-            return;
-        }
-
-        const timer = window.setTimeout(() => {
-            refreshGoogleReviewsPreview();
-        }, 650);
-
-        return () => {
-            window.clearTimeout(timer);
-        };
-    }, [data.google_reviews_place_id]);
 
     const submitDiscountCode = (event) => {
         event.preventDefault();
@@ -1123,197 +831,6 @@ export default function Settings({
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Homepage Slideshow</h3>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Each slide uses an image path from your public assets (for example: <code>3.png</code> or <code>optimized/slide.webp</code>).
-                            </p>
-
-                            <div className="mt-5 space-y-4">
-                                {(data.home_slides || []).map((slide, index) => (
-                                    <div key={`slide-${index}`} className="rounded-xl border border-gray-200 p-4">
-                                        <div className="mb-3 flex items-center justify-between">
-                                            <h4 className="text-sm font-semibold text-gray-900">Slide {index + 1}</h4>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeSlide(index)}
-                                                className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-
-                                        <div className="grid gap-3 md:grid-cols-2">
-                                            <div>
-                                                <label className="mb-1 block text-sm font-medium text-gray-700">Title</label>
-                                                <input
-                                                    type="text"
-                                                    value={slide.title || ''}
-                                                    onChange={(event) => updateSlide(index, 'title', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                                {errors[`home_slides.${index}.title`] && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors[`home_slides.${index}.title`]}</p>
-                                                )}
-                                            </div>
-
-                                            <div>
-                                                <label className="mb-1 block text-sm font-medium text-gray-700">Image Path</label>
-                                                <input
-                                                    type="text"
-                                                    value={slide.image || ''}
-                                                    onChange={(event) => updateSlide(index, 'image', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                                {errors[`home_slides.${index}.image`] && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors[`home_slides.${index}.image`]}</p>
-                                                )}
-                                            </div>
-
-                                            <div className="md:col-span-2">
-                                                <label className="mb-1 block text-sm font-medium text-gray-700">Subtitle</label>
-                                                <textarea
-                                                    rows="2"
-                                                    value={slide.subtitle || ''}
-                                                    onChange={(event) => updateSlide(index, 'subtitle', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="mb-1 block text-sm font-medium text-gray-700">CTA Label</label>
-                                                <input
-                                                    type="text"
-                                                    value={slide.cta_label || ''}
-                                                    onChange={(event) => updateSlide(index, 'cta_label', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                            </div>
-
-                                            <div>
-                                                <label className="mb-1 block text-sm font-medium text-gray-700">CTA URL</label>
-                                                <input
-                                                    type="text"
-                                                    value={slide.cta_url || ''}
-                                                    onChange={(event) => updateSlide(index, 'cta_url', event.target.value)}
-                                                    placeholder="/order/brand-design"
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                                {errors[`home_slides.${index}.cta_url`] && (
-                                                    <p className="mt-1 text-xs text-red-600">{errors[`home_slides.${index}.cta_url`]}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <button
-                                type="button"
-                                onClick={addSlide}
-                                className="mt-3 rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
-                            >
-                                Add Slide
-                            </button>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Public Page Headers</h3>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Customize hero header title, intro text, and background image for key public pages.
-                            </p>
-
-                            <div className="mt-5 space-y-4">
-                                {PUBLIC_HEADER_PAGES.map((page) => {
-                                    const header = data.public_page_headers?.[page.key] || {};
-                                    const titleError = errors[`public_page_headers.${page.key}.title`];
-                                    const textError = errors[`public_page_headers.${page.key}.text`];
-                                    const imageError = errors[`public_page_headers.${page.key}.background_image`];
-                                    const backgroundImage = String(header.background_image || '');
-                                    const backgroundPreview = /^https?:\/\//i.test(backgroundImage)
-                                        ? backgroundImage
-                                        : backgroundImage.startsWith('/')
-                                            ? backgroundImage
-                                            : backgroundImage
-                                                ? `/${backgroundImage}`
-                                                : '';
-
-                                    return (
-                                        <div key={`header-page-${page.key}`} className="rounded-xl border border-gray-200 p-4">
-                                            <h4 className="text-sm font-semibold text-gray-900">{page.label}</h4>
-
-                                            <div className="mt-3 grid gap-3">
-                                                <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Header Title</label>
-                                                    <input
-                                                        type="text"
-                                                        value={header.title || ''}
-                                                        onChange={(event) => updatePublicHeader(page.key, 'title', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                    />
-                                                    {titleError && <p className="mt-1 text-xs text-red-600">{titleError}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Header Text</label>
-                                                    <textarea
-                                                        rows="3"
-                                                        value={header.text || ''}
-                                                        onChange={(event) => updatePublicHeader(page.key, 'text', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                    />
-                                                    {textError && <p className="mt-1 text-xs text-red-600">{textError}</p>}
-                                                </div>
-
-                                                <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Background Image Path</label>
-                                                    <input
-                                                        type="text"
-                                                        value={backgroundImage}
-                                                        onChange={(event) => updatePublicHeader(page.key, 'background_image', event.target.value)}
-                                                        placeholder="optimized/about-header.webp"
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                    />
-                                                    {imageError && <p className="mt-1 text-xs text-red-600">{imageError}</p>}
-                                                    <div className="mt-2 flex flex-wrap gap-2">
-                                                        <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
-                                                            Upload Background
-                                                            <input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                className="hidden"
-                                                                onChange={(event) => {
-                                                                    const file = event.target.files?.[0];
-                                                                    if (file) {
-                                                                        uploadBrandAsset(`public_page_headers.${page.key}.background_image`, file);
-                                                                    }
-                                                                    event.target.value = '';
-                                                                }}
-                                                            />
-                                                        </label>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => openSelector(`public_page_headers.${page.key}.background_image`)}
-                                                            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                                                        >
-                                                            Media Selector
-                                                        </button>
-                                                    </div>
-                                                    {backgroundPreview && (
-                                                        <img
-                                                            src={backgroundPreview}
-                                                            alt={`${page.label} background preview`}
-                                                            className="mt-3 h-20 w-full rounded border border-gray-200 object-cover"
-                                                        />
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
                             <h3 className="text-lg font-semibold text-gray-900">Public SEO Meta</h3>
                             <p className="mt-1 text-sm text-gray-600">
                                 Configure canonical links, meta descriptions, robots directives, social tags, and SEO images for all public routes.
@@ -1600,246 +1117,6 @@ export default function Settings({
                                         </div>
                                     );
                                 })}
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Manage Your Hires Landing Page</h3>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Configure the dedicated unlimited design retainer landing page content and pricing.
-                            </p>
-
-                            <div className="mt-5 grid gap-4 md:grid-cols-2">
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Badge</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.badge || ''}
-                                        onChange={(event) => updateManageHiresLanding('badge', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.badge'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.badge']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Package Name</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.package_name || ''}
-                                        onChange={(event) => updateManageHiresLanding('package_name', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.package_name'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.package_name']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Monthly Price (NGN)</label>
-                                    <input
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={data.manage_hires_landing?.monthly_price_ngn ?? 0}
-                                        onChange={(event) => updateManageHiresLanding('monthly_price_ngn', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.monthly_price_ngn'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.monthly_price_ngn']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Tagline</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.tagline || ''}
-                                        onChange={(event) => updateManageHiresLanding('tagline', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.tagline'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.tagline']}</p>}
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
-                                    <textarea
-                                        rows="3"
-                                        value={data.manage_hires_landing?.description || ''}
-                                        onChange={(event) => updateManageHiresLanding('description', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.description'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.description']}</p>}
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Highlights (one per line)</label>
-                                    <textarea
-                                        rows="5"
-                                        value={(data.manage_hires_landing?.highlights || []).join('\n')}
-                                        onChange={(event) => updateManageHiresLanding('highlights', event.target.value.split(/\r?\n/))}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.highlights'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.highlights']}</p>}
-                                </div>
-
-                                <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Exclusions Note</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.exclusions_note || ''}
-                                        onChange={(event) => updateManageHiresLanding('exclusions_note', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.exclusions_note'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.exclusions_note']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Primary CTA Label</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.primary_cta_label || ''}
-                                        onChange={(event) => updateManageHiresLanding('primary_cta_label', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.primary_cta_label'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.primary_cta_label']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Primary CTA URL</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.primary_cta_url || ''}
-                                        onChange={(event) => updateManageHiresLanding('primary_cta_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.primary_cta_url'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.primary_cta_url']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Secondary CTA Label</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.secondary_cta_label || ''}
-                                        onChange={(event) => updateManageHiresLanding('secondary_cta_label', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.secondary_cta_label'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.secondary_cta_label']}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Secondary CTA URL</label>
-                                    <input
-                                        type="text"
-                                        value={data.manage_hires_landing?.secondary_cta_url || ''}
-                                        onChange={(event) => updateManageHiresLanding('secondary_cta_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors['manage_hires_landing.secondary_cta_url'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.secondary_cta_url']}</p>}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Google Reviews Embed</h3>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Use your Google Business Place ID and server-side Google Places API key to load live Google reviews across public pages.
-                            </p>
-
-                            <div className="mt-5 grid gap-4 md:grid-cols-1">
-                                <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Google Place ID</label>
-                                    <input
-                                        type="text"
-                                        value={data.google_reviews_place_id || ''}
-                                        onChange={(event) => setData('google_reviews_place_id', event.target.value)}
-                                        placeholder="ChIJxxxxxxxxxxxxxxxxxxxxxxx"
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                    />
-                                    {errors.google_reviews_place_id && (
-                                        <p className="mt-1 text-xs text-red-600">{errors.google_reviews_place_id}</p>
-                                    )}
-                                    <p className="mt-2 text-xs text-gray-500">
-                                        Server key required: set <code>GOOGLE_MAPS_PLACES_API_KEY</code> in your environment.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <button
-                                    type="button"
-                                    onClick={refreshGoogleReviewsPreview}
-                                    disabled={googleReviewsPreviewLoading}
-                                    className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 disabled:opacity-60"
-                                >
-                                    {googleReviewsPreviewLoading ? 'Refreshing...' : 'Refresh Reviews'}
-                                </button>
-                                {googleReviewsPreviewMeta?.profile_url && (
-                                    <a
-                                        href={googleReviewsPreviewMeta.profile_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-xs font-semibold text-brand hover:text-brand-dark"
-                                    >
-                                        Open Google review page
-                                    </a>
-                                )}
-                            </div>
-
-                            {googleReviewsPreviewMeta?.error ? (
-                                <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                                    {googleReviewsPreviewMeta.error}
-                                </p>
-                            ) : null}
-
-                            {(googleReviewsPreviewMeta?.average_rating || googleReviewsPreviewMeta?.total_review_count) && (
-                                <p className="mt-3 text-sm font-medium text-gray-700">
-                                    Average rating: {googleReviewsPreviewMeta.average_rating ?? '-'} / 5
-                                    {' '}({googleReviewsPreviewMeta.total_review_count ?? 0} reviews)
-                                </p>
-                            )}
-
-                            <div className="mt-5">
-                                <p className="text-sm font-semibold text-gray-900">Featured Review Selection</p>
-                                <p className="mt-1 text-xs text-gray-500">
-                                    Selected reviews are shown first on the public website. If none are selected, the latest reviews are used automatically.
-                                </p>
-                                {errors.featured_google_review_ids && (
-                                    <p className="mt-1 text-xs text-red-600">{errors.featured_google_review_ids}</p>
-                                )}
-
-                                {googleReviewsPreview.length === 0 ? (
-                                    <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-sm text-gray-600">
-                                        No reviews loaded yet.
-                                    </div>
-                                ) : (
-                                    <div className="mt-3 grid gap-3 lg:grid-cols-2">
-                                        {googleReviewsPreview.map((review) => {
-                                            const reviewId = String(review?.review_id || '');
-                                            const selected = (data.featured_google_review_ids || []).includes(reviewId);
-                                            const stars = Number(review?.rating || 0);
-
-                                            return (
-                                                <label
-                                                    key={reviewId}
-                                                    className={`cursor-pointer rounded-lg border p-3 ${selected ? 'border-brand bg-brand-light' : 'border-gray-200 bg-white'}`}
-                                                >
-                                                    <div className="flex items-start justify-between gap-3">
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-gray-900">{review?.reviewer_name || 'Anonymous'}</p>
-                                                            <p className="text-xs text-gray-500">{formatGoogleReviewDate(review?.published_at)}</p>
-                                                        </div>
-                                                        <input
-                                                            type="checkbox"
-                                                            checked={selected}
-                                                            onChange={() => toggleFeaturedGoogleReview(reviewId)}
-                                                            className="mt-1 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
-                                                        />
-                                                    </div>
-                                                    <p className="mt-2 text-xs text-amber-600">{'★'.repeat(Math.max(1, Math.min(5, stars)))}</p>
-                                                    <p className="mt-2 text-sm leading-6 text-gray-700">
-                                                        {String(review?.comment || '').trim() || 'No review text provided.'}
-                                                    </p>
-                                                </label>
-                                            );
-                                        })}
-                                    </div>
-                                )}
                             </div>
                         </div>
 

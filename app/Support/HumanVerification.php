@@ -76,24 +76,9 @@ class HumanVerification
     /**
      * @return array<string, string>
      */
-    public static function honeypotRules(): array
-    {
-        return [
-            'website' => 'nullable|string|max:0',
-            'company_name' => 'nullable|string|max:0',
-            'contact_notes' => 'nullable|string|max:0',
-        ];
-    }
-
-    /**
-     * @return array<string, string>
-     */
     public static function messages(): array
     {
         return [
-            'website.max' => 'Human verification failed.',
-            'company_name.max' => 'Human verification failed.',
-            'contact_notes.max' => 'Human verification failed.',
             'human_check_answer.required' => 'Human verification is required.',
             'turnstile_token.required' => 'Please complete the captcha verification.',
         ];

@@ -133,7 +133,7 @@ class UserWorkspaceController extends Controller
         $tickets = SupportTicket::query()
             ->where('user_id', $user->id)
             ->with([
-                'messages' => static fn (Builder $query) => $query
+                'messages' => static fn ($query) => $query
                     ->with('user:id,name')
                     ->oldest('id'),
             ])

@@ -29,7 +29,7 @@ class SupportTicketController extends Controller
         $tickets = SupportTicket::query()
             ->with([
                 'user:id,name,email',
-                'messages' => static fn (Builder $query) => $query
+                'messages' => static fn ($query) => $query
                     ->with('user:id,name')
                     ->oldest('id'),
             ])

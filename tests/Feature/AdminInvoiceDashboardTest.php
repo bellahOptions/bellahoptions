@@ -31,7 +31,7 @@ class AdminInvoiceDashboardTest extends TestCase
                 'customer_name' => 'User Test',
                 'customer_email' => 'user@example.com',
                 'title' => 'Blocked Invoice',
-                'amount' => '100.00',
+                'items' => [['description' => 'Blocked service', 'quantity' => 1, 'unit_price' => '100.00']],
                 'currency' => 'NGN',
             ])
             ->assertForbidden();
@@ -90,7 +90,7 @@ class AdminInvoiceDashboardTest extends TestCase
             'customer_occupation' => 'Data Analyst',
             'title' => 'Premium Strategy Session',
             'description' => 'One-on-one options advisory session.',
-            'amount' => '25000.00',
+            'items' => [['description' => 'Strategy session', 'quantity' => 1, 'unit_price' => '25000.00']],
             'currency' => 'NGN',
             'due_date' => now()->addDays(7)->toDateString(),
         ]);
@@ -126,7 +126,7 @@ class AdminInvoiceDashboardTest extends TestCase
             'customer_name' => 'Invoice Start',
             'customer_email' => 'invoice.start@example.com',
             'title' => 'Invoice Number Check',
-            'amount' => '1200.00',
+            'items' => [['description' => 'Number check service', 'quantity' => 1, 'unit_price' => '1200.00']],
             'currency' => 'NGN',
         ]);
 
@@ -202,7 +202,7 @@ class AdminInvoiceDashboardTest extends TestCase
             'customer_id' => $customer->id,
             'title' => 'Retainer Package',
             'description' => 'Monthly support',
-            'amount' => '5000.00',
+            'items' => [['description' => 'Monthly retainer', 'quantity' => 1, 'unit_price' => '5000.00']],
             'currency' => 'NGN',
             'due_date' => now()->addDays(10)->toDateString(),
         ]);
@@ -235,7 +235,7 @@ class AdminInvoiceDashboardTest extends TestCase
             'customer_email' => 'autosave@example.com',
             'customer_occupation' => 'Software Engineer',
             'title' => 'Auto Save Invoice',
-            'amount' => '3500.00',
+            'items' => [['description' => 'Auto save service', 'quantity' => 1, 'unit_price' => '3500.00']],
             'currency' => 'NGN',
         ]);
 
@@ -265,7 +265,7 @@ class AdminInvoiceDashboardTest extends TestCase
             'customer_occupation' => 'Data Analyst',
             'title' => 'Rapid Submission Test',
             'description' => 'Checks duplicate-trigger protection for invoice sending.',
-            'amount' => '18000.00',
+            'items' => [['description' => 'Rapid submission service', 'quantity' => 1, 'unit_price' => '18000.00']],
             'currency' => 'NGN',
             'due_date' => now()->addDays(5)->toDateString(),
         ];

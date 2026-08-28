@@ -25,7 +25,7 @@ class StoreContactRequest extends FormRequest
             'phone' => ['nullable', 'string', 'min:7', 'max:40'],
             'project_type' => ['required', 'string', 'min:3', 'max:160'],
             'message' => ['required', 'string', 'min:20', 'max:2500'],
-        ], HumanVerification::rules(), HumanVerification::honeypotRules());
+        ], HumanVerification::rules());
     }
 
     /**

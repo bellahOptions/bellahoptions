@@ -56,9 +56,6 @@ class StoreServiceOrderRequest extends FormRequest
             'deliverables' => trim((string) $this->input('deliverables')),
             'additional_details' => trim((string) $this->input('additional_details')),
             'timeline_preference' => trim((string) $this->input('timeline_preference')),
-            'website' => trim((string) $this->input('website')),
-            'company_name' => trim((string) $this->input('company_name')),
-            'contact_notes' => trim((string) $this->input('contact_notes')),
             'human_check_answer' => strtoupper(trim((string) $this->input('human_check_answer'))),
             'human_check_nonce' => trim((string) $this->input('human_check_nonce')),
             'turnstile_token' => trim((string) $this->input('turnstile_token')),
@@ -123,9 +120,6 @@ class StoreServiceOrderRequest extends FormRequest
             'human_check_answer' => [Rule::requiredIf(! $this->usesTurnstile()), 'nullable', 'string', 'max:40'],
             'turnstile_token' => [Rule::requiredIf($this->usesTurnstile()), 'nullable', 'string', 'max:2048'],
             'form_rendered_at' => ['required', 'integer', 'min:1'],
-            'website' => ['nullable', 'string', 'max:0'],
-            'company_name' => ['nullable', 'string', 'max:0'],
-            'contact_notes' => ['nullable', 'string', 'max:0'],
         ], $this->serviceSpecificRules());
     }
 
@@ -140,9 +134,6 @@ class StoreServiceOrderRequest extends FormRequest
             'business_website.regex' => 'Please enter a valid full website URL, including http:// or https://.',
             'service_package.in' => 'Please select a valid package.',
             'discount_code.regex' => 'Please enter a valid discount code.',
-            'website.max' => 'Human verification failed.',
-            'company_name.max' => 'Human verification failed.',
-            'contact_notes.max' => 'Human verification failed.',
             'human_check_answer.required' => 'Human verification is required.',
             'turnstile_token.required' => 'Please complete the captcha verification.',
             'password.required' => 'A password is required to create your account.',

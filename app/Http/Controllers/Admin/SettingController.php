@@ -15,7 +15,6 @@ use App\Models\ServiceOrder;
 use App\Models\SubscriptionPlan;
 use App\Models\Term;
 use App\Support\PlatformSettings;
-use App\Support\GooglePlacesReviews;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -32,7 +31,6 @@ class SettingController extends Controller
     public function edit(ServiceOrderCatalog $catalog): Response
     {
         $contactInfo = PlatformSettings::contactInfo();
-        $googleReviewsConfig = PlatformSettings::googleReviewsConfig();
         $serviceCatalog = $catalog->all();
         $activeDiscountCodes = $this->activeDiscountCodes();
         $paidSubscriptionCounts = $this->paidSubscriptionCounts();
@@ -49,14 +47,7 @@ class SettingController extends Controller
                 'contact_map_embed_url' => $contactInfo['map_embed_url'],
                 'logo_path' => PlatformSettings::brandAssets()['logo_path'],
                 'favicon_path' => PlatformSettings::brandAssets()['favicon_path'],
-                'home_slides' => PlatformSettings::homeSlides(),
-                'public_page_headers' => PlatformSettings::publicPageHeaders(),
                 'public_seo' => PlatformSettings::publicSeoSettings(),
-                'manage_hires_landing' => PlatformSettings::manageHiresLanding(),
-                'google_reviews' => $googleReviewsConfig,
-                'google_reviews_preview' => $this->fetchGoogleReviewsPreview(
-                    $googleReviewsConfig['place_id'],
-                ),
                 'terms' => $this->policyTermsPayload(),
             ],
             'serviceCatalog' => $this->serviceCatalogMeta($serviceCatalog),
@@ -177,35 +168,8 @@ class SettingController extends Controller
             PlatformSettings::setBrandAssets($brandAssets);
         }
 
-        if (array_key_exists('home_slides', $payload)) {
-            PlatformSettings::setHomeSlides((array) $payload['home_slides']);
-        }
-
-        if (array_key_exists('public_page_headers', $payload) && is_array($payload['public_page_headers'])) {
-            PlatformSettings::setPublicPageHeaders($payload['public_page_headers']);
-        }
-
         if (array_key_exists('public_seo', $payload) && is_array($payload['public_seo'])) {
             PlatformSettings::setPublicSeoSettings($payload['public_seo']);
-        }
-
-        if (array_key_exists('manage_hires_landing', $payload) && is_array($payload['manage_hires_landing'])) {
-            PlatformSettings::setManageHiresLanding($payload['manage_hires_landing']);
-        }
-
-        if (
-            array_key_exists('google_reviews_place_id', $payload)
-            || array_key_exists('featured_google_review_ids', $payload)
-        ) {
-            $current = PlatformSettings::googleReviewsConfig();
-            PlatformSettings::setGoogleReviewsConfig([
-                'place_id' => array_key_exists('google_reviews_place_id', $payload)
-                    ? (string) $payload['google_reviews_place_id']
-                    : $current['place_id'],
-                'featured_review_ids' => array_key_exists('featured_google_review_ids', $payload)
-                    ? (array) $payload['featured_google_review_ids']
-                    : $current['featured_review_ids'],
-            ]);
         }
 
         if (is_array($payload['terms'] ?? null)) {
@@ -220,17 +184,6 @@ class SettingController extends Controller
         }
 
         return back()->with('success', 'Platform settings updated successfully.');
-    }
-
-    public function previewGoogleReviews(Request $request): JsonResponse
-    {
-        abort_unless((bool) $request->user()?->canManageSettings(), 403);
-
-        $placeId = trim((string) $request->query('place_id', ''));
-
-        $preview = $this->fetchGoogleReviewsPreview($placeId, true);
-
-        return response()->json($preview);
     }
 
     /**
@@ -615,19 +568,4 @@ class SettingController extends Controller
         }
     }
 
-    /**
-     * @return array{
-     *   success: bool,
-     *   place_id: string,
-     *   profile_url: string|null,
-     *   total_review_count: int|null,
-     *   average_rating: float|null,
-     *   reviews: array<int, array{review_id: string, reviewer_name: string, reviewer_avatar: string|null, rating: int, comment: string, published_at: string|null, review_url: string|null}>,
-     *   error: string|null
-     * }
-     */
-    private function fetchGoogleReviewsPreview(string $placeId, bool $forceFresh = false): array
-    {
-        return GooglePlacesReviews::fetchPreview($placeId, $forceFresh);
-    }
 }

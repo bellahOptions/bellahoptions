@@ -1,12 +1,32 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
+import { useEffect } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
 import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatMoney, statusLabel } from "./orderUtils";
 
+const livePaymentStatuses = new Set(["pending", "processing", "awaiting_confirmation"]);
+
 export default function OrderShow({ order, serviceBriefLabels = {}, serviceBriefData = {} }) {
     const locale = "en-NG";
     const serviceBriefEntries = Object.entries(serviceBriefData || {}).filter(([, value]) => value !== null && value !== "");
+    const isWatchingForPayment = livePaymentStatuses.has(String(order.payment_status || "").toLowerCase());
+
+    useEffect(() => {
+        if (!isWatchingForPayment) {
+            return undefined;
+        }
+
+        const timer = window.setInterval(() => {
+            router.reload({
+                only: ["order"],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 6000);
+
+        return () => window.clearInterval(timer);
+    }, [isWatchingForPayment]);
 
     return (
         <>

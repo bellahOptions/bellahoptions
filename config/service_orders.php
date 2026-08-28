@@ -474,5 +474,33 @@ return [
                 ],
             ],
         ],
+        'manage-hires' => [
+            'name' => 'Manage Your Hires',
+            'description' => 'A monthly retainer with a dedicated Bellah Options design team handling your ongoing design requests.',
+            'intake' => [],
+            'packages' => [
+                'hatchling' => [
+                    'name' => 'Hatchling',
+                    'price' => 120000,
+                    'description' => '20 design requests per month, 1 brand covered, and a dedicated design staff member.',
+                    'features' => [
+                        '20 design requests per month',
+                        '1 brand covered',
+                        'Dedicated design staff',
+                    ],
+                ],
+                'business-plan' => [
+                    'name' => 'Business Plan',
+                    'price' => 240000,
+                    'description' => 'Unlimited design requests, 3 brands covered, and a dedicated design staff member.',
+                    'features' => [
+                        'Unlimited design requests (fair use)',
+                        '3 brands covered',
+                        'Dedicated design staff',
+                    ],
+                    'is_recommended' => true,
+                ],
+            ],
+        ],
     ],
 ];

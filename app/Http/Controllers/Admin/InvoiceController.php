@@ -11,10 +11,13 @@ use App\Mail\InvoicePaidReceiptMail;
 use App\Mail\InvoiceReminderMail;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\InvoiceItem;
+use App\Models\ServiceOrderUpdate;
 use App\Support\ClientReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
@@ -64,6 +67,7 @@ class InvoiceController extends Controller
             'permissions' => [
                 'can_delete_invoices' => (bool) $request->user()?->isSuperAdmin(),
             ],
+            'occupations' => config('occupations.list', []),
             'stats' => [
                 'total_invoices' => Invoice::count(),
                 'pending_invoices' => Invoice::where('status', 'sent')->count(),
@@ -79,7 +83,7 @@ class InvoiceController extends Controller
     {
         abort_unless((bool) $request->user()?->canManageInvoices(), 403);
 
-        $invoice->load('creator:id,name', 'customer:id,name,first_name,last_name,email,occupation,phone,company,address,notes');
+        $invoice->load('creator:id,name', 'items', 'customer:id,name,first_name,last_name,email,occupation,phone,company,address,notes');
 
         return Inertia::render('Admin/Invoices/Show', [
             'permissions' => [
@@ -107,13 +111,20 @@ class InvoiceController extends Controller
             $customerName = trim("{$customer->first_name} {$customer->last_name}");
         }
 
+        $items = array_values((array) $data['items']);
+        $totalAmount = array_reduce(
+            $items,
+            fn (float $carry, array $item): float => $carry + ((int) $item['quantity'] * (float) $item['unit_price']),
+            0.0,
+        );
+
         $customerEmail = $customer?->email ?? strtolower((string) $data['customer_email']);
         $guardKey = $this->makeInvoiceTriggerGuardKey(
             'issue',
             (int) $request->user()->id,
             $customerEmail,
             (string) $data['title'],
-            (string) $data['amount'],
+            (string) $totalAmount,
             strtoupper((string) $data['currency']),
         );
 
@@ -130,13 +141,25 @@ class InvoiceController extends Controller
                 'customer_occupation' => $customer?->occupation ?? ($data['customer_occupation'] ?? null),
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
-                'amount' => $data['amount'],
+                'amount' => $totalAmount,
                 'currency' => strtoupper($data['currency']),
                 'due_date' => $data['due_date'] ?? null,
                 'status' => 'sent',
                 'issued_at' => now(),
                 'created_by' => $request->user()->id,
             ]);
+
+            $invoice->items()->createMany(array_map(
+                fn (array $item, int $index): array => [
+                    'description' => (string) $item['description'],
+                    'quantity' => (int) $item['quantity'],
+                    'unit_price' => (float) $item['unit_price'],
+                    'amount' => (int) $item['quantity'] * (float) $item['unit_price'],
+                    'sort_order' => $index,
+                ],
+                $items,
+                array_keys($items),
+            ));
 
             Mail::to($invoice->customer_email)->send(new InvoiceIssuedMail($invoice));
         } catch (Throwable $exception) {
@@ -250,11 +273,36 @@ class InvoiceController extends Controller
             return back()->with('success', "Invoice {$invoice->invoice_number} is already marked as paid.");
         }
 
-        $invoice->update([
-            'status' => 'paid',
-            'paid_at' => now(),
-            'payment_reference' => $request->validated('payment_reference'),
-        ]);
+        $paymentReference = $request->validated('payment_reference');
+
+        DB::transaction(function () use ($invoice, $paymentReference): void {
+            $invoice->update([
+                'status' => 'paid',
+                'paid_at' => now(),
+                'payment_reference' => $paymentReference,
+            ]);
+
+            $serviceOrder = $invoice->serviceOrder;
+
+            if ($serviceOrder && $serviceOrder->payment_status !== 'paid') {
+                $serviceOrder->update([
+                    'payment_status' => 'paid',
+                    'order_status' => 'queued',
+                    'progress_percent' => max(20, (int) $serviceOrder->progress_percent),
+                    'paid_at' => now(),
+                    'paystack_reference' => $paymentReference,
+                ]);
+
+                ServiceOrderUpdate::create([
+                    'service_order_id' => $serviceOrder->id,
+                    'status' => 'queued',
+                    'progress_percent' => max(20, (int) $serviceOrder->progress_percent),
+                    'note' => 'Payment confirmed by the Bellah Options team. Your project has been queued for production.',
+                    'is_public' => true,
+                    'created_by' => $serviceOrder->user_id,
+                ]);
+            }
+        });
 
         $receiptDeliveryFailed = false;
 
@@ -422,6 +470,15 @@ class InvoiceController extends Controller
             'creator' => $invoice->creator?->name,
             'created_at' => $invoice->created_at?->toDateTimeString(),
             'updated_at' => $invoice->updated_at?->toDateTimeString(),
+            'items' => $withRelations && $invoice->relationLoaded('items')
+                ? $invoice->items->map(fn (InvoiceItem $item): array => [
+                    'id' => $item->id,
+                    'description' => $item->description,
+                    'quantity' => $item->quantity,
+                    'unit_price' => (string) $item->unit_price,
+                    'amount' => (string) $item->amount,
+                ])->all()
+                : [],
             'customer' => $withRelations && $invoice->relationLoaded('customer') && $invoice->customer ? [
                 'id' => $invoice->customer->id,
                 'name' => $invoice->customer->name,

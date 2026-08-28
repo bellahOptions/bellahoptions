@@ -126,10 +126,25 @@
             font-weight: 700;
         }
 
+        .items td:nth-child(2),
+        .items th:nth-child(2),
+        .items td:nth-child(3),
+        .items th:nth-child(3),
         .items td:last-child,
         .items th:last-child {
-            width: 170px;
             text-align: right;
+        }
+
+        .items td:nth-child(2),
+        .items th:nth-child(2) {
+            width: 60px;
+        }
+
+        .items td:nth-child(3),
+        .items th:nth-child(3),
+        .items td:last-child,
+        .items th:last-child {
+            width: 130px;
         }
 
         .totals {
@@ -242,14 +257,20 @@
             <thead>
                 <tr>
                     <th>Description</th>
+                    <th>Qty</th>
+                    <th>Unit Price</th>
                     <th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                <tr>
-                    <td>{{ $description }}</td>
-                    <td>{{ $subtotal }}</td>
-                </tr>
+                @foreach($lineItems as $lineItem)
+                    <tr>
+                        <td>{{ $lineItem['description'] }}</td>
+                        <td>{{ $lineItem['quantity'] }}</td>
+                        <td>{{ $lineItem['unit_price'] }}</td>
+                        <td>{{ $lineItem['amount'] }}</td>
+                    </tr>
+                @endforeach
             </tbody>
         </table>
 

@@ -1,8 +1,7 @@
 import { Head, Link } from "@inertiajs/react";
-import Slider from "@/Components/Slider";
+import { Suspense, lazy } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
-import GoogleReviewsSection from "@/Components/GoogleReviewsSection";
 import ClientReviewsSection from "@/Components/ClientReviewsSection";
 import {
     ArrowRightIcon,
@@ -21,6 +20,11 @@ import {
     SwatchIcon,
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
+
+const Slider = lazy(() => import("@/Components/Slider"));
+
+const sliderFallbackClassName =
+    "h-[min(760px,calc(100svh-84px))] min-h-[520px] w-full animate-pulse bg-gray-100 sm:h-[min(800px,calc(100svh-96px))] sm:min-h-[600px]";
 
 const brandLogos = [
     {
@@ -160,7 +164,9 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
 
             <PageTheme>
                 <div className="bg-white text-gray-950">
-                    <Slider slides={slideShows} />
+                    <Suspense fallback={<div className={sliderFallbackClassName} />}>
+                        <Slider slides={slideShows} />
+                    </Suspense>
 
                     <RevealSection className="border-y border-gray-100 bg-white py-10 sm:py-12 my-10">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -355,11 +361,6 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                         className="bg-white py-16 sm:py-20 lg:py-24"
                         title="Verified Client Reviews"
                         subtitle="Recent client feedback with star ratings from completed Bellah Options projects."
-                    />
-
-                    <GoogleReviewsSection
-                        title="Trusted By Real Clients"
-                        subtitle="Real Google feedback from businesses and founders we have worked with."
                     />
 
                     <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">

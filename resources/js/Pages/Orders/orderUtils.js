@@ -54,9 +54,6 @@ export function buildOrderFormSeed(checkoutServices, defaults = {}) {
         human_check_nonce: defaults.human_check_nonce || "",
         turnstile_token: "",
         form_rendered_at: defaults.form_rendered_at || 0,
-        website: "",
-        company_name: "",
-        contact_notes: "",
         discount_code: defaults.discount_code || "",
         prospect_draft_token: defaults.prospect_draft_token || "",
     };

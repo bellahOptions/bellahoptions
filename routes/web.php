@@ -38,14 +38,14 @@ Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name(
 // ORDER ROUTES
 Route::get('/order', fn () => redirect()->route('services'))->name('orders.index');
 Route::get('/order/{serviceSlug}', [ServiceOrderController::class, 'create'])
-    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service', 'manage-hires'])
     ->name('orders.create');
 Route::post('/order/{serviceSlug}', [ServiceOrderController::class, 'store'])
-    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service', 'manage-hires'])
     ->middleware('throttle:order-form')
     ->name('orders.store');
 Route::post('/order/{serviceSlug}/prospect-draft', [ServiceOrderController::class, 'saveProspectDraft'])
-    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service'])
+    ->whereIn('serviceSlug', ['social-media-design', 'graphic-design', 'brand-design', 'web-design', 'mobile-app-development', 'ui-ux', 'special-service', 'manage-hires'])
     ->middleware('throttle:20,1')
     ->name('orders.prospect-draft.store');
 Route::get('/orders/{serviceOrder}/payment', [ServiceOrderController::class, 'payment'])->name('orders.payment.show');

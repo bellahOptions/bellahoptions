@@ -1,5 +1,6 @@
 import { Head, Link, useForm, usePage } from "@inertiajs/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
 import {
@@ -49,9 +50,6 @@ const errorStepMap = {
     turnstile_token: 6,
     human_check_nonce: 6,
     form_rendered_at: 6,
-    website: 6,
-    company_name: 6,
-    contact_notes: 6,
 };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,9 +65,6 @@ const sensitiveDraftFields = new Set([
     "human_check_nonce",
     "form_rendered_at",
     "turnstile_token",
-    "website",
-    "company_name",
-    "contact_notes",
 ]);
 
 function resolveAutoTimeline(serviceSlug, packageCode) {
@@ -293,10 +288,6 @@ export default function OrderCreate({
         if (fieldName === "turnstile_token") {
             if (humanVerificationMode !== "turnstile") return null;
             return normalized === "" ? "Please complete the captcha verification." : null;
-        }
-
-        if (fieldName === "website" || fieldName === "company_name" || fieldName === "contact_notes") {
-            return normalized === "" ? null : "Human verification failed.";
         }
 
         if (!intakeField) {
@@ -751,7 +742,7 @@ export default function OrderCreate({
         }
 
         if (stepNumber === 6) {
-            const fields = ["website", "company_name", "contact_notes"];
+            const fields = [];
 
             if (humanVerificationMode === "turnstile") {
                 fields.push("turnstile_token");
@@ -981,6 +972,14 @@ export default function OrderCreate({
                                     </div>
                                 )}
 
+                                <AnimatePresence mode="wait">
+                                <motion.div
+                                    key={currentStep}
+                                    initial={{ opacity: 0, x: 24 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -24 }}
+                                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                                >
                                 {currentStep === 1 && (
                                     <section>
                                         <SectionTitle
@@ -989,7 +988,13 @@ export default function OrderCreate({
                                         />
                                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                             <Field label="Full Name" error={errors.full_name}>
-                                                <input autoComplete="name" value={data.full_name} onChange={(event) => updateField("full_name", event.target.value)} className={inputClassName} />
+                                                <input
+                                                    autoComplete="name"
+                                                    value={data.full_name}
+                                                    onChange={(event) => updateField("full_name", event.target.value)}
+                                                    disabled={isAuthenticated}
+                                                    className={`${inputClassName} disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500`}
+                                                />
                                             </Field>
                                             <Field label="Email Address" error={errors.email}>
                                                 <input
@@ -999,7 +1004,8 @@ export default function OrderCreate({
                                                     placeholder="name@company.com"
                                                     value={data.email}
                                                     onChange={(event) => updateField("email", event.target.value)}
-                                                    className={inputClassName}
+                                                    disabled={isAuthenticated}
+                                                    className={`${inputClassName} disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500`}
                                                 />
                                             </Field>
                                             <Field label="Phone / WhatsApp" error={errors.phone}>
@@ -1340,45 +1346,12 @@ export default function OrderCreate({
                                         </div>
                                     </section>
                                 )}
+                                </motion.div>
+                                </AnimatePresence>
 
                                 <input type="hidden" value={data.human_check_nonce} readOnly />
                                 <input type="hidden" value={data.form_rendered_at} readOnly />
                                 <input type="hidden" value={data.discount_code} readOnly />
-                                <div className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden" aria-hidden="true">
-                                    <label>
-                                        Leave this field empty
-                                        <input
-                                            type="text"
-                                            name="website"
-                                            tabIndex={-1}
-                                            autoComplete="off"
-                                            value={data.website}
-                                            onChange={(event) => updateField("website", event.target.value)}
-                                        />
-                                    </label>
-                                    <label>
-                                        Leave this field empty
-                                        <input
-                                            type="text"
-                                            name="company_name"
-                                            tabIndex={-1}
-                                            autoComplete="off"
-                                            value={data.company_name}
-                                            onChange={(event) => updateField("company_name", event.target.value)}
-                                        />
-                                    </label>
-                                    <label>
-                                        Leave this field empty
-                                        <input
-                                            type="text"
-                                            name="contact_notes"
-                                            tabIndex={-1}
-                                            autoComplete="off"
-                                            value={data.contact_notes}
-                                            onChange={(event) => updateField("contact_notes", event.target.value)}
-                                        />
-                                    </label>
-                                </div>
 
                                 <div className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex gap-3">

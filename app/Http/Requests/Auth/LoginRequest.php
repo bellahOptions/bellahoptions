@@ -32,7 +32,7 @@ class LoginRequest extends FormRequest
         return array_merge([
             'email' => ['required', 'string', 'email'],
             'password' => ['required', 'string'],
-        ], HumanVerification::rules(), HumanVerification::honeypotRules());
+        ], HumanVerification::rules());
     }
 
     /**
@@ -50,9 +50,6 @@ class LoginRequest extends FormRequest
             'human_check_answer' => strtoupper(trim((string) $this->input('human_check_answer'))),
             'human_check_nonce' => trim((string) $this->input('human_check_nonce')),
             'turnstile_token' => trim((string) $this->input('turnstile_token')),
-            'website' => trim((string) $this->input('website')),
-            'company_name' => trim((string) $this->input('company_name')),
-            'contact_notes' => trim((string) $this->input('contact_notes')),
         ]);
     }
 

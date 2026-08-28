@@ -26,9 +26,6 @@ class RegisterRequest extends FormRequest
             'human_check_answer' => strtoupper(trim((string) $this->input('human_check_answer'))),
             'human_check_nonce' => trim((string) $this->input('human_check_nonce')),
             'turnstile_token' => trim((string) $this->input('turnstile_token')),
-            'website' => trim((string) $this->input('website')),
-            'company_name' => trim((string) $this->input('company_name')),
-            'contact_notes' => trim((string) $this->input('contact_notes')),
         ]);
     }
 
@@ -43,7 +40,7 @@ class RegisterRequest extends FormRequest
             'last_name' => ['required_without:name', 'string', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Password::defaults()],
-        ], HumanVerification::rules(), HumanVerification::honeypotRules());
+        ], HumanVerification::rules());
     }
 
     /**

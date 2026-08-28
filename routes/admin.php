@@ -93,7 +93,6 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::post('/admin/settings/discount-codes', [SettingController::class, 'storeDiscount'])->name('admin.settings.discounts.store');
     Route::patch('/admin/settings/discount-codes/{discountCode}/status', [SettingController::class, 'toggleDiscountStatus'])->name('admin.settings.discounts.status');
     Route::delete('/admin/settings/discount-codes/{discountCode}', [SettingController::class, 'destroyDiscount'])->name('admin.settings.discounts.destroy');
-    Route::get('/admin/settings/google-reviews/preview', [SettingController::class, 'previewGoogleReviews'])->name('admin.settings.google-reviews.preview');
     Route::post('/admin/client-reviews', [AdminClientReviewController::class, 'store'])->name('admin.client-reviews.store');
     Route::patch('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'update'])->name('admin.client-reviews.update');
     Route::delete('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'destroy'])->name('admin.client-reviews.destroy');

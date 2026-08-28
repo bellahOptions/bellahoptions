@@ -134,6 +134,48 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                         </div>
                     </section>
 
+                    {invoice.items?.length > 0 && (
+                        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                            <h4 className="text-base font-semibold text-gray-900">Line Items</h4>
+                            <div className="mt-4 overflow-x-auto">
+                                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th className="px-3 py-2 text-left font-semibold text-gray-600">Description</th>
+                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Qty</th>
+                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Unit Price</th>
+                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {invoice.items.map((item) => (
+                                            <tr key={item.id}>
+                                                <td className="px-3 py-2 text-gray-900">{item.description}</td>
+                                                <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
+                                                <td className="px-3 py-2 text-right text-gray-700">
+                                                    {formatMoney(item.unit_price, invoice.currency)}
+                                                </td>
+                                                <td className="px-3 py-2 text-right text-gray-900">
+                                                    {formatMoney(item.amount, invoice.currency)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colSpan={3} className="px-3 py-2 text-right font-semibold text-gray-900">
+                                                Total
+                                            </td>
+                                            <td className="px-3 py-2 text-right font-semibold text-gray-900">
+                                                {formatMoney(invoice.amount, invoice.currency)}
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </section>
+                    )}
+
                     <section className="grid gap-6 lg:grid-cols-2">
                         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                             <h4 className="text-base font-semibold text-gray-900">Customer Details</h4>

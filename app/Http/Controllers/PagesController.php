@@ -236,10 +236,13 @@ class PagesController extends Controller
         return Inertia::render('WebDesignSamples');
     }
 
-    public function manageHiresPage()
+    public function manageHiresPage(ServiceOrderCatalog $catalog)
     {
+        $service = $catalog->service('manage-hires');
+
         return Inertia::render('ManageHires', [
-            'landing' => PlatformSettings::manageHiresLanding(),
+            'whatsappUrl' => PlatformSettings::contactInfo()['whatsapp_url'] ?? '',
+            'packages' => is_array($service) ? ($service['packages'] ?? []) : [],
         ]);
     }
 

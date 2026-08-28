@@ -34,15 +34,6 @@ class AdminPlatformSettingsTest extends TestCase
                 'contact_whatsapp_url' => 'https://wa.me/2348011112222',
                 'contact_behance_url' => 'https://www.behance.net/bellahoptionsNG',
                 'contact_map_embed_url' => 'https://maps.google.com/maps?q=Ikeja&t=&z=13&ie=UTF8&iwloc=&output=embed',
-                'home_slides' => [
-                    [
-                        'title' => 'Slide One',
-                        'subtitle' => 'Slide one subtitle',
-                        'image' => '3.png',
-                        'cta_label' => 'Learn More',
-                        'cta_url' => '/services/graphic-design',
-                    ],
-                ],
                 'service_prices' => [
                     'social-media-design' => [
                         'starter' => 35000,
@@ -104,15 +95,6 @@ class AdminPlatformSettingsTest extends TestCase
                 'contact_whatsapp_url' => 'https://wa.me/2348011112222',
                 'contact_behance_url' => 'https://www.behance.net/bellahoptionsNG',
                 'contact_map_embed_url' => 'https://maps.google.com/maps?q=Ikeja&t=&z=13&ie=UTF8&iwloc=&output=embed',
-                'home_slides' => [
-                    [
-                        'title' => 'Slide One',
-                        'subtitle' => 'Slide one subtitle',
-                        'image' => '3.png',
-                        'cta_label' => 'Learn More',
-                        'cta_url' => '/services/graphic-design',
-                    ],
-                ],
                 'service_prices' => [
                     'social-media-design' => [
                         'starter' => 35000,

@@ -9,8 +9,6 @@ class PlatformSettings
 {
     private const CONTACT_INFO_KEY = 'default_contact_info_json';
 
-    private const HOME_SLIDES_KEY = 'home_slides_json';
-
     private const SERVICE_PRICE_OVERRIDES_KEY = 'service_price_overrides_json';
 
     private const SERVICE_PACKAGE_OVERRIDES_KEY = 'service_package_overrides_json';
@@ -19,17 +17,11 @@ class PlatformSettings
 
     private const SOCIAL_GRAPHIC_TRIAL_FEE_KEY = 'social_graphic_trial_fee_ngn';
 
-    private const GOOGLE_REVIEWS_CONFIG_KEY = 'google_reviews_config_json';
-
     private const BRAND_ASSETS_KEY = 'brand_assets_json';
-
-    private const PUBLIC_PAGE_HEADERS_KEY = 'public_page_headers_json';
 
     private const PUBLIC_SEO_SETTINGS_KEY = 'public_seo_settings_json';
 
     private const MAIN_WEBSITE_URI_KEY = 'main_website_uri';
-
-    private const MANAGE_HIRES_LANDING_KEY = 'manage_hires_landing_json';
 
     private const EMAIL_TEMPLATE_LIBRARY_KEY = 'email_template_library_json';
 
@@ -82,69 +74,6 @@ class PlatformSettings
     }
 
     /**
-     * @return array<int, array{title: string, subtitle: string, image: string, cta_label: string, cta_url: string}>
-     */
-    public static function homeSlides(): array
-    {
-        $defaults = self::defaultHomeSlides();
-        $raw = AppSetting::getValue(self::HOME_SLIDES_KEY);
-
-        if (! is_string($raw) || trim($raw) === '') {
-            return $defaults;
-        }
-
-        $decoded = json_decode($raw, true);
-        if (! is_array($decoded)) {
-            return $defaults;
-        }
-
-        $slides = [];
-
-        foreach ($decoded as $candidate) {
-            if (! is_array($candidate)) {
-                continue;
-            }
-
-            $sanitized = self::sanitizeSlide($candidate);
-
-            if ($sanitized === null) {
-                continue;
-            }
-
-            $slides[] = $sanitized;
-        }
-
-        return $slides === [] ? $defaults : array_slice($slides, 0, 10);
-    }
-
-    /**
-     * @param  array<int, array<string, mixed>>  $slides
-     */
-    public static function setHomeSlides(array $slides): void
-    {
-        $payload = [];
-
-        foreach ($slides as $candidate) {
-            if (! is_array($candidate)) {
-                continue;
-            }
-
-            $sanitized = self::sanitizeSlide($candidate);
-            if ($sanitized === null) {
-                continue;
-            }
-
-            $payload[] = $sanitized;
-        }
-
-        if ($payload === []) {
-            $payload = self::defaultHomeSlides();
-        }
-
-        AppSetting::setValue(self::HOME_SLIDES_KEY, json_encode(array_slice($payload, 0, 10), JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
      * @return array{logo_path: string, favicon_path: string}
      */
     public static function brandAssets(): array
@@ -181,65 +110,6 @@ class PlatformSettings
         ];
 
         AppSetting::setValue(self::BRAND_ASSETS_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
-     * @return array<string, array{title: string, text: string, background_image: string|null}>
-     */
-    public static function publicPageHeaders(): array
-    {
-        $defaults = self::defaultPublicPageHeaders();
-        $raw = AppSetting::getValue(self::PUBLIC_PAGE_HEADERS_KEY);
-
-        if (! is_string($raw) || trim($raw) === '') {
-            return $defaults;
-        }
-
-        $decoded = json_decode($raw, true);
-
-        if (! is_array($decoded)) {
-            return $defaults;
-        }
-
-        $normalized = [];
-
-        foreach ($defaults as $pageKey => $defaultConfig) {
-            $candidate = is_array($decoded[$pageKey] ?? null) ? $decoded[$pageKey] : [];
-
-            $title = trim((string) ($candidate['title'] ?? ''));
-            $text = trim((string) ($candidate['text'] ?? ''));
-
-            $normalized[$pageKey] = [
-                'title' => $title !== '' ? mb_substr($title, 0, 180) : $defaultConfig['title'],
-                'text' => $text !== '' ? mb_substr($text, 0, 500) : $defaultConfig['text'],
-                'background_image' => self::sanitizeAssetPath($candidate['background_image'] ?? null),
-            ];
-        }
-
-        return $normalized;
-    }
-
-    /**
-     * @param  array<string, mixed>  $headers
-     */
-    public static function setPublicPageHeaders(array $headers): void
-    {
-        $defaults = self::defaultPublicPageHeaders();
-        $payload = [];
-
-        foreach ($defaults as $pageKey => $defaultConfig) {
-            $candidate = is_array($headers[$pageKey] ?? null) ? $headers[$pageKey] : [];
-            $title = trim((string) ($candidate['title'] ?? ''));
-            $text = trim((string) ($candidate['text'] ?? ''));
-
-            $payload[$pageKey] = [
-                'title' => $title !== '' ? mb_substr($title, 0, 180) : $defaultConfig['title'],
-                'text' => $text !== '' ? mb_substr($text, 0, 500) : $defaultConfig['text'],
-                'background_image' => self::sanitizeAssetPath($candidate['background_image'] ?? null),
-            ];
-        }
-
-        AppSetting::setValue(self::PUBLIC_PAGE_HEADERS_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
     }
 
     /**
@@ -570,74 +440,6 @@ class PlatformSettings
         );
     }
 
-    /**
-     * @return array{place_id: string, featured_review_ids: array<int, string>}
-     */
-    public static function googleReviewsConfig(): array
-    {
-        $defaults = self::defaultGoogleReviewsConfig();
-        $raw = AppSetting::getValue(self::GOOGLE_REVIEWS_CONFIG_KEY);
-
-        if (! is_string($raw) || trim($raw) === '') {
-            return $defaults;
-        }
-
-        $decoded = json_decode($raw, true);
-        if (! is_array($decoded)) {
-            return $defaults;
-        }
-
-        $placeId = trim((string) ($decoded['place_id'] ?? ($decoded['widget_id'] ?? '')));
-        $featuredIds = is_array($decoded['featured_review_ids'] ?? null)
-            ? $decoded['featured_review_ids']
-            : [];
-
-        $sanitizedFeaturedIds = [];
-        foreach ($featuredIds as $value) {
-            $id = trim((string) $value);
-            if ($id === '') {
-                continue;
-            }
-
-            $sanitizedFeaturedIds[] = mb_substr($id, 0, 220);
-        }
-
-        return [
-            'place_id' => mb_substr($placeId !== '' ? $placeId : (string) $defaults['place_id'], 0, 512),
-            'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $config
-     */
-    public static function setGoogleReviewsConfig(array $config): void
-    {
-        $defaults = self::defaultGoogleReviewsConfig();
-
-        $placeId = trim((string) ($config['place_id'] ?? ($config['widget_id'] ?? '')));
-        $featuredIds = is_array($config['featured_review_ids'] ?? null)
-            ? $config['featured_review_ids']
-            : [];
-
-        $sanitizedFeaturedIds = [];
-        foreach ($featuredIds as $value) {
-            $id = trim((string) $value);
-            if ($id === '') {
-                continue;
-            }
-
-            $sanitizedFeaturedIds[] = mb_substr($id, 0, 220);
-        }
-
-        $payload = [
-            'place_id' => mb_substr($placeId, 0, 512),
-            'featured_review_ids' => array_values(array_unique(array_slice($sanitizedFeaturedIds, 0, 20))),
-        ];
-
-        AppSetting::setValue(self::GOOGLE_REVIEWS_CONFIG_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
-    }
-
     public static function siteUrl(): string
     {
         $default = self::defaultSiteUrl();
@@ -793,91 +595,6 @@ class PlatformSettings
     }
 
     /**
-     * @return array{
-     *   badge:string,
-     *   package_name:string,
-     *   monthly_price_ngn:float,
-     *   tagline:string,
-     *   description:string,
-     *   highlights:array<int,string>,
-     *   exclusions_note:string,
-     *   primary_cta_label:string,
-     *   primary_cta_url:string,
-     *   secondary_cta_label:string,
-     *   secondary_cta_url:string
-     * }
-     */
-    public static function manageHiresLanding(): array
-    {
-        $defaults = self::defaultManageHiresLanding();
-        $raw = AppSetting::getValue(self::MANAGE_HIRES_LANDING_KEY);
-
-        if (! is_string($raw) || trim($raw) === '') {
-            return $defaults;
-        }
-
-        $decoded = json_decode($raw, true);
-
-        if (! is_array($decoded)) {
-            return $defaults;
-        }
-
-        $badge = trim((string) ($decoded['badge'] ?? ''));
-        $packageName = trim((string) ($decoded['package_name'] ?? ''));
-        $tagline = trim((string) ($decoded['tagline'] ?? ''));
-        $description = trim((string) ($decoded['description'] ?? ''));
-        $exclusionsNote = trim((string) ($decoded['exclusions_note'] ?? ''));
-        $primaryCtaLabel = trim((string) ($decoded['primary_cta_label'] ?? ''));
-        $primaryCtaUrl = trim((string) ($decoded['primary_cta_url'] ?? ''));
-        $secondaryCtaLabel = trim((string) ($decoded['secondary_cta_label'] ?? ''));
-        $secondaryCtaUrl = trim((string) ($decoded['secondary_cta_url'] ?? ''));
-        $monthlyPriceNgn = is_numeric($decoded['monthly_price_ngn'] ?? null)
-            ? max(0, round((float) $decoded['monthly_price_ngn'], 2))
-            : $defaults['monthly_price_ngn'];
-        $highlights = self::sanitizeFeatureList($decoded['highlights'] ?? []);
-
-        return [
-            'badge' => $badge !== '' ? mb_substr($badge, 0, 80) : $defaults['badge'],
-            'package_name' => $packageName !== '' ? mb_substr($packageName, 0, 120) : $defaults['package_name'],
-            'monthly_price_ngn' => $monthlyPriceNgn > 0 ? $monthlyPriceNgn : $defaults['monthly_price_ngn'],
-            'tagline' => $tagline !== '' ? mb_substr($tagline, 0, 180) : $defaults['tagline'],
-            'description' => $description !== '' ? mb_substr($description, 0, 1000) : $defaults['description'],
-            'highlights' => $highlights !== [] ? $highlights : $defaults['highlights'],
-            'exclusions_note' => $exclusionsNote !== '' ? mb_substr($exclusionsNote, 0, 260) : $defaults['exclusions_note'],
-            'primary_cta_label' => $primaryCtaLabel !== '' ? mb_substr($primaryCtaLabel, 0, 80) : $defaults['primary_cta_label'],
-            'primary_cta_url' => self::sanitizeAssetPath($primaryCtaUrl) ?? $defaults['primary_cta_url'],
-            'secondary_cta_label' => $secondaryCtaLabel !== '' ? mb_substr($secondaryCtaLabel, 0, 80) : $defaults['secondary_cta_label'],
-            'secondary_cta_url' => self::sanitizeAssetPath($secondaryCtaUrl) ?? $defaults['secondary_cta_url'],
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $payload
-     */
-    public static function setManageHiresLanding(array $payload): void
-    {
-        $defaults = self::defaultManageHiresLanding();
-        $merged = [
-            ...$defaults,
-            ...$payload,
-        ];
-
-        AppSetting::setValue(self::MANAGE_HIRES_LANDING_KEY, json_encode([
-            'badge' => mb_substr(trim((string) ($merged['badge'] ?? $defaults['badge'])), 0, 80),
-            'package_name' => mb_substr(trim((string) ($merged['package_name'] ?? $defaults['package_name'])), 0, 120),
-            'monthly_price_ngn' => max(0, round((float) ($merged['monthly_price_ngn'] ?? $defaults['monthly_price_ngn']), 2)),
-            'tagline' => mb_substr(trim((string) ($merged['tagline'] ?? $defaults['tagline'])), 0, 180),
-            'description' => mb_substr(trim((string) ($merged['description'] ?? $defaults['description'])), 0, 1000),
-            'highlights' => self::sanitizeFeatureList($merged['highlights'] ?? $defaults['highlights']),
-            'exclusions_note' => mb_substr(trim((string) ($merged['exclusions_note'] ?? $defaults['exclusions_note'])), 0, 260),
-            'primary_cta_label' => mb_substr(trim((string) ($merged['primary_cta_label'] ?? $defaults['primary_cta_label'])), 0, 80),
-            'primary_cta_url' => self::sanitizeAssetPath($merged['primary_cta_url'] ?? $defaults['primary_cta_url']) ?? $defaults['primary_cta_url'],
-            'secondary_cta_label' => mb_substr(trim((string) ($merged['secondary_cta_label'] ?? $defaults['secondary_cta_label'])), 0, 80),
-            'secondary_cta_url' => self::sanitizeAssetPath($merged['secondary_cta_url'] ?? $defaults['secondary_cta_url']) ?? $defaults['secondary_cta_url'],
-        ], JSON_UNESCAPED_SLASHES));
-    }
-
-    /**
      * @return array{phone: string, email: string, location: string, whatsapp_url: string, behance_url: string, map_embed_url: string}
      */
     private static function defaultContactInfo(): array
@@ -900,107 +617,6 @@ class PlatformSettings
         return [
             'logo_path' => '/logo-06.svg',
             'favicon_path' => '/images/icon/favicon-32x32.png',
-        ];
-    }
-
-    /**
-     * @return array<string, array{title: string, text: string, background_image: string|null}>
-     */
-    private static function defaultPublicPageHeaders(): array
-    {
-        return [
-            'about' => [
-                'title' => 'We are a creative tech agency built for ambitious brands.',
-                'text' => 'Bellah Options helps businesses grow faster through brand identity, graphic design, social media content, websites, and product experiences that look polished and work clearly.',
-                'background_image' => null,
-            ],
-            'services' => [
-                'title' => 'Creative services built for launch, growth, and consistency.',
-                'text' => 'Choose the service lane that matches your next move. Every package is structured to make the brief clearer and the output easier to use.',
-                'background_image' => null,
-            ],
-            'gallery' => [
-                'title' => 'A look at visual systems, campaigns, and brand assets.',
-                'text' => 'Every project shown here is published directly by the Bellah Options team.',
-                'background_image' => null,
-            ],
-            'blog' => [
-                'title' => 'Ideas on branding, content, design, and digital growth.',
-                'text' => 'Notes from Bellah Options for founders, creators, and growing teams building stronger digital presence.',
-                'background_image' => null,
-            ],
-            'events' => [
-                'title' => 'Workshops, launches, and creative sessions.',
-                'text' => 'Events published by the Bellah Options team appear here automatically.',
-                'background_image' => null,
-            ],
-            'reviews' => [
-                'title' => 'Google Reviews From Real Clients',
-                'text' => 'Read public Google feedback from founders, teams, and businesses that worked with Bellah Options.',
-                'background_image' => null,
-            ],
-            'faqs' => [
-                'title' => 'Frequently Asked Questions',
-                'text' => 'Clear answers to common questions about Bellah Options services, process, timelines, and delivery.',
-                'background_image' => null,
-            ],
-            'contact' => [
-                'title' => 'Tell us what you are building.',
-                'text' => 'Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step.',
-                'background_image' => null,
-            ],
-            'web_design_samples' => [
-                'title' => 'Web Design Samples',
-                'text' => 'A focused set of live web experiences from Bellah Options projects.',
-                'background_image' => null,
-            ],
-            'manage_hires' => [
-                'title' => 'Dedicated unlimited design support for growth-stage teams.',
-                'text' => 'Scale brand and social design execution with one retained creative partner.',
-                'background_image' => null,
-            ],
-            'seo_modules_functions' => [
-                'title' => 'SEO modules and functions built for measurable visibility.',
-                'text' => 'Structured SEO modules that improve crawl quality, content relevance, and conversion-focused search performance.',
-                'background_image' => null,
-            ],
-        ];
-    }
-
-    /**
-     * @return array{
-     *   badge:string,
-     *   package_name:string,
-     *   monthly_price_ngn:float,
-     *   tagline:string,
-     *   description:string,
-     *   highlights:array<int,string>,
-     *   exclusions_note:string,
-     *   primary_cta_label:string,
-     *   primary_cta_url:string,
-     *   secondary_cta_label:string,
-     *   secondary_cta_url:string
-     * }
-     */
-    private static function defaultManageHiresLanding(): array
-    {
-        return [
-            'badge' => 'Dedicated Design Retainer',
-            'package_name' => 'Manage Your Hires',
-            'monthly_price_ngn' => 220000,
-            'tagline' => 'Unlimited design requests managed by a dedicated Bellah creative team.',
-            'description' => 'This plan is for teams that need consistent design output without hiring full-time in-house designers. It covers design services only and excludes UI/UX.',
-            'highlights' => [
-                'Dedicated design team support',
-                'Unlimited design requests (fair use)',
-                'Batch delivery during work hours',
-                'Brand-consistent design production',
-            ],
-            'exclusions_note' => 'UI/UX design is excluded from this package.',
-            'primary_cta_label' => 'Start This Plan',
-            'primary_cta_url' => '/contact-us',
-            'secondary_cta_label' => 'Discuss Scope',
-            'secondary_cta_url' => '/services',
         ];
     }
 
@@ -1398,76 +1014,6 @@ class PlatformSettings
         $configured = trim((string) config('app.url', 'http://localhost'));
 
         return self::normalizeHttpUrl($configured, 'http://localhost');
-    }
-
-    /**
-     * @return array{place_id: string, featured_review_ids: array<int, string>}
-     */
-    private static function defaultGoogleReviewsConfig(): array
-    {
-        return [
-            'place_id' => 'ChIJlTRzKhGNOxAR2XWyE91sBNs',
-            'featured_review_ids' => [],
-        ];
-    }
-
-    /**
-     * @return array<int, array{title: string, subtitle: string, image: string, cta_label: string, cta_url: string}>
-     */
-    private static function defaultHomeSlides(): array
-    {
-        return [
-            [
-                'title' => 'Brand Identity System',
-                'subtitle' => 'Logo suite, color strategy, and campaign templates for market visibility.',
-                'image' => '3.png',
-                'cta_label' => 'Explore Brand Design',
-                'cta_url' => '/order/brand-design',
-            ],
-            [
-                'title' => 'Conversion Web Experience',
-                'subtitle' => 'Clean information architecture and persuasive interface for lead capture.',
-                'image' => 't-site.PNG',
-                'cta_label' => 'Explore Web Design',
-                'cta_url' => '/order/web-design',
-            ],
-            [
-                'title' => 'Social Media Campaign',
-                'subtitle' => 'Audience-specific content templates designed for reach and conversion.',
-                'image' => '23.jpeg',
-                'cta_label' => 'Explore Graphic Design',
-                'cta_url' => '/order/graphic-design',
-            ],
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $candidate
-     * @return array{title: string, subtitle: string, image: string, cta_label: string, cta_url: string}|null
-     */
-    private static function sanitizeSlide(array $candidate): ?array
-    {
-        $title = trim((string) ($candidate['title'] ?? ''));
-        $subtitle = trim((string) ($candidate['subtitle'] ?? ''));
-        $image = ltrim(trim((string) ($candidate['image'] ?? '')), '/');
-        $ctaLabel = trim((string) ($candidate['cta_label'] ?? ''));
-        $ctaUrl = trim((string) ($candidate['cta_url'] ?? ''));
-
-        if ($title === '' && $subtitle === '' && $image === '' && $ctaLabel === '' && $ctaUrl === '') {
-            return null;
-        }
-
-        if ($title === '' || $image === '') {
-            return null;
-        }
-
-        return [
-            'title' => mb_substr($title, 0, 120),
-            'subtitle' => mb_substr($subtitle, 0, 260),
-            'image' => mb_substr($image, 0, 255),
-            'cta_label' => mb_substr($ctaLabel !== '' ? $ctaLabel : 'Learn More', 0, 60),
-            'cta_url' => mb_substr($ctaUrl !== '' ? $ctaUrl : '/contact-us', 0, 255),
-        ];
     }
 
     private static function stringOrDefault(mixed $value, string $default): string

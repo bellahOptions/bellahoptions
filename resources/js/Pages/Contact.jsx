@@ -2,7 +2,6 @@ import { Head, useForm, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import PublicPageHeader from "@/Components/PublicPageHeader";
-import GoogleReviewsSection from "@/Components/GoogleReviewsSection";
 import { EnvelopeIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
 import HumanVerificationField from "@/Components/HumanVerificationField";
@@ -46,9 +45,6 @@ export default function Contact({
         turnstile_token: "",
         human_check_nonce: humanCheckNonce,
         form_rendered_at: formRenderedAt,
-        company_name: "",
-        website: "",
-        contact_notes: "",
     });
 
     useEffect(() => {
@@ -58,9 +54,6 @@ export default function Contact({
             form_rendered_at: formRenderedAt,
             human_check_answer: "",
             turnstile_token: "",
-            company_name: "",
-            website: "",
-            contact_notes: "",
         }));
     }, [formRenderedAt, humanCheckNonce, setData]);
 
@@ -70,7 +63,7 @@ export default function Contact({
         post(route("contact.submit"), {
             preserveScroll: true,
             onSuccess: () => {
-                reset("name", "email", "phone", "project_type", "message", "human_check_answer", "turnstile_token", "company_name", "website", "contact_notes");
+                reset("name", "email", "phone", "project_type", "message", "human_check_answer", "turnstile_token");
                 clearErrors();
             },
         });
@@ -126,37 +119,6 @@ export default function Contact({
                                         {flash.error}
                                     </div>
                                 )}
-
-                                <input
-                                    type="text"
-                                    name="company_name"
-                                    value={data.company_name}
-                                    onChange={(event) => setData("company_name", event.target.value)}
-                                    className="hidden"
-                                    tabIndex={-1}
-                                    autoComplete="off"
-                                    aria-hidden="true"
-                                />
-                                <input
-                                    type="text"
-                                    name="website"
-                                    value={data.website}
-                                    onChange={(event) => setData("website", event.target.value)}
-                                    className="hidden"
-                                    tabIndex={-1}
-                                    autoComplete="off"
-                                    aria-hidden="true"
-                                />
-                                <input
-                                    type="text"
-                                    name="contact_notes"
-                                    value={data.contact_notes}
-                                    onChange={(event) => setData("contact_notes", event.target.value)}
-                                    className="hidden"
-                                    tabIndex={-1}
-                                    autoComplete="off"
-                                    aria-hidden="true"
-                                />
 
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <Field
@@ -228,11 +190,6 @@ export default function Contact({
                         </div>
                     </RevealSection>
 
-                    <GoogleReviewsSection
-                        className="bg-white py-16 sm:py-20"
-                        title="What Clients Say Before They Reach Out"
-                        subtitle="Recent Google reviews from businesses and founders who have worked with Bellah Options."
-                    />
                 </main>
             </PageTheme>
         </>

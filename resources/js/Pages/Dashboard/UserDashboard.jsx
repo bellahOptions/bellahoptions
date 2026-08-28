@@ -1,5 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import { useEffect } from 'react';
 
 const compactMoney = new Intl.NumberFormat('en-NG', {
     style: 'currency',
@@ -22,6 +23,25 @@ export default function UserDashboard({
     quick_actions: quickActions = {},
     notifications = {},
 }) {
+    useEffect(() => {
+        const hasActiveWork = (stats?.active_projects ?? 0) > 0
+            || recentProjects.some((project) => project.status !== 'delivered');
+
+        if (!hasActiveWork) {
+            return undefined;
+        }
+
+        const timer = window.setInterval(() => {
+            router.reload({
+                only: ['stats', 'recent_projects', 'notifications'],
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }, 8000);
+
+        return () => window.clearInterval(timer);
+    }, [stats?.active_projects, recentProjects]);
+
     return (
         <AuthenticatedLayout>
             <Head title="Dashboard" />

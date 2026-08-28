@@ -29,7 +29,7 @@ class StoreWaitlistRequest extends FormRequest
             'name' => ['required', 'string', 'min:2', 'max:120', "regex:/^[a-zA-Z\\s\\-\\.'`]+$/"],
             'email' => ['required', 'string', 'email:rfc', 'max:255', 'unique:waitlists,email'],
             'occupation' => ['required', 'string', Rule::in(config('occupations.list', []))],
-        ], HumanVerification::rules(), HumanVerification::honeypotRules());
+        ], HumanVerification::rules());
     }
 
     /**

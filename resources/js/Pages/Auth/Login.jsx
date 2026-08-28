@@ -23,9 +23,6 @@ export default function Login({
         turnstile_token: "",
         human_check_nonce: humanCheckNonce,
         form_rendered_at: formRenderedAt,
-        website: "",
-        company_name: "",
-        contact_notes: "",
     });
 
     useEffect(() => {
@@ -35,9 +32,6 @@ export default function Login({
             turnstile_token: "",
             human_check_nonce: humanCheckNonce,
             form_rendered_at: formRenderedAt,
-            website: "",
-            company_name: "",
-            contact_notes: "",
         }));
     }, [formRenderedAt, humanCheckNonce, setData]);
 
@@ -69,36 +63,6 @@ export default function Login({
             )}
 
             <form onSubmit={submit} className="mt-6 space-y-4">
-                <input
-                    type="text"
-                    name="company_name"
-                    value={data.company_name}
-                    onChange={(event) => setData("company_name", event.target.value)}
-                    className="hidden"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                />
-                <input
-                    type="text"
-                    name="website"
-                    value={data.website}
-                    onChange={(event) => setData("website", event.target.value)}
-                    className="hidden"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                />
-                <input
-                    type="text"
-                    name="contact_notes"
-                    value={data.contact_notes}
-                    onChange={(event) => setData("contact_notes", event.target.value)}
-                    className="hidden"
-                    tabIndex={-1}
-                    autoComplete="off"
-                    aria-hidden="true"
-                />
                 <div>
                     <label
                         htmlFor="email"
