@@ -42,7 +42,7 @@ export default function Faqs({ faqs = [] }) {
                                             <div className="mt-5 space-y-3">
                                                 {items.map((item) => (
                                                     <details key={item.id} className="group rounded-md border border-gray-200 bg-gray-50 p-4 open:bg-white">
-                                                        <summary className="cursor-pointer list-none text-sm font-black text-[#000285]">
+                                                        <summary className="cursor-pointer list-none text-sm font-black text-brand">
                                                             {item.question}
                                                         </summary>
                                                         <p className="mt-3 whitespace-pre-line text-sm leading-7 text-gray-700">

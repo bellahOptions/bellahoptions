@@ -27,7 +27,7 @@ export default function AdminDashboard({
                         Monitor invoices, pending payments, and team operations from one light-themed dashboard.
                     </p>
                     <div className="mt-4 flex flex-wrap gap-3">
-                        <Link href={route('admin.live-chat.index')} className="rounded-lg bg-[#000285] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0012ad]">
+                        <Link href={route('admin.live-chat.index')} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
                             Open Live Chat
                         </Link>
                         <Link href={route('admin.support-tickets.index')} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">

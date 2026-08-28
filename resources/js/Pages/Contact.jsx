@@ -97,7 +97,7 @@ export default function Contact({
                                             as="article"
                                             className="flex items-center gap-4 bg-white p-6 shadow-sm ring-1 ring-gray-200"
                                         >
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 text-[#000285]">
+                                            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 text-brand">
                                                 <Icon className="h-6 w-6" />
                                             </div>
                                             <div>
@@ -196,7 +196,7 @@ export default function Contact({
                                             rows={6}
                                             value={data.message}
                                             onChange={(event) => setData("message", event.target.value)}
-                                            className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]"
+                                            className="w-full rounded-md border-gray-300 text-sm focus:border-brand focus:ring-brand"
                                             placeholder="Tell us what you need..."
                                         />
                                         {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message}</p>}
@@ -217,7 +217,7 @@ export default function Contact({
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="mt-5 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="mt-5 rounded-md bg-brand px-6 py-3 text-sm font-black text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {processing ? "Sending..." : "Send Message"}
                                 </button>
@@ -248,7 +248,7 @@ function Field({ label, type = "text", placeholder = "", value = "", onChange, e
                 placeholder={placeholder}
                 value={value}
                 onChange={onChange}
-                className="w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]"
+                className="w-full rounded-md border-gray-300 text-sm focus:border-brand focus:ring-brand"
             />
             {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
         </div>

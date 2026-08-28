@@ -105,7 +105,7 @@ export default function Register({
                             id="first_name"
                             name="first_name"
                             value={data.first_name}
-                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                             autoComplete="given-name"
                             onChange={(event) => setData('first_name', event.target.value)}
                             required
@@ -121,7 +121,7 @@ export default function Register({
                             id="last_name"
                             name="last_name"
                             value={data.last_name}
-                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                            className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                             autoComplete="family-name"
                             onChange={(event) => setData('last_name', event.target.value)}
                             required
@@ -139,7 +139,7 @@ export default function Register({
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                         autoComplete="username"
                         onChange={(event) => setData('email', event.target.value)}
                         required
@@ -155,7 +155,7 @@ export default function Register({
                         id="password"
                         name="password"
                         value={data.password}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                         autoComplete="new-password"
                         onChange={(event) => setData('password', event.target.value)}
                         required
@@ -171,7 +171,7 @@ export default function Register({
                         id="password_confirmation"
                         name="password_confirmation"
                         value={data.password_confirmation}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                         autoComplete="new-password"
                         onChange={(event) => setData('password_confirmation', event.target.value)}
                         required
@@ -193,7 +193,7 @@ export default function Register({
                 <button
                     type="submit"
                     disabled={processing}
-                    className="w-full rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                 >
                     {processing ? 'Creating account...' : 'Create Account'}
                 </button>

@@ -73,7 +73,7 @@ export default function OrderPayment({
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
+                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                             <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Secure Checkout</p>
                             <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
@@ -107,7 +107,7 @@ export default function OrderPayment({
                                             <SummaryRow label={`Discount${order.discount_code ? ` (${order.discount_code})` : ""}`} value={`-${formatMoney(order.discount_amount, order.currency, locale)}`} />
                                         )}
                                     </div>
-                                    <p className="mt-5 text-3xl font-black text-[#000285]">{formatMoney(order.amount, order.currency, locale)}</p>
+                                    <p className="mt-5 text-3xl font-black text-brand">{formatMoney(order.amount, order.currency, locale)}</p>
                                 </div>
                             </div>
 
@@ -127,7 +127,7 @@ export default function OrderPayment({
 
                                 <div className="mt-6 border border-gray-200 bg-gray-50 p-5">
                                     <div className="flex items-center gap-3">
-                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-[#000285]">
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-brand">
                                             <CreditCardIcon className="h-6 w-6" />
                                         </div>
                                         <div>
@@ -137,7 +137,7 @@ export default function OrderPayment({
                                     </div>
 
                                     {canPay ? (
-                                        <button type="button" onClick={handlePayNow} className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-[#000285] px-6 py-3 text-sm font-black text-white">
+                                        <button type="button" onClick={handlePayNow} className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-brand px-6 py-3 text-sm font-black text-white">
                                             Pay Online With {String(paymentProvider).toUpperCase()}
                                             <ArrowRightIcon className="h-4 w-4" />
                                         </button>
@@ -175,12 +175,12 @@ export default function OrderPayment({
                                                     value={transferReference}
                                                     onChange={(event) => setTransferReference(event.target.value)}
                                                     placeholder="Example: INV-12345"
-                                                    className="mt-2 w-full border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-[#000285]"
+                                                    className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={handleTransferSubmit}
-                                                    className="mt-4 inline-flex w-full items-center justify-center border border-[#000285] px-6 py-3 text-sm font-black text-[#000285]"
+                                                    className="mt-4 inline-flex w-full items-center justify-center border border-brand px-6 py-3 text-sm font-black text-brand"
                                                 >
                                                     I Have Paid By Transfer
                                                 </button>
@@ -247,7 +247,7 @@ export default function OrderPayment({
                             <div className="space-y-5">
                                 {termsPreview.map((section, index) => (
                                     <section key={section.id} className="border border-gray-200 bg-gray-50 p-5">
-                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">
+                                        <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">
                                             Section {index + 1}
                                         </p>
                                         <h3 className="mt-2 text-xl font-black text-gray-950">
@@ -264,7 +264,7 @@ export default function OrderPayment({
                                             <ul className="mt-4 space-y-2">
                                                 {section.bullets.map((bullet) => (
                                                     <li key={bullet} className="flex items-start gap-3 text-sm leading-7 text-gray-600">
-                                                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#000285]" />
+                                                        <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand" />
                                                         <span>{bullet}</span>
                                                     </li>
                                                 ))}
@@ -276,7 +276,7 @@ export default function OrderPayment({
 
                             <div className="mt-6 border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-7 text-blue-900">
                                 Need the full document?{" "}
-                                <Link href="/terms-of-service" className="font-black text-[#000285] underline underline-offset-2">
+                                <Link href="/terms-of-service" className="font-black text-brand underline underline-offset-2">
                                     Open the full Terms of Service page
                                 </Link>
                                 .
@@ -298,7 +298,7 @@ export default function OrderPayment({
                             <button
                                 type="button"
                                 onClick={agreeAndContinue}
-                                className="bg-[#000285] px-5 py-3 text-sm font-black text-white"
+                                className="bg-brand px-5 py-3 text-sm font-black text-white"
                             >
                                 {pendingAction ? "Agree and Continue" : "Agree to Terms"}
                             </button>

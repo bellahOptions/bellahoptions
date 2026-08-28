@@ -1,4 +1,4 @@
-export default function HashLoader({ color = '#00128a', size = 56 }) {
+export default function HashLoader({ color = '#050a80', size = 56 }) {
     const barStyle = {
         backgroundColor: color,
         height: size * 0.16,

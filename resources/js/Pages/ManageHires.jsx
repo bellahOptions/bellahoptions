@@ -37,7 +37,7 @@ export default function ManageHires({ landing = {} }) {
                                     {highlights.map((item) => (
                                         <article key={item} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                                             <div className="flex items-start gap-2">
-                                                <CheckCircleIcon className="mt-0.5 h-5 w-5 text-[#000285]" />
+                                                <CheckCircleIcon className="mt-0.5 h-5 w-5 text-brand" />
                                                 <p className="text-sm font-semibold text-gray-800">{item}</p>
                                             </div>
                                         </article>
@@ -49,7 +49,7 @@ export default function ManageHires({ landing = {} }) {
                                 </p>
                             </section>
 
-                            <aside className="rounded-2xl bg-[#000285] p-6 text-white shadow-sm">
+                            <aside className="rounded-2xl bg-brand p-6 text-white shadow-sm">
                                 <p className="text-xs font-black uppercase tracking-[0.2em] text-cyan-200">Monthly Plan</p>
                                 <p className="mt-3 text-4xl font-black">{formatNaira(landing?.monthly_price_ngn || 220000)}</p>
                                 <p className="mt-2 text-sm text-blue-100">Starting price per month</p>
@@ -57,7 +57,7 @@ export default function ManageHires({ landing = {} }) {
                                 <div className="mt-6 space-y-3">
                                     <Link
                                         href={landing?.primary_cta_url || "/contact-us"}
-                                        className="inline-flex w-full items-center justify-center rounded-md bg-white px-4 py-3 text-sm font-black text-[#000285] transition hover:bg-slate-100"
+                                        className="inline-flex w-full items-center justify-center rounded-md bg-white px-4 py-3 text-sm font-black text-brand transition hover:bg-slate-100"
                                     >
                                         {landing?.primary_cta_label || "Start This Plan"}
                                     </Link>

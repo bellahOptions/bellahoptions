@@ -76,16 +76,16 @@ export default function ComingSoon({
             <Head title="Coming Soon" />
 
             <div className="font-body relative min-h-screen overflow-hidden bg-gradient-to-br from-[#edf1ff] via-white to-[#f2f7ff] text-slate-900">
-                <div className="animate-float absolute -left-24 -top-20 h-80 w-80 rounded-full bg-[#050a97]/15 blur-3xl" />
+                <div className="animate-float absolute -left-24 -top-20 h-80 w-80 rounded-full bg-brand/15 blur-3xl" />
                 <div className="animate-float animation-delay-400 absolute -bottom-20 right-0 h-96 w-96 rounded-full bg-[#05a3e8]/20 blur-3xl" />
-                <div className="animate-float animation-delay-200 absolute right-1/3 top-1/3 h-52 w-52 rounded-full bg-[#050a49]/10 blur-3xl" />
+                <div className="animate-float animation-delay-200 absolute right-1/3 top-1/3 h-52 w-52 rounded-full bg-brand-dark/10 blur-3xl" />
 
                 <main className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-16 sm:px-8">
                     <div className="grid w-full items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                         <section className="animate-fade-up">
                             <ApplicationLogo className="h-12 w-auto sm:h-14" />
 
-                            <h1 className="font-display mt-6 text-4xl font-bold leading-tight tracking-tighter text-[#050a49] sm:text-5xl lg:text-6xl">
+                            <h1 className="font-display mt-6 text-4xl font-bold leading-tight tracking-tighter text-brand-dark sm:text-5xl lg:text-6xl">
                                 Our new website is almost here.
                             </h1>
 
@@ -95,21 +95,21 @@ export default function ComingSoon({
                             </p>
 
                             <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
-                                <div className="rounded-lg border border-[#050a97]/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
+                                <div className="rounded-lg border border-brand/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
                                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         Early Access
                                     </p>
                                     <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                                        <Clock3 className="h-4 w-4 text-[#050a97]" />
+                                        <Clock3 className="h-4 w-4 text-brand" />
                                         Priority invite drops first.
                                     </p>
                                 </div>
-                                <div className="rounded-lg border border-[#050a97]/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
+                                <div className="rounded-lg border border-brand/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
                                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                                         Security First
                                     </p>
                                     <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                                        <ShieldCheck className="h-4 w-4 text-[#050a97]" />
+                                        <ShieldCheck className="h-4 w-4 text-brand" />
                                         Human verification enabled.
                                     </p>
                                 </div>
@@ -117,9 +117,9 @@ export default function ComingSoon({
                         </section>
 
                         <section className="animate-fade-up animation-delay-200">
-                            <Card className="border-[#050a97]/15 bg-white/90 shadow-2xl shadow-[#050a97]/10 backdrop-blur-xl">
+                            <Card className="border-brand/15 bg-white/90 shadow-2xl shadow-brand/10 backdrop-blur-xl">
                                 <CardHeader className="pb-5">
-                                    <CardTitle className="font-display text-2xl text-[#050a49]">
+                                    <CardTitle className="font-display text-2xl text-brand-dark">
                                         Join the Waitlist
                                     </CardTitle>
                                     <CardDescription className="text-slate-600">
@@ -220,7 +220,7 @@ export default function ComingSoon({
                                                     name="occupation"
                                                     value={data.occupation}
                                                     onChange={(event) => setData('occupation', event.target.value)}
-                                                    className="h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#050a97] disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
                                                     required
                                                 >
                                                     <option value="">Select your occupation</option>
@@ -246,13 +246,13 @@ export default function ComingSoon({
                                             mathError={errors.human_check_answer}
                                             turnstileError={errors.turnstile_token}
                                             labelPrefix="Identify yourself"
-                                            inputClassName="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#050a97] disabled:cursor-not-allowed disabled:opacity-50"
+                                            inputClassName="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
                                         />
 
                                         <Button
                                             type="submit"
                                             size="lg"
-                                            className="w-full bg-[#050a97] hover:bg-[#050a49] focus-visible:ring-[#050a97]"
+                                            className="w-full"
                                             disabled={processing}
                                         >
                                             {processing ? 'Saving your spot...' : 'Join Waitlist'}

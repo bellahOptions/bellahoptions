@@ -11,7 +11,7 @@ import "swiper/css/pagination";
 
 const BACKGROUND_THEMES = {
     "particles-ocean": {
-        gradient: "from-[#000285] via-[#0891b2] to-[#111827]",
+        gradient: "from-brand via-[#0891b2] to-[#111827]",
         particleColors: ["#ffffff", "#67e8f9", "#c4b5fd"],
     },
     "particles-aurora": {
@@ -229,7 +229,7 @@ function SlideCallToAction({ slide, children }) {
                 href={slide.slide_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
             >
                 {children}
             </a>
@@ -239,7 +239,7 @@ function SlideCallToAction({ slide, children }) {
     return (
         <Link
             href={slide.slide_link}
-            className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+            className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
         >
             {children}
         </Link>

@@ -39,7 +39,7 @@ const toBlockHtml = (blocks = []) => blocks.map((block) => {
     if (type === 'heading') return `<h2 style="font-family:Arial,sans-serif;color:#0f172a;">${escapeHtml(content)}</h2>`;
     if (type === 'text') return `<p style="font-family:Arial,sans-serif;color:#334155;line-height:1.7;">${escapeHtml(content)}</p>`;
     if (type === 'image' && url) return `<p><img src="${escapeHtml(url)}" alt="${escapeHtml(alt || 'Email image')}" style="max-width:100%;height:auto;border-radius:10px;" /></p>`;
-    if (type === 'button' && url && label) return `<p><a href="${escapeHtml(url)}" style="display:inline-block;background:#000285;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:700;">${escapeHtml(label)}</a></p>`;
+    if (type === 'button' && url && label) return `<p><a href="${escapeHtml(url)}" style="display:inline-block;background:#050a80;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:700;">${escapeHtml(label)}</a></p>`;
     if (type === 'divider') return '<hr style="border:none;border-top:1px solid #e2e8f0;margin:20px 0;" />';
     if (type === 'spacer') return `<div style="height:${height}px;"></div>`;
     return '';
@@ -643,7 +643,7 @@ function BlockEditor({ block, index, onChange, onRemove, onImageUpload, onDragSt
                                 // ignored
                             }
                         }}
-                        className="block w-full text-xs text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-[#000285] file:px-2 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-blue-800"
+                        className="block w-full text-xs text-slate-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-2 file:py-1 file:text-xs file:font-semibold file:text-white hover:file:bg-blue-800"
                     />
                     <input placeholder="Alt text" value={block.alt || ''} onChange={(event) => onChange(index, 'alt', event.target.value)} className={inputClass} />
                 </div>
@@ -663,6 +663,6 @@ function BlockEditor({ block, index, onChange, onRemove, onImageUpload, onDragSt
 
 const inputClass = 'w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none';
 const chipClass = 'rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-200';
-const primaryBtn = 'rounded-md bg-[#000285] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800';
+const primaryBtn = 'rounded-md bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-brand-dark';
 const secondaryBtn = 'rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50';
 const dangerBtn = 'rounded-md border border-red-200 bg-white px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50';

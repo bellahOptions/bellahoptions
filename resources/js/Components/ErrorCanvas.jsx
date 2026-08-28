@@ -114,7 +114,7 @@ export default function ErrorCanvas({
 
             const gradient = context.createLinearGradient(0, 0, width, height);
             gradient.addColorStop(0, "#02083f");
-            gradient.addColorStop(0.45, "#000285");
+            gradient.addColorStop(0.45, "#050a80");
             gradient.addColorStop(1, "#042f5f");
             context.fillStyle = gradient;
             context.fillRect(0, 0, width, height);
@@ -174,7 +174,7 @@ export default function ErrorCanvas({
                             />
                         ))}
                         <motion.div
-                            className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-[#000285] shadow-2xl shadow-cyan-500/25"
+                            className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-brand shadow-2xl shadow-cyan-500/25"
                             animate={{ y: [0, -8, 0], rotate: [-2, 2, -2] }}
                             transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                         >
@@ -226,7 +226,7 @@ export default function ErrorCanvas({
                     >
                         <Link
                             href="/"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
                         >
                             <HomeIcon className="h-5 w-5" />
                             Back Home

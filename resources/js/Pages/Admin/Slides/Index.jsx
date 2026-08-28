@@ -64,7 +64,7 @@ const animationOptions = [
 ];
 
 const backgroundPreviewClasses = {
-    'particles-ocean': 'bg-gradient-to-br from-[#000285] via-[#0891b2] to-[#111827]',
+    'particles-ocean': 'bg-gradient-to-br from-brand via-[#0891b2] to-[#111827]',
     'particles-aurora': 'bg-gradient-to-br from-[#111827] via-[#2563eb] to-[#0f766e]',
     'particles-cosmic': 'bg-gradient-to-br from-[#0f172a] via-[#7c3aed] to-[#0369a1]',
     'particles-sunset': 'bg-gradient-to-br from-[#7f1d1d] via-[#ea580c] to-[#f59e0b]',
@@ -474,7 +474,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                             <button
                                 type="submit"
                                 disabled={createForm.processing}
-                                className="mt-3 inline-flex items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
+                                className="mt-3 inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
                             >
                                 {createForm.processing ? 'Saving...' : 'Add Slide'}
                             </button>
@@ -525,7 +525,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                                                     <button
                                                         type="submit"
                                                         disabled={editForm.processing}
-                                                        className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                        className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                                     >
                                                         {editForm.processing ? 'Updating...' : 'Save Changes'}
                                                     </button>
@@ -651,7 +651,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                         <button
                             type="button"
                             onClick={() => setSelectorTab('files')}
-                            className={`rounded-md px-3 py-2 text-sm font-semibold ${selectorTab === 'files' ? 'bg-blue-700 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                            className={`rounded-md px-3 py-2 text-sm font-semibold ${selectorTab === 'files' ? 'bg-brand text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                         >
                             Files ({mediaFiles.length})
                         </button>
@@ -659,7 +659,7 @@ export default function Slides({ slideShows = [], mediaLibrary = null }) {
                             <button
                                 type="button"
                                 onClick={() => setSelectorTab('backgrounds')}
-                                className={`rounded-md px-3 py-2 text-sm font-semibold ${selectorTab === 'backgrounds' ? 'bg-blue-700 text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
+                                className={`rounded-md px-3 py-2 text-sm font-semibold ${selectorTab === 'backgrounds' ? 'bg-brand text-white' : 'border border-gray-300 text-gray-700 hover:bg-gray-50'}`}
                             >
                                 Dynamic Backgrounds ({dynamicBackgrounds.length})
                             </button>
@@ -1127,7 +1127,7 @@ function SlideMediaField({
                             type="button"
                             onClick={handleChooseFile}
                             disabled={uploadStatus?.uploading}
-                            className="rounded-md bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {uploadStatus?.uploading ? 'Uploading...' : isForeground ? 'Upload Media' : 'Upload Image'}
                         </button>

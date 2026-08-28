@@ -231,7 +231,7 @@ export default function UpdateProfileInformation({
                             type="file"
                             accept=".jpg,.jpeg,.png,.webp"
                             onChange={(e) => setData('profile_photo', e.target.files?.[0] || null)}
-                            className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#000285] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-800"
+                            className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-800"
                         />
                     </div>
 
@@ -264,7 +264,7 @@ export default function UpdateProfileInformation({
                     <textarea
                         id="address"
                         rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
                         value={data.address}
                         onChange={(e) => setData('address', e.target.value)}
                         onBlur={handleFieldBlur}
@@ -321,7 +321,7 @@ export default function UpdateProfileInformation({
                                     type="file"
                                     accept=".jpg,.jpeg,.png,.webp"
                                     onChange={(e) => setData('company_logo', e.target.files?.[0] || null)}
-                                    className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-[#000285] file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-800"
+                                    className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-800"
                                 />
                             </div>
                             <InputError className="mt-2" message={errors.company_logo} />
@@ -359,7 +359,7 @@ export default function UpdateProfileInformation({
                         <textarea
                             id="business_address"
                             rows={3}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
                             value={data.business_address}
                             onChange={(e) => setData('business_address', e.target.value)}
                             onBlur={handleFieldBlur}
@@ -376,7 +376,7 @@ export default function UpdateProfileInformation({
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
                             >
                                 Click here to re-send the verification email.
                             </Link>

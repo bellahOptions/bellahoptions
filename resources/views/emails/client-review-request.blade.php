@@ -27,7 +27,7 @@
                                 Your feedback helps us improve and serve other clients better.
                             </p>
 
-                            <a href="{{ $reviewLink }}" style="display:inline-block; background:#000285; color:#ffffff; text-decoration:none; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:700;">
+                            <a href="{{ $reviewLink }}" style="display:inline-block; background:#050a80; color:#ffffff; text-decoration:none; padding:12px 20px; border-radius:8px; font-size:14px; font-weight:700;">
                                 Leave a Review
                             </a>
 

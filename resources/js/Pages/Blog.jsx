@@ -39,13 +39,13 @@ export default function Blog({ posts = [] }) {
                                                             className="h-full w-full object-cover"
                                                         />
                                                     ) : (
-                                                        <div className="flex h-full w-full items-center justify-center bg-blue-50 text-[#000285]">
+                                                        <div className="flex h-full w-full items-center justify-center bg-blue-50 text-brand">
                                                             <DocumentTextIcon className="h-20 w-20" />
                                                         </div>
                                                     )}
                                                 </div>
                                                 <div className="flex flex-col p-6">
-                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">
+                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">
                                                         {post.category}
                                                     </p>
                                                     <h2 className="mt-4 text-2xl font-black text-gray-950">
@@ -58,7 +58,7 @@ export default function Blog({ posts = [] }) {
                                                         <span className="font-bold text-gray-500">
                                                             {post.author_name} {post.published_at ? `· ${post.published_at}` : ""}
                                                         </span>
-                                                        <span className="inline-flex items-center gap-2 font-black text-[#000285]">
+                                                        <span className="inline-flex items-center gap-2 font-black text-brand">
                                                             Read
                                                             <ArrowRightIcon className="h-4 w-4" />
                                                         </span>
@@ -74,7 +74,7 @@ export default function Blog({ posts = [] }) {
                         <RevealSection className="bg-gray-50 py-20 sm:py-24 lg:py-28">
                             <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
                                 <motion.div
-                                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-blue-100 text-[#000285]"
+                                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-blue-100 text-brand"
                                     animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
                                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                 >
@@ -86,7 +86,7 @@ export default function Blog({ posts = [] }) {
                                 <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
                                     The first Bellah Options article is being shaped. When a post is published, it will appear here.
                                 </p>
-                                <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white">
+                                <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-brand px-6 py-3 text-sm font-black text-white">
                                     Ask us a question
                                     <ArrowRightIcon className="h-4 w-4" />
                                 </Link>

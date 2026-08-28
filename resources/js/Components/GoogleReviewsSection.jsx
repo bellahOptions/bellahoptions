@@ -100,7 +100,7 @@ export default function GoogleReviewsSection({
         <RevealSection className={className}>
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-3xl text-center">
-                    <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">Google Reviews</p>
+                    <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Google Reviews</p>
                     <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
                         {title}
                     </h2>
@@ -127,7 +127,7 @@ export default function GoogleReviewsSection({
                                                     {reviewerPhoto ? (
                                                         <img src={reviewerPhoto} alt={reviewerName} className="h-10 w-10 rounded-full object-cover" />
                                                     ) : (
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-[#000285]">
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-brand">
                                                             {reviewerName.slice(0, 1).toUpperCase()}
                                                         </div>
                                                     )}
@@ -166,7 +166,7 @@ export default function GoogleReviewsSection({
                                                         {reviewerPhoto ? (
                                                             <img src={reviewerPhoto} alt={reviewerName} className="h-10 w-10 rounded-full object-cover" />
                                                         ) : (
-                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-[#000285]">
+                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-sm font-black text-brand">
                                                                 {reviewerName.slice(0, 1).toUpperCase()}
                                                             </div>
                                                         )}
@@ -198,7 +198,7 @@ export default function GoogleReviewsSection({
                 <div className="mt-6 text-center">
                     <Link
                         href="/contact-us"
-                        className="inline-flex items-center justify-center rounded-md border border-gray-300 px-5 py-2.5 text-sm font-black text-gray-900 transition hover:border-[#000285] hover:text-[#000285]"
+                        className="inline-flex items-center justify-center rounded-md border border-gray-300 px-5 py-2.5 text-sm font-black text-gray-900 transition hover:border-brand hover:text-brand"
                     >
                         Start Your Project
                     </Link>

@@ -296,7 +296,7 @@ export default function Dashboard({
 
                     {!isStaff && (
                         <>
-                            <section className="rounded-2xl border border-blue-100 bg-gradient-to-r from-white via-blue-50 to-indigo-50 p-5 shadow-sm sm:p-8">
+                            <section className="rounded-2xl border border-blue-100 bg-gradient-to-r from-white via-blue-50 to-brand-light p-5 shadow-sm sm:p-8">
                                 <h3 className="text-xl font-black text-gray-900 sm:text-2xl">
                                     Welcome, {user?.first_name || user?.name}
                                 </h3>
@@ -310,7 +310,7 @@ export default function Dashboard({
                                             <CardDescription>All submitted service requests.</CardDescription>
                                         </CardHeader>
                                         <CardContent>
-                                            <p className="text-2xl font-black text-[#000285]">{clientOrderStats.total_orders ?? 0}</p>
+                                            <p className="text-2xl font-black text-brand">{clientOrderStats.total_orders ?? 0}</p>
                                         </CardContent>
                                     </Card>
                                     <Card>
@@ -319,7 +319,7 @@ export default function Dashboard({
                                             <CardDescription>Projects currently in progress.</CardDescription>
                                         </CardHeader>
                                         <CardContent>
-                                            <p className="text-2xl font-black text-[#000285]">{clientOrderStats.active_orders ?? 0}</p>
+                                            <p className="text-2xl font-black text-brand">{clientOrderStats.active_orders ?? 0}</p>
                                         </CardContent>
                                     </Card>
                                     <Card>
@@ -328,20 +328,20 @@ export default function Dashboard({
                                             <CardDescription>Invoices awaiting payment.</CardDescription>
                                         </CardHeader>
                                         <CardContent>
-                                            <p className="text-2xl font-black text-[#000285]">{clientOrderStats.pending_payments ?? 0}</p>
+                                            <p className="text-2xl font-black text-brand">{clientOrderStats.pending_payments ?? 0}</p>
                                         </CardContent>
                                     </Card>
                                 </div>
                                 <div className="mt-5 flex flex-wrap gap-3">
                                     <Link
                                         href={orderStartHref}
-                                        className="inline-flex items-center rounded-md bg-[#000285] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0010a3]"
+                                        className="inline-flex items-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
                                     >
                                         Start New Order
                                     </Link>
                                     <Link
                                         href={route('services')}
-                                        className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-[#000285] hover:bg-blue-50"
+                                        className="inline-flex items-center rounded-md border border-blue-200 bg-white px-4 py-2 text-sm font-semibold text-brand hover:bg-blue-50"
                                     >
                                         Explore Services
                                     </Link>
@@ -361,8 +361,8 @@ export default function Dashboard({
                                                 onClick={() => setActiveClientPanel(item.key)}
                                                 className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition ${
                                                     isActive
-                                                        ? 'bg-[#000285] text-white shadow-sm'
-                                                        : 'bg-blue-50 text-[#000285] hover:bg-blue-100'
+                                                        ? 'bg-brand text-white shadow-sm'
+                                                        : 'bg-blue-50 text-brand hover:bg-blue-100'
                                                 }`}
                                             >
                                                 <Icon className="h-4 w-4" />
@@ -401,7 +401,7 @@ export default function Dashboard({
                                                     <p className="mt-2 text-sm text-gray-700">{formatMoney(order.amount, order.currency)}</p>
                                                     <div className="mt-3 h-2 w-full rounded-full bg-gray-200">
                                                         <div
-                                                            className="h-2 rounded-full bg-[#000285]"
+                                                            className="h-2 rounded-full bg-brand"
                                                             style={{ width: `${Math.max(0, Math.min(100, Number(order.progress_percent || 0)))}%` }}
                                                         />
                                                     </div>
@@ -418,14 +418,14 @@ export default function Dashboard({
                                         <CardContent className="space-y-3">
                                             <Link
                                                 href={orderStartHref}
-                                                className="inline-flex w-full items-center justify-center rounded-md bg-[#000285] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0010a3]"
+                                                className="inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
                                             >
                                                 Start New Order
                                             </Link>
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveClientPanel('invoices')}
-                                                className="inline-flex w-full items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-[#000285] hover:bg-blue-100"
+                                                className="inline-flex w-full items-center justify-center rounded-md border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-brand hover:bg-blue-100"
                                             >
                                                 View Invoices
                                             </button>
@@ -453,7 +453,7 @@ export default function Dashboard({
                                             <div>
                                                 <label className="mb-1 block text-sm font-medium text-gray-700">Service</label>
                                                 <select
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     value={selectedOrderService}
                                                     onChange={(event) => setSelectedOrderService(event.target.value)}
                                                 >
@@ -468,7 +468,7 @@ export default function Dashboard({
                                             <div>
                                                 <label className="mb-1 block text-sm font-medium text-gray-700">Package</label>
                                                 <select
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     value={selectedOrderPackage}
                                                     onChange={(event) => setSelectedOrderPackage(event.target.value)}
                                                 >
@@ -483,7 +483,7 @@ export default function Dashboard({
                                             <div className="flex items-end">
                                                 <Link
                                                     href={orderStartHref}
-                                                    className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                    className="inline-flex items-center rounded-lg border border-brand/30 bg-brand-light px-4 py-2 text-sm font-semibold text-brand hover:bg-brand-light"
                                                 >
                                                     Start Order
                                                 </Link>
@@ -545,7 +545,7 @@ export default function Dashboard({
                                                     </div>
                                                     <div className="mt-1 h-2 w-full rounded-full bg-gray-200">
                                                         <div
-                                                            className="h-2 rounded-full bg-indigo-600"
+                                                            className="h-2 rounded-full bg-brand"
                                                             style={{ width: `${Math.max(0, Math.min(100, Number(order.progress_percent || 0)))}%` }}
                                                         />
                                                     </div>
@@ -561,7 +561,7 @@ export default function Dashboard({
                                                     {order.payment_status !== 'paid' && (
                                                         <Link
                                                             href={route('orders.payment.show', order.order_code || order.uuid)}
-                                                            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                            className="rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                                                         >
                                                             Complete Payment
                                                         </Link>
@@ -614,7 +614,7 @@ export default function Dashboard({
                                                     <div className="mt-3">
                                                         <Link
                                                             href={route('orders.payment.show', invoice.service_order_code)}
-                                                            className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                            className="rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                                                         >
                                                             Pay Invoice
                                                         </Link>
@@ -734,7 +734,7 @@ export default function Dashboard({
                                                             <button
                                                                 type="button"
                                                                 onClick={openAddCustomerModal}
-                                                                className="rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                                                className="rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                                                             >
                                                                 Add new customer
                                                             </button>
@@ -752,7 +752,7 @@ export default function Dashboard({
                                                     <div className="relative">
                                                         <input
                                                             id="customer-search"
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             value={customerSearchQuery}
                                                             onChange={(event) => setCustomerSearchQuery(event.target.value)}
                                                             onFocus={() => setIsCustomerSearchFocused(true)}
@@ -801,7 +801,7 @@ export default function Dashboard({
                                                                                 </span>
                                                                                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
                                                                                     candidate.source === 'customer'
-                                                                                        ? 'bg-indigo-100 text-indigo-700'
+                                                                                        ? 'bg-brand-light text-brand'
                                                                                         : 'bg-cyan-100 text-cyan-700'
                                                                                 }`}>
                                                                                     {candidate.source}
@@ -822,7 +822,7 @@ export default function Dashboard({
                                                         </label>
                                                         <input
                                                             id="customer_name"
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             value={invoiceData.customer_name}
                                                             onChange={(event) => setInvoiceData('customer_name', event.target.value)}
                                                             required={!invoiceData.customer_id}
@@ -836,7 +836,7 @@ export default function Dashboard({
                                                         <input
                                                             id="customer_email"
                                                             type="email"
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             value={invoiceData.customer_email}
                                                             onChange={(event) => setInvoiceData('customer_email', event.target.value)}
                                                             required={!invoiceData.customer_id}
@@ -850,7 +850,7 @@ export default function Dashboard({
                                                     </label>
                                                     <select
                                                         id="customer_occupation"
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                         value={invoiceData.customer_occupation}
                                                         onChange={(event) => setInvoiceData('customer_occupation', event.target.value)}
                                                     >
@@ -869,7 +869,7 @@ export default function Dashboard({
                                                     </label>
                                                     <input
                                                         id="title"
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                         value={invoiceData.title}
                                                         onChange={(event) => setInvoiceData('title', event.target.value)}
                                                         required
@@ -882,7 +882,7 @@ export default function Dashboard({
                                                     </label>
                                                     <textarea
                                                         id="description"
-                                                        className="min-h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="min-h-24 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                         value={invoiceData.description}
                                                         onChange={(event) => setInvoiceData('description', event.target.value)}
                                                     />
@@ -898,7 +898,7 @@ export default function Dashboard({
                                                             type="number"
                                                             step="0.01"
                                                             min="1"
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             value={invoiceData.amount}
                                                             onChange={(event) => setInvoiceData('amount', event.target.value)}
                                                             required
@@ -911,7 +911,7 @@ export default function Dashboard({
                                                         </label>
                                                         <select
                                                             id="currency"
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             value={invoiceData.currency}
                                                             onChange={(event) => setInvoiceData('currency', event.target.value)}
                                                             required
@@ -931,7 +931,7 @@ export default function Dashboard({
                                                         <input
                                                             id="due_date"
                                                             type="date"
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             value={invoiceData.due_date}
                                                             onChange={(event) => setInvoiceData('due_date', event.target.value)}
                                                         />
@@ -941,7 +941,7 @@ export default function Dashboard({
                                                 <button
                                                     type="submit"
                                                     disabled={invoiceProcessing}
-                                                    className="inline-flex w-full items-center justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+                                                    className="inline-flex w-full items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
                                                 >
                                                     {invoiceProcessing
                                                         ? 'Creating invoice...'
@@ -1013,7 +1013,7 @@ export default function Dashboard({
                                                             <div className="flex items-center gap-2">
                                                                 <button
                                                                     type="button"
-                                                                    className="rounded-md border border-indigo-200 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                                                                    className="rounded-md border border-brand/30 px-2 py-1 text-xs font-medium text-brand hover:bg-brand-light"
                                                                     onClick={() => resendInvoice(invoice.id)}
                                                                 >
                                                                     Resend
@@ -1110,7 +1110,7 @@ export default function Dashboard({
                                                                 <td className="space-x-2 px-3 py-3 align-top">
                                                                     <button
                                                                         type="button"
-                                                                        className="rounded-md border border-indigo-200 px-2 py-1 text-xs font-medium text-indigo-700 hover:bg-indigo-50"
+                                                                        className="rounded-md border border-brand/30 px-2 py-1 text-xs font-medium text-brand hover:bg-brand-light"
                                                                         onClick={() => resendInvoice(invoice.id)}
                                                                     >
                                                                         Resend
@@ -1262,7 +1262,7 @@ export default function Dashboard({
                                 </label>
                                 <input
                                     id="customer-form-first-name"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     value={customerData.first_name}
                                     onChange={(event) => setCustomerData('first_name', event.target.value)}
                                     required
@@ -1275,7 +1275,7 @@ export default function Dashboard({
                                 </label>
                                 <input
                                     id="customer-form-last-name"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     value={customerData.last_name}
                                     onChange={(event) => setCustomerData('last_name', event.target.value)}
                                     required
@@ -1290,7 +1290,7 @@ export default function Dashboard({
                             <input
                                 id="customer-form-email"
                                 type="email"
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 value={customerData.email}
                                 onChange={(event) => setCustomerData('email', event.target.value)}
                                 required
@@ -1303,7 +1303,7 @@ export default function Dashboard({
                             </label>
                             <select
                                 id="customer-form-occupation"
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 value={customerData.occupation}
                                 onChange={(event) => setCustomerData('occupation', event.target.value)}
                             >
@@ -1323,7 +1323,7 @@ export default function Dashboard({
                                 </label>
                                 <input
                                     id="customer-form-phone"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     value={customerData.phone}
                                     onChange={(event) => setCustomerData('phone', event.target.value)}
                                 />
@@ -1335,7 +1335,7 @@ export default function Dashboard({
                                 </label>
                                 <input
                                     id="customer-form-company"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     value={customerData.company}
                                     onChange={(event) => setCustomerData('company', event.target.value)}
                                 />
@@ -1348,7 +1348,7 @@ export default function Dashboard({
                             </label>
                             <textarea
                                 id="customer-form-address"
-                                className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 value={customerData.address}
                                 onChange={(event) => setCustomerData('address', event.target.value)}
                             />
@@ -1360,7 +1360,7 @@ export default function Dashboard({
                             </label>
                             <textarea
                                 id="customer-form-notes"
-                                className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 value={customerData.notes}
                                 onChange={(event) => setCustomerData('notes', event.target.value)}
                             />

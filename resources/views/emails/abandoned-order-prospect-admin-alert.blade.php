@@ -23,7 +23,7 @@
                         <p style="margin:0 0 6px;line-height:1.6;"><strong>Service:</strong> {{ $prospect->service_name ?: ucfirst(str_replace('-', ' ', (string) $prospect->service_slug)) }}</p>
                         <p style="margin:0 0 16px;line-height:1.6;"><strong>Package:</strong> {{ $prospect->service_package ? str_replace('-', ' ', (string) $prospect->service_package) : 'N/A' }}</p>
                         <p style="margin:0;">
-                            <a href="{{ $resumeUrl }}" style="display:inline-block;background:#000285;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:700;">
+                            <a href="{{ $resumeUrl }}" style="display:inline-block;background:#050a80;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;font-weight:700;">
                                 Resume Link
                             </a>
                         </p>

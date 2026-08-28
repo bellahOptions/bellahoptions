@@ -175,7 +175,7 @@ export default function AdminSupportTickets({
                                     <button
                                         type="submit"
                                         disabled={replyForm.processing}
-                                        className="mt-3 rounded-lg bg-[#000285] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-60"
+                                        className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-60"
                                     >
                                         {replyForm.processing ? 'Sending...' : 'Send Reply'}
                                     </button>
@@ -218,7 +218,7 @@ function FilterChip({ label, active, href }) {
     return (
         <Link
             href={href}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-[#000285] text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition ${active ? 'bg-brand text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
         >
             {label}
         </Link>

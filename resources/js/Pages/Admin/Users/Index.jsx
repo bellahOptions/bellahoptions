@@ -78,7 +78,7 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder="Name or email"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                             </div>
 
@@ -90,7 +90,7 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
                                     id="user-role"
                                     value={role}
                                     onChange={(event) => setRole(event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     <option value="">All Roles</option>
                                     {roleOptions.map((option) => (
@@ -103,7 +103,7 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
 
                             <button
                                 type="submit"
-                                className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
                             >
                                 Filter
                             </button>

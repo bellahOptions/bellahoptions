@@ -53,7 +53,7 @@ export default function Services({ services = [] }) {
                                             className="bg-white p-6 shadow-sm ring-1 ring-gray-200"
                                         >
                                             <div className="flex items-start gap-4">
-                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-blue-50 text-[#000285]">
+                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md bg-blue-50 text-brand">
                                                     <Icon className="h-7 w-7" />
                                                 </div>
                                                 <div>
@@ -68,7 +68,7 @@ export default function Services({ services = [] }) {
                                                         <div className="flex items-start justify-between gap-2">
                                                             <p className="font-black text-gray-950">{plan.name}</p>
                                                             {plan.is_recommended && (
-                                                                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-indigo-700">
+                                                                <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-brand">
                                                                     Recommended
                                                                 </span>
                                                             )}
@@ -76,11 +76,11 @@ export default function Services({ services = [] }) {
                                                         <div className="mt-2">
                                                             {plan.discount_price && Number(plan.original_price || 0) > Number(plan.discount_price || 0) ? (
                                                                 <div className="flex items-center gap-2">
-                                                                    <p className="text-sm font-bold text-[#000285]">{formatMoney(plan.discount_price)}</p>
+                                                                    <p className="text-sm font-bold text-brand">{formatMoney(plan.discount_price)}</p>
                                                                     <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(plan.original_price)}</p>
                                                                 </div>
                                                             ) : (
-                                                                <p className="text-sm font-bold text-[#000285]">{formatMoney(plan.price)}</p>
+                                                                <p className="text-sm font-bold text-brand">{formatMoney(plan.price)}</p>
                                                             )}
                                                         </div>
                                                         <p className="mt-2 text-xs leading-5 text-gray-500">{plan.description}</p>
@@ -108,7 +108,7 @@ export default function Services({ services = [] }) {
 
                                             <Link
                                                 href={`/order/${service.slug}`}
-                                                className="group mt-6 inline-flex items-center gap-2 rounded-md bg-[#000285] px-5 py-3 text-sm font-black text-white transition hover:bg-blue-800"
+                                                className="group mt-6 inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-black text-white transition hover:bg-brand-dark"
                                             >
                                                 Start {service.name}
                                                 <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
@@ -128,7 +128,7 @@ export default function Services({ services = [] }) {
                             <p className="mx-auto mt-4 max-w-2xl text-gray-600">
                                 Send the project context and we will help you choose the right scope.
                             </p>
-                            <Link href="/contact-us" className="mt-7 inline-flex items-center gap-2 rounded-md border border-gray-300 px-6 py-3 text-sm font-black text-gray-900 transition hover:border-[#000285] hover:text-[#000285]">
+                            <Link href="/contact-us" className="mt-7 inline-flex items-center gap-2 rounded-md border border-gray-300 px-6 py-3 text-sm font-black text-gray-900 transition hover:border-brand hover:text-brand">
                                 Talk to us
                                 <CheckCircleIcon className="h-5 w-5" />
                             </Link>

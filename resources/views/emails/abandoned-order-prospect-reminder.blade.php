@@ -21,7 +21,7 @@
                             Continue from where you stopped and finalize your request.
                         </p>
                         <p style="margin:0 0 20px;">
-                            <a href="{{ $resumeUrl }}" style="display:inline-block;background:#000285;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;">
+                            <a href="{{ $resumeUrl }}" style="display:inline-block;background:#050a80;color:#ffffff;text-decoration:none;padding:12px 18px;border-radius:8px;font-weight:700;">
                                 Resume Order
                             </a>
                         </p>

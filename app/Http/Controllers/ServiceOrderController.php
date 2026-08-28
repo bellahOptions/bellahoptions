@@ -21,6 +21,7 @@ use App\Services\FlutterwaveService;
 use App\Models\User;
 use App\Services\PaystackService;
 use App\Support\ClientReviewService;
+use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
 use App\Support\VisitorLocalization;
 use App\Support\ServiceOrderCatalog;
@@ -1564,37 +1565,7 @@ class ServiceOrderController extends Controller
      */
     private function createHumanVerificationChallenge(Request $request): array
     {
-        if (app()->isProduction()) {
-            $request->session()->forget('service_order_human_check');
-
-            return [
-                'humanVerificationMode' => 'turnstile',
-                'humanCheckQuestion' => '',
-                'humanCheckNonce' => '',
-                'turnstileSiteKey' => trim((string) config('services.turnstile.site_key', '')),
-                'formRenderedAt' => now()->timestamp,
-            ];
-        }
-
-        $leftOperand = random_int(2, 12);
-        $rightOperand = random_int(1, 12);
-        $answer = $leftOperand + $rightOperand;
-        $issuedAt = now()->timestamp;
-        $nonce = Str::random(32);
-
-        $request->session()->put('service_order_human_check', [
-            'answer' => (string) $answer,
-            'issued_at' => $issuedAt,
-            'nonce' => $nonce,
-        ]);
-
-        return [
-            'humanVerificationMode' => 'math',
-            'humanCheckQuestion' => "{$leftOperand} + {$rightOperand} = ?",
-            'humanCheckNonce' => $nonce,
-            'turnstileSiteKey' => '',
-            'formRenderedAt' => $issuedAt,
-        ];
+        return HumanVerification::createChallenge($request, 'service_order_human_check');
     }
 
     private function sendOrderSubmittedAdminAlert(ServiceOrder $order): void

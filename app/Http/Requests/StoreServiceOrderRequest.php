@@ -3,15 +3,14 @@
 namespace App\Http\Requests;
 
 use App\Models\User;
+use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Validator;
-use Throwable;
 
 class StoreServiceOrderRequest extends FormRequest
 {
@@ -159,11 +158,7 @@ class StoreServiceOrderRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator): void {
-            if ($this->usesTurnstile()) {
-                $this->validateTurnstileChallenge($validator);
-            } else {
-                $this->validateMathChallenge($validator);
-            }
+            HumanVerification::validate($this, $validator, 'service_order_human_check');
 
             $fullName = (string) $this->input('full_name');
             if (preg_match('/\s+/u', trim($fullName)) !== 1) {
@@ -182,107 +177,7 @@ class StoreServiceOrderRequest extends FormRequest
 
     private function usesTurnstile(): bool
     {
-        return app()->isProduction();
-    }
-
-    private function validateMathChallenge(Validator $validator): void
-    {
-        $challenge = $this->session()->get('service_order_human_check');
-
-        if (! is_array($challenge)) {
-            $validator->errors()->add('human_check_answer', 'Human verification expired. Please reload and try again.');
-
-            return;
-        }
-
-        $nonceMatches = hash_equals(
-            (string) ($challenge['nonce'] ?? ''),
-            (string) $this->input('human_check_nonce'),
-        );
-
-        if (! $nonceMatches) {
-            $validator->errors()->add('human_check_answer', 'Human verification failed. Please reload and try again.');
-
-            return;
-        }
-
-        $issuedAt = (int) ($challenge['issued_at'] ?? 0);
-        $submittedAt = now()->timestamp;
-
-        if ($issuedAt <= 0 || ($submittedAt - $issuedAt) < 3 || ($submittedAt - $issuedAt) > 7200) {
-            $validator->errors()->add('human_check_answer', 'Please take a moment and submit again.');
-
-            return;
-        }
-
-        if ((int) $this->input('form_rendered_at') !== $issuedAt) {
-            $validator->errors()->add('human_check_answer', 'Human verification failed. Please reload and try again.');
-
-            return;
-        }
-
-        $providedAnswer = strtoupper(trim((string) $this->input('human_check_answer')));
-        $expectedAnswer = strtoupper(trim((string) ($challenge['answer'] ?? '')));
-
-        if ($providedAnswer === '' || ! hash_equals($expectedAnswer, $providedAnswer)) {
-            $validator->errors()->add('human_check_answer', 'Human verification answer is incorrect.');
-        }
-    }
-
-    private function validateTurnstileChallenge(Validator $validator): void
-    {
-        $token = trim((string) $this->input('turnstile_token'));
-        $secret = trim((string) config('services.turnstile.secret_key', ''));
-
-        if ($secret === '') {
-            $validator->errors()->add('turnstile_token', 'Captcha verification is not configured. Please contact support.');
-
-            return;
-        }
-
-        if ($token === '') {
-            $validator->errors()->add('turnstile_token', 'Please complete the captcha verification.');
-
-            return;
-        }
-
-        try {
-            $response = Http::asForm()
-                ->timeout(8)
-                ->acceptJson()
-                ->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
-                    'secret' => $secret,
-                    'response' => $token,
-                    'remoteip' => $this->ip(),
-                ]);
-        } catch (Throwable) {
-            $validator->errors()->add('turnstile_token', 'Captcha verification failed. Please try again.');
-
-            return;
-        }
-
-        if (! $response->successful()) {
-            $validator->errors()->add('turnstile_token', 'Captcha verification failed. Please try again.');
-
-            return;
-        }
-
-        $result = $response->json();
-        $success = (bool) data_get($result, 'success', false);
-
-        if ($success) {
-            return;
-        }
-
-        $errorCodes = array_filter((array) data_get($result, 'error-codes', []), static fn (mixed $value): bool => is_string($value));
-        $hasTimeoutError = in_array('timeout-or-duplicate', $errorCodes, true);
-
-        $validator->errors()->add(
-            'turnstile_token',
-            $hasTimeoutError
-                ? 'Captcha expired. Please complete the verification again.'
-                : 'Captcha verification failed. Please try again.',
-        );
+        return HumanVerification::usesTurnstile();
     }
 
     /**

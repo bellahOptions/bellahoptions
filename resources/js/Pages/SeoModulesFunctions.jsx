@@ -57,7 +57,7 @@ export default function SeoModulesFunctions({ modules = [], functions = [] }) {
                         </div>
                     </RevealSection>
 
-                    <RevealSection className="bg-[#000285] py-14 sm:py-16">
+                    <RevealSection className="bg-brand py-14 sm:py-16">
                         <div className="mx-auto flex max-w-5xl flex-col items-start gap-5 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
                             <div>
                                 <h2 className="text-2xl font-black sm:text-3xl">Need this SEO scope for your project?</h2>
@@ -68,14 +68,14 @@ export default function SeoModulesFunctions({ modules = [], functions = [] }) {
                             <div className="flex flex-wrap gap-3">
                                 <Link
                                     href="/contact-us"
-                                    className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-black text-[#000285] transition hover:bg-blue-50"
+                                    className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-black text-brand transition hover:bg-blue-50"
                                 >
                                     Talk to us
                                     <ArrowRightIcon className="h-4 w-4" />
                                 </Link>
                                 <Link
                                     href="/services"
-                                    className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-800"
+                                    className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-5 py-3 text-sm font-black text-white transition hover:bg-brand-dark"
                                 >
                                     View services
                                     <CheckCircleIcon className="h-4 w-4" />

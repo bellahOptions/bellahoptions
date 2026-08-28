@@ -115,7 +115,7 @@ export default function PageTheme({ children }) {
                 className={`z-50 bg-white transition-all duration-300 md:sticky md:top-0 ${scrolled ? "md:shadow-lg md:shadow-blue-900/5" : ""}`}
             >
                 {/* Top bar */}
-                <div className="hidden border-b border-gray-100 bg-[#000285]/95 backdrop-blur-sm md:block">
+                <div className="hidden border-b border-gray-100 bg-brand/95 backdrop-blur-sm md:block">
                     <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5 lg:px-8">
                         <div className="flex items-center gap-6 text-xs text-blue-100">
                             <span className="flex items-center gap-1.5">
@@ -175,7 +175,7 @@ export default function PageTheme({ children }) {
                             <Link
                                 key={link.label}
                                 href={link.href}
-                                className="rounded-lg px-4 py-2 text-sm font-bold text-gray-600 transition hover:bg-gray-50 hover:text-[#000285]"
+                                className="rounded-lg px-4 py-2 text-sm font-bold text-gray-600 transition hover:bg-gray-50 hover:text-brand"
                             >
                                 {link.label}
                             </Link>
@@ -186,7 +186,7 @@ export default function PageTheme({ children }) {
                         {isLoggedIn ? (
                             <Link
                                 href={route("dashboard")}
-                                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-black text-gray-700 transition hover:text-[#000285]"
+                                className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-black text-gray-700 transition hover:text-brand"
                             >
                                 <span className="h-8 w-8 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
                                     {user?.profile_photo_url ? (
@@ -206,14 +206,14 @@ export default function PageTheme({ children }) {
                         ) : (
                             <Link
                                 href="/login"
-                                className="rounded-lg px-4 py-2 text-sm font-black text-gray-700 transition hover:text-[#000285]"
+                                className="rounded-lg px-4 py-2 text-sm font-black text-gray-700 transition hover:text-brand"
                             >
                                 Log In
                             </Link>
                         )}
                         <Link
                             href="/order/social-media-design" 
-                            className="group inline-flex items-center gap-2 rounded-lg bg-[#000285] px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-blue-800"
+                            className="group inline-flex items-center gap-2 rounded-lg bg-brand px-5 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-brand-dark"
                         >
                             Get Started
                             <ArrowRightIcon className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
@@ -250,7 +250,7 @@ export default function PageTheme({ children }) {
                                         key={link.label}
                                         href={link.href}
                                         onClick={() => setIsMenuOpen(false)}
-                                        className="block rounded-lg px-4 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 hover:text-[#000285]"
+                                        className="block rounded-lg px-4 py-3 text-sm font-bold text-gray-700 transition hover:bg-gray-50 hover:text-brand"
                                     >
                                         {link.label}
                                     </Link>
@@ -259,7 +259,7 @@ export default function PageTheme({ children }) {
                             <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4">
                                 <Link
                                     href="/order/special-service"
-                                    className="flex items-center justify-center gap-2 rounded-lg bg-[#000285] px-5 py-3 text-sm font-black text-white"
+                                    className="flex items-center justify-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-black text-white"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     Get Started
@@ -294,7 +294,7 @@ export default function PageTheme({ children }) {
             <motion.button
                 type="button"
                 onClick={scrollToTop}
-                className={`fixed bottom-5 right-24 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-[#000285] text-white shadow-lg shadow-blue-900/25 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 ${
+                className={`fixed bottom-5 right-24 z-50 flex h-11 w-11 items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-blue-900/25 hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 ${
                     scrolled ? "" : "pointer-events-none"
                 }`}
                 initial={false}
@@ -313,7 +313,7 @@ export default function PageTheme({ children }) {
 
             {/* ── FOOTER ── */}
             <motion.footer
-                className="bg-[#000285] text-white"
+                className="bg-brand text-white"
                 initial={{ opacity: 0 }}
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true, amount: 0.08 }}
@@ -338,7 +338,7 @@ export default function PageTheme({ children }) {
                             </div>
                             <Link
                                 href="/order/special-service"
-                                className="group inline-flex shrink-0 items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                                className="group inline-flex shrink-0 items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
                             >
                                 Start a Project
                                 <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-0.5" />
@@ -417,7 +417,7 @@ export default function PageTheme({ children }) {
                         {/* Contact */}
                         <div>
                             <h3 className="mb-5 flex items-center gap-2 text-sm font-black uppercase tracking-[0.15em] text-white">
-                                <span className="h-4 w-1 rounded-full bg-indigo-400" />
+                                <span className="h-4 w-1 rounded-full bg-brand" />
                                 Get In Touch
                             </h3>
                             <ul className="space-y-4">

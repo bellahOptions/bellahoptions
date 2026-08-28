@@ -49,7 +49,7 @@ export default function WebDesignSamples() {
                                         className="group flex h-full flex-col justify-between bg-white p-6 shadow-sm ring-1 ring-gray-200 transition hover:shadow-lg"
                                     >
                                         <div>
-                                            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">
+                                            <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">
                                                 {project.category}
                                             </p>
                                             <h2 className="mt-3 text-2xl font-black text-gray-950">{project.name}</h2>
@@ -59,7 +59,7 @@ export default function WebDesignSamples() {
                                             href={project.url}
                                             target="_blank"
                                             rel="noreferrer"
-                                            className="mt-6 inline-flex rounded-lg border border-blue-200 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-[#000285] transition hover:bg-blue-50"
+                                            className="mt-6 inline-flex rounded-lg border border-blue-200 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-brand transition hover:bg-blue-50"
                                         >
                                             Visit Website
                                         </a>

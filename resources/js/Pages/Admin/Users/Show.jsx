@@ -108,7 +108,7 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                         id="name"
                                         value={data.name}
                                         onChange={(event) => setData('name', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                 </FieldError>
 
@@ -121,7 +121,7 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                             id="first_name"
                                             value={data.first_name}
                                             onChange={(event) => setData('first_name', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                     </FieldError>
 
@@ -133,7 +133,7 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                             id="last_name"
                                             value={data.last_name}
                                             onChange={(event) => setData('last_name', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                     </FieldError>
                                 </div>
@@ -147,7 +147,7 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                         type="email"
                                         value={data.email}
                                         onChange={(event) => setData('email', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         required
                                     />
                                 </FieldError>
@@ -160,7 +160,7 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                         id="role"
                                         value={data.role}
                                         onChange={(event) => setData('role', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     >
                                         {roleOptions.map((option) => (
                                             <option key={option.value} value={option.value}>
@@ -178,14 +178,14 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                         id="address"
                                         value={data.address}
                                         onChange={(event) => setData('address', event.target.value)}
-                                        className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="min-h-20 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                 </FieldError>
 
                                 <button
                                     type="submit"
                                     disabled={processing}
-                                    className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {processing ? 'Saving...' : 'Save Changes'}
                                 </button>

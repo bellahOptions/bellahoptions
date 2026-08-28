@@ -36,7 +36,7 @@ export default function UserDashboard({
                     <div className="mt-4 flex flex-wrap gap-3">
                         <Link
                             href={quickActions?.order_service_url || route('orders.create', 'social-media-design')}
-                            className="rounded-lg bg-[#000285] px-4 py-2 text-sm font-semibold text-white hover:bg-[#0012ad]"
+                            className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
                         >
                             Order New Service
                         </Link>

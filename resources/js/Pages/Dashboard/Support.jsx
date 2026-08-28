@@ -168,7 +168,7 @@ export default function Support({
                             <button
                                 type="submit"
                                 disabled={createForm.processing}
-                                className="mt-4 w-full rounded-lg bg-[#000285] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-60"
+                                className="mt-4 w-full rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-60"
                             >
                                 {createForm.processing ? 'Submitting...' : 'Create Ticket'}
                             </button>
@@ -257,7 +257,7 @@ export default function Support({
                                             <button
                                                 type="submit"
                                                 disabled={replyForm.processing}
-                                                className="mt-3 rounded-lg bg-[#000285] px-4 py-2 text-sm font-bold text-white hover:bg-blue-800 disabled:opacity-60"
+                                                className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-60"
                                             >
                                                 {replyForm.processing ? 'Sending...' : 'Send Reply'}
                                             </button>

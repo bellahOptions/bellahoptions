@@ -21,7 +21,7 @@ export default function PublicPageHeader({
 
     return (
         <RevealSection
-            className={`${hasBackgroundImage ? "bg-slate-900 bg-cover bg-center bg-no-repeat" : "bg-[#000285]"} ${className}`}
+            className={`${hasBackgroundImage ? "bg-slate-900 bg-cover bg-center bg-no-repeat" : "bg-brand"} ${className}`}
             style={hasBackgroundImage
                 ? {
                     backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.72), rgba(2, 6, 23, 0.68)), url("${backgroundImage}")`,

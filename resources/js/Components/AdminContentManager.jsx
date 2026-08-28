@@ -95,7 +95,7 @@ export default function AdminContentManager({ title, description, routeBase, fie
                             <button
                                 type="submit"
                                 disabled={createForm.processing}
-                                className="mt-3 inline-flex items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
+                                className="mt-3 inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
                             >
                                 {createForm.processing ? "Saving..." : "Add"}
                             </button>
@@ -124,7 +124,7 @@ export default function AdminContentManager({ title, description, routeBase, fie
                                             <form onSubmit={(event) => submitUpdate(event, item)} className="space-y-5">
                                                 <ContentFields form={editForm} fields={fields} />
                                                 <div className="flex flex-wrap gap-2">
-                                                    <button type="submit" disabled={editForm.processing} className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60">
+                                                    <button type="submit" disabled={editForm.processing} className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60">
                                                         {editForm.processing ? "Updating..." : "Save Changes"}
                                                     </button>
                                                     <button type="button" onClick={cancelEditing} className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">

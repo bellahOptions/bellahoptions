@@ -303,7 +303,7 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                             <button
                                 type="submit"
                                 disabled={createForm.processing}
-                                className="mt-3 inline-flex items-center justify-center rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
+                                className="mt-3 inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
                             >
                                 {createForm.processing ? 'Saving...' : 'Add Project'}
                             </button>
@@ -350,7 +350,7 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                                     <button
                                                         type="submit"
                                                         disabled={editForm.processing}
-                                                        className="rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                        className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                                     >
                                                         {editForm.processing ? 'Updating...' : 'Save Changes'}
                                                     </button>
@@ -674,7 +674,7 @@ function ImageUploadField({
                             type="button"
                             onClick={() => inputRef.current?.click()}
                             disabled={uploadStatus?.uploading}
-                            className="rounded-md bg-blue-700 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {uploadStatus?.uploading ? 'Uploading...' : 'Upload Image'}
                         </button>

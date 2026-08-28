@@ -20,7 +20,7 @@ export default function Home() {
                     <div className="grid items-center w-full gap-10 lg:grid-cols-[1.1fr_0.9fr]">
                         <section>
                             <ApplicationLogo className="h-11 w-auto" />
-                            <h1 className="mt-10 md:text-5xl font-black leading-tighter tracking-tighter text-[#0f2557] text-3xl">
+                            <h1 className="mt-10 md:text-5xl font-black leading-tighter tracking-tighter text-brand text-3xl">
                                 We are preparing a faster, smarter Bellah Options experience.
                             </h1>
                             <p className="mt-5 max-w-2xl text-base leading-tight text-slate-600 sm:text-lg">
@@ -40,7 +40,7 @@ export default function Home() {
                         </section>
 
                         <section className="rounded-3xl border border-[#d3e2ff] bg-white/85 p-6 shadow-xl shadow-[#86a9ff33] sm:p-8">
-                            <h2 className="text-lg font-bold text-[#0f2557] sm:text-xl">What to expect</h2>
+                            <h2 className="text-lg font-bold text-brand sm:text-xl">What to expect</h2>
                             <ul className="mt-5 space-y-3">
                                 {highlights.map((item) => (
                                     <li

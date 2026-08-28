@@ -33,15 +33,15 @@ export default function Events({ events = [] }) {
                                                 <h2 className="text-2xl font-black text-gray-950">{event.title}</h2>
                                                 <p className="mt-3 text-sm leading-6 text-gray-600">{event.description}</p>
                                                 <div className="mt-5 space-y-2 text-sm font-semibold text-gray-700">
-                                                    <p className="flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-[#000285]" />{event.event_date || "Date to be announced"}</p>
-                                                    <p className="flex items-center gap-2"><MapPinIcon className="h-5 w-5 text-[#000285]" />{event.location}</p>
+                                                    <p className="flex items-center gap-2"><CalendarDaysIcon className="h-5 w-5 text-brand" />{event.event_date || "Date to be announced"}</p>
+                                                    <p className="flex items-center gap-2"><MapPinIcon className="h-5 w-5 text-brand" />{event.location}</p>
                                                 </div>
                                                 {event.registration_url && (
                                                     <a
                                                         href={event.registration_url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="mt-6 inline-flex items-center gap-2 rounded-md bg-[#000285] px-5 py-3 text-sm font-black text-white"
+                                                        className="mt-6 inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-black text-white"
                                                     >
                                                         Register
                                                         <ArrowRightIcon className="h-4 w-4" />
@@ -57,7 +57,7 @@ export default function Events({ events = [] }) {
                         <RevealSection className="bg-gray-50 py-20 sm:py-24 lg:py-28">
                             <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
                                 <motion.div
-                                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-blue-100 text-[#000285]"
+                                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-blue-100 text-brand"
                                     animate={{ y: [0, -10, 0], rotate: [0, 4, -4, 0] }}
                                     transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                 >
@@ -69,7 +69,7 @@ export default function Events({ events = [] }) {
                                 <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
                                     The next Bellah Options session is being shaped. When a new event is published, it will appear here with the full details.
                                 </p>
-                                <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white">
+                                <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-brand px-6 py-3 text-sm font-black text-white">
                                     Ask about upcoming events
                                     <ArrowRightIcon className="h-4 w-4" />
                                 </Link>

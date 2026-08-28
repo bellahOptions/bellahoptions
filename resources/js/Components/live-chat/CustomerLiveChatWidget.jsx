@@ -464,7 +464,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.96 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className="mb-3 border border-gray-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-wide text-[#000285] shadow-sm"
+                        className="mb-3 border border-gray-200 bg-white px-3 py-2 text-xs font-black uppercase tracking-wide text-brand shadow-sm"
                     >
                         New support reply received.
                     </motion.div>
@@ -484,7 +484,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                         return next;
                     });
                 }}
-                className="relative inline-flex h-14 w-14 items-center justify-center rounded-full bg-[#000285] text-white shadow-xl shadow-blue-900/35 transition hover:bg-blue-800"
+                className="relative inline-flex h-14 w-14 items-center justify-center rounded-full bg-brand text-white shadow-xl shadow-blue-900/35 transition hover:bg-brand-dark"
                 aria-label="Open live chat"
                 animate={shouldAlert ? { scale: [1, 1.06, 1] } : { scale: 1 }}
                 transition={shouldAlert ? { duration: 1.1, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.18 }}
@@ -504,7 +504,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                             initial={{ opacity: 0, y: 4, scale: 0.65 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: 2, scale: 0.75 }}
-                            className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-black text-[#000285] ring-1 ring-gray-200"
+                            className="absolute -right-1 -top-1 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-black text-brand ring-1 ring-gray-200"
                         >
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </motion.span>
@@ -554,13 +554,13 @@ export default function CustomerLiveChatWidget({ show = true }) {
                                     <p className="text-sm text-gray-700">Start a conversation and our support staff will respond here.</p>
                                     {faqs.length > 0 && (
                                         <div className="space-y-2">
-                                            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">Quick FAQs</p>
+                                            <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">Quick FAQs</p>
                                             {faqs.slice(0, 4).map((faq, index) => (
                                                 <button
                                                     key={`faq-suggest-${index}`}
                                                     type="button"
                                                     onClick={() => applyFaq(faq)}
-                                                    className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-left text-xs text-gray-800 transition hover:border-[#000285] hover:bg-gray-100"
+                                                    className="w-full rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-left text-xs text-gray-800 transition hover:border-brand hover:bg-gray-100"
                                                 >
                                                     {faq.question}
                                                 </button>
@@ -584,7 +584,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                                             className={`max-w-[86%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
                                                 fromStaff
                                                     ? 'mr-auto border border-gray-200 bg-white text-gray-900'
-                                                    : 'ml-auto bg-[#000285] text-white'
+                                                    : 'ml-auto bg-brand text-white'
                                             }`}
                                         >
                                             <p className="whitespace-pre-wrap break-words">{message.body}</p>
@@ -631,9 +631,9 @@ export default function CustomerLiveChatWidget({ show = true }) {
                             {staffTyping && (
                                 <div className="mr-auto inline-flex max-w-[72%] items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-700">
                                     <span className="inline-flex gap-1">
-                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:0ms]" />
-                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:120ms]" />
-                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:240ms]" />
+                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand [animation-delay:0ms]" />
+                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand [animation-delay:120ms]" />
+                                        <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand [animation-delay:240ms]" />
                                     </span>
                                     Support is typing...
                                 </div>
@@ -648,7 +648,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                                         value={guestName}
                                         onChange={(event) => setGuestName(event.target.value)}
                                         placeholder="Your name"
-                                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#000285] focus:outline-none"
+                                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         autoComplete="name"
                                     />
                                     <input
@@ -656,7 +656,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                                         value={guestEmail}
                                         onChange={(event) => setGuestEmail(event.target.value)}
                                         placeholder="Your email (optional)"
-                                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#000285] focus:outline-none"
+                                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         autoComplete="email"
                                     />
                                 </div>
@@ -669,12 +669,12 @@ export default function CustomerLiveChatWidget({ show = true }) {
                                     rows={2}
                                     maxLength={2000}
                                     placeholder={thread?.status === 'closed' ? 'This chat is closed. Send a message to reopen it.' : 'Type your message...'}
-                                    className="min-h-10 flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#000285] focus:outline-none"
+                                    className="min-h-10 flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 <button
                                     type="submit"
                                     disabled={sending}
-                                    className="rounded-lg bg-[#000285] px-4 py-2 text-sm font-black text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="rounded-lg bg-brand px-4 py-2 text-sm font-black text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {sending ? 'Sending...' : 'Send'}
                                 </button>
@@ -685,7 +685,7 @@ export default function CustomerLiveChatWidget({ show = true }) {
                                     type="button"
                                     onClick={closeChat}
                                     disabled={closing || !thread?.id}
-                                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-800 transition hover:border-[#000285] hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-800 transition hover:border-brand hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {closing ? 'Closing...' : 'Close Chat'}
                                 </button>

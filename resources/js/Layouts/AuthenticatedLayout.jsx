@@ -177,7 +177,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 method="post"
                                 href={route('logout')}
                                 as="button"
-                                className="rounded-md bg-[#000285] px-3 py-2 text-center text-xs font-bold text-white hover:bg-blue-800"
+                                className="rounded-md bg-brand px-3 py-2 text-center text-xs font-bold text-white hover:bg-brand-dark"
                             >
                                 Log Out
                             </Link>
@@ -311,8 +311,8 @@ function SidebarLink({ href, active, onClick, children }) {
             onClick={onClick}
             className={`block rounded-lg px-3 py-2.5 text-sm font-bold transition ${
                 active
-                    ? 'bg-[#000285] text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-[#000285]'
+                    ? 'bg-brand text-white shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-brand'
             }`}
         >
             {children}

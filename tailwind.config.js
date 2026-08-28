@@ -15,8 +15,12 @@ export default {
             fontFamily: {
                 sans: 'DM Sans',
             },
-            color:{
-                bellahBlue: '#000285',
+            colors: {
+                brand: {
+                    DEFAULT: '#050a80',
+                    dark: '#040860',
+                    light: '#eef0fb',
+                },
             },
         },
     },

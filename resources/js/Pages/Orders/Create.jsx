@@ -866,7 +866,7 @@ export default function OrderCreate({
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
+                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
                                 <div>
@@ -899,7 +899,7 @@ export default function OrderCreate({
                         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-8">
                             <aside className="space-y-4">
                                 <div className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                                    <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">Order Steps</p>
+                                    <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Order Steps</p>
                                     <div className="mt-5 space-y-3">
                                         {steps.map((step, index) => {
                                             const stepNumber = index + 1;
@@ -908,7 +908,7 @@ export default function OrderCreate({
 
                                             return (
                                                 <div key={step} className={`flex items-center gap-3 ${active ? "text-gray-950" : "text-gray-500"}`}>
-                                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black ${complete ? "bg-[#000285] text-white" : active ? "border border-[#000285] text-[#000285]" : "bg-gray-100"}`}>
+                                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black ${complete ? "bg-brand text-white" : active ? "border border-brand text-brand" : "bg-gray-100"}`}>
                                                         {complete ? <CheckCircleIcon className="h-5 w-5" /> : stepNumber}
                                                     </div>
                                                     <span className="font-bold">{step}</span>
@@ -1032,7 +1032,7 @@ export default function OrderCreate({
                                                     key={slug}
                                                     type="button"
                                                     onClick={() => setActiveServiceSlug(slug)}
-                                                    className={`border p-5 text-left transition ${activeServiceSlug === slug ? "border-[#000285] bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
+                                                    className={`border p-5 text-left transition ${activeServiceSlug === slug ? "border-brand bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
                                                 >
                                                     <p className="text-lg font-black text-gray-950">{service.name}</p>
                                                     <p className="mt-2 text-sm leading-6 text-gray-600">{service.description}</p>
@@ -1124,7 +1124,7 @@ export default function OrderCreate({
 
                                         {data.has_logo === "no" && data.logo_design_interest === "yes" && (
                                             <div className="mt-8 border border-blue-200 bg-blue-50 p-5">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">Logo / Brand Design Add-on</p>
+                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Logo / Brand Design Add-on</p>
                                                 <p className="mt-2 text-sm leading-6 text-gray-600">
                                                     Choose the add-on package you want us to include with this order.
                                                 </p>
@@ -1137,10 +1137,10 @@ export default function OrderCreate({
                                                                 key={code}
                                                                 type="button"
                                                                 onClick={() => updateField("logo_addon_package", code)}
-                                                                className={`border p-5 text-left transition ${selected ? "border-[#000285] bg-white" : "border-blue-200 bg-blue-50/40 hover:border-blue-300"}`}
+                                                                className={`border p-5 text-left transition ${selected ? "border-brand bg-white" : "border-blue-200 bg-blue-50/40 hover:border-blue-300"}`}
                                                             >
                                                                 <p className="text-lg font-black text-gray-950">{addon.name}</p>
-                                                                <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(addon.price, currency, locale)}</p>
+                                                                <p className="mt-2 text-sm font-bold text-brand">{formatMoney(addon.price, currency, locale)}</p>
                                                                 <p className="mt-3 text-sm leading-6 text-gray-600">{addon.description}</p>
                                                             </button>
                                                         );
@@ -1152,7 +1152,7 @@ export default function OrderCreate({
 
                                         {(activeService?.intake || []).length > 0 && (
                                             <div className="mt-8 border border-gray-200 bg-gray-50 p-5">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">{activeService?.name} Brief</p>
+                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">{activeService?.name} Brief</p>
                                                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                                                     {activeService.intake.map((field) => (
                                                         <DynamicField
@@ -1184,23 +1184,23 @@ export default function OrderCreate({
                                                         key={code}
                                                         type="button"
                                                         onClick={() => updateField("service_package", code)}
-                                                        className={`border p-5 text-left transition ${selected ? "border-[#000285] bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
+                                                        className={`border p-5 text-left transition ${selected ? "border-brand bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
                                                     >
                                                         <div className="flex items-start justify-between gap-2">
                                                             <p className="text-lg font-black text-gray-950">{pack.name}</p>
                                                             {pack.is_recommended && (
-                                                                <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-indigo-700">
+                                                                <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-brand">
                                                                     Recommended
                                                                 </span>
                                                             )}
                                                         </div>
                                                         {pack.discount_price && Number(pack.base_price_ngn || 0) > Number(pack.discount_price || 0) ? (
                                                             <div className="mt-2 flex items-center gap-2">
-                                                                <p className="text-sm font-bold text-[#000285]">{formatMoney(pack.discount_price, currency, locale)}</p>
+                                                                <p className="text-sm font-bold text-brand">{formatMoney(pack.discount_price, currency, locale)}</p>
                                                                 <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
                                                             </div>
                                                         ) : (
-                                                            <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(pack.price, currency, locale)}</p>
+                                                            <p className="mt-2 text-sm font-bold text-brand">{formatMoney(pack.price, currency, locale)}</p>
                                                         )}
                                                         <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
                                                         {Array.isArray(pack.features) && pack.features.length > 0 && (
@@ -1226,8 +1226,8 @@ export default function OrderCreate({
                                             })}
                                         </div>
                                         {trialPackageEntry && (
-                                            <div className="mt-6 rounded-lg border border-dashed border-[#000285] bg-blue-50 p-5">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">Outside Plans / Packs</p>
+                                            <div className="mt-6 rounded-lg border border-dashed border-brand bg-blue-50 p-5">
+                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Outside Plans / Packs</p>
                                                 <div className="mt-4">
                                                     {(() => {
                                                         const [code, pack] = trialPackageEntry;
@@ -1237,10 +1237,10 @@ export default function OrderCreate({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => updateField("service_package", code)}
-                                                                className={`w-full border p-5 text-left transition ${selected ? "border-[#000285] bg-white" : "border-blue-200 bg-blue-50/30 hover:border-blue-300"}`}
+                                                                className={`w-full border p-5 text-left transition ${selected ? "border-brand bg-white" : "border-blue-200 bg-blue-50/30 hover:border-blue-300"}`}
                                                             >
                                                                 <p className="text-lg font-black text-gray-950">{pack.name}</p>
-                                                                <p className="mt-2 text-sm font-bold text-[#000285]">{formatMoney(pack.price, currency, locale)}</p>
+                                                                <p className="mt-2 text-sm font-bold text-brand">{formatMoney(pack.price, currency, locale)}</p>
                                                                 <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
                                                                 <p className="mt-3 text-xs font-semibold text-gray-500">
                                                                     This trial option uses a fixed fee and does not accept discount codes.
@@ -1272,7 +1272,7 @@ export default function OrderCreate({
                                                         type="checkbox"
                                                         checked={Boolean(data.create_account)}
                                                         onChange={(event) => updateField("create_account", event.target.checked, ["password", "password_confirmation"])}
-                                                        className="mt-1 rounded border-gray-300 text-[#000285] focus:ring-[#000285]"
+                                                        className="mt-1 rounded border-gray-300 text-brand focus:ring-brand"
                                                     />
                                                     <span>
                                                         <span className="block font-black text-gray-950">Create an account</span>
@@ -1309,7 +1309,7 @@ export default function OrderCreate({
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="bg-[#000285] p-6 text-white">
+                                            <div className="bg-brand p-6 text-white">
                                                 <p className="text-sm font-black uppercase tracking-[0.18em] text-gray-300">Summary</p>
                                                 <p className="mt-3 text-2xl font-black">Submit the order</p>
                                                 <p className="mt-3 text-sm leading-6 text-blue-100">We’ll create the order record first. If payment is required, you’ll be taken straight to the payment screen.</p>
@@ -1387,18 +1387,18 @@ export default function OrderCreate({
                                             Back
                                         </button>
                                         {currentStep < steps.length ? (
-                                            <button type="button" onClick={nextStep} className="inline-flex items-center gap-2 rounded-md bg-[#000285] px-5 py-3 text-sm font-black text-white">
+                                            <button type="button" onClick={nextStep} className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-black text-white">
                                                 Continue
                                                 <ArrowRightIcon className="h-4 w-4" />
                                             </button>
                                         ) : (
-                                            <button type="submit" disabled={processing} className="inline-flex items-center gap-2 rounded-md bg-[#000285] px-5 py-3 text-sm font-black text-white disabled:opacity-60">
+                                            <button type="submit" disabled={processing} className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-black text-white disabled:opacity-60">
                                                 {processing ? "Submitting..." : "Submit Order"}
                                                 <ArrowRightIcon className="h-4 w-4" />
                                             </button>
                                         )}
                                     </div>
-                                    <Link href="/services" className="text-sm font-black text-[#000285]">
+                                    <Link href="/services" className="text-sm font-black text-brand">
                                         Back to services
                                     </Link>
                                 </div>
@@ -1411,7 +1411,7 @@ export default function OrderCreate({
     );
 }
 
-const inputClassName = "w-full border border-gray-300 px-3 py-2 text-sm text-gray-950 focus:border-[#000285] focus:outline-none";
+const inputClassName = "w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-950 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30";
 
 function resolveErrorStep(formErrors, activeService) {
     const serviceSpecificFields = new Set((activeService?.intake || []).map((field) => field.name));

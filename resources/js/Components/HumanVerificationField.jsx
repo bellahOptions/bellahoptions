@@ -11,7 +11,7 @@ export default function HumanVerificationField({
     mathError = "",
     turnstileError = "",
     labelPrefix = "Human Check",
-    inputClassName = "w-full rounded-md border-gray-300 text-sm focus:border-[#000285] focus:ring-[#000285]",
+    inputClassName = "w-full rounded-md border-gray-300 text-sm focus:border-brand focus:ring-brand",
 }) {
     const [turnstileClientError, setTurnstileClientError] = useState("");
     const turnstileContainerRef = useRef(null);

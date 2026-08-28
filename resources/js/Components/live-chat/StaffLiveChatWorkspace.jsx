@@ -453,18 +453,18 @@ export default function StaffLiveChatWorkspace({
         <section className={`flex min-h-0 overflow-hidden rounded-2xl border border-gray-200 bg-white ${className}`}>
             <aside className="flex w-[43%] min-w-[260px] flex-col border-r border-gray-200 bg-gray-50">
                 <header className="space-y-2 border-b border-gray-200 px-4 py-3">
-                    <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">Live Conversations</p>
+                    <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Live Conversations</p>
                     <p className="text-xs text-gray-600">{onlineStaffIds.length} staff online now</p>
 
                     {showNudge && (
-                        <div className="rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-black uppercase tracking-wide text-[#000285]">
+                        <div className="rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-black uppercase tracking-wide text-brand">
                             New customer message received.
                         </div>
                     )}
                 </header>
 
                 <div className="border-b border-gray-200 px-3 py-2">
-                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#000285]">Online Team</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.14em] text-brand">Online Team</p>
                     <div className="mt-1.5 flex flex-wrap gap-1.5">
                         {onlineStaff.length === 0 && <span className="text-[11px] text-gray-600">No active staff presence.</span>}
                         {onlineStaff.map((staff) => (
@@ -496,7 +496,7 @@ export default function StaffLiveChatWorkspace({
                                 <div className="flex items-center justify-between gap-2">
                                     <p className="truncate text-sm font-black text-gray-900">{threadItem.display_name}</p>
                                     {threadItem.unread_count > 0 && (
-                                        <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-[#000285] px-1 text-[11px] font-black text-white">
+                                        <span className="inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-brand px-1 text-[11px] font-black text-white">
                                             {threadItem.unread_count > 99 ? '99+' : threadItem.unread_count}
                                         </span>
                                     )}
@@ -539,7 +539,7 @@ export default function StaffLiveChatWorkspace({
                                     type="button"
                                     onClick={joinThread}
                                     disabled={joining}
-                                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-700 transition hover:border-[#000285] hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-55"
+                                    className="rounded-md border border-gray-300 px-2.5 py-1 text-xs font-bold text-gray-700 transition hover:border-brand hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-55"
                                 >
                                     {joining ? 'Joining...' : 'Join Chat'}
                                 </button>
@@ -579,7 +579,7 @@ export default function StaffLiveChatWorkspace({
                             <article
                                 key={message.id}
                                 className={`max-w-[82%] rounded-2xl px-3 py-2 text-sm shadow-sm ${
-                                    isStaff ? 'ml-auto bg-[#000285] text-white' : 'mr-auto border border-gray-200 bg-white text-gray-900'
+                                    isStaff ? 'ml-auto bg-brand text-white' : 'mr-auto border border-gray-200 bg-white text-gray-900'
                                 }`}
                             >
                                 <p className="whitespace-pre-wrap break-words">{message.body}</p>
@@ -621,9 +621,9 @@ export default function StaffLiveChatWorkspace({
                     {selectedThread?.customer_typing && (
                         <div className="mr-auto inline-flex max-w-[72%] items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-700">
                             <span className="inline-flex gap-1">
-                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:0ms]" />
-                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:120ms]" />
-                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-[#000285] [animation-delay:240ms]" />
+                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand [animation-delay:0ms]" />
+                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand [animation-delay:120ms]" />
+                                <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand [animation-delay:240ms]" />
                             </span>
                             Customer is typing...
                         </div>
@@ -639,12 +639,12 @@ export default function StaffLiveChatWorkspace({
                             maxLength={2000}
                             disabled={!selectedThreadId}
                             placeholder={selectedThreadId ? 'Type a reply for this customer...' : 'Select a conversation first'}
-                            className="min-h-10 flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-[#000285] focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100"
+                            className="min-h-10 flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:cursor-not-allowed disabled:bg-gray-100"
                         />
                         <button
                             type="submit"
                             disabled={sending || !selectedThreadId}
-                            className="rounded-lg bg-[#000285] px-4 py-2 text-sm font-black text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="rounded-lg bg-brand px-4 py-2 text-sm font-black text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {sending ? 'Sending...' : 'Send'}
                         </button>

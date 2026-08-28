@@ -38,7 +38,7 @@ export default function VerifyEmail({ status }) {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Resend Verification Email
                     </button>

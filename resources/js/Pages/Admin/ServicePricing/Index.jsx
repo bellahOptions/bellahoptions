@@ -287,7 +287,7 @@ export default function ServicePricing({
                                                                     min="0.01"
                                                                     value={state.price ?? ''}
                                                                     onChange={(event) => setPackageField(service.slug, pack.code, 'price', event.target.value)}
-                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                                 />
                                                             </div>
                                                             <div>
@@ -298,7 +298,7 @@ export default function ServicePricing({
                                                                     min="0.01"
                                                                     value={state.discount_price ?? ''}
                                                                     onChange={(event) => setPackageField(service.slug, pack.code, 'discount_price', event.target.value)}
-                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                                 />
                                                             </div>
                                                             <label className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700">
@@ -306,7 +306,7 @@ export default function ServicePricing({
                                                                     type="checkbox"
                                                                     checked={Boolean(state.is_recommended)}
                                                                     onChange={(event) => setPackageField(service.slug, pack.code, 'is_recommended', event.target.checked)}
-                                                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                                    className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                                                 />
                                                                 Recommended plan/pack
                                                             </label>
@@ -319,7 +319,7 @@ export default function ServicePricing({
                                                                     rows={2}
                                                                     value={state.description ?? ''}
                                                                     onChange={(event) => setPackageField(service.slug, pack.code, 'description', event.target.value)}
-                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                                 />
                                                             </div>
                                                             <div>
@@ -328,7 +328,7 @@ export default function ServicePricing({
                                                                     rows={4}
                                                                     value={state.features_text ?? ''}
                                                                     onChange={(event) => setPackageField(service.slug, pack.code, 'features_text', event.target.value)}
-                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                                 />
                                                             </div>
                                                         </div>
@@ -354,7 +354,7 @@ export default function ServicePricing({
                                     step="0.01"
                                     value={form.data.social_graphic_trial_fee_ngn ?? ''}
                                     onChange={(event) => form.setData('social_graphic_trial_fee_ngn', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 <p className="mt-2 text-xs text-gray-500">
                                     Set to 0 to disable the trial option on the public order form.
@@ -389,7 +389,7 @@ export default function ServicePricing({
                                                     type="text"
                                                     value={item.title || ''}
                                                     onChange={(event) => setGraphicItem(index, 'title', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                             </div>
                                             <div>
@@ -400,7 +400,7 @@ export default function ServicePricing({
                                                     step="0.01"
                                                     value={item.unit_price || ''}
                                                     onChange={(event) => setGraphicItem(index, 'unit_price', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
@@ -409,7 +409,7 @@ export default function ServicePricing({
                                                     rows={3}
                                                     value={item.description || ''}
                                                     onChange={(event) => setGraphicItem(index, 'description', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                             </div>
                                             <div className="md:col-span-2">
@@ -418,10 +418,10 @@ export default function ServicePricing({
                                                     type="text"
                                                     value={item.image_path || ''}
                                                     onChange={(event) => setGraphicItem(index, 'image_path', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                                 <div className="mt-2 flex flex-wrap gap-2">
-                                                    <label className="rounded-md border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                                    <label className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light">
                                                         Upload Image
                                                         <input
                                                             type="file"
@@ -460,7 +460,7 @@ export default function ServicePricing({
                             <button
                                 type="button"
                                 onClick={addGraphicItem}
-                                className="mt-3 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                className="mt-3 rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                             >
                                 Add Graphic Design Item
                             </button>
@@ -470,7 +470,7 @@ export default function ServicePricing({
                             <button
                                 type="submit"
                                 disabled={form.processing}
-                                className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {form.processing ? 'Saving...' : 'Save Service Pricing'}
                             </button>
@@ -503,7 +503,7 @@ export default function ServicePricing({
                                         key={file.path}
                                         type="button"
                                         onClick={() => selectGraphicImage(file.path)}
-                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-indigo-400 hover:shadow-sm"
+                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-brand hover:shadow-sm"
                                     >
                                         <div className="h-24 w-full overflow-hidden bg-gray-50">
                                             <img

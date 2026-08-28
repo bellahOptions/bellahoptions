@@ -274,7 +274,7 @@ function TermsEditor({ label, value, onChange, error }) {
     return (
         <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-            <div className="overflow-hidden rounded-md border border-gray-300 bg-white focus-within:border-indigo-500">
+            <div className="overflow-hidden rounded-md border border-gray-300 bg-white focus-within:border-brand">
                 <RichTextEditor
                     value={value}
                     onChange={onChange}
@@ -928,7 +928,7 @@ export default function Settings({
                                         type="checkbox"
                                         checked={data.maintenance_mode}
                                         onChange={(event) => setData('maintenance_mode', event.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                     />
                                     <span>
                                         <span className="block text-sm font-semibold text-gray-900">Maintenance Mode</span>
@@ -953,11 +953,11 @@ export default function Settings({
                                         type="text"
                                         value={data.logo_path}
                                         onChange={(event) => setData('logo_path', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.logo_path && <p className="mt-1 text-xs text-red-600">{errors.logo_path}</p>}
                                     <div className="mt-2 flex flex-wrap gap-2">
-                                        <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                        <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
                                             Upload Logo
                                             <input
                                                 type="file"
@@ -995,11 +995,11 @@ export default function Settings({
                                         type="text"
                                         value={data.favicon_path}
                                         onChange={(event) => setData('favicon_path', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.favicon_path && <p className="mt-1 text-xs text-red-600">{errors.favicon_path}</p>}
                                     <div className="mt-2 flex flex-wrap gap-2">
-                                        <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                        <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
                                             Upload Favicon
                                             <input
                                                 type="file"
@@ -1049,7 +1049,7 @@ export default function Settings({
                                         value={data.website_uri}
                                         onChange={(event) => setData('website_uri', event.target.value)}
                                         placeholder="https://bellahoptions.com"
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.website_uri && <p className="mt-1 text-xs text-red-600">{errors.website_uri}</p>}
                                 </div>
@@ -1060,7 +1060,7 @@ export default function Settings({
                                         type="text"
                                         value={data.contact_phone}
                                         onChange={(event) => setData('contact_phone', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.contact_phone && <p className="mt-1 text-xs text-red-600">{errors.contact_phone}</p>}
                                 </div>
@@ -1071,7 +1071,7 @@ export default function Settings({
                                         type="email"
                                         value={data.contact_email}
                                         onChange={(event) => setData('contact_email', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.contact_email && <p className="mt-1 text-xs text-red-600">{errors.contact_email}</p>}
                                 </div>
@@ -1082,7 +1082,7 @@ export default function Settings({
                                         type="text"
                                         value={data.contact_location}
                                         onChange={(event) => setData('contact_location', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.contact_location && <p className="mt-1 text-xs text-red-600">{errors.contact_location}</p>}
                                 </div>
@@ -1093,7 +1093,7 @@ export default function Settings({
                                         type="url"
                                         value={data.contact_whatsapp_url}
                                         onChange={(event) => setData('contact_whatsapp_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.contact_whatsapp_url && <p className="mt-1 text-xs text-red-600">{errors.contact_whatsapp_url}</p>}
                                 </div>
@@ -1104,7 +1104,7 @@ export default function Settings({
                                         type="url"
                                         value={data.contact_behance_url}
                                         onChange={(event) => setData('contact_behance_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.contact_behance_url && <p className="mt-1 text-xs text-red-600">{errors.contact_behance_url}</p>}
                                 </div>
@@ -1115,7 +1115,7 @@ export default function Settings({
                                         type="url"
                                         value={data.contact_map_embed_url}
                                         onChange={(event) => setData('contact_map_embed_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.contact_map_embed_url && <p className="mt-1 text-xs text-red-600">{errors.contact_map_embed_url}</p>}
                                 </div>
@@ -1149,7 +1149,7 @@ export default function Settings({
                                                     type="text"
                                                     value={slide.title || ''}
                                                     onChange={(event) => updateSlide(index, 'title', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                                 {errors[`home_slides.${index}.title`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`home_slides.${index}.title`]}</p>
@@ -1162,7 +1162,7 @@ export default function Settings({
                                                     type="text"
                                                     value={slide.image || ''}
                                                     onChange={(event) => updateSlide(index, 'image', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                                 {errors[`home_slides.${index}.image`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`home_slides.${index}.image`]}</p>
@@ -1175,7 +1175,7 @@ export default function Settings({
                                                     rows="2"
                                                     value={slide.subtitle || ''}
                                                     onChange={(event) => updateSlide(index, 'subtitle', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                             </div>
 
@@ -1185,7 +1185,7 @@ export default function Settings({
                                                     type="text"
                                                     value={slide.cta_label || ''}
                                                     onChange={(event) => updateSlide(index, 'cta_label', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                             </div>
 
@@ -1196,7 +1196,7 @@ export default function Settings({
                                                     value={slide.cta_url || ''}
                                                     onChange={(event) => updateSlide(index, 'cta_url', event.target.value)}
                                                     placeholder="/order/brand-design"
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                                 {errors[`home_slides.${index}.cta_url`] && (
                                                     <p className="mt-1 text-xs text-red-600">{errors[`home_slides.${index}.cta_url`]}</p>
@@ -1210,7 +1210,7 @@ export default function Settings({
                             <button
                                 type="button"
                                 onClick={addSlide}
-                                className="mt-3 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-100"
+                                className="mt-3 rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                             >
                                 Add Slide
                             </button>
@@ -1248,7 +1248,7 @@ export default function Settings({
                                                         type="text"
                                                         value={header.title || ''}
                                                         onChange={(event) => updatePublicHeader(page.key, 'title', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {titleError && <p className="mt-1 text-xs text-red-600">{titleError}</p>}
                                                 </div>
@@ -1259,7 +1259,7 @@ export default function Settings({
                                                         rows="3"
                                                         value={header.text || ''}
                                                         onChange={(event) => updatePublicHeader(page.key, 'text', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {textError && <p className="mt-1 text-xs text-red-600">{textError}</p>}
                                                 </div>
@@ -1271,11 +1271,11 @@ export default function Settings({
                                                         value={backgroundImage}
                                                         onChange={(event) => updatePublicHeader(page.key, 'background_image', event.target.value)}
                                                         placeholder="optimized/about-header.webp"
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {imageError && <p className="mt-1 text-xs text-red-600">{imageError}</p>}
                                                     <div className="mt-2 flex flex-wrap gap-2">
-                                                        <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                                        <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
                                                             Upload Background
                                                             <input
                                                                 type="file"
@@ -1328,7 +1328,7 @@ export default function Settings({
                                             type="text"
                                             value={data.public_seo?.global?.default_title || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_title', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors['public_seo.global.default_title'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_title']}</p>}
                                     </div>
@@ -1339,7 +1339,7 @@ export default function Settings({
                                             rows="3"
                                             value={data.public_seo?.global?.default_description || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_description', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors['public_seo.global.default_description'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_description']}</p>}
                                     </div>
@@ -1350,7 +1350,7 @@ export default function Settings({
                                             type="text"
                                             value={data.public_seo?.global?.default_keywords || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_keywords', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors['public_seo.global.default_keywords'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_keywords']}</p>}
                                     </div>
@@ -1361,7 +1361,7 @@ export default function Settings({
                                             type="text"
                                             value={data.public_seo?.global?.default_robots || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_robots', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors['public_seo.global.default_robots'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_robots']}</p>}
                                     </div>
@@ -1371,7 +1371,7 @@ export default function Settings({
                                         <select
                                             value={data.public_seo?.global?.twitter_card || 'summary_large_image'}
                                             onChange={(event) => updatePublicSeoGlobal('twitter_card', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         >
                                             <option value="summary_large_image">summary_large_image</option>
                                             <option value="summary">summary</option>
@@ -1385,7 +1385,7 @@ export default function Settings({
                                             type="text"
                                             value={data.public_seo?.global?.twitter_site || ''}
                                             onChange={(event) => updatePublicSeoGlobal('twitter_site', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors['public_seo.global.twitter_site'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.twitter_site']}</p>}
                                     </div>
@@ -1411,11 +1411,11 @@ export default function Settings({
                                                     type="text"
                                                     value={value}
                                                     onChange={(event) => updatePublicSeoGlobal(fieldMeta.field, event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
                                                 {errors[fieldKey] && <p className="mt-1 text-xs text-red-600">{errors[fieldKey]}</p>}
                                                 <div className="mt-2 flex flex-wrap gap-2">
-                                                    <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                                    <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
                                                         Upload Image
                                                         <input
                                                             type="file"
@@ -1470,7 +1470,7 @@ export default function Settings({
                                                         type="text"
                                                         value={seo.path || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'path', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {errors[`${baseError}.path`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.path`]}</p>}
                                                 </div>
@@ -1481,7 +1481,7 @@ export default function Settings({
                                                         type="text"
                                                         value={seo.canonical_url || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'canonical_url', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {errors[`${baseError}.canonical_url`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.canonical_url`]}</p>}
                                                 </div>
@@ -1492,7 +1492,7 @@ export default function Settings({
                                                         type="text"
                                                         value={seo.meta_title || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'meta_title', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {errors[`${baseError}.meta_title`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.meta_title`]}</p>}
                                                 </div>
@@ -1503,7 +1503,7 @@ export default function Settings({
                                                         rows="3"
                                                         value={seo.meta_description || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'meta_description', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {errors[`${baseError}.meta_description`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.meta_description`]}</p>}
                                                 </div>
@@ -1514,7 +1514,7 @@ export default function Settings({
                                                         type="text"
                                                         value={seo.keywords || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'keywords', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {errors[`${baseError}.keywords`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.keywords`]}</p>}
                                                 </div>
@@ -1525,7 +1525,7 @@ export default function Settings({
                                                         type="text"
                                                         value={seo.robots || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'robots', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     />
                                                     {errors[`${baseError}.robots`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.robots`]}</p>}
                                                 </div>
@@ -1535,7 +1535,7 @@ export default function Settings({
                                                     <select
                                                         value={seo.og_type || 'website'}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'og_type', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                     >
                                                         <option value="website">website</option>
                                                         <option value="article">article</option>
@@ -1559,11 +1559,11 @@ export default function Settings({
                                                                 type="text"
                                                                 value={fieldValue}
                                                                 onChange={(event) => updatePublicSeoPage(page.key, imageMeta.field, event.target.value)}
-                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                             />
                                                             {errors[fieldKey] && <p className="mt-1 text-xs text-red-600">{errors[fieldKey]}</p>}
                                                             <div className="mt-2 flex flex-wrap gap-2">
-                                                                <label className="rounded-md border border-indigo-200 px-3 py-1.5 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">
+                                                                <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
                                                                     Upload Image
                                                                     <input
                                                                         type="file"
@@ -1616,7 +1616,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.badge || ''}
                                         onChange={(event) => updateManageHiresLanding('badge', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.badge'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.badge']}</p>}
                                 </div>
@@ -1627,7 +1627,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.package_name || ''}
                                         onChange={(event) => updateManageHiresLanding('package_name', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.package_name'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.package_name']}</p>}
                                 </div>
@@ -1640,7 +1640,7 @@ export default function Settings({
                                         step="1"
                                         value={data.manage_hires_landing?.monthly_price_ngn ?? 0}
                                         onChange={(event) => updateManageHiresLanding('monthly_price_ngn', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.monthly_price_ngn'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.monthly_price_ngn']}</p>}
                                 </div>
@@ -1651,7 +1651,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.tagline || ''}
                                         onChange={(event) => updateManageHiresLanding('tagline', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.tagline'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.tagline']}</p>}
                                 </div>
@@ -1662,7 +1662,7 @@ export default function Settings({
                                         rows="3"
                                         value={data.manage_hires_landing?.description || ''}
                                         onChange={(event) => updateManageHiresLanding('description', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.description'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.description']}</p>}
                                 </div>
@@ -1673,7 +1673,7 @@ export default function Settings({
                                         rows="5"
                                         value={(data.manage_hires_landing?.highlights || []).join('\n')}
                                         onChange={(event) => updateManageHiresLanding('highlights', event.target.value.split(/\r?\n/))}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.highlights'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.highlights']}</p>}
                                 </div>
@@ -1684,7 +1684,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.exclusions_note || ''}
                                         onChange={(event) => updateManageHiresLanding('exclusions_note', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.exclusions_note'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.exclusions_note']}</p>}
                                 </div>
@@ -1695,7 +1695,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.primary_cta_label || ''}
                                         onChange={(event) => updateManageHiresLanding('primary_cta_label', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.primary_cta_label'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.primary_cta_label']}</p>}
                                 </div>
@@ -1706,7 +1706,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.primary_cta_url || ''}
                                         onChange={(event) => updateManageHiresLanding('primary_cta_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.primary_cta_url'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.primary_cta_url']}</p>}
                                 </div>
@@ -1717,7 +1717,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.secondary_cta_label || ''}
                                         onChange={(event) => updateManageHiresLanding('secondary_cta_label', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.secondary_cta_label'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.secondary_cta_label']}</p>}
                                 </div>
@@ -1728,7 +1728,7 @@ export default function Settings({
                                         type="text"
                                         value={data.manage_hires_landing?.secondary_cta_url || ''}
                                         onChange={(event) => updateManageHiresLanding('secondary_cta_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors['manage_hires_landing.secondary_cta_url'] && <p className="mt-1 text-xs text-red-600">{errors['manage_hires_landing.secondary_cta_url']}</p>}
                                 </div>
@@ -1749,7 +1749,7 @@ export default function Settings({
                                         value={data.google_reviews_place_id || ''}
                                         onChange={(event) => setData('google_reviews_place_id', event.target.value)}
                                         placeholder="ChIJxxxxxxxxxxxxxxxxxxxxxxx"
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {errors.google_reviews_place_id && (
                                         <p className="mt-1 text-xs text-red-600">{errors.google_reviews_place_id}</p>
@@ -1774,7 +1774,7 @@ export default function Settings({
                                         href={googleReviewsPreviewMeta.profile_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="text-xs font-semibold text-indigo-700 hover:text-indigo-800"
+                                        className="text-xs font-semibold text-brand hover:text-brand-dark"
                                     >
                                         Open Google review page
                                     </a>
@@ -1817,7 +1817,7 @@ export default function Settings({
                                             return (
                                                 <label
                                                     key={reviewId}
-                                                    className={`cursor-pointer rounded-lg border p-3 ${selected ? 'border-indigo-400 bg-indigo-50' : 'border-gray-200 bg-white'}`}
+                                                    className={`cursor-pointer rounded-lg border p-3 ${selected ? 'border-brand bg-brand-light' : 'border-gray-200 bg-white'}`}
                                                 >
                                                     <div className="flex items-start justify-between gap-3">
                                                         <div>
@@ -1828,7 +1828,7 @@ export default function Settings({
                                                             type="checkbox"
                                                             checked={selected}
                                                             onChange={() => toggleFeaturedGoogleReview(reviewId)}
-                                                            className="mt-1 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                                            className="mt-1 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                                         />
                                                     </div>
                                                     <p className="mt-2 text-xs text-amber-600">{'★'.repeat(Math.max(1, Math.min(5, stars)))}</p>
@@ -1856,7 +1856,7 @@ export default function Settings({
                                         type="text"
                                         value={reviewForm.data.reviewer_name}
                                         onChange={(event) => reviewForm.setData('reviewer_name', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {reviewForm.errors.reviewer_name && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.reviewer_name}</p>}
                                 </div>
@@ -1867,7 +1867,7 @@ export default function Settings({
                                         type="email"
                                         value={reviewForm.data.reviewer_email}
                                         onChange={(event) => reviewForm.setData('reviewer_email', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {reviewForm.errors.reviewer_email && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.reviewer_email}</p>}
                                 </div>
@@ -1881,7 +1881,7 @@ export default function Settings({
                                         step="0.1"
                                         value={reviewForm.data.rating}
                                         onChange={(event) => reviewForm.setData('rating', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {reviewForm.errors.rating && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.rating}</p>}
                                 </div>
@@ -1892,7 +1892,7 @@ export default function Settings({
                                             type="checkbox"
                                             checked={Boolean(reviewForm.data.is_public)}
                                             onChange={(event) => reviewForm.setData('is_public', event.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                         />
                                         Public
                                     </label>
@@ -1901,7 +1901,7 @@ export default function Settings({
                                             type="checkbox"
                                             checked={Boolean(reviewForm.data.is_featured)}
                                             onChange={(event) => reviewForm.setData('is_featured', event.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                         />
                                         Featured
                                     </label>
@@ -1913,7 +1913,7 @@ export default function Settings({
                                         rows="4"
                                         value={reviewForm.data.comment}
                                         onChange={(event) => reviewForm.setData('comment', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {reviewForm.errors.comment && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.comment}</p>}
                                 </div>
@@ -1976,7 +1976,7 @@ export default function Settings({
                                                         {review.is_public ? 'Public' : 'Private'}
                                                     </p>
                                                     <p className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                                        review.is_featured ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-600'
+                                                        review.is_featured ? 'bg-brand-light text-brand' : 'bg-gray-100 text-gray-600'
                                                     }`}>
                                                         {review.is_featured ? 'Featured' : 'Not Featured'}
                                                     </p>
@@ -1997,7 +1997,7 @@ export default function Settings({
                                                         <button
                                                             type="button"
                                                             onClick={() => toggleClientReviewFeatured(review)}
-                                                            className="rounded-md border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                                                            className="rounded-md border border-brand/30 px-2.5 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
                                                         >
                                                             {review.is_featured ? 'Unfeature' : 'Feature'}
                                                         </button>
@@ -2065,7 +2065,7 @@ export default function Settings({
                                     type="text"
                                     value={discountForm.data.name}
                                     onChange={(event) => discountForm.setData('name', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                             </div>
 
@@ -2076,7 +2076,7 @@ export default function Settings({
                                     value={discountForm.data.code}
                                     onChange={(event) => discountForm.setData('code', event.target.value)}
                                     placeholder="PROMO20"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {discountForm.errors.code && <p className="mt-1 text-xs text-red-600">{discountForm.errors.code}</p>}
                             </div>
@@ -2086,7 +2086,7 @@ export default function Settings({
                                 <select
                                     value={discountForm.data.discount_type}
                                     onChange={(event) => discountForm.setData('discount_type', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     <option value="percentage">Percentage</option>
                                     <option value="fixed">Fixed Amount</option>
@@ -2101,7 +2101,7 @@ export default function Settings({
                                     step="0.01"
                                     value={discountForm.data.discount_value}
                                     onChange={(event) => discountForm.setData('discount_value', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {discountForm.errors.discount_value && <p className="mt-1 text-xs text-red-600">{discountForm.errors.discount_value}</p>}
                             </div>
@@ -2114,7 +2114,7 @@ export default function Settings({
                                         discountForm.setData('service_slug', event.target.value);
                                         discountForm.setData('package_code', '');
                                     }}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     {serviceEntries.map(([serviceSlug, service]) => (
                                         <option key={`discount-service-${serviceSlug}`} value={serviceSlug}>
@@ -2130,7 +2130,7 @@ export default function Settings({
                                 <select
                                     value={discountForm.data.package_code}
                                     onChange={(event) => discountForm.setData('package_code', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     <option value="">All packages in this service</option>
                                     {Object.entries(selectedServicePackages).map(([packageCode, packageMeta]) => (
@@ -2149,7 +2149,7 @@ export default function Settings({
                                         type="text"
                                         value={discountForm.data.currency}
                                         onChange={(event) => discountForm.setData('currency', event.target.value.toUpperCase())}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-indigo-500 focus:outline-none"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     />
                                     {discountForm.errors.currency && <p className="mt-1 text-xs text-red-600">{discountForm.errors.currency}</p>}
                                 </div>
@@ -2161,7 +2161,7 @@ export default function Settings({
                                     type="date"
                                     value={discountForm.data.starts_at}
                                     onChange={(event) => discountForm.setData('starts_at', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                             </div>
 
@@ -2171,7 +2171,7 @@ export default function Settings({
                                     type="date"
                                     value={discountForm.data.ends_at}
                                     onChange={(event) => discountForm.setData('ends_at', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                             </div>
 
@@ -2183,7 +2183,7 @@ export default function Settings({
                                     step="1"
                                     value={discountForm.data.max_redemptions}
                                     onChange={(event) => discountForm.setData('max_redemptions', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                             </div>
 
@@ -2193,7 +2193,7 @@ export default function Settings({
                                     type="checkbox"
                                     checked={Boolean(discountForm.data.is_active)}
                                     onChange={(event) => discountForm.setData('is_active', event.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                    className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                 />
                                 <label htmlFor="discount_is_active" className="text-sm font-medium text-gray-700">Active immediately</label>
                             </div>
@@ -2272,7 +2272,7 @@ export default function Settings({
                                                     href={discountCode.discount_link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="break-all text-xs text-indigo-600 hover:text-indigo-800"
+                                                    className="break-all text-xs text-brand hover:text-brand-dark"
                                                 >
                                                     {discountCode.discount_link}
                                                 </a>
@@ -2289,7 +2289,7 @@ export default function Settings({
                                                     <button
                                                         type="button"
                                                         onClick={() => copyDiscountLink(discountCode)}
-                                                        className="rounded-md border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                                                        className="rounded-md border border-brand/30 px-2.5 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
                                                     >
                                                         {copiedLinkId === discountCode.id ? 'Copied' : 'Copy Link'}
                                                     </button>
@@ -2323,7 +2323,7 @@ export default function Settings({
                                     value={subscriptionPlanForm.data.name}
                                     onChange={(event) => subscriptionPlanForm.setData('name', event.target.value)}
                                     placeholder="Growth Design Plan"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {subscriptionPlanForm.errors.name && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.name}</p>}
                             </div>
@@ -2333,7 +2333,7 @@ export default function Settings({
                                 <select
                                     value={subscriptionPlanForm.data.billing_cycle}
                                     onChange={(event) => subscriptionPlanForm.setData('billing_cycle', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     <option value="monthly">Monthly</option>
                                     <option value="quarterly">Quarterly</option>
@@ -2351,7 +2351,7 @@ export default function Settings({
                                         subscriptionPlanForm.setData('service_slug', event.target.value);
                                         subscriptionPlanForm.setData('package_code', '');
                                     }}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     {serviceEntries.map(([serviceSlug, service]) => (
                                         <option key={`plan-service-${serviceSlug}`} value={serviceSlug}>
@@ -2367,7 +2367,7 @@ export default function Settings({
                                 <select
                                     value={subscriptionPlanForm.data.package_code}
                                     onChange={(event) => subscriptionPlanForm.setData('package_code', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 >
                                     <option value="">Select package</option>
                                     {Object.entries(selectedPlanPackages).map(([packageCode, packageMeta]) => (
@@ -2386,7 +2386,7 @@ export default function Settings({
                                     value={subscriptionPlanForm.data.image_path}
                                     onChange={(event) => subscriptionPlanForm.setData('image_path', event.target.value)}
                                     placeholder="/storage/subscription-plans/plan.webp"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {subscriptionPlanForm.errors.image_path && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.image_path}</p>}
                             </div>
@@ -2397,7 +2397,7 @@ export default function Settings({
                                     rows={2}
                                     value={subscriptionPlanForm.data.short_description}
                                     onChange={(event) => subscriptionPlanForm.setData('short_description', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {subscriptionPlanForm.errors.short_description && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.short_description}</p>}
                             </div>
@@ -2408,7 +2408,7 @@ export default function Settings({
                                     rows={4}
                                     value={subscriptionPlanForm.data.long_description}
                                     onChange={(event) => subscriptionPlanForm.setData('long_description', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {subscriptionPlanForm.errors.long_description && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.long_description}</p>}
                             </div>
@@ -2421,7 +2421,7 @@ export default function Settings({
                                     step="1"
                                     value={subscriptionPlanForm.data.position}
                                     onChange={(event) => subscriptionPlanForm.setData('position', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                                 {subscriptionPlanForm.errors.position && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.position}</p>}
                             </div>
@@ -2432,7 +2432,7 @@ export default function Settings({
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.is_active)}
                                         onChange={(event) => subscriptionPlanForm.setData('is_active', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                     />
                                     Active
                                 </label>
@@ -2441,7 +2441,7 @@ export default function Settings({
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.show_on_homepage)}
                                         onChange={(event) => subscriptionPlanForm.setData('show_on_homepage', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                     />
                                     Show on homepage
                                 </label>
@@ -2450,7 +2450,7 @@ export default function Settings({
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.is_homepage_featured)}
                                         onChange={(event) => subscriptionPlanForm.setData('is_homepage_featured', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                     />
                                     Featured on homepage
                                 </label>
@@ -2459,7 +2459,7 @@ export default function Settings({
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.is_recommended)}
                                         onChange={(event) => subscriptionPlanForm.setData('is_recommended', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                                     />
                                     Recommended
                                 </label>
@@ -2469,7 +2469,7 @@ export default function Settings({
                                 <button
                                     type="submit"
                                     disabled={subscriptionPlanForm.processing}
-                                    className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="inline-flex items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {subscriptionPlanForm.processing ? 'Creating...' : 'Create Subscription Plan'}
                                 </button>
@@ -2537,7 +2537,7 @@ export default function Settings({
                                                     href={subscriptionPlan.checkout_link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="break-all text-xs text-indigo-600 hover:text-indigo-800"
+                                                    className="break-all text-xs text-brand hover:text-brand-dark"
                                                 >
                                                     {subscriptionPlan.checkout_link}
                                                 </a>
@@ -2554,7 +2554,7 @@ export default function Settings({
                                                     <button
                                                         type="button"
                                                         onClick={() => updateSubscriptionPlan(subscriptionPlan, { show_on_homepage: !subscriptionPlan.show_on_homepage })}
-                                                        className="rounded-md border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                                                        className="rounded-md border border-brand/30 px-2.5 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
                                                     >
                                                         {subscriptionPlan.show_on_homepage ? 'Hide Homepage' : 'Show Homepage'}
                                                     </button>
@@ -2620,7 +2620,7 @@ export default function Settings({
                                         key={file.path}
                                         type="button"
                                         onClick={() => chooseMediaFile(file.path)}
-                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-indigo-400 hover:shadow-sm"
+                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-brand hover:shadow-sm"
                                     >
                                         <div className="h-24 w-full overflow-hidden bg-gray-50">
                                             <img

@@ -66,7 +66,7 @@ export default function Terms({ term = null }) {
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
+                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
                             <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Legal</p>
                             <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">Terms of Service</h1>
@@ -81,7 +81,7 @@ export default function Terms({ term = null }) {
                             {hasStoredContent ? (
                                 safeHtml ? (
                                     <div
-                                        className="rounded-lg border border-gray-200 bg-white p-6 text-sm leading-8 text-gray-700 shadow-sm sm:p-8 [&_a]:text-[#000285] [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:pl-4 [&_h1]:text-3xl [&_h1]:font-black [&_h2]:mt-7 [&_h2]:text-2xl [&_h2]:font-black [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-black [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
+                                        className="rounded-lg border border-gray-200 bg-white p-6 text-sm leading-8 text-gray-700 shadow-sm sm:p-8 [&_a]:text-brand [&_a]:underline [&_blockquote]:border-l-4 [&_blockquote]:border-blue-200 [&_blockquote]:pl-4 [&_h1]:text-3xl [&_h1]:font-black [&_h2]:mt-7 [&_h2]:text-2xl [&_h2]:font-black [&_h3]:mt-6 [&_h3]:text-xl [&_h3]:font-black [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-6 [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-6"
                                         dangerouslySetInnerHTML={{ __html: safeHtml }}
                                     />
                                 ) : (
@@ -115,7 +115,7 @@ export default function Terms({ term = null }) {
                                 </div>
                             )}
 
-                            <div className="rounded-lg bg-[#000285] px-6 py-5 text-white">
+                            <div className="rounded-lg bg-brand px-6 py-5 text-white">
                                 <p className="text-sm leading-7 text-blue-100">
                                     Questions about these terms? Reach out to us and we will walk you through them.
                                 </p>

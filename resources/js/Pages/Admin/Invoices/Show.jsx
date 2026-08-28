@@ -100,7 +100,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                             <button
                                 type="button"
                                 onClick={resendInvoice}
-                                className="rounded-md border border-indigo-200 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                                className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
                             >
                                 Resend Original Invoice
                             </button>

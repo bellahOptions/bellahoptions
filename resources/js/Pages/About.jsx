@@ -140,14 +140,14 @@ export default function About() {
                                 <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
                                     <Link
                                         href="/contact-us"
-                                        className="group inline-flex items-center justify-center gap-3 rounded-md bg-[#000285] px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-blue-800"
+                                        className="group inline-flex items-center justify-center gap-3 rounded-md bg-brand px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-brand-dark"
                                     >
                                         Work With Us
                                         <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
                                     </Link>
                                     <Link
                                         href="/services"
-                                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-black text-gray-900 transition hover:border-[#000285] hover:text-[#000285]"
+                                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-black text-gray-900 transition hover:border-brand hover:text-brand"
                                     >
                                         Explore Services
                                     </Link>
@@ -155,15 +155,15 @@ export default function About() {
                             </div>
 
                             <Stagger className="grid gap-4 sm:grid-cols-2">
-                                <StaggerItem className="border-l-4 border-[#000285] bg-white p-6 shadow-sm">
-                                    <SwatchIcon className="mb-6 h-9 w-9 text-[#000285]" />
+                                <StaggerItem className="border-l-4 border-brand bg-white p-6 shadow-sm">
+                                    <SwatchIcon className="mb-6 h-9 w-9 text-brand" />
                                     <h2 className="text-xl font-black text-gray-950">Design With Purpose</h2>
                                     <p className="mt-3 text-sm leading-6 text-gray-600">
                                         Every visual choice is tied to clarity, recognition, and what your audience needs to do next.
                                     </p>
                                 </StaggerItem>
 
-                                <StaggerItem className="bg-[#000285] p-6 text-white shadow-sm sm:translate-y-8">
+                                <StaggerItem className="bg-brand p-6 text-white shadow-sm sm:translate-y-8">
                                     <p className="text-5xl font-black">BOSS</p>
                                     <h2 className="mt-5 text-xl font-black">A scalable future</h2>
                                     <p className="mt-3 text-sm leading-6 text-blue-100">
@@ -196,7 +196,7 @@ export default function About() {
                     <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="mx-auto max-w-3xl text-center">
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">
+                                <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
                                     Why We Exist
                                 </p>
                                 <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
@@ -213,7 +213,7 @@ export default function About() {
 
                                     return (
                                         <StaggerItem as="article" key={item.title} className="border border-gray-200 bg-white p-6 shadow-sm">
-                                            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 text-[#000285]">
+                                            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 text-brand">
                                                 <Icon className="h-7 w-7" />
                                             </div>
                                             <h3 className="text-xl font-black text-gray-950">{item.title}</h3>
@@ -236,7 +236,7 @@ export default function About() {
                             </div>
 
                             <div>
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">
+                                <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
                                     What We Offer
                                 </p>
                                 <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
@@ -256,7 +256,7 @@ export default function About() {
                                                     href={offer.href}
                                                     className="group block h-full border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
                                                 >
-                                                    <Icon className="h-8 w-8 text-[#000285]" />
+                                                    <Icon className="h-8 w-8 text-brand" />
                                                     <h3 className="mt-4 font-black text-gray-950">{offer.title}</h3>
                                                     <p className="mt-2 text-sm leading-6 text-gray-600">{offer.text}</p>
                                                 </Link>
@@ -273,7 +273,7 @@ export default function About() {
                             <div className="grid gap-5 sm:grid-cols-3">
                                 {stats.map((stat) => (
                                     <div key={stat.label} className="border border-gray-200 bg-white p-8 text-center shadow-sm">
-                                        <p className="text-5xl font-black text-[#000285]">{stat.value}</p>
+                                        <p className="text-5xl font-black text-brand">{stat.value}</p>
                                         <p className="mt-3 text-sm font-bold uppercase tracking-widest text-gray-500">{stat.label}</p>
                                     </div>
                                 ))}
@@ -285,7 +285,7 @@ export default function About() {
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
                                 <div>
-                                    <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">Our Team</p>
+                                    <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Our Team</p>
                                     <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
                                         Meet the creative minds behind Bellah Options.
                                     </h2>
@@ -309,14 +309,14 @@ export default function About() {
                                                         className="absolute inset-0 h-full w-full object-cover transition duration-500 hover:scale-105"
                                                     />
                                                 ) : (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-[#000285]">
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-brand">
                                                         <PhotoIcon className="h-24 w-24 text-white" />
                                                     </div>
                                                 )}
                                             </div>
                                             <div className="p-6">
                                                 <h3 className="text-2xl font-black text-gray-950">{member.name}</h3>
-                                                <p className="mt-2 flex items-center gap-2 font-semibold text-[#000285]">
+                                                <p className="mt-2 flex items-center gap-2 font-semibold text-brand">
                                                     <RoleIcon className="h-5 w-5" />
                                                     {member.role}
                                                 </p>
@@ -332,7 +332,7 @@ export default function About() {
                     <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:px-8">
                             <div>
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-[#000285]">Our Vision</p>
+                                <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Our Vision</p>
                                 <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
                                     A creative-tech brand with a scalable future.
                                 </h2>
@@ -344,7 +344,7 @@ export default function About() {
                             <Stagger className="grid gap-3 sm:grid-cols-2">
                                 {values.map((value) => (
                                     <StaggerItem key={value} className="flex items-center gap-3 border border-gray-200 bg-gray-50 p-4">
-                                        <CheckCircleIcon className="h-5 w-5 shrink-0 text-[#000285]" />
+                                        <CheckCircleIcon className="h-5 w-5 shrink-0 text-brand" />
                                         <span className="text-sm font-black text-gray-800">{value}</span>
                                     </StaggerItem>
                                 ))}
@@ -358,7 +358,7 @@ export default function About() {
                         subtitle="Google reviews from clients who have partnered with Bellah Options."
                     />
 
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
+                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">
                             <div>
                                 <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Ready when you are</p>
@@ -370,7 +370,7 @@ export default function About() {
                             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
                                 <Link
                                     href="/contact-us"
-                                    className="group inline-flex items-center justify-center gap-3 rounded-md bg-white px-6 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                                    className="group inline-flex items-center justify-center gap-3 rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
                                 >
                                     Work With Us
                                     <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />

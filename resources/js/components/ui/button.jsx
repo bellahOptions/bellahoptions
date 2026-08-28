@@ -2,11 +2,11 @@ import { cva } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#050a97] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 ring-offset-white',
+    'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-60 ring-offset-white',
     {
         variants: {
             variant: {
-                default: 'bg-[#050a97] text-white shadow-sm hover:bg-[#050a49]',
+                default: 'bg-brand text-white shadow-sm hover:bg-brand-dark',
                 secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-200',
                 outline: 'border border-slate-300 bg-white hover:bg-slate-100',
             },

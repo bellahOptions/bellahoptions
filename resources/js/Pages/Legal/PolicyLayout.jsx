@@ -39,7 +39,7 @@ export default function PolicyLayout({
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
+                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="max-w-4xl">
                                 <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">
@@ -61,7 +61,7 @@ export default function PolicyLayout({
                                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                                     {meta.map((item) => (
                                         <div key={item.label} className="border border-gray-200 bg-white p-5 shadow-sm">
-                                            <p className="text-xs font-black uppercase tracking-[0.18em] text-[#000285]">
+                                            <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">
                                                 {item.label}
                                             </p>
                                             <p className="mt-2 text-sm leading-7 text-gray-700">
@@ -81,7 +81,7 @@ export default function PolicyLayout({
                             <div className="mt-8 grid gap-8 lg:grid-cols-[300px_1fr]">
                                 <aside className="lg:sticky lg:top-24 lg:self-start">
                                     <div className="border border-gray-200 bg-white p-6 shadow-sm">
-                                        <p className="text-sm font-black uppercase tracking-[0.18em] text-[#000285]">
+                                        <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">
                                             Quick Navigation
                                         </p>
                                         <div className="relative mt-5">
@@ -91,7 +91,7 @@ export default function PolicyLayout({
                                                 value={query}
                                                 onChange={(event) => setQuery(event.target.value)}
                                                 placeholder="Search this page"
-                                                className="w-full border border-gray-300 py-3 pl-10 pr-4 text-sm text-gray-950 outline-none transition focus:border-[#000285]"
+                                                className="w-full rounded-md border border-gray-300 py-3 pl-10 pr-4 text-sm text-gray-950 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/30"
                                             />
                                         </div>
                                         <div className="mt-5 space-y-2">
@@ -99,7 +99,7 @@ export default function PolicyLayout({
                                                 <a
                                                     key={section.id}
                                                     href={`#${section.id}`}
-                                                    className="block border border-transparent px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-blue-100 hover:bg-blue-50 hover:text-[#000285]"
+                                                    className="block border border-transparent px-3 py-2 text-sm font-bold text-gray-600 transition hover:border-blue-100 hover:bg-blue-50 hover:text-brand"
                                                 >
                                                     {index + 1}. {section.title}
                                                 </a>
@@ -143,7 +143,7 @@ export default function PolicyLayout({
                                                 <ul className="mt-5 space-y-3 border-t border-gray-100 pt-5">
                                                     {section.bullets.map((bullet) => (
                                                         <li key={bullet} className="flex items-start gap-3 text-sm leading-7 text-gray-600 sm:text-base">
-                                                            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-[#000285]" />
+                                                            <span className="mt-2 h-2 w-2 shrink-0 rounded-full bg-brand" />
                                                             <span>{bullet}</span>
                                                         </li>
                                                     ))}
@@ -152,7 +152,7 @@ export default function PolicyLayout({
                                         </section>
                                     ))}
 
-                                    <section className="bg-[#000285] p-6 text-white sm:p-8">
+                                    <section className="bg-brand p-6 text-white sm:p-8">
                                         <p className="text-sm font-black uppercase tracking-[0.18em] text-cyan-300">
                                             Need Clarification?
                                         </p>
@@ -164,7 +164,7 @@ export default function PolicyLayout({
                                         </p>
                                         <Link
                                             href={ctaHref}
-                                            className="mt-6 inline-flex items-center gap-2 bg-white px-5 py-3 text-sm font-black text-[#000285] transition hover:bg-cyan-50"
+                                            className="mt-6 inline-flex items-center gap-2 bg-white px-5 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
                                         >
                                             {ctaLabel}
                                             <ArrowRightIcon className="h-4 w-4" />

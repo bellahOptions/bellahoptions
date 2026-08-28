@@ -18,7 +18,7 @@
                             <p style="margin:0 0 8px; font-size:14px;"><strong>Customer:</strong> {{ $ticket->user?->name ?: 'Unknown' }} ({{ $ticket->user?->email ?: 'N/A' }})</p>
                             <p style="margin:0 0 8px; font-size:14px;"><strong>Subject:</strong> {{ $ticket->subject }}</p>
                             <p style="margin:0 0 16px; font-size:14px;"><strong>Priority:</strong> {{ ucfirst((string) $ticket->priority) }}</p>
-                            <a href="{{ route('admin.support-tickets.index') }}" style="display:inline-block; background:#000285; color:#ffffff; text-decoration:none; padding:10px 14px; border-radius:8px; font-size:14px; font-weight:700;">Open Admin Ticket Desk</a>
+                            <a href="{{ route('admin.support-tickets.index') }}" style="display:inline-block; background:#050a80; color:#ffffff; text-decoration:none; padding:10px 14px; border-radius:8px; font-size:14px; font-weight:700;">Open Admin Ticket Desk</a>
                         </td>
                     </tr>
                 </table>

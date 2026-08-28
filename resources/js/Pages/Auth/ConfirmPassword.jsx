@@ -41,7 +41,7 @@ export default function ConfirmPassword() {
                         id="password"
                         name="password"
                         value={data.password}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                         onChange={(e) => setData('password', e.target.value)}
                         required
                     />
@@ -53,7 +53,7 @@ export default function ConfirmPassword() {
                     <button
                         type="submit"
                         disabled={processing}
-                        className="w-full rounded-xl bg-blue-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Confirm
                     </button>

@@ -14,7 +14,7 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
 
             <PageTheme>
                 <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-[#000285] py-16 text-white sm:py-20 lg:py-24">
+                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
                             <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Order Tracking</p>
                             <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
@@ -43,17 +43,17 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
 
                                 <div className="mt-6 border border-gray-200 bg-gray-50 p-5">
                                     <div className="flex items-center justify-between gap-4">
-                                        <p className="font-black text-[#000285]">Progress</p>
+                                        <p className="font-black text-brand">Progress</p>
                                         <p className="font-black text-gray-950">{order.progress_percent}%</p>
                                     </div>
                                     <div className="mt-4 h-3 w-full overflow-hidden rounded-full bg-blue-100">
-                                        <div className="h-3 bg-[#000285]" style={{ width: `${Math.max(0, Math.min(100, order.progress_percent || 0))}%` }} />
+                                        <div className="h-3 bg-brand" style={{ width: `${Math.max(0, Math.min(100, order.progress_percent || 0))}%` }} />
                                     </div>
                                 </div>
 
                                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                                     {order.payment_status !== "paid" && order.payment_status !== "not_required" && Number(order.amount || 0) > 0 && (
-                                        <Link href={route("orders.payment.show", order.order_code)} className="inline-flex items-center justify-center gap-2 bg-[#000285] px-5 py-3 text-sm font-black text-white">
+                                        <Link href={route("orders.payment.show", order.order_code)} className="inline-flex items-center justify-center gap-2 bg-brand px-5 py-3 text-sm font-black text-white">
                                             Complete Payment
                                             <ArrowRightIcon className="h-4 w-4" />
                                         </Link>
@@ -69,7 +69,7 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
 
                                 {serviceBriefEntries.length > 0 && (
                                     <div className="mt-6 border border-gray-200 bg-gray-50 p-5">
-                                        <p className="font-black text-[#000285]">Submitted Service Brief</p>
+                                        <p className="font-black text-brand">Submitted Service Brief</p>
                                         <div className="mt-4 space-y-3 text-sm text-gray-700">
                                             {serviceBriefEntries.map(([key, value]) => (
                                                 <SummaryRow
@@ -84,7 +84,7 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
 
                                 {order.invoice && (
                                     <div className="mt-6 border border-gray-200 bg-gray-50 p-5">
-                                        <p className="font-black text-[#000285]">Invoice Snapshot</p>
+                                        <p className="font-black text-brand">Invoice Snapshot</p>
                                         <div className="mt-4 space-y-3 text-sm text-gray-700">
                                             <SummaryRow label="Invoice Number" value={order.invoice.invoice_number} />
                                             <SummaryRow label="Amount" value={formatMoney(order.invoice.amount, order.invoice.currency, locale)} />
@@ -102,7 +102,7 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
                                                 <article key={update.id} className="border border-gray-200 bg-gray-50 p-4">
                                                     <div className="flex items-start justify-between gap-4">
                                                         <div>
-                                                            <p className="font-black text-[#000285]">{statusLabel(update.status)}</p>
+                                                            <p className="font-black text-brand">{statusLabel(update.status)}</p>
                                                             <p className="mt-2 text-sm leading-6 text-gray-600">{update.note || "Progress updated."}</p>
                                                         </div>
                                                         <div className="text-right">

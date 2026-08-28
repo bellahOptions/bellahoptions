@@ -53,7 +53,7 @@ export default function SubmitReview({ review = {}, token = '' }) {
                                             type="text"
                                             value={data.reviewer_name}
                                             onChange={(event) => setData('reviewer_name', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors.reviewer_name && <p className="mt-1 text-xs text-red-600">{errors.reviewer_name}</p>}
                                     </div>
@@ -64,7 +64,7 @@ export default function SubmitReview({ review = {}, token = '' }) {
                                             type="email"
                                             value={data.reviewer_email}
                                             onChange={(event) => setData('reviewer_email', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors.reviewer_email && <p className="mt-1 text-xs text-red-600">{errors.reviewer_email}</p>}
                                     </div>
@@ -94,7 +94,7 @@ export default function SubmitReview({ review = {}, token = '' }) {
                                             rows="5"
                                             value={data.comment}
                                             onChange={(event) => setData('comment', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         />
                                         {errors.comment && <p className="mt-1 text-xs text-red-600">{errors.comment}</p>}
                                     </div>
@@ -102,7 +102,7 @@ export default function SubmitReview({ review = {}, token = '' }) {
                                     <button
                                         type="submit"
                                         disabled={processing}
-                                        className="inline-flex items-center rounded-md bg-[#000285] px-5 py-2.5 text-sm font-black text-white transition hover:bg-blue-800 disabled:opacity-60"
+                                        className="inline-flex items-center rounded-md bg-brand px-5 py-2.5 text-sm font-black text-white transition hover:bg-brand-dark disabled:opacity-60"
                                     >
                                         {processing ? 'Submitting...' : 'Submit Review'}
                                     </button>

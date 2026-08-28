@@ -430,7 +430,7 @@ class EmailCenterController extends Controller
             }
 
             if ($type === 'button' && $url !== '' && $buttonLabel !== '') {
-                $html .= '<p><a href="'.e($url).'" style="display:inline-block;background:#000285;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:700;">'.e($buttonLabel).'</a></p>';
+                $html .= '<p><a href="'.e($url).'" style="display:inline-block;background:#050a80;color:#ffffff;text-decoration:none;padding:12px 16px;border-radius:8px;font-weight:700;">'.e($buttonLabel).'</a></p>';
                 continue;
             }
 
