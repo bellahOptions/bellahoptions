@@ -7,7 +7,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -91,11 +90,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->isSuperAdmin();
     }
 
-    public function canManageSlides(): bool
-    {
-        return $this->isSuperAdmin();
-    }
-
     public function canManagePublicContent(): bool
     {
         return $this->isSuperAdmin();
@@ -109,21 +103,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canManageWaitlist(): bool
     {
         return $this->isSuperAdmin() || $this->isCustomerRep();
-    }
-
-    public function liveChatThreads(): HasMany
-    {
-        return $this->hasMany(LiveChatThread::class, 'customer_user_id');
-    }
-
-    public function assignedLiveChatThreads(): HasMany
-    {
-        return $this->hasMany(LiveChatThread::class, 'assigned_staff_id');
-    }
-
-    public function liveChatPresence(): HasOne
-    {
-        return $this->hasOne(LiveChatStaffPresence::class);
     }
 
     public function supportTickets(): HasMany

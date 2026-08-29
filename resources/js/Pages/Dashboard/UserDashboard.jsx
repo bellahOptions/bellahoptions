@@ -1,3 +1,4 @@
+import { MobileCard, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -87,34 +88,56 @@ export default function UserDashboard({
                     {recentProjects.length === 0 ? (
                         <p className="mt-4 text-sm text-slate-500">No projects yet. Start your first service order.</p>
                     ) : (
-                        <div className="mt-4 overflow-x-auto">
-                            <table className="min-w-full divide-y divide-slate-200 text-sm">
-                                <thead>
-                                    <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
-                                        <th className="px-3 py-2">Order</th>
-                                        <th className="px-3 py-2">Description</th>
-                                        <th className="px-3 py-2">Amount</th>
-                                        <th className="px-3 py-2">ETA</th>
-                                        <th className="px-3 py-2">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-slate-100">
-                                    {recentProjects.map((project) => (
-                                        <tr key={project.order_id}>
-                                            <td className="px-3 py-3 font-semibold text-slate-700">{project.order_id}</td>
-                                            <td className="px-3 py-3 text-slate-600">{project.description}</td>
-                                            <td className="px-3 py-3 text-slate-700">{compactMoney.format(project.amount || 0)}</td>
-                                            <td className="px-3 py-3 text-slate-600">{project.est_delivery_date || 'TBD'}</td>
-                                            <td className="px-3 py-3">
+                        <>
+                            <div className="mt-4 hidden overflow-x-auto md:block">
+                                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                                    <thead>
+                                        <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                                            <th className="px-3 py-2">Order</th>
+                                            <th className="px-3 py-2">Description</th>
+                                            <th className="px-3 py-2">Amount</th>
+                                            <th className="px-3 py-2">ETA</th>
+                                            <th className="px-3 py-2">Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {recentProjects.map((project) => (
+                                            <tr key={project.order_id}>
+                                                <td className="px-3 py-3 font-semibold text-slate-700">{project.order_id}</td>
+                                                <td className="px-3 py-3 text-slate-600">{project.description}</td>
+                                                <td className="px-3 py-3 text-slate-700">{compactMoney.format(project.amount || 0)}</td>
+                                                <td className="px-3 py-3 text-slate-600">{project.est_delivery_date || 'TBD'}</td>
+                                                <td className="px-3 py-3">
+                                                    <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses(project.status)}`}>
+                                                        {project.status}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <MobileCardList className="mt-4">
+                                {recentProjects.map((project, index) => (
+                                    <MobileCard key={project.order_id} index={index}>
+                                        <MobileCardHeader
+                                            title={project.order_id}
+                                            subtitle={project.description}
+                                            badge={
                                                 <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${statusClasses(project.status)}`}>
                                                     {project.status}
                                                 </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                            }
+                                        />
+                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                            <MobileCardRow label="Amount" value={compactMoney.format(project.amount || 0)} />
+                                            <MobileCardRow label="ETA" value={project.est_delivery_date || 'TBD'} />
+                                        </div>
+                                    </MobileCard>
+                                ))}
+                            </MobileCardList>
+                        </>
                     )}
                 </section>
             </div>

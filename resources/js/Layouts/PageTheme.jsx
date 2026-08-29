@@ -1,5 +1,5 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
-import CustomerLiveChatWidget from "@/Components/live-chat/CustomerLiveChatWidget";
+import WhatsAppButton from "@/Components/WhatsAppButton";
 import { Link, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -501,7 +501,7 @@ export default function PageTheme({ children }) {
                 </div>
             </motion.footer>
 
-            <CustomerLiveChatWidget show />
+            <WhatsAppButton />
         </>
     );
 }

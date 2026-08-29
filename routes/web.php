@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\ClientReviewController;
 use App\Http\Controllers\ContactController;
-use App\Http\Controllers\LiveChat\CustomerChatController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\SeoController;
 use App\Http\Controllers\ServiceOrderController;
@@ -81,30 +80,6 @@ Route::get('/cookie-policy', [PagesController::class, 'showCookiePolicy'])->name
 Route::post('/waitlist', [WaitlistController::class, 'store'])
     ->middleware('throttle:waitlist')
     ->name('waitlist.store');
-
-Route::prefix('live-chat')->name('live-chat.')->group(function (): void {
-    Route::get('/session', [CustomerChatController::class, 'session'])
-        ->middleware('throttle:live-chat-read')
-        ->name('session');
-    Route::get('/messages', [CustomerChatController::class, 'messages'])
-        ->middleware('throttle:live-chat-read')
-        ->name('messages');
-    Route::post('/messages', [CustomerChatController::class, 'send'])
-        ->middleware('throttle:40,1')
-        ->name('messages.send');
-    Route::patch('/close', [CustomerChatController::class, 'close'])
-        ->middleware('throttle:live-chat-signal')
-        ->name('close');
-    Route::post('/presence', [CustomerChatController::class, 'presence'])
-        ->middleware('throttle:live-chat-signal')
-        ->name('presence');
-    Route::post('/typing', [CustomerChatController::class, 'typing'])
-        ->middleware('throttle:live-chat-signal')
-        ->name('typing');
-    Route::post('/messages/{message}/reactions', [CustomerChatController::class, 'react'])
-        ->middleware('throttle:120,1')
-        ->name('messages.react');
-});
 
 Route::get('/new-home', [PagesController::class, 'index'])->name('home.new');
 

@@ -1,16 +1,15 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
-import CustomerLiveChatWidget from '@/Components/live-chat/CustomerLiveChatWidget';
-import StaffLiveChatDock from '@/Components/live-chat/StaffLiveChatDock';
+import WhatsAppButton from '@/Components/WhatsAppButton';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const isStaff = Boolean(user?.is_staff);
+    const isSuperAdmin = Boolean(user?.is_super_admin);
     const canManageInvoices = Boolean(user?.can_manage_invoices);
     const canManageSettings = Boolean(user?.can_manage_settings);
-    const canManageSlides = Boolean(user?.can_manage_slides);
     const canManagePublicContent = Boolean(user?.can_manage_public_content);
     const canManageUsers = Boolean(user?.can_manage_users);
 
@@ -27,22 +26,28 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: true,
             },
             {
-                label: 'Live Chat',
-                href: route('admin.live-chat.index'),
-                active: route().current('admin.live-chat.*'),
-                show: true,
-            },
-            {
                 label: 'Support Tickets',
                 href: route('admin.support-tickets.index'),
                 active: route().current('admin.support-tickets.*'),
                 show: true,
             },
             {
+                label: 'Orders',
+                href: route('admin.service-orders.index'),
+                active: route().current('admin.service-orders.*'),
+                show: canManageInvoices,
+            },
+            {
                 label: 'Invoices',
                 href: route('admin.invoices.index'),
                 active: route().current('admin.invoices.*'),
                 show: canManageInvoices,
+            },
+            {
+                label: 'Finance',
+                href: route('admin.finance.index'),
+                active: route().current('admin.finance.*'),
+                show: isSuperAdmin,
             },
             {
                 label: 'Users',
@@ -67,12 +72,6 @@ export default function AuthenticatedLayout({ header, children }) {
                 href: route('admin.service-pricing.edit'),
                 active: route().current('admin.service-pricing.*'),
                 show: canManageSettings,
-            },
-            {
-                label: 'Slides',
-                href: route('admin.slides.index'),
-                active: route().current('admin.slides.*'),
-                show: canManageSlides,
             },
             {
                 label: 'Projects',
@@ -298,7 +297,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 <main>{children}</main>
             </div>
 
-            {isStaff ? <StaffLiveChatDock /> : <CustomerLiveChatWidget show />}
+            {!isStaff && <WhatsAppButton />}
 
         </div>
     );

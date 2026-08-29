@@ -1,5 +1,9 @@
+import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
+import { StatCard, StatGrid } from '@/Components/ui/stat-card';
+import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { BadgeDollarSign, CheckCircle2, Clock, FileText, Loader2, RotateCcw, Search, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
 const currencies = ['NGN', 'USD', 'EUR', 'GBP'];
@@ -110,27 +114,12 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
         });
     };
 
-    const applyFilters = (event) => {
-        event.preventDefault();
-
-        router.get(
-            route('admin.invoices.index'),
-            {
-                search,
-                status,
-            },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
-    };
+    const isSyncing = useDebouncedFilterSync('admin.invoices.index', { search, status });
+    const hasActiveFilters = Boolean(search || status);
 
     const resetFilters = () => {
         setSearch('');
         setStatus('');
-
-        router.get(route('admin.invoices.index'), {}, { preserveState: true, replace: true });
     };
 
     const resendInvoice = (invoiceId) => {
@@ -469,63 +458,56 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                         </section>
                     )}
 
-                    <section className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-                        <MetricCard label="Total Invoices" value={stats.total_invoices ?? 0} />
-                        <MetricCard label="Pending" value={stats.pending_invoices ?? 0} />
-                        <MetricCard label="Paid" value={stats.paid_invoices ?? 0} />
-                        <MetricCard label="Pending Amount" value={formatMoney(stats.pending_total ?? 0, 'NGN')} />
-                        <MetricCard label="Paid Amount" value={formatMoney(stats.paid_total ?? 0, 'NGN')} />
-                    </section>
+                    <StatGrid>
+                        <StatCard icon={FileText} label="Total Invoices" value={stats.total_invoices ?? 0} tone="sky" />
+                        <StatCard icon={Clock} label="Pending" value={stats.pending_invoices ?? 0} tone="amber" />
+                        <StatCard icon={CheckCircle2} label="Paid" value={stats.paid_invoices ?? 0} tone="emerald" />
+                        <StatCard icon={Wallet} label="Pending Amount" value={formatMoney(stats.pending_total ?? 0, 'NGN')} tone="amber" />
+                        <StatCard icon={BadgeDollarSign} label="Paid Amount" value={formatMoney(stats.paid_total ?? 0, 'NGN')} tone="emerald" />
+                    </StatGrid>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <form onSubmit={applyFilters} className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
-                            <div>
-                                <label htmlFor="invoice-search" className="mb-1 block text-sm font-medium text-gray-700">
-                                    Search
-                                </label>
+                    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+                            <div className="relative flex-1 lg:min-w-[240px]">
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                                 <input
                                     id="invoice-search"
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
-                                    placeholder="Invoice number, customer, title"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    placeholder="Search invoice number, customer, title…"
+                                    className="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-9 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
+                                {isSyncing && (
+                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-brand" />
+                                )}
                             </div>
 
-                            <div>
-                                <label htmlFor="invoice-status" className="mb-1 block text-sm font-medium text-gray-700">
-                                    Status
-                                </label>
-                                <select
-                                    id="invoice-status"
-                                    value={status}
-                                    onChange={(event) => setStatus(event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                >
-                                    <option value="">All</option>
-                                    <option value="sent">Pending</option>
-                                    <option value="paid">Paid</option>
-                                </select>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                            <select
+                                id="invoice-status"
+                                value={status}
+                                onChange={(event) => setStatus(event.target.value)}
+                                aria-label="Invoice status"
+                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
                             >
-                                Filter
-                            </button>
+                                <option value="">All statuses</option>
+                                <option value="sent">Pending</option>
+                                <option value="paid">Paid</option>
+                            </select>
+
                             <button
                                 type="button"
                                 onClick={resetFilters}
-                                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                disabled={!hasActiveFilters}
+                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 lg:w-auto"
                             >
+                                <RotateCcw className="h-3.5 w-3.5" />
                                 Reset
                             </button>
-                        </form>
+                        </div>
                     </section>
 
                     <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <div className="overflow-x-auto">
+                        <div className="hidden overflow-x-auto md:block">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -627,6 +609,83 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                             </table>
                         </div>
 
+                        {(invoices?.data || []).length === 0 ? (
+                            <p className="text-sm text-gray-500 md:hidden">No invoices found.</p>
+                        ) : (
+                            <MobileCardList>
+                                {(invoices?.data || []).map((invoice, index) => (
+                                    <MobileCard key={invoice.id} index={index}>
+                                        <MobileCardHeader
+                                            title={invoice.invoice_number}
+                                            subtitle={invoice.title}
+                                            badge={
+                                                <span
+                                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                                        invoice.status === 'paid'
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-amber-100 text-amber-700'
+                                                    }`}
+                                                >
+                                                    {invoice.status.toUpperCase()}
+                                                </span>
+                                            }
+                                        />
+
+                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                            <MobileCardRow label="Customer" value={invoice.customer_name} />
+                                            <MobileCardRow label="Email" value={invoice.customer_email} />
+                                            <MobileCardRow label="Amount" value={formatMoney(invoice.amount, invoice.currency)} />
+                                            <MobileCardRow label="Auto reminders" value={`${invoice.automatic_reminders_sent}/13`} />
+                                            <MobileCardRow label="Last reminder" value={invoice.last_automatic_reminder_sent_at || invoice.last_manual_reminder_sent_at || 'N/A'} />
+                                        </div>
+
+                                        <MobileCardActions>
+                                            <Link
+                                                href={route('admin.invoices.show', invoice.id)}
+                                                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                            >
+                                                View
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => resendInvoice(invoice.id)}
+                                                className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                            >
+                                                Resend
+                                            </button>
+                                            {invoice.status !== 'paid' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => sendReminder(invoice.id)}
+                                                    className="rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                                                >
+                                                    Remind
+                                                </button>
+                                            )}
+                                            {invoice.status !== 'paid' && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => markInvoicePaid(invoice.id)}
+                                                    className="rounded-md border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                                                >
+                                                    Mark Paid
+                                                </button>
+                                            )}
+                                            {canDeleteInvoices && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => deleteInvoice(invoice.id, invoice.invoice_number)}
+                                                    className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                >
+                                                    Delete
+                                                </button>
+                                            )}
+                                        </MobileCardActions>
+                                    </MobileCard>
+                                ))}
+                            </MobileCardList>
+                        )}
+
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
                             <p>
                                 Page {invoices?.current_page || 1} of {invoices?.last_page || 1}
@@ -664,15 +723,6 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                 </div>
             </div>
         </AuthenticatedLayout>
-    );
-}
-
-function MetricCard({ label, value }) {
-    return (
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
-            <p className="text-[11px] uppercase tracking-wide text-gray-500 sm:text-xs">{label}</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900 sm:text-2xl">{value}</p>
-        </div>
     );
 }
 

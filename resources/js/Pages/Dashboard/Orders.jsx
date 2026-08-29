@@ -1,3 +1,4 @@
+import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -26,7 +27,7 @@ export default function Orders({ orders = [], stats = {} }) {
                 </section>
 
                 <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <div className="overflow-x-auto">
+                    <div className="hidden overflow-x-auto md:block">
                         <table className="min-w-full divide-y divide-slate-200 text-sm">
                             <thead>
                                 <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
@@ -62,6 +63,52 @@ export default function Orders({ orders = [], stats = {} }) {
                             </tbody>
                         </table>
                     </div>
+
+                    {orders.length === 0 ? (
+                        <p className="text-sm text-slate-500 md:hidden">No jobs yet.</p>
+                    ) : (
+                        <MobileCardList>
+                            {orders.map((order, index) => (
+                                <MobileCard key={order.id} index={index}>
+                                    <MobileCardHeader
+                                        title={order.order_code}
+                                        subtitle={`${order.service_name} · ${order.package_name}`}
+                                        badge={
+                                            <span className="inline-flex shrink-0 rounded-full bg-slate-100 px-2 py-1 text-xs font-medium capitalize text-slate-700">
+                                                {order.payment_status}
+                                            </span>
+                                        }
+                                    />
+
+                                    <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                        <MobileCardRow label="Amount" value={money.format(order.amount || 0)} />
+                                        <MobileCardRow label="Status" value={<span className="capitalize">{order.order_status}</span>} />
+                                    </div>
+
+                                    <div className="mt-3 flex items-center gap-3">
+                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                            <div
+                                                className="h-full rounded-full bg-blue-600 transition-all"
+                                                style={{ width: `${Math.max(0, Math.min(100, order.progress_percent || 0))}%` }}
+                                            />
+                                        </div>
+                                        <span className="shrink-0 text-xs font-semibold text-slate-500">
+                                            {order.progress_percent || 0}%
+                                        </span>
+                                    </div>
+
+                                    <MobileCardActions>
+                                        <Link
+                                            href={order.show_url}
+                                            className="w-full rounded-md border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                        >
+                                            Open
+                                        </Link>
+                                    </MobileCardActions>
+                                </MobileCard>
+                            ))}
+                        </MobileCardList>
+                    )}
                 </section>
             </div>
         </AuthenticatedLayout>

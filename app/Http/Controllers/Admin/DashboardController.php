@@ -6,8 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Dashboard\AdminDashboardPageResource;
 use App\Http\Resources\Dashboard\UserDashboardPageResource;
 use App\Models\Invoice;
-use App\Models\LiveChatStaffPresence;
-use App\Models\LiveChatThread;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
 use App\Models\SupportTicket;
@@ -76,18 +74,10 @@ class DashboardController extends Controller
             ->values()
             ->all();
 
-        $chatThread = LiveChatThread::query()
-            ->where('customer_user_id', $user->id)
-            ->latest('id')
-            ->first();
-
-        $unreadCount = 0;
-        if ($chatThread) {
-            $unreadCount = $chatThread->messages()
-                ->where('sender_type', 'staff')
-                ->where('id', '>', (int) ($chatThread->customer_last_read_message_id ?? 0))
-                ->count();
-        }
+        $unreadCount = SupportTicket::query()
+            ->where('user_id', $user->id)
+            ->where('status', SupportTicket::STATUS_AWAITING_CUSTOMER)
+            ->count();
 
         $contactInfo = PlatformSettings::contactInfo();
         $communityUrl = trim((string) ($contactInfo['whatsapp_url'] ?? ''));
@@ -147,23 +137,6 @@ class DashboardController extends Controller
     private function adminPayload(User $user): array
     {
         $today = now()->startOfDay();
-        $isSuperAdmin = $user->isSuperAdmin();
-
-        $chatScope = LiveChatThread::query()
-            ->when(! $isSuperAdmin, static fn (Builder $query) => $query->where('assigned_staff_id', $user->id));
-
-        $pendingChats = (clone $chatScope)
-            ->where('status', 'open')
-            ->count();
-
-        $unreadChats = (clone $chatScope)
-            ->where('status', 'open')
-            ->whereNotNull('last_customer_message_at')
-            ->where(function (Builder $query): void {
-                $query->whereNull('last_staff_message_at')
-                    ->orWhereColumn('last_customer_message_at', '>', 'last_staff_message_at');
-            })
-            ->count();
 
         $totalInvoices = Invoice::query()->count();
         $paidInvoiceTotal = (float) Invoice::query()->where('status', 'paid')->sum('amount');
@@ -180,7 +153,6 @@ class DashboardController extends Controller
             $this->kpiPayload('total_invoice', 'Total Invoice', $totalInvoices),
             $this->kpiPayload('paid_invoice_ngn', 'Paid Invoice (NGN)', $paidInvoiceTotal),
             $this->kpiPayload('pending_invoice_ngn', 'Pending Invoice (NGN)', $pendingInvoiceTotal),
-            $this->kpiPayload('pending_chats', 'Pending Chats', $pendingChats),
             $this->kpiPayload('total_customers', 'Total Customers', $totalCustomers),
             $this->kpiPayload('open_support_tickets', 'Open Support Tickets', $openSupportTickets),
         ];
@@ -251,32 +223,6 @@ class DashboardController extends Controller
             })
             ->all();
 
-        $staffUsers = User::query()
-            ->whereIn('role', [User::ROLE_SUPER_ADMIN, User::ROLE_CUSTOMER_REP, 'admin', 'staff'])
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        $presenceMap = LiveChatStaffPresence::query()
-            ->whereIn('user_id', $staffUsers->pluck('id'))
-            ->get()
-            ->keyBy('user_id');
-
-        $staffPresence = $staffUsers->map(function (User $staff) use ($presenceMap): array {
-            $presence = $presenceMap->get($staff->id);
-            $lastSeen = $presence?->last_seen_at;
-
-            return [
-                'id' => $staff->id,
-                'name' => $staff->name,
-                'online' => (bool) ($presence?->is_online && $lastSeen?->greaterThan(now()->subMinutes(2))),
-                'last_seen_at' => $lastSeen?->toDateTimeString(),
-                'open_chats' => LiveChatThread::query()
-                    ->where('assigned_staff_id', $staff->id)
-                    ->where('status', 'open')
-                    ->count(),
-            ];
-        })->values()->all();
-
         return [
             'user' => [
                 'id' => $user->id,
@@ -284,9 +230,6 @@ class DashboardController extends Controller
                 'email' => $user->email,
             ],
             'timezone' => 'Africa/Lagos',
-            'notifications' => [
-                'unread_chats' => $unreadChats,
-            ],
             'kpis' => $kpis,
             'revenue_series' => $revenueSeries,
             'user_growth' => $userGrowth,
@@ -300,7 +243,6 @@ class DashboardController extends Controller
                 'loss_rate' => round(100 - $winRate, 2),
             ],
             'leaderboard' => $leaderboard,
-            'staff_presence' => $staffPresence,
         ];
     }
 
@@ -357,7 +299,6 @@ class DashboardController extends Controller
             'total_invoice' => Invoice::query()->where('created_at', '>=', $currentWindowStart)->count(),
             'paid_invoice_ngn' => (float) Invoice::query()->where('status', 'paid')->where('created_at', '>=', $currentWindowStart)->sum('amount'),
             'pending_invoice_ngn' => (float) Invoice::query()->where('status', 'sent')->where('created_at', '>=', $currentWindowStart)->sum('amount'),
-            'pending_chats' => LiveChatThread::query()->where('status', 'open')->where('created_at', '>=', $currentWindowStart)->count(),
             'total_customers' => User::query()->where(function (Builder $query): void {
                 $query->whereNull('role')->orWhere('role', 'user');
             })->where('created_at', '>=', $currentWindowStart)->count(),
@@ -369,7 +310,6 @@ class DashboardController extends Controller
             'total_invoice' => Invoice::query()->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->count(),
             'paid_invoice_ngn' => (float) Invoice::query()->where('status', 'paid')->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->sum('amount'),
             'pending_invoice_ngn' => (float) Invoice::query()->where('status', 'sent')->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->sum('amount'),
-            'pending_chats' => LiveChatThread::query()->where('status', 'open')->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->count(),
             'total_customers' => User::query()->where(function (Builder $query): void {
                 $query->whereNull('role')->orWhere('role', 'user');
             })->whereBetween('created_at', [$previousWindowStart, $previousWindowEnd])->count(),
@@ -400,7 +340,6 @@ class DashboardController extends Controller
                 'total_invoice' => (float) Invoice::query()->whereDate('created_at', $date)->count(),
                 'paid_invoice_ngn' => (float) Invoice::query()->where('status', 'paid')->whereDate('created_at', $date)->sum('amount'),
                 'pending_invoice_ngn' => (float) Invoice::query()->where('status', 'sent')->whereDate('created_at', $date)->sum('amount'),
-                'pending_chats' => (float) LiveChatThread::query()->where('status', 'open')->whereDate('created_at', $date)->count(),
                 'total_customers' => (float) User::query()->where(function (Builder $query): void {
                     $query->whereNull('role')->orWhere('role', 'user');
                 })->whereDate('created_at', $date)->count(),

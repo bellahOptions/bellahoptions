@@ -115,7 +115,6 @@ class SeoController extends Controller
             '/dashboard',
             '/profile',
             '/orders/',
-            '/live-chat/',
             '/webhooks/',
         ];
 

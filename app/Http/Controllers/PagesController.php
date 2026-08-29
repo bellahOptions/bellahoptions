@@ -6,16 +6,13 @@ use App\Models\Event;
 use App\Models\BlogPost;
 use App\Models\Faq;
 use App\Models\GalleryProject;
-use App\Models\SlideShow;
 use App\Models\Term;
 use App\Support\PublicContentSecurity;
 use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
 use App\Support\ServiceOrderCatalog;
-use App\Support\SlideBackgroundOptions;
 use App\Support\SubscriptionPlanCatalog;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Throwable;
@@ -27,117 +24,8 @@ class PagesController extends Controller
         return Inertia::render('Home');
     }
 
-    public function welcomePage(
-        SubscriptionPlanCatalog $subscriptionPlanCatalog,
-        ServiceOrderCatalog $serviceOrderCatalog
-    )
+    public function welcomePage(SubscriptionPlanCatalog $subscriptionPlanCatalog)
     {
-        $slideShows = collect();
-        try {
-            $slideColumns = ['id', 'slide_title', 'text', 'slide_image', 'slide_link', 'slide_link_text'];
-            $hasSlideBackgroundColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'slide_background');
-            $hasContentMediaTypeColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_type');
-            $hasContentMediaPathColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_path');
-            $hasContentMediaPositionColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_position');
-            $hasContentMediaAlignmentColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_media_alignment');
-            $hasLayoutStyleColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'layout_style');
-            $hasContentAlignmentColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'content_alignment');
-            $hasTitleAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'title_animation');
-            $hasTextAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'text_animation');
-            $hasMediaAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'media_animation');
-            $hasButtonAnimationColumn = Schema::hasTable('slide_shows') && Schema::hasColumn('slide_shows', 'button_animation');
-            if ($hasSlideBackgroundColumn) {
-                $slideColumns[] = 'slide_background';
-            }
-            if ($hasContentMediaTypeColumn) {
-                $slideColumns[] = 'content_media_type';
-            }
-            if ($hasContentMediaPathColumn) {
-                $slideColumns[] = 'content_media_path';
-            }
-            if ($hasContentMediaPositionColumn) {
-                $slideColumns[] = 'content_media_position';
-            }
-            if ($hasContentMediaAlignmentColumn) {
-                $slideColumns[] = 'content_media_alignment';
-            }
-            if ($hasLayoutStyleColumn) {
-                $slideColumns[] = 'layout_style';
-            }
-            if ($hasContentAlignmentColumn) {
-                $slideColumns[] = 'content_alignment';
-            }
-            if ($hasTitleAnimationColumn) {
-                $slideColumns[] = 'title_animation';
-            }
-            if ($hasTextAnimationColumn) {
-                $slideColumns[] = 'text_animation';
-            }
-            if ($hasMediaAnimationColumn) {
-                $slideColumns[] = 'media_animation';
-            }
-            if ($hasButtonAnimationColumn) {
-                $slideColumns[] = 'button_animation';
-            }
-
-            $slideShows = SlideShow::query()
-                ->latest('id')
-                ->get($slideColumns)
-                ->map(function (SlideShow $slide) use (
-                    $serviceOrderCatalog,
-                    $hasContentMediaTypeColumn,
-                    $hasContentMediaPathColumn,
-                    $hasContentMediaPositionColumn,
-                    $hasContentMediaAlignmentColumn,
-                    $hasLayoutStyleColumn,
-                    $hasContentAlignmentColumn,
-                    $hasTitleAnimationColumn,
-                    $hasTextAnimationColumn,
-                    $hasMediaAnimationColumn,
-                    $hasButtonAnimationColumn
-                ): ?array {
-                    try {
-                        $safeImage = $this->publicAssetUrl($slide->slide_image);
-                        if (is_string($slide->slide_image) && trim($slide->slide_image) !== '' && $safeImage === null) {
-                            return null;
-                        }
-
-                        return [
-                            'id' => $slide->id,
-                            'slide_title' => $slide->slide_title,
-                            'text' => $slide->text,
-                            'slide_image' => $safeImage,
-                            'slide_background' => SlideBackgroundOptions::sanitize($slide->slide_background ?? null),
-                            'content_media_type' => $this->normalizeSlideContentMediaType($hasContentMediaTypeColumn ? $slide->content_media_type : null),
-                            'content_media_path' => $this->publicAssetUrl($hasContentMediaPathColumn ? $slide->content_media_path : null),
-                            'content_media_position' => $this->normalizeSlideContentMediaPosition($hasContentMediaPositionColumn ? $slide->content_media_position : null),
-                            'content_media_alignment' => $this->normalizeSlideContentMediaAlignment($hasContentMediaAlignmentColumn ? $slide->content_media_alignment : null),
-                            'layout_style' => $this->normalizeSlideLayoutStyle($hasLayoutStyleColumn ? $slide->layout_style : null),
-                            'content_alignment' => $this->normalizeSlideContentAlignment($hasContentAlignmentColumn ? $slide->content_alignment : null),
-                            'title_animation' => $this->normalizeSlideAnimationStyle($hasTitleAnimationColumn ? $slide->title_animation : null),
-                            'text_animation' => $this->normalizeSlideAnimationStyle($hasTextAnimationColumn ? $slide->text_animation : null),
-                            'media_animation' => $this->normalizeSlideAnimationStyle($hasMediaAnimationColumn ? $slide->media_animation : null),
-                            'button_animation' => $this->normalizeSlideAnimationStyle($hasButtonAnimationColumn ? $slide->button_animation : null),
-                            'slide_link' => $this->normalizeSlideOrderLink($slide->slide_link, $serviceOrderCatalog),
-                            'slide_link_text' => $slide->slide_link_text,
-                        ];
-                    } catch (Throwable $exception) {
-                        Log::warning('Skipping malformed welcome slide.', [
-                            'slide_id' => $slide->id,
-                            'message' => $exception->getMessage(),
-                        ]);
-
-                        return null;
-                    }
-                })
-                ->filter()
-                ->values();
-        } catch (Throwable $exception) {
-            Log::warning('Unable to load welcome slides.', [
-                'message' => $exception->getMessage(),
-            ]);
-        }
-
         $gallerySamples = collect();
         try {
             $gallerySamples = GalleryProject::query()
@@ -162,7 +50,6 @@ class PagesController extends Controller
         }
 
         return Inertia::render('Welcome', [
-            'slideShows' => $slideShows,
             'featuredPlans' => $subscriptionPlanCatalog->homepagePlans(3),
             'gallerySamples' => $gallerySamples,
         ]);
@@ -393,85 +280,6 @@ class PagesController extends Controller
         }
 
         return $sanitized;
-    }
-
-    private function normalizeSlideOrderLink(?string $url, ServiceOrderCatalog $catalog): ?string
-    {
-        $sanitized = PublicContentSecurity::sanitizeRelativePathOrHttpUrl($url);
-        if (! is_string($sanitized) || $sanitized === '') {
-            return null;
-        }
-
-        if (preg_match('#^/services/([a-z0-9-]+)([?\#].*)?$#i', $sanitized, $matches) !== 1) {
-            return $sanitized;
-        }
-
-        $serviceSlug = strtolower((string) ($matches[1] ?? ''));
-        if (! is_array($catalog->service($serviceSlug))) {
-            return $sanitized;
-        }
-
-        return '/order/'.$serviceSlug.((string) ($matches[2] ?? ''));
-    }
-
-    private function normalizeSlideContentMediaType(?string $value): ?string
-    {
-        $candidate = strtolower(trim((string) $value));
-        if ($candidate === '') {
-            return null;
-        }
-
-        return in_array($candidate, ['image', 'video'], true) ? $candidate : null;
-    }
-
-    private function normalizeSlideLayoutStyle(?string $value): string
-    {
-        $candidate = strtolower(trim((string) $value));
-        if (in_array($candidate, ['center', 'split-left', 'split-right'], true)) {
-            return $candidate;
-        }
-
-        return 'center';
-    }
-
-    private function normalizeSlideContentMediaPosition(?string $value): string
-    {
-        $candidate = strtolower(trim((string) $value));
-        if (in_array($candidate, ['top', 'center', 'bottom'], true)) {
-            return $candidate;
-        }
-
-        return 'center';
-    }
-
-    private function normalizeSlideContentMediaAlignment(?string $value): string
-    {
-        $candidate = strtolower(trim((string) $value));
-        if (in_array($candidate, ['left', 'center', 'right'], true)) {
-            return $candidate;
-        }
-
-        return 'center';
-    }
-
-    private function normalizeSlideContentAlignment(?string $value): string
-    {
-        $candidate = strtolower(trim((string) $value));
-        if (in_array($candidate, ['left', 'center'], true)) {
-            return $candidate;
-        }
-
-        return 'center';
-    }
-
-    private function normalizeSlideAnimationStyle(?string $value): string
-    {
-        $candidate = strtolower(trim((string) $value));
-        if (in_array($candidate, ['fade-up', 'fade-down', 'slide-left', 'slide-right', 'zoom-in', 'none'], true)) {
-            return $candidate;
-        }
-
-        return 'fade-up';
     }
 
     /**

@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
 import RichTextEditor from '@/Components/RichTextEditor';
+import { MobileCard, MobileCardActions, MobileCardList } from '@/Components/ui/mobile-cards';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -418,7 +419,7 @@ export default function Settings({
         setSelectorError('');
 
         try {
-            const response = await window.axios.get(route('admin.slides.media.index'));
+            const response = await window.axios.get(route('admin.gallery.media.index'));
             setSelectorFiles(Array.isArray(response?.data?.files) ? response.data.files : []);
         } catch (error) {
             setSelectorError('Unable to load media files right now.');
@@ -451,7 +452,7 @@ export default function Settings({
         body.append('file', file);
 
         try {
-            const response = await window.axios.post(route('admin.slides.media.upload'), body, {
+            const response = await window.axios.post(route('admin.gallery.media.upload'), body, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
 
@@ -1206,7 +1207,7 @@ export default function Settings({
                                 </div>
                             </form>
 
-                            <div className="mt-6 overflow-x-auto">
+                            <div className="mt-6 hidden overflow-x-auto md:block">
                                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                                     <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
                                         <tr>
@@ -1292,6 +1293,79 @@ export default function Settings({
                                     </tbody>
                                 </table>
                             </div>
+
+                            {clientReviews.length === 0 ? (
+                                <p className="mt-6 text-sm text-gray-500 md:hidden">No client reviews yet.</p>
+                            ) : (
+                                <MobileCardList className="mt-6">
+                                    {clientReviews.map((review, index) => (
+                                        <MobileCard key={`client-review-mobile-${review.id}`} index={index}>
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                    <p className="truncate text-sm font-semibold text-gray-900">
+                                                        {review.reviewer_name || 'Anonymous'}
+                                                    </p>
+                                                    <p className="truncate text-xs text-gray-500">{review.reviewer_email || 'No email'}</p>
+                                                </div>
+                                                <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
+                                                    review.source === 'admin'
+                                                        ? 'bg-blue-100 text-blue-700'
+                                                        : 'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                    {review.source === 'admin' ? 'Admin' : 'Client'}
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-2 text-amber-600">
+                                                {'★'.repeat(Math.max(1, Math.min(5, Math.round(Number(review.rating || 0)))))}
+                                                <span className="ml-1 text-xs text-gray-500">{Number(review.rating || 0).toFixed(1)}/5</span>
+                                            </p>
+
+                                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                                    review.is_public ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                                                }`}>
+                                                    {review.is_public ? 'Public' : 'Private'}
+                                                </span>
+                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
+                                                    review.is_featured ? 'bg-brand-light text-brand' : 'bg-gray-100 text-gray-600'
+                                                }`}>
+                                                    {review.is_featured ? 'Featured' : 'Not Featured'}
+                                                </span>
+                                            </div>
+
+                                            <p className="mt-3 text-xs leading-6 text-gray-600">
+                                                {String(review.comment || '').slice(0, 140)}
+                                                {String(review.comment || '').length > 140 ? '...' : ''}
+                                            </p>
+
+                                            <MobileCardActions>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleClientReviewVisibility(review)}
+                                                    className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                >
+                                                    {review.is_public ? 'Make Private' : 'Make Public'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleClientReviewFeatured(review)}
+                                                    className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                >
+                                                    {review.is_featured ? 'Unfeature' : 'Feature'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => deleteClientReview(review)}
+                                                    className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                >
+                                                    Delete
+                                                </button>
+                                            </MobileCardActions>
+                                        </MobileCard>
+                                    ))}
+                                </MobileCardList>
+                            )}
                         </div>
 
                         <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -1492,7 +1566,7 @@ export default function Settings({
                             </div>
                         </form>
 
-                        <div className="mt-6 overflow-x-auto">
+                        <div className="mt-6 hidden overflow-x-auto md:block">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
                                     <tr>
@@ -1584,6 +1658,78 @@ export default function Settings({
                                 </tbody>
                             </table>
                         </div>
+
+                        {discountCodes.length === 0 ? (
+                            <p className="mt-6 text-sm text-gray-500 md:hidden">No discount codes yet.</p>
+                        ) : (
+                            <MobileCardList className="mt-6">
+                                {discountCodes.map((discountCode, index) => (
+                                    <MobileCard key={`discount-mobile-${discountCode.id}`} index={index}>
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="min-w-0">
+                                                <p className="truncate text-sm font-semibold text-gray-900">{discountCode.code}</p>
+                                                <p className="truncate text-xs text-gray-500">{discountCode.name || 'Unnamed discount'}</p>
+                                            </div>
+                                            <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
+                                                discountCode.is_active
+                                                    ? 'bg-emerald-100 text-emerald-700'
+                                                    : 'bg-gray-100 text-gray-600'
+                                            }`}>
+                                                {discountCode.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                        </div>
+
+                                        <div className="mt-3 space-y-1.5 text-sm">
+                                            <p className="text-gray-700">
+                                                {serviceCatalog?.[discountCode.service_slug]?.name || discountCode.service_slug}
+                                                <span className="text-gray-500"> · {discountCode.package_code || 'All service packages'}</span>
+                                            </p>
+                                            <p className="text-gray-700">
+                                                {discountCode.discount_type === 'percentage'
+                                                    ? `${discountCode.discount_value}% off`
+                                                    : `${discountCode.currency || 'NGN'} ${discountCode.discount_value} off`}
+                                            </p>
+                                            <p className="text-xs text-gray-500">
+                                                {discountCode.total_redemptions} redeemed
+                                                {discountCode.max_redemptions ? ` · Limit: ${discountCode.max_redemptions}` : ' · No limit'}
+                                            </p>
+                                            <a
+                                                href={discountCode.discount_link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block break-all text-xs text-brand hover:text-brand-dark"
+                                            >
+                                                {discountCode.discount_link}
+                                            </a>
+                                        </div>
+
+                                        <MobileCardActions>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleDiscountStatus(discountCode)}
+                                                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                            >
+                                                {discountCode.is_active ? 'Deactivate' : 'Activate'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => copyDiscountLink(discountCode)}
+                                                className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                            >
+                                                {copiedLinkId === discountCode.id ? 'Copied' : 'Copy Link'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => deleteDiscountCode(discountCode)}
+                                                className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                            >
+                                                Delete
+                                            </button>
+                                        </MobileCardActions>
+                                    </MobileCard>
+                                ))}
+                            </MobileCardList>
+                        )}
                     </div>
 
                     <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -1753,7 +1899,7 @@ export default function Settings({
                             </div>
                         </form>
 
-                        <div className="mt-6 overflow-x-auto">
+                        <div className="mt-6 hidden overflow-x-auto md:block">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
                                     <tr>
@@ -1863,6 +2009,117 @@ export default function Settings({
                                 </tbody>
                             </table>
                         </div>
+
+                        {subscriptionPlans.length === 0 ? (
+                            <p className="mt-6 text-sm text-gray-500 md:hidden">No subscription plans created yet.</p>
+                        ) : (
+                            <MobileCardList className="mt-6">
+                                {subscriptionPlans.map((subscriptionPlan, index) => (
+                                    <MobileCard key={`subscription-plan-mobile-${subscriptionPlan.id}`} index={index}>
+                                        <div className="flex items-start gap-3">
+                                            {subscriptionPlan.image_path && (
+                                                <img
+                                                    src={String(subscriptionPlan.image_path).startsWith('/') || /^https?:\/\//i.test(String(subscriptionPlan.image_path))
+                                                        ? String(subscriptionPlan.image_path)
+                                                        : `/${String(subscriptionPlan.image_path)}`}
+                                                    alt={subscriptionPlan.name}
+                                                    className="h-12 w-12 shrink-0 rounded object-cover"
+                                                />
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <p className="truncate text-sm font-semibold text-gray-900">{subscriptionPlan.name}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {subscriptionPlan.billing_cycle} · Position {subscriptionPlan.position}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-3 space-y-1 text-xs text-gray-600">
+                                            <p className="text-sm text-gray-700">
+                                                {subscriptionPlan.service_name}
+                                                <span className="text-gray-500"> · {subscriptionPlan.package_name}</span>
+                                            </p>
+                                            {subscriptionPlan.short_description && <p>{subscriptionPlan.short_description}</p>}
+                                            <p>Paid subscriptions: {subscriptionPlan.paid_subscriptions}</p>
+                                            <p>
+                                                Discount: {subscriptionPlan.active_discount_code
+                                                    ? `${subscriptionPlan.active_discount_code} (${subscriptionPlan.active_discount_summary})`
+                                                    : 'None'}
+                                            </p>
+                                            <a
+                                                href={subscriptionPlan.checkout_link}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="block break-all text-brand hover:text-brand-dark"
+                                            >
+                                                {subscriptionPlan.checkout_link}
+                                            </a>
+                                        </div>
+
+                                        <div className="mt-3 flex flex-wrap gap-1.5">
+                                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                                subscriptionPlan.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'
+                                            }`}>
+                                                {subscriptionPlan.is_active ? 'Active' : 'Inactive'}
+                                            </span>
+                                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                                subscriptionPlan.show_on_homepage ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
+                                            }`}>
+                                                {subscriptionPlan.show_on_homepage ? 'On Homepage' : 'Hidden'}
+                                            </span>
+                                            {subscriptionPlan.is_homepage_featured && (
+                                                <span className="rounded-full bg-brand-light px-2 py-1 text-xs font-semibold text-brand">
+                                                    Featured
+                                                </span>
+                                            )}
+                                            {subscriptionPlan.is_recommended && (
+                                                <span className="rounded-full bg-emerald-100 px-2 py-1 text-xs font-semibold text-emerald-700">
+                                                    Recommended
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <MobileCardActions>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateSubscriptionPlan(subscriptionPlan, { is_active: !subscriptionPlan.is_active })}
+                                                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                            >
+                                                {subscriptionPlan.is_active ? 'Deactivate' : 'Activate'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateSubscriptionPlan(subscriptionPlan, { show_on_homepage: !subscriptionPlan.show_on_homepage })}
+                                                className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                            >
+                                                {subscriptionPlan.show_on_homepage ? 'Hide Homepage' : 'Show Homepage'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateSubscriptionPlan(subscriptionPlan, { is_homepage_featured: !subscriptionPlan.is_homepage_featured })}
+                                                className="rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                                            >
+                                                {subscriptionPlan.is_homepage_featured ? 'Unfeature' : 'Feature'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => updateSubscriptionPlan(subscriptionPlan, { is_recommended: !subscriptionPlan.is_recommended })}
+                                                className="rounded-md border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                                            >
+                                                {subscriptionPlan.is_recommended ? 'Unrecommend' : 'Recommend'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => deleteSubscriptionPlan(subscriptionPlan)}
+                                                className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                            >
+                                                Delete
+                                            </button>
+                                        </MobileCardActions>
+                                    </MobileCard>
+                                ))}
+                            </MobileCardList>
+                        )}
                     </div>
                 </div>
             </div>

@@ -1,3 +1,4 @@
+import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 
@@ -137,7 +138,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                     {invoice.items?.length > 0 && (
                         <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
                             <h4 className="text-base font-semibold text-gray-900">Line Items</h4>
-                            <div className="mt-4 overflow-x-auto">
+                            <div className="mt-4 hidden overflow-x-auto md:block">
                                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                                     <thead>
                                         <tr>
@@ -172,6 +173,27 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                         </tr>
                                     </tfoot>
                                 </table>
+                            </div>
+
+                            <div className="mt-4 md:hidden">
+                                <MobileCardList>
+                                    {invoice.items.map((item, index) => (
+                                        <MobileCard key={item.id} index={index}>
+                                            <p className="text-sm font-semibold text-gray-900">{item.description}</p>
+                                            <div className="mt-2 space-y-0.5 divide-y divide-gray-50">
+                                                <MobileCardRow label="Quantity" value={item.quantity} />
+                                                <MobileCardRow label="Unit Price" value={formatMoney(item.unit_price, invoice.currency)} />
+                                                <MobileCardRow label="Total" value={formatMoney(item.amount, invoice.currency)} />
+                                            </div>
+                                        </MobileCard>
+                                    ))}
+                                </MobileCardList>
+                                <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                                    <span className="text-sm font-semibold text-gray-900">Total</span>
+                                    <span className="text-sm font-semibold text-gray-900">
+                                        {formatMoney(invoice.amount, invoice.currency)}
+                                    </span>
+                                </div>
                             </div>
                         </section>
                     )}

@@ -18,9 +18,6 @@ class AdminDashboardPageResource extends JsonResource
                 'email' => (string) ($data['user']['email'] ?? ''),
             ],
             'timezone' => (string) ($data['timezone'] ?? 'Africa/Lagos'),
-            'notifications' => [
-                'unread_chats' => (int) ($data['notifications']['unread_chats'] ?? 0),
-            ],
             'kpis' => array_values(array_map(static fn ($kpi): array => [
                 'key' => (string) ($kpi['key'] ?? ''),
                 'label' => (string) ($kpi['label'] ?? ''),
@@ -70,13 +67,6 @@ class AdminDashboardPageResource extends JsonResource
                 'win_rate' => (float) ($client['win_rate'] ?? 0),
                 'total_profit' => (float) ($client['total_profit'] ?? 0),
             ], is_array($data['leaderboard'] ?? null) ? $data['leaderboard'] : [])),
-            'staff_presence' => array_values(array_map(static fn ($staff): array => [
-                'id' => (int) ($staff['id'] ?? 0),
-                'name' => (string) ($staff['name'] ?? ''),
-                'online' => (bool) ($staff['online'] ?? false),
-                'last_seen_at' => $staff['last_seen_at'] ? (string) $staff['last_seen_at'] : null,
-                'open_chats' => (int) ($staff['open_chats'] ?? 0),
-            ], is_array($data['staff_presence'] ?? null) ? $data['staff_presence'] : [])),
         ];
     }
 }

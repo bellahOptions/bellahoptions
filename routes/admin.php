@@ -2,31 +2,28 @@
 
 use Illuminate\Support\Facades\Route;
 
+use App\Http\Controllers\Admin\BankStatementController;
 use App\Http\Controllers\Admin\ClientReviewController as AdminClientReviewController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmailCenterController;
+use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\ServiceOrderController as AdminServiceOrderController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\LiveChat\StaffChatController;
 use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\Admin\BlogPostController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\GalleryProjectController;
 use App\Http\Controllers\Admin\ServicePricingController;
-use App\Http\Controllers\Admin\SlideController;
 use App\Http\Controllers\Dashboard\UserWorkspaceController;
 
 Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('service-pricing', [ServicePricingController::class, 'edit'])->name('service-pricing.edit');
     Route::patch('service-pricing', [ServicePricingController::class, 'update'])->name('service-pricing.update');
-    Route::get('slides/media', [SlideController::class, 'mediaIndex'])->name('slides.media.index');
-    Route::post('slides/media/upload', [SlideController::class, 'upload'])->name('slides.media.upload');
-    Route::post('slides/media/crop', [SlideController::class, 'crop'])->name('slides.media.crop');
-    Route::resource('slides', SlideController::class)->except(['create', 'show', 'edit']);
     Route::get('gallery/media', [GalleryProjectController::class, 'mediaIndex'])->name('gallery.media.index');
     Route::post('gallery/media/upload', [GalleryProjectController::class, 'upload'])->name('gallery.media.upload');
     Route::post('gallery/media/crop', [GalleryProjectController::class, 'crop'])->name('gallery.media.crop');
@@ -55,22 +52,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
-    Route::get('/admin/live-chat', [StaffChatController::class, 'index'])->name('admin.live-chat.index');
-    Route::get('/admin/live-chat/overview', [StaffChatController::class, 'overview'])->name('admin.live-chat.overview');
-    Route::get('/admin/live-chat/threads/{thread}/messages', [StaffChatController::class, 'messages'])->name('admin.live-chat.threads.messages');
-    Route::post('/admin/live-chat/threads/{thread}/messages', [StaffChatController::class, 'send'])
-        ->middleware('throttle:60,1')
-        ->name('admin.live-chat.threads.messages.send');
-    Route::patch('/admin/live-chat/threads/{thread}/join', [StaffChatController::class, 'join'])->name('admin.live-chat.threads.join');
-    Route::post('/admin/live-chat/threads/{thread}/typing', [StaffChatController::class, 'typing'])->name('admin.live-chat.threads.typing');
-    Route::post('/admin/live-chat/messages/{message}/reactions', [StaffChatController::class, 'react'])
-        ->middleware('throttle:120,1')
-        ->name('admin.live-chat.messages.react');
-    Route::patch('/admin/live-chat/threads/{thread}/status', [StaffChatController::class, 'updateStatus'])->name('admin.live-chat.threads.status');
-    Route::post('/admin/live-chat/presence', [StaffChatController::class, 'presence'])->name('admin.live-chat.presence');
-
     Route::get('/admin/invoices', [InvoiceController::class, 'index'])->name('admin.invoices.index');
     Route::get('/admin/invoices/{invoice}', [InvoiceController::class, 'show'])->name('admin.invoices.show');
+    Route::get('/admin/service-orders', [AdminServiceOrderController::class, 'index'])->name('admin.service-orders.index');
+    Route::get('/admin/service-orders/{serviceOrder}', [AdminServiceOrderController::class, 'show'])->name('admin.service-orders.show');
     Route::get('/admin/customers/search', [CustomerController::class, 'search'])->name('admin.customers.search');
     Route::post('/admin/customers', [CustomerController::class, 'store'])->name('admin.customers.store');
     Route::post('/admin/invoices', [InvoiceController::class, 'store'])->name('admin.invoices.store');
@@ -115,4 +100,23 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::get('/admin/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
     Route::patch('/admin/users/{user}', [UserController::class, 'update'])->name('admin.users.update');
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
+
+    Route::get('/admin/finance', [FinanceController::class, 'overview'])->name('admin.finance.index');
+    Route::get('/admin/finance/ledger', [FinanceController::class, 'ledger'])->name('admin.finance.ledger');
+    Route::get('/admin/finance/ledger/export', [FinanceController::class, 'exportLedger'])->name('admin.finance.ledger.export');
+    Route::get('/admin/finance/expenses', [FinanceController::class, 'expensesIndex'])->name('admin.finance.expenses.index');
+    Route::post('/admin/finance/expenses', [FinanceController::class, 'storeExpense'])->name('admin.finance.expenses.store');
+    Route::delete('/admin/finance/expenses/{expense}', [FinanceController::class, 'destroyExpense'])->name('admin.finance.expenses.destroy');
+    Route::get('/admin/finance/payouts', [FinanceController::class, 'payoutsIndex'])->name('admin.finance.payouts.index');
+    Route::post('/admin/finance/payouts', [FinanceController::class, 'storePayout'])->name('admin.finance.payouts.store');
+    Route::patch('/admin/finance/payouts/{payout}/mark-paid', [FinanceController::class, 'markPayoutPaid'])->name('admin.finance.payouts.mark-paid');
+    Route::delete('/admin/finance/payouts/{payout}', [FinanceController::class, 'destroyPayout'])->name('admin.finance.payouts.destroy');
+
+    Route::get('/admin/finance/bank-imports', [BankStatementController::class, 'index'])->name('admin.finance.bank-imports.index');
+    Route::post('/admin/finance/bank-imports', [BankStatementController::class, 'store'])->name('admin.finance.bank-imports.store');
+    Route::get('/admin/finance/bank-imports/{bankStatementImport}', [BankStatementController::class, 'show'])->name('admin.finance.bank-imports.show');
+    Route::delete('/admin/finance/bank-imports/{bankStatementImport}', [BankStatementController::class, 'destroy'])->name('admin.finance.bank-imports.destroy');
+    Route::post('/admin/finance/bank-imports/{bankStatementImport}/bulk-convert', [BankStatementController::class, 'bulkConvert'])->name('admin.finance.bank-imports.bulk-convert');
+    Route::post('/admin/finance/bank-imports/transactions/{bankStatementTransaction}/convert', [BankStatementController::class, 'convert'])->name('admin.finance.bank-imports.transactions.convert');
+    Route::patch('/admin/finance/bank-imports/transactions/{bankStatementTransaction}/ignore', [BankStatementController::class, 'ignore'])->name('admin.finance.bank-imports.transactions.ignore');
 });

@@ -3,7 +3,6 @@
 namespace Tests\Feature;
 
 use App\Models\BlogPost;
-use App\Models\SlideShow;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -76,33 +75,6 @@ class AdminPublicContentSecurityTest extends TestCase
                 ->component('Blog')
                 ->has('posts', 1)
                 ->where('posts.0.cover_image', null)
-            );
-    }
-
-    public function test_homepage_only_exposes_slides_with_safe_images(): void
-    {
-        SlideShow::query()->create([
-            'slide_title' => 'Blocked Slide',
-            'text' => 'Should not render',
-            'slide_image' => 'javascript:alert(1)',
-            'slide_link' => '/contact-us',
-            'slide_link_text' => 'Contact',
-        ]);
-
-        SlideShow::query()->create([
-            'slide_title' => 'Safe Slide',
-            'text' => 'Should render',
-            'slide_image' => '/safe-slide.jpg',
-            'slide_link' => '/contact-us',
-            'slide_link_text' => 'Contact',
-        ]);
-
-        $this->get(route('home'))
-            ->assertOk()
-            ->assertInertia(fn (Assert $page) => $page
-                ->component('Welcome')
-                ->has('slideShows', 1)
-                ->where('slideShows.0.slide_title', 'Safe Slide')
             );
     }
 

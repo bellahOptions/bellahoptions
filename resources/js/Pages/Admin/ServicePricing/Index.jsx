@@ -191,7 +191,7 @@ export default function ServicePricing({
         setSelectorError('');
 
         try {
-            const response = await window.axios.get(route('admin.slides.media.index'));
+            const response = await window.axios.get(route('admin.gallery.media.index'));
             setSelectorFiles(Array.isArray(response?.data?.files) ? response.data.files : []);
         } catch (error) {
             setSelectorError('Unable to load media files right now.');
@@ -223,7 +223,7 @@ export default function ServicePricing({
         body.append('file', file);
 
         try {
-            const response = await window.axios.post(route('admin.slides.media.upload'), body, {
+            const response = await window.axios.post(route('admin.gallery.media.upload'), body, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
 

@@ -1,5 +1,9 @@
+import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
+import { StatCard, StatGrid } from '@/Components/ui/stat-card';
+import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { BadgeCheck, Loader2, RotateCcw, Search, ShieldCheck, UserCircle2, Users } from 'lucide-react';
 import { useState } from 'react';
 
 export default function UserIndex({ users, stats = {}, filters = {}, roleOptions = [] }) {
@@ -7,27 +11,12 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
     const [search, setSearch] = useState(filters.search || '');
     const [role, setRole] = useState(filters.role || '');
 
-    const applyFilters = (event) => {
-        event.preventDefault();
-
-        router.get(
-            route('admin.users.index'),
-            {
-                search,
-                role,
-            },
-            {
-                preserveState: true,
-                replace: true,
-            },
-        );
-    };
+    const isSyncing = useDebouncedFilterSync('admin.users.index', { search, role });
+    const hasActiveFilters = Boolean(search || role);
 
     const resetFilters = () => {
         setSearch('');
         setRole('');
-
-        router.get(route('admin.users.index'), {}, { preserveState: true, replace: true });
     };
 
     return (
@@ -60,65 +49,58 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
                         </div>
                     )}
 
-                    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                        <MetricCard label="Total Users" value={stats.total_users ?? 0} />
-                        <MetricCard label="Staff Users" value={stats.staff_users ?? 0} />
-                        <MetricCard label="Customers" value={stats.customer_users ?? 0} />
-                        <MetricCard label="Verified" value={stats.verified_users ?? 0} />
-                    </section>
+                    <StatGrid>
+                        <StatCard icon={Users} label="Total Users" value={stats.total_users ?? 0} tone="sky" />
+                        <StatCard icon={ShieldCheck} label="Staff Users" value={stats.staff_users ?? 0} tone="brand" />
+                        <StatCard icon={UserCircle2} label="Customers" value={stats.customer_users ?? 0} tone="slate" />
+                        <StatCard icon={BadgeCheck} label="Verified" value={stats.verified_users ?? 0} tone="emerald" />
+                    </StatGrid>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <form onSubmit={applyFilters} className="grid gap-3 sm:grid-cols-[1fr_auto_auto_auto] sm:items-end">
-                            <div>
-                                <label htmlFor="user-search" className="mb-1 block text-sm font-medium text-gray-700">
-                                    Search
-                                </label>
+                    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+                            <div className="relative flex-1 lg:min-w-[240px]">
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
                                 <input
                                     id="user-search"
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
-                                    placeholder="Name or email"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    placeholder="Search name or email…"
+                                    className="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-9 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
+                                {isSyncing && (
+                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-brand" />
+                                )}
                             </div>
 
-                            <div>
-                                <label htmlFor="user-role" className="mb-1 block text-sm font-medium text-gray-700">
-                                    Role
-                                </label>
-                                <select
-                                    id="user-role"
-                                    value={role}
-                                    onChange={(event) => setRole(event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                >
-                                    <option value="">All Roles</option>
-                                    {roleOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                            <select
+                                id="user-role"
+                                value={role}
+                                onChange={(event) => setRole(event.target.value)}
+                                aria-label="Role"
+                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
                             >
-                                Filter
-                            </button>
+                                <option value="">All roles</option>
+                                {roleOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+
                             <button
                                 type="button"
                                 onClick={resetFilters}
-                                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                disabled={!hasActiveFilters}
+                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 lg:w-auto"
                             >
+                                <RotateCcw className="h-3.5 w-3.5" />
                                 Reset
                             </button>
-                        </form>
+                        </div>
                     </section>
 
                     <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <div className="overflow-x-auto">
+                        <div className="hidden overflow-x-auto md:block">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
                                 <thead className="bg-gray-50">
                                     <tr>
@@ -166,6 +148,46 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
                             </table>
                         </div>
 
+                        {(users?.data || []).length === 0 ? (
+                            <p className="text-sm text-gray-500 md:hidden">No users found.</p>
+                        ) : (
+                            <MobileCardList>
+                                {(users?.data || []).map((user, index) => (
+                                    <MobileCard key={user.id} index={index}>
+                                        <MobileCardHeader
+                                            title={displayUserName(user)}
+                                            subtitle={user.email}
+                                            badge={
+                                                <span
+                                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
+                                                        user.email_verified_at
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-slate-100 text-slate-600'
+                                                    }`}
+                                                >
+                                                    {user.email_verified_at ? 'Verified' : 'Unverified'}
+                                                </span>
+                                            }
+                                        />
+
+                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                            <MobileCardRow label="Role" value={formatRole(user.role)} />
+                                            <MobileCardRow label="Created" value={user.created_at || 'N/A'} />
+                                        </div>
+
+                                        <MobileCardActions>
+                                            <Link
+                                                href={route('admin.users.show', user.id)}
+                                                className="w-full rounded-md border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                            >
+                                                View
+                                            </Link>
+                                        </MobileCardActions>
+                                    </MobileCard>
+                                ))}
+                            </MobileCardList>
+                        )}
+
                         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
                             <p>
                                 Page {users?.current_page || 1} of {users?.last_page || 1}
@@ -204,15 +226,6 @@ export default function UserIndex({ users, stats = {}, filters = {}, roleOptions
                 </div>
             </div>
         </AuthenticatedLayout>
-    );
-}
-
-function MetricCard({ label, value }) {
-    return (
-        <div className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:p-4">
-            <p className="text-[11px] uppercase tracking-wide text-gray-500 sm:text-xs">{label}</p>
-            <p className="mt-2 text-lg font-semibold text-gray-900 sm:text-2xl">{value}</p>
-        </div>
     );
 }
 
