@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
 use Smalot\PdfParser\Parser as PdfParser;
 
@@ -111,6 +112,15 @@ class BankStatementParser
             $pdf = (new PdfParser())->parseFile($filePath);
             $pageTexts = array_map(fn ($page) => $page->getText(), $pdf->getPages());
         } catch (\Throwable $exception) {
+            // The user-facing message is deliberately generic (parse failures can have many
+            // causes), but that means the ACTUAL reason is otherwise lost. Log it so a failure
+            // in production is diagnosable from storage/logs/laravel.log instead of guesswork.
+            Log::error('smalot/pdfparser failed to parse an uploaded bank statement.', [
+                'exception_class' => get_class($exception),
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile().':'.$exception->getLine(),
+            ]);
+
             throw new RuntimeException('The PDF could not be read. It may be password-protected, corrupted, or an unsupported format.', previous: $exception);
         }
 
