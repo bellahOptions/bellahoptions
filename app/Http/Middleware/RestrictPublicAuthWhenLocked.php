@@ -25,6 +25,13 @@ class RestrictPublicAuthWhenLocked
             return $next($request);
         }
 
+        // Staff authenticate through this same "login" page (it detects staff
+        // accounts and routes them into the OTP flow), so it must stay reachable
+        // during maintenance even though registration/password-reset do not.
+        if ($request->is('login')) {
+            return $next($request);
+        }
+
         $message = 'The portal is temporarily in maintenance mode. Please check back later.';
 
         return redirect()->route('maintenance')->with('error', $message);

@@ -17,6 +17,7 @@
         <tr>
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px;">
+                    @include('emails.partials.logo-header')
                     <tr>
                         <td style="padding:24px;">
                             <h2 style="margin:0 0 12px; font-size:22px; color:#0f172a;">Thank you for your purchase</h2>

@@ -50,6 +50,18 @@ class RestrictPublicRoutesWhenLocked
             return $next($request);
         }
 
+        if ($request->user()?->isStaff()) {
+            return $next($request);
+        }
+
+        // Staff authenticate through the regular "login" page too (it detects
+        // staff accounts and routes them into the OTP flow), so it must stay
+        // reachable pre-authentication even though the rest of the public site
+        // is locked down.
+        if ($request->is('login')) {
+            return $next($request);
+        }
+
         $routeName = $request->route()?->getName();
         if ($routeName !== null && $this->isAllowedRouteName($routeName)) {
             return $next($request);

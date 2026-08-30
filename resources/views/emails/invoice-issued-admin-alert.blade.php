@@ -16,6 +16,7 @@
     <tr>
         <td align="center">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; overflow:hidden;">
+                @include('emails.partials.logo-header')
                 <tr>
                     <td style="padding:20px 24px; background:#111827; color:#ffffff;">
                         <h1 style="margin:0; font-size:18px;">Invoice Notification (Admin)</h1>

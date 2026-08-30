@@ -90,6 +90,9 @@ export default function OrderPayment({
                                 <div className="mt-6 space-y-3 text-sm text-gray-700">
                                     <SummaryRow label="Service" value={order.service_name} />
                                     <SummaryRow label="Package" value={order.package_name} />
+                                    {Number(order.package_quantity || 0) > 1 && (
+                                        <SummaryRow label="Quantity" value={order.package_quantity} />
+                                    )}
                                     <SummaryRow label="Customer" value={order.full_name} />
                                     <SummaryRow label="Email" value={order.email} />
                                     <SummaryRow label="Invoice" value={order.invoice?.invoice_number || "Pending"} />

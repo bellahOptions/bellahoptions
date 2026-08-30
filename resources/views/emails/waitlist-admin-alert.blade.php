@@ -10,6 +10,7 @@
         <tr>
             <td align="center">
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px; background:#ffffff; border:1px solid #e2e8f0; border-radius:14px; overflow:hidden;">
+                    @include('emails.partials.logo-header')
                     <tr>
                         <td style="background:#0f172a; color:#ffffff; padding:20px 24px;">
                             <h1 style="margin:0; font-size:20px;">New Waitlist Signup</h1>

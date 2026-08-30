@@ -98,6 +98,9 @@ class ServiceOrderCatalog
                     'sample_image' => $item['image_path'] ?? null,
                     'is_recommended' => false,
                     'features' => [],
+                    // Graphic design items are priced per unit — the customer
+                    // specifies how many they need and the total is price × qty.
+                    'is_quantity_priced' => true,
                 ];
             }
 

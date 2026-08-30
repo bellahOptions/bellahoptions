@@ -54,6 +54,9 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
                                     <SummaryRow label="Order ID" value={order.order_code} />
                                     <SummaryRow label="Service" value={order.service_name} />
                                     <SummaryRow label="Package" value={order.package_name} />
+                                    {Number(order.package_quantity || 0) > 1 && (
+                                        <SummaryRow label="Quantity" value={order.package_quantity} />
+                                    )}
                                     {order.logo_addon?.name && <SummaryRow label="Logo Add-on" value={order.logo_addon.name} />}
                                     <SummaryRow label="Payment Status" value={statusLabel(order.payment_status)} />
                                     <SummaryRow label="Order Status" value={statusLabel(order.order_status)} />

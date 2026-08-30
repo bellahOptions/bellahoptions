@@ -12,7 +12,7 @@
                 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; border-radius:20px; overflow:hidden; border:1px solid #dbeafe; box-shadow:0 24px 60px rgba(30,64,175,0.14);">
                     <tr>
                         <td style="background:#fdfdfd; color:#ffffff; padding:20px 24px;">
-                            <img src="https://i.postimg.cc/6p6BMwX0/logo-06.png" alt="Bellah Options Logo" height="30px" style="display:flex; justify-content: center; flex-direction: row; max-width:120px; margin:12px auto;">
+                            <img src="{{ asset('logo-06.svg') }}" alt="Bellah Options Logo" height="30px" style="display:flex; justify-content: center; flex-direction: row; max-width:120px; margin:12px auto;">
                         </td>
                     </tr>
                     <tr>

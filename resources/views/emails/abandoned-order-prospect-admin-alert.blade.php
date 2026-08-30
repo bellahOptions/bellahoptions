@@ -10,6 +10,7 @@
     <tr>
         <td align="center">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border:1px solid #d9e2ec;border-radius:12px;overflow:hidden;">
+                @include('emails.partials.logo-header')
                 <tr>
                     <td style="padding:24px;">
                         <h1 style="margin:0 0 12px;font-size:20px;color:#0f172a;">Order process abandoned</h1>

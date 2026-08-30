@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\MarkPayoutPaidRequest;
 use App\Http\Requests\Admin\StoreExpenseRequest;
 use App\Http\Requests\Admin\StorePayoutRequest;
 use App\Models\Expense;
+use App\Models\IncomeSplit;
 use App\Models\Invoice;
 use App\Models\OtherIncome;
 use App\Models\Payout;
@@ -84,6 +85,49 @@ class FinanceController extends Controller
             ],
             'monthlySeries' => $this->buildMonthlySeries(),
             'recentTransactions' => $recentTransactions,
+        ]);
+    }
+
+    public function incomeSplits(Request $request): Response
+    {
+        abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
+
+        $splits = IncomeSplit::query()
+            ->with(['invoice:id,invoice_number,title,paid_at', 'partner:id,name', 'owner:id,name'])
+            ->latest('id')
+            ->paginate(20)
+            ->through(fn (IncomeSplit $split): array => [
+                'id' => $split->id,
+                'invoice_number' => $split->invoice?->invoice_number,
+                'invoice_title' => $split->invoice?->title,
+                'paid_at' => $split->invoice?->paid_at?->toDateString(),
+                'currency' => $split->currency,
+                'total_amount' => (string) $split->total_amount,
+                'ads_savings_amount' => (string) $split->ads_savings_amount,
+                'data_savings_amount' => (string) $split->data_savings_amount,
+                'ai_savings_amount' => (string) $split->ai_savings_amount,
+                'partner_name' => $split->partner?->name,
+                'partner_amount' => (string) $split->partner_amount,
+                'partner_percent' => (string) $split->partner_percent,
+                'partner_notified' => $split->partner_notified_at !== null,
+                'owner_name' => $split->owner?->name,
+                'owner_amount' => (string) $split->owner_amount,
+                'owner_percent' => (string) $split->owner_percent,
+            ])
+            ->withQueryString();
+
+        return Inertia::render('Admin/Finance/IncomeSplits', [
+            'totals' => [
+                'grand_total' => (string) IncomeSplit::sum('total_amount'),
+                'ads_savings' => (string) IncomeSplit::sum('ads_savings_amount'),
+                'data_savings' => (string) IncomeSplit::sum('data_savings_amount'),
+                'ai_savings' => (string) IncomeSplit::sum('ai_savings_amount'),
+                'partner_total' => (string) IncomeSplit::sum('partner_amount'),
+                'owner_total' => (string) IncomeSplit::sum('owner_amount'),
+                'invoice_count' => IncomeSplit::count(),
+            ],
+            'formula' => config('finance.income_split'),
+            'splits' => $splits,
         ]);
     }
 

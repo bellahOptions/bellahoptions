@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 
 const tabs = [
     { key: 'overview', label: 'Overview', routeName: 'admin.finance.index', pattern: 'admin.finance.index' },
+    { key: 'income-splits', label: 'Income Splits', routeName: 'admin.finance.income-splits', pattern: 'admin.finance.income-splits*' },
     { key: 'ledger', label: 'Transactions', routeName: 'admin.finance.ledger', pattern: 'admin.finance.ledger*' },
     { key: 'expenses', label: 'Expenses', routeName: 'admin.finance.expenses.index', pattern: 'admin.finance.expenses.*' },
     { key: 'payouts', label: 'Payouts', routeName: 'admin.finance.payouts.index', pattern: 'admin.finance.payouts.*' },

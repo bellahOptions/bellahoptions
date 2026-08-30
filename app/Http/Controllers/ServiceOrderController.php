@@ -239,8 +239,15 @@ class ServiceOrderController extends Controller
         $creator = $user ?? $this->resolveSystemUser();
         $customer = $this->resolveOrCreateCustomer($payload, $creator->id);
 
+        $isQuantityPriced = (bool) ($package['is_quantity_priced'] ?? false);
+        $quantity = $isQuantityPriced ? max(1, (int) ($payload['package_quantity'] ?? 1)) : 1;
+        $packageDisplayName = (string) ($package['name'] ?? ucfirst($packageCode));
+        if ($isQuantityPriced && $quantity > 1) {
+            $packageDisplayName .= ' × '.$quantity;
+        }
+
         $currency = strtoupper((string) ($localization['currency'] ?? 'NGN'));
-        $packageAmountNgn = round((float) ($package['price'] ?? 0), 2);
+        $packageAmountNgn = round((float) ($package['price'] ?? 0) * $quantity, 2);
         $logoAddonAmountNgn = round((float) ($logoAddon['price'] ?? 0), 2);
         $baseAmountNgn = round($packageAmountNgn + $logoAddonAmountNgn, 2);
         $baseAmount = $this->convertAmountFromNgn($baseAmountNgn, $currency);
@@ -293,7 +300,7 @@ class ServiceOrderController extends Controller
                 'service_slug' => $serviceSlug,
                 'service_name' => (string) ($service['name'] ?? $serviceSlug),
                 'package_code' => $packageCode,
-                'package_name' => (string) ($package['name'] ?? ucfirst($packageCode)),
+                'package_name' => $packageDisplayName,
                 'currency' => $currency,
                 'base_amount' => $baseAmount,
                 'discount_code_id' => $discount?->id,
@@ -319,7 +326,7 @@ class ServiceOrderController extends Controller
                 'preferred_style' => $payload['preferred_style'] ?? null,
                 'deliverables' => $payload['deliverables'] ?? null,
                 'additional_details' => $payload['additional_details'] ?? null,
-                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog, $logoAddonCode, $logoAddonAmountNgn, $logoAddon, $isTrialOrder),
+                'brief_payload' => $this->serviceBriefPayload($payload, $serviceSlug, $catalog, $logoAddonCode, $logoAddonAmountNgn, $logoAddon, $isTrialOrder, $isQuantityPriced ? $quantity : null),
                 'wants_account' => (bool) ($payload['create_account'] ?? false),
                 'created_by_ip' => $request->ip(),
                 'user_agent' => Str::limit((string) $request->userAgent(), 1000),
@@ -331,7 +338,7 @@ class ServiceOrderController extends Controller
                 'customer_name' => $customer?->name ?: (string) $payload['full_name'],
                 'customer_email' => (string) $payload['email'],
                 'customer_occupation' => $payload['position'] ?? null,
-                'title' => (string) ($service['name'] ?? 'Service').' - '.(string) ($package['name'] ?? 'Package'),
+                'title' => (string) ($service['name'] ?? 'Service').' - '.$packageDisplayName,
                 'description' => Str::limit($this->invoiceDescription($payload, $logoAddon), 500),
                 'amount' => $finalAmount,
                 'currency' => $currency,
@@ -1064,6 +1071,7 @@ class ServiceOrderController extends Controller
             'discount_amount' => (float) ($order->discount_amount ?? 0),
             'amount' => (float) $order->amount,
             'logo_addon' => data_get($order->brief_payload, 'logo_addon'),
+            'package_quantity' => data_get($order->brief_payload, 'package_quantity'),
             'payment_provider' => strtolower(trim((string) $order->payment_provider)) ?: 'paystack',
             'payment_status' => (string) $order->payment_status,
             'order_status' => (string) $order->order_status,
@@ -1464,6 +1472,7 @@ class ServiceOrderController extends Controller
         float $logoAddonAmountNgn = 0.0,
         ?array $logoAddon = null,
         bool $isTrialOrder = false,
+        ?int $packageQuantity = null,
     ): array
     {
         $serviceSpecific = [];
@@ -1486,6 +1495,7 @@ class ServiceOrderController extends Controller
 
         return array_filter([
             'is_trial_request' => $isTrialOrder,
+            'package_quantity' => $packageQuantity,
             'has_logo' => $payload['has_logo'] ?? null,
             'has_content' => $payload['has_content'] ?? null,
             'content_development_interest' => $payload['content_development_interest'] ?? null,

@@ -42,6 +42,7 @@ const errorStepMap = {
     timeline_preference: 3,
     additional_details: 3,
     service_package: 4,
+    package_quantity: 4,
     discount_code: 4,
     create_account: 5,
     password: 5,
@@ -241,6 +242,21 @@ export default function OrderCreate({
         if (fieldName === "service_package") {
             if (normalized === "") return "Please select a package.";
             return activePackages[normalized] ? null : "Please select a valid package.";
+        }
+
+        if (fieldName === "package_quantity") {
+            const selectedPackage = activePackages[nextData.service_package];
+            if (!selectedPackage?.is_quantity_priced) return null;
+
+            const numericValue = Number(value);
+            if (!Number.isInteger(numericValue) || numericValue < 1) {
+                return "Please enter a quantity of at least 1.";
+            }
+            if (numericValue > 1000) {
+                return "Quantity must not exceed 1000.";
+            }
+
+            return null;
         }
 
         if (fieldName === "discount_code") {
@@ -669,20 +685,32 @@ export default function OrderCreate({
 
     const summaryItems = useMemo(() => {
         const packageData = activePackages[data.service_package] || null;
+        const isQuantityPriced = Boolean(packageData?.is_quantity_priced);
+        const quantity = isQuantityPriced ? Math.max(1, Number(data.package_quantity) || 1) : 1;
+        const packageTotal = Number(packageData?.price || 0) * quantity;
 
-        return [
+        const rows = [
             ["Client", data.full_name || "Not provided"],
             ["Email", data.email || "Not provided"],
             ["Business", data.business_name || "Not provided"],
             ["Service", activeService?.name || activeServiceSlug],
             ["Package", packageData?.name || "Not selected"],
+        ];
+
+        if (isQuantityPriced) {
+            rows.push(["Quantity", String(quantity)]);
+        }
+
+        rows.push(
             ["Logo", data.has_logo === "yes" ? "Client already has a logo" : data.has_logo === "no" ? "Client needs logo support" : "Not answered"],
             ["Content", data.has_content === "yes" ? "Client already has content" : data.has_content === "no" ? (data.content_development_interest === "yes" ? "Client needs Bellah content development" : "Client will provide content later") : "Not answered"],
             ["Logo Add-on", selectedLogoAddon?.name || (data.logo_design_interest === "no" ? "No add-on selected" : "Not selected")],
-            ["Amount", packageData ? formatMoney(packageData.price, currency, locale) : "Pending"],
-            ["Order Total", formatMoney((Number(packageData?.price || 0) + Number(selectedLogoAddon?.price || 0)), currency, locale)],
-        ];
-    }, [activePackages, activeService?.name, activeServiceSlug, currency, data.business_name, data.content_development_interest, data.email, data.full_name, data.has_content, data.has_logo, data.logo_design_interest, data.service_package, locale, selectedLogoAddon]);
+            ["Amount", packageData ? formatMoney(packageTotal, currency, locale) : "Pending"],
+            ["Order Total", formatMoney((packageTotal + Number(selectedLogoAddon?.price || 0)), currency, locale)],
+        );
+
+        return rows;
+    }, [activePackages, activeService?.name, activeServiceSlug, currency, data.business_name, data.content_development_interest, data.email, data.full_name, data.has_content, data.has_logo, data.logo_design_interest, data.package_quantity, data.service_package, locale, selectedLogoAddon]);
 
     const fieldsForStep = (stepNumber, nextData) => {
         if (stepNumber === 1) {
@@ -728,7 +756,13 @@ export default function OrderCreate({
         }
 
         if (stepNumber === 4) {
-            return ["service_package", "discount_code"];
+            const fields = ["service_package", "discount_code"];
+
+            if (activePackages[nextData.service_package]?.is_quantity_priced) {
+                fields.push("package_quantity");
+            }
+
+            return fields;
         }
 
         if (stepNumber === 5) {
@@ -1206,7 +1240,10 @@ export default function OrderCreate({
                                                                 <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
                                                             </div>
                                                         ) : (
-                                                            <p className="mt-2 text-sm font-bold text-brand">{formatMoney(pack.price, currency, locale)}</p>
+                                                            <p className="mt-2 text-sm font-bold text-brand">
+                                                                {formatMoney(pack.price, currency, locale)}
+                                                                {pack.is_quantity_priced && <span className="font-semibold text-gray-500"> / unit</span>}
+                                                            </p>
                                                         )}
                                                         <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
                                                         {Array.isArray(pack.features) && pack.features.length > 0 && (
@@ -1231,6 +1268,24 @@ export default function OrderCreate({
                                                 );
                                             })}
                                         </div>
+                                        {activePackages[data.service_package]?.is_quantity_priced && (
+                                            <div className="mt-6 max-w-xs border border-gray-200 bg-white p-5">
+                                                <Field label="Quantity" error={errors.package_quantity}>
+                                                    <input
+                                                        type="number"
+                                                        min={1}
+                                                        max={1000}
+                                                        step={1}
+                                                        value={data.package_quantity}
+                                                        onChange={(event) => updateField("package_quantity", event.target.value === "" ? "" : Number(event.target.value))}
+                                                        className={inputClassName}
+                                                    />
+                                                </Field>
+                                                <p className="mt-3 text-sm font-bold text-brand">
+                                                    Total: {formatMoney(Number(activePackages[data.service_package]?.price || 0) * Math.max(1, Number(data.package_quantity) || 1), currency, locale)}
+                                                </p>
+                                            </div>
+                                        )}
                                         {trialPackageEntry && (
                                             <div className="mt-6 rounded-lg border border-dashed border-brand bg-blue-50 p-5">
                                                 <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Outside Plans / Packs</p>

@@ -51,6 +51,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: isSuperAdmin,
             },
             {
+                label: 'My Earnings',
+                href: route('admin.my-earnings'),
+                active: route().current('admin.my-earnings'),
+                show: true,
+            },
+            {
                 label: 'Users',
                 href: route('admin.users.index'),
                 active: route().current('admin.users.*'),

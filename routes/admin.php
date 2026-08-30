@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmailCenterController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\InvoiceController;
+use App\Http\Controllers\Admin\MyEarningsController;
 use App\Http\Controllers\Admin\ServiceOrderController as AdminServiceOrderController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
@@ -66,6 +67,7 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
     Route::patch('/admin/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('admin.invoices.mark-paid');
     Route::post('/admin/service-orders/{serviceOrder}/updates', [ServiceOrderController::class, 'storeUpdate'])
         ->name('admin.service-orders.updates.store');
+    Route::get('/admin/my-earnings', [MyEarningsController::class, 'index'])->name('admin.my-earnings');
     Route::get('/admin/support-tickets', [AdminSupportTicketController::class, 'index'])->name('admin.support-tickets.index');
     Route::post('/admin/support-tickets/{ticket}/reply', [AdminSupportTicketController::class, 'reply'])
         ->middleware('throttle:40,1')
@@ -104,6 +106,7 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('admin.users.destroy');
 
     Route::get('/admin/finance', [FinanceController::class, 'overview'])->name('admin.finance.index');
+    Route::get('/admin/finance/income-splits', [FinanceController::class, 'incomeSplits'])->name('admin.finance.income-splits');
     Route::get('/admin/finance/ledger', [FinanceController::class, 'ledger'])->name('admin.finance.ledger');
     Route::get('/admin/finance/ledger/export', [FinanceController::class, 'exportLedger'])->name('admin.finance.ledger.export');
     Route::get('/admin/finance/expenses', [FinanceController::class, 'expensesIndex'])->name('admin.finance.expenses.index');

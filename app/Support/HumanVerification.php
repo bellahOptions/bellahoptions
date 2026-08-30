@@ -5,6 +5,7 @@ namespace App\Support;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -165,13 +166,23 @@ class HumanVerification
                     'response' => $token,
                     'remoteip' => $request->ip(),
                 ]);
-        } catch (Throwable) {
+        } catch (Throwable $exception) {
+            Log::error('Turnstile siteverify request threw an exception.', [
+                'exception_class' => get_class($exception),
+                'message' => $exception->getMessage(),
+            ]);
+
             $validator->errors()->add('turnstile_token', 'Captcha verification failed. Please try again.');
 
             return;
         }
 
         if (! $response->successful()) {
+            Log::error('Turnstile siteverify returned a non-successful HTTP response.', [
+                'status' => $response->status(),
+                'body' => Str::limit($response->body(), 1000),
+            ]);
+
             $validator->errors()->add('turnstile_token', 'Captcha verification failed. Please try again.');
 
             return;
@@ -186,6 +197,11 @@ class HumanVerification
 
         $errorCodes = array_filter((array) data_get($result, 'error-codes', []), static fn (mixed $value): bool => is_string($value));
         $hasTimeoutError = in_array('timeout-or-duplicate', $errorCodes, true);
+
+        Log::warning('Turnstile siteverify reported failure.', [
+            'error-codes' => $errorCodes,
+            'site_key_suffix' => substr(self::configuredTurnstileSiteKey(), -6),
+        ]);
 
         $validator->errors()->add(
             'turnstile_token',

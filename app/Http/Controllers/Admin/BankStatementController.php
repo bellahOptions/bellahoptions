@@ -54,6 +54,23 @@ class BankStatementController extends Controller
         'TRANSPORT' => 'Travel',
     ];
 
+    /**
+     * Inbound transfers from these senders are personal/capital transfers
+     * from the owner or associates (e.g. loans, self-funding), not customer
+     * revenue. Matched only against income-type rows — an expense row
+     * paying one of these people (e.g. a contractor payment) is unaffected.
+     * Matched rows are auto-marked "ignored" at import time so they never
+     * enter the pending-review queue or get swept up by bulk/"Convert All"
+     * actions as income.
+     *
+     * @var array<int, string>
+     */
+    private const NON_REVENUE_SENDER_KEYWORDS = [
+        'AHMED OLUMUYIWA',
+        'MOYOSOREOLUWA',
+        'OGEDENGBE',
+    ];
+
     public function index(Request $request): Response
     {
         abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
@@ -120,7 +137,9 @@ class BankStatementController extends Controller
                     'running_balance' => $row['running_balance'],
                     'needs_review' => $row['needs_review'],
                     'suggested_category' => $row['type'] === 'expense' ? $this->suggestCategory($row['description']) : null,
-                    'status' => BankStatementTransaction::STATUS_PENDING,
+                    'status' => ($row['type'] === BankStatementTransaction::TYPE_INCOME && $this->isNonRevenueTransfer($row['description']))
+                        ? BankStatementTransaction::STATUS_IGNORED
+                        : BankStatementTransaction::STATUS_PENDING,
                     'raw_text' => $row['raw_text'],
                     'created_at' => $now,
                     'updated_at' => $now,
@@ -343,6 +362,19 @@ class BankStatementController extends Controller
         }
 
         return null;
+    }
+
+    private function isNonRevenueTransfer(string $description): bool
+    {
+        $haystack = strtoupper($description);
+
+        foreach (self::NON_REVENUE_SENDER_KEYWORDS as $keyword) {
+            if (str_contains($haystack, $keyword)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
