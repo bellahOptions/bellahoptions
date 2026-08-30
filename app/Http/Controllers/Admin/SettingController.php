@@ -207,6 +207,7 @@ class SettingController extends Controller
                 'reviewer_email' => $review->reviewer_email,
                 'rating' => $review->rating !== null ? (float) $review->rating : null,
                 'comment' => $review->comment,
+                'screenshot_path' => $review->screenshot_path,
                 'is_public' => (bool) $review->is_public,
                 'is_featured' => (bool) $review->is_featured,
                 'review_requested_at' => $review->review_requested_at?->toDateTimeString(),

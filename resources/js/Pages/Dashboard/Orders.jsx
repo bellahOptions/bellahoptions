@@ -1,6 +1,7 @@
 import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 
 const money = new Intl.NumberFormat('en-NG', {
     style: 'currency',
@@ -9,11 +10,36 @@ const money = new Intl.NumberFormat('en-NG', {
 });
 
 export default function Orders({ orders = [], stats = {} }) {
+    const { flash } = usePage().props;
+    const [renewingId, setRenewingId] = useState(null);
+
+    const renewOrder = (order) => {
+        if (!window.confirm(`Renew "${order.service_name} · ${order.package_name}"? A new invoice for ${money.format(order.amount || 0)} will be created for you to pay.`)) {
+            return;
+        }
+
+        setRenewingId(order.id);
+        router.post(route('dashboard.orders.renew', order.id), {}, {
+            onFinish: () => setRenewingId(null),
+        });
+    };
+
     return (
         <AuthenticatedLayout>
             <Head title="Job Progress" />
 
             <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
+                {flash?.success && (
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        {flash.success}
+                    </div>
+                )}
+                {flash?.error && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {flash.error}
+                    </div>
+                )}
+
                 <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <h1 className="text-2xl font-black text-slate-900">Job Progress & Management</h1>
                     <p className="mt-2 text-sm text-slate-600">Monitor every service order and open any job for full status details.</p>
@@ -54,9 +80,21 @@ export default function Orders({ orders = [], stats = {} }) {
                                         </td>
                                         <td className="px-3 py-3 text-slate-600 capitalize">{order.order_status}</td>
                                         <td className="px-3 py-3 text-right">
-                                            <Link href={order.show_url} className="text-sm font-semibold text-blue-700 hover:text-blue-800">
-                                                Open
-                                            </Link>
+                                            <div className="flex items-center justify-end gap-3">
+                                                {order.can_renew && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => renewOrder(order)}
+                                                        disabled={renewingId === order.id}
+                                                        className="text-sm font-semibold text-emerald-700 hover:text-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        {renewingId === order.id ? 'Renewing…' : 'Renew'}
+                                                    </button>
+                                                )}
+                                                <Link href={order.show_url} className="text-sm font-semibold text-blue-700 hover:text-blue-800">
+                                                    Open
+                                                </Link>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -100,10 +138,20 @@ export default function Orders({ orders = [], stats = {} }) {
                                     <MobileCardActions>
                                         <Link
                                             href={order.show_url}
-                                            className="w-full rounded-md border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                            className="flex-1 rounded-md border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50"
                                         >
                                             Open
                                         </Link>
+                                        {order.can_renew && (
+                                            <button
+                                                type="button"
+                                                onClick={() => renewOrder(order)}
+                                                disabled={renewingId === order.id}
+                                                className="flex-1 rounded-md border border-emerald-200 px-3 py-2 text-center text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                            >
+                                                {renewingId === order.id ? 'Renewing…' : 'Renew'}
+                                            </button>
+                                        )}
                                     </MobileCardActions>
                                 </MobileCard>
                             ))}

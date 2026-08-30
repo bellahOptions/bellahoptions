@@ -22,6 +22,10 @@ class UpdateClientReviewRequest extends FormRequest
             }
         }
 
+        if ($this->has('screenshot_path')) {
+            $payload['screenshot_path'] = trim((string) $this->input('screenshot_path')) ?: null;
+        }
+
         if ($this->has('is_public')) {
             $payload['is_public'] = $this->boolean('is_public');
         }
@@ -42,7 +46,8 @@ class UpdateClientReviewRequest extends FormRequest
             'reviewer_name' => ['sometimes', 'required', 'string', 'max:160'],
             'reviewer_email' => ['sometimes', 'nullable', 'string', 'email:rfc', 'max:190'],
             'rating' => ['sometimes', 'required', 'numeric', 'min:1', 'max:5'],
-            'comment' => ['sometimes', 'required', 'string', 'max:3000'],
+            'comment' => ['sometimes', 'nullable', 'required_without:screenshot_path', 'string', 'max:3000'],
+            'screenshot_path' => ['sometimes', 'nullable', 'string', 'max:255'],
             'is_public' => ['sometimes', 'required', 'boolean'],
             'is_featured' => ['sometimes', 'required', 'boolean'],
         ];

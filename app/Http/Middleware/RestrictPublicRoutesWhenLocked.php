@@ -15,6 +15,7 @@ class RestrictPublicRoutesWhenLocked
      */
     private const ALLOWED_ROUTE_NAMES = [
         'admin.login',
+        'maintenance',
         'logout',
         'storage.local',
         'sanctum.csrf-cookie',
@@ -67,7 +68,7 @@ class RestrictPublicRoutesWhenLocked
             ], 503);
         }
 
-        return redirect()->route('staff.login')->with('error', $message);
+        return redirect()->route('maintenance')->with('error', $message);
     }
 
     private function isAllowedRouteName(string $routeName): bool

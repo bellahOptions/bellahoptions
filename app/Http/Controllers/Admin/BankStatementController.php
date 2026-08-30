@@ -10,6 +10,7 @@ use App\Models\BankStatementTransaction;
 use App\Models\Expense;
 use App\Models\OtherIncome;
 use App\Support\BankStatementParser;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -143,20 +144,6 @@ class BankStatementController extends Controller
         $status = trim((string) $request->query('status', ''));
         $type = trim((string) $request->query('type', ''));
 
-        $query = $bankStatementImport->transactions();
-
-        if (in_array($status, [BankStatementTransaction::STATUS_PENDING, BankStatementTransaction::STATUS_CONVERTED, BankStatementTransaction::STATUS_IGNORED], true)) {
-            $query->where('status', $status);
-        }
-
-        if (in_array($type, [BankStatementTransaction::TYPE_INCOME, BankStatementTransaction::TYPE_EXPENSE], true)) {
-            $query->where('type', $type);
-        }
-
-        $transactions = $query->paginate(30)
-            ->through(fn (BankStatementTransaction $transaction): array => $this->mapTransaction($transaction))
-            ->withQueryString();
-
         return Inertia::render('Admin/Finance/BankImports/Show', [
             'import' => $this->mapImport($bankStatementImport->loadCount([
                 'transactions as pending_count' => fn ($q) => $q->where('status', BankStatementTransaction::STATUS_PENDING),
@@ -165,7 +152,24 @@ class BankStatementController extends Controller
             ])),
             'filters' => ['status' => $status, 'type' => $type],
             'categories' => FinanceController::EXPENSE_CATEGORIES,
-            'transactions' => $transactions,
+            'transactions' => Inertia::merge(function () use ($bankStatementImport, $status, $type) {
+                // Converted rows are done, actionable-review only: never list them here,
+                // regardless of the status filter — they remain visible on the Expense/Income pages.
+                $query = $bankStatementImport->transactions()
+                    ->where('status', '!=', BankStatementTransaction::STATUS_CONVERTED);
+
+                if (in_array($status, [BankStatementTransaction::STATUS_PENDING, BankStatementTransaction::STATUS_IGNORED], true)) {
+                    $query->where('status', $status);
+                }
+
+                if (in_array($type, [BankStatementTransaction::TYPE_INCOME, BankStatementTransaction::TYPE_EXPENSE], true)) {
+                    $query->where('type', $type);
+                }
+
+                return $query->paginate(30)
+                    ->through(fn (BankStatementTransaction $transaction): array => $this->mapTransaction($transaction))
+                    ->withQueryString();
+            })->append('data'),
         ]);
     }
 
@@ -224,7 +228,6 @@ class BankStatementController extends Controller
         $data = $request->validate([
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['integer'],
-            'category' => ['nullable', 'string', 'max:80'],
         ]);
 
         $transactions = $bankStatementImport->transactions()
@@ -236,25 +239,47 @@ class BankStatementController extends Controller
             return back()->with('error', 'No eligible pending rows were selected.');
         }
 
-        $expenseRows = $transactions->where('type', BankStatementTransaction::TYPE_EXPENSE);
-        $incomeRows = $transactions->where('type', BankStatementTransaction::TYPE_INCOME);
-        $category = trim((string) ($data['category'] ?? ''));
+        $convertedCount = $this->convertPendingTransactions($transactions, $bankStatementImport, $request->user()->id);
 
-        if ($expenseRows->isNotEmpty() && $category === '') {
-            return back()->with('error', 'Choose a category to convert the selected expense rows.');
+        return back()->with('success', "{$convertedCount} transactions converted.");
+    }
+
+    public function convertAll(Request $request, BankStatementImport $bankStatementImport): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
+
+        $transactions = $bankStatementImport->transactions()
+            ->where('status', BankStatementTransaction::STATUS_PENDING)
+            ->get();
+
+        if ($transactions->isEmpty()) {
+            return back()->with('error', 'No pending rows left to convert.');
         }
 
-        DB::transaction(function () use ($expenseRows, $incomeRows, $category, $request, $bankStatementImport): void {
+        $convertedCount = $this->convertPendingTransactions($transactions, $bankStatementImport, $request->user()->id);
+
+        return back()->with('success', "All {$convertedCount} pending transactions converted.");
+    }
+
+    /**
+     * @param  Collection<int, BankStatementTransaction>  $transactions
+     */
+    private function convertPendingTransactions(Collection $transactions, BankStatementImport $bankStatementImport, int $userId): int
+    {
+        $expenseRows = $transactions->where('type', BankStatementTransaction::TYPE_EXPENSE);
+        $incomeRows = $transactions->where('type', BankStatementTransaction::TYPE_INCOME);
+
+        DB::transaction(function () use ($expenseRows, $incomeRows, $userId, $bankStatementImport): void {
             foreach ($expenseRows as $transaction) {
                 $expense = Expense::create([
-                    'category' => $category,
+                    'category' => $transaction->suggested_category ?: 'Other',
                     'vendor' => null,
                     'description' => $transaction->description,
                     'amount' => $transaction->amount,
                     'currency' => $bankStatementImport->currency,
                     'expense_date' => $transaction->transaction_date,
                     'payment_method' => $transaction->channel,
-                    'created_by' => $request->user()->id,
+                    'created_by' => $userId,
                 ]);
 
                 $transaction->update([
@@ -270,7 +295,7 @@ class BankStatementController extends Controller
                     'amount' => $transaction->amount,
                     'currency' => $bankStatementImport->currency,
                     'received_date' => $transaction->transaction_date,
-                    'created_by' => $request->user()->id,
+                    'created_by' => $userId,
                 ]);
 
                 $transaction->update([
@@ -280,7 +305,7 @@ class BankStatementController extends Controller
             }
         });
 
-        return back()->with('success', $transactions->count().' transactions converted.');
+        return $transactions->count();
     }
 
     public function ignore(Request $request, BankStatementTransaction $bankStatementTransaction): RedirectResponse

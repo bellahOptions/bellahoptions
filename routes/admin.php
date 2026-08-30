@@ -40,6 +40,7 @@ Route::get('/dashboard', AdminDashboardController::class)
 
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::get('/dashboard/orders', [UserWorkspaceController::class, 'orders'])->name('dashboard.orders');
+    Route::post('/dashboard/orders/{serviceOrder}/renew', [UserWorkspaceController::class, 'renewOrder'])->name('dashboard.orders.renew');
     Route::get('/dashboard/referrals', [UserWorkspaceController::class, 'referrals'])->name('dashboard.referrals');
     Route::get('/dashboard/hires', [UserWorkspaceController::class, 'hires'])->name('dashboard.hires');
     Route::get('/dashboard/support', [UserWorkspaceController::class, 'support'])->name('dashboard.support');
@@ -60,6 +61,7 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
     Route::post('/admin/customers', [CustomerController::class, 'store'])->name('admin.customers.store');
     Route::post('/admin/invoices', [InvoiceController::class, 'store'])->name('admin.invoices.store');
     Route::post('/admin/invoices/{invoice}/resend', [InvoiceController::class, 'resend'])->name('admin.invoices.resend');
+    Route::post('/admin/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('admin.invoices.duplicate');
     Route::post('/admin/invoices/{invoice}/remind', [InvoiceController::class, 'sendReminder'])->name('admin.invoices.remind');
     Route::patch('/admin/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('admin.invoices.mark-paid');
     Route::post('/admin/service-orders/{serviceOrder}/updates', [ServiceOrderController::class, 'storeUpdate'])
@@ -117,6 +119,7 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::get('/admin/finance/bank-imports/{bankStatementImport}', [BankStatementController::class, 'show'])->name('admin.finance.bank-imports.show');
     Route::delete('/admin/finance/bank-imports/{bankStatementImport}', [BankStatementController::class, 'destroy'])->name('admin.finance.bank-imports.destroy');
     Route::post('/admin/finance/bank-imports/{bankStatementImport}/bulk-convert', [BankStatementController::class, 'bulkConvert'])->name('admin.finance.bank-imports.bulk-convert');
+    Route::post('/admin/finance/bank-imports/{bankStatementImport}/convert-all', [BankStatementController::class, 'convertAll'])->name('admin.finance.bank-imports.convert-all');
     Route::post('/admin/finance/bank-imports/transactions/{bankStatementTransaction}/convert', [BankStatementController::class, 'convert'])->name('admin.finance.bank-imports.transactions.convert');
     Route::patch('/admin/finance/bank-imports/transactions/{bankStatementTransaction}/ignore', [BankStatementController::class, 'ignore'])->name('admin.finance.bank-imports.transactions.ignore');
 });

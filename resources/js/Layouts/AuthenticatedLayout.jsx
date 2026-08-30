@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import Dropdown from '@/Components/Dropdown';
+import TemplatrPromoBanner from '@/Components/TemplatrPromoBanner';
 import WhatsAppButton from '@/Components/WhatsAppButton';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -186,6 +187,8 @@ export default function AuthenticatedLayout({ header, children }) {
             </aside>
 
             <div className="lg:pl-72">
+                <TemplatrPromoBanner />
+
                 <nav className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur">
                     <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3">

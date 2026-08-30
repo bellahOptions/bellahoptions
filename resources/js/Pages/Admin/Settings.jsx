@@ -221,9 +221,11 @@ export default function Settings({
         reviewer_email: '',
         rating: 5,
         comment: '',
+        screenshot_path: '',
         is_public: true,
         is_featured: false,
     });
+    const [reviewScreenshotUploading, setReviewScreenshotUploading] = useState(false);
 
     const [copiedLinkId, setCopiedLinkId] = useState(null);
     const [autoSaveState, setAutoSaveState] = useState('idle');
@@ -462,6 +464,32 @@ export default function Settings({
             }
         } catch (error) {
             window.alert('Upload failed. Please try another file.');
+        }
+    };
+
+    const uploadReviewScreenshot = async (file) => {
+        if (!file) {
+            return;
+        }
+
+        const body = new FormData();
+        body.append('file', file);
+
+        setReviewScreenshotUploading(true);
+
+        try {
+            const response = await window.axios.post(route('admin.gallery.media.upload'), body, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+
+            const uploadedPath = String(response?.data?.path || '');
+            if (uploadedPath !== '') {
+                reviewForm.setData('screenshot_path', uploadedPath);
+            }
+        } catch (error) {
+            window.alert('Screenshot upload failed. Please try another image.');
+        } finally {
+            setReviewScreenshotUploading(false);
         }
     };
 
@@ -1186,7 +1214,9 @@ export default function Settings({
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Review Comment</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                                        Review Comment {reviewForm.data.screenshot_path ? '(optional — a screenshot is attached)' : ''}
+                                    </label>
                                     <textarea
                                         rows="4"
                                         value={reviewForm.data.comment}
@@ -1197,9 +1227,44 @@ export default function Settings({
                                 </div>
 
                                 <div className="md:col-span-2">
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">WhatsApp Screenshot (optional)</label>
+                                    <p className="mb-2 text-xs text-gray-500">
+                                        Provide a comment, a screenshot, or both. Upload a screenshot of a WhatsApp testimonial to show it as the review.
+                                    </p>
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="hidden"
+                                                onChange={(event) => uploadReviewScreenshot(event.target.files?.[0] ?? null)}
+                                            />
+                                            {reviewScreenshotUploading ? 'Uploading...' : 'Choose Screenshot'}
+                                        </label>
+                                        {reviewForm.data.screenshot_path && (
+                                            <div className="flex items-center gap-2">
+                                                <img
+                                                    src={reviewForm.data.screenshot_path}
+                                                    alt="Review screenshot preview"
+                                                    className="h-16 w-16 rounded-md border border-gray-200 object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => reviewForm.setData('screenshot_path', '')}
+                                                    className="text-xs font-semibold text-red-600 hover:underline"
+                                                >
+                                                    Remove
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {reviewForm.errors.screenshot_path && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.screenshot_path}</p>}
+                                </div>
+
+                                <div className="md:col-span-2">
                                     <button
                                         type="submit"
-                                        disabled={reviewForm.processing}
+                                        disabled={reviewForm.processing || reviewScreenshotUploading}
                                         className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {reviewForm.processing ? 'Saving...' : 'Add Review'}
@@ -1260,6 +1325,13 @@ export default function Settings({
                                                     </p>
                                                 </td>
                                                 <td className="px-3 py-3 text-xs leading-6 text-gray-600">
+                                                    {review.screenshot_path && (
+                                                        <img
+                                                            src={review.screenshot_path}
+                                                            alt="Review screenshot"
+                                                            className="mb-1 h-12 w-12 rounded-md border border-gray-200 object-cover"
+                                                        />
+                                                    )}
                                                     {String(review.comment || '').slice(0, 140)}
                                                     {String(review.comment || '').length > 140 ? '...' : ''}
                                                 </td>
@@ -1334,6 +1406,13 @@ export default function Settings({
                                                 </span>
                                             </div>
 
+                                            {review.screenshot_path && (
+                                                <img
+                                                    src={review.screenshot_path}
+                                                    alt="Review screenshot"
+                                                    className="mt-3 h-20 w-20 rounded-md border border-gray-200 object-cover"
+                                                />
+                                            )}
                                             <p className="mt-3 text-xs leading-6 text-gray-600">
                                                 {String(review.comment || '').slice(0, 140)}
                                                 {String(review.comment || '').length > 140 ? '...' : ''}

@@ -14,6 +14,7 @@ Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
 
 // PAGES ROUTES
+Route::get('/maintenance', [PagesController::class, 'maintenancePage'])->name('maintenance');
 Route::get('/', [PagesController::class, 'welcomePage'])->name('home');
 Route::get('/welcome', [PagesController::class, 'welcomePage'])->name('welcome');
 Route::get('/about-bellah-options', [PagesController::class, 'aboutPage'])->name('about');

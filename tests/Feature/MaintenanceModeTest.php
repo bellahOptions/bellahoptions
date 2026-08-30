@@ -16,7 +16,7 @@ class MaintenanceModeTest extends TestCase
         AppSetting::setBool('maintenance_mode', true);
 
         $this->get(route('home'))
-            ->assertRedirect(route('staff.login'));
+            ->assertRedirect(route('maintenance'));
     }
 
     public function test_staff_user_is_still_blocked_from_public_home_when_maintenance_mode_is_enabled(): void
@@ -29,7 +29,7 @@ class MaintenanceModeTest extends TestCase
 
         $this->actingAs($staff)
             ->get(route('home'))
-            ->assertRedirect(route('staff.login'));
+            ->assertRedirect(route('maintenance'));
     }
 
     public function test_staff_portal_routes_remain_accessible_when_maintenance_mode_is_enabled(): void
@@ -38,5 +38,30 @@ class MaintenanceModeTest extends TestCase
 
         $this->get(route('staff.login'))
             ->assertOk();
+    }
+
+    public function test_maintenance_landing_page_itself_remains_reachable_and_renders(): void
+    {
+        AppSetting::setBool('maintenance_mode', true);
+
+        $this->get(route('maintenance'))
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page->component('Maintenance'));
+    }
+
+    public function test_guest_is_redirected_from_regular_login_to_maintenance_page(): void
+    {
+        AppSetting::setBool('maintenance_mode', true);
+
+        $this->get(route('login'))
+            ->assertRedirect(route('maintenance'));
+    }
+
+    public function test_public_routes_are_not_redirected_when_maintenance_mode_is_disabled(): void
+    {
+        AppSetting::setBool('maintenance_mode', false);
+
+        $this->get(route('home'))->assertOk();
+        $this->get(route('login'))->assertOk();
     }
 }

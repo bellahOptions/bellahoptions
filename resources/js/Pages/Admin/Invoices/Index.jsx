@@ -126,6 +126,11 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
         router.post(route('admin.invoices.resend', invoiceId), {}, { preserveScroll: true });
     };
 
+    const duplicateInvoice = (invoiceId, invoiceNumber) => {
+        if (!window.confirm(`Create a new invoice from ${invoiceNumber}? It will be emailed to the customer as a new, unpaid invoice.`)) return;
+        router.post(route('admin.invoices.duplicate', invoiceId), {}, { preserveScroll: true });
+    };
+
     const sendReminder = (invoiceId) => {
         router.post(route('admin.invoices.remind', invoiceId), {}, { preserveScroll: true });
     };
@@ -568,13 +573,23 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 >
                                                     View
                                                 </Link>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => resendInvoice(invoice.id)}
-                                                    className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
-                                                >
-                                                    Resend
-                                                </button>
+                                                {invoice.status === 'paid' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => duplicateInvoice(invoice.id, invoice.invoice_number)}
+                                                        className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                    >
+                                                        Duplicate
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => resendInvoice(invoice.id)}
+                                                        className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                    >
+                                                        Resend
+                                                    </button>
+                                                )}
                                                 {invoice.status !== 'paid' && (
                                                     <button
                                                         type="button"
@@ -646,13 +661,23 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             >
                                                 View
                                             </Link>
-                                            <button
-                                                type="button"
-                                                onClick={() => resendInvoice(invoice.id)}
-                                                className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
-                                            >
-                                                Resend
-                                            </button>
+                                            {invoice.status === 'paid' ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => duplicateInvoice(invoice.id, invoice.invoice_number)}
+                                                    className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                >
+                                                    Duplicate
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => resendInvoice(invoice.id)}
+                                                    className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                >
+                                                    Resend
+                                                </button>
+                                            )}
                                             {invoice.status !== 'paid' && (
                                                 <button
                                                     type="button"

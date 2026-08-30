@@ -10,6 +10,11 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
         router.post(route('admin.invoices.resend', invoice.id), {}, { preserveScroll: true });
     };
 
+    const duplicateInvoice = () => {
+        if (!window.confirm(`Create a new invoice from ${invoice.invoice_number}? It will be emailed to the customer as a new, unpaid invoice.`)) return;
+        router.post(route('admin.invoices.duplicate', invoice.id), {}, { preserveScroll: true });
+    };
+
     const sendReminder = () => {
         router.post(route('admin.invoices.remind', invoice.id), {}, { preserveScroll: true });
     };
@@ -98,13 +103,23 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                         </div>
 
                         <div className="mt-6 flex flex-wrap items-center gap-2">
-                            <button
-                                type="button"
-                                onClick={resendInvoice}
-                                className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
-                            >
-                                Resend Original Invoice
-                            </button>
+                            {invoice.status === 'paid' ? (
+                                <button
+                                    type="button"
+                                    onClick={duplicateInvoice}
+                                    className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
+                                >
+                                    Duplicate Invoice
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={resendInvoice}
+                                    className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
+                                >
+                                    Resend Original Invoice
+                                </button>
+                            )}
                             {invoice.status !== 'paid' && (
                                 <button
                                     type="button"

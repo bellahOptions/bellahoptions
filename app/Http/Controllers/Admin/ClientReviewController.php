@@ -28,7 +28,8 @@ class ClientReviewController extends Controller
                 ? strtolower((string) $data['reviewer_email'])
                 : null,
             'rating' => $rating,
-            'comment' => $data['comment'],
+            'comment' => $data['comment'] ?: null,
+            'screenshot_path' => $data['screenshot_path'] ?? null,
             'review_submitted_at' => now(),
             'is_public' => $isPublic,
             'is_featured' => $isFeatured,

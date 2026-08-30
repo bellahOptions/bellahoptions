@@ -29,6 +29,34 @@ function formatReviewDate(value) {
     return Number.isNaN(date.getTime()) ? '' : reviewDateFormatter.format(date);
 }
 
+function ReviewCardContent({ review }) {
+    const hasComment = Boolean(review.comment);
+    const hasScreenshot = Boolean(review.screenshot_url);
+
+    return (
+        <>
+            <div>
+                <p className="text-sm font-semibold text-gray-900">{review.reviewer_name || 'Anonymous'}</p>
+                <p className="text-xs text-gray-500">{formatReviewDate(review.published_at)}</p>
+            </div>
+            <StarRating rating={review.rating} />
+            {hasScreenshot && (
+                <img
+                    src={review.screenshot_url}
+                    alt={`WhatsApp review screenshot from ${review.reviewer_name || 'a client'}`}
+                    className="mt-3 w-full rounded-lg border border-gray-200 object-cover"
+                    loading="lazy"
+                />
+            )}
+            {(hasComment || !hasScreenshot) && (
+                <p className="mt-3 text-sm leading-7 text-gray-700">
+                    {review.comment || 'No review text provided.'}
+                </p>
+            )}
+        </>
+    );
+}
+
 function StarRating({ rating = 0 }) {
     const rounded = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
 
@@ -99,14 +127,7 @@ export default function ClientReviewsSection({
                             <div key={`client-mobile-${slideIndex}`} className="w-full shrink-0 snap-start">
                                 {slide.map((review) => (
                                     <article key={`client-review-mobile-${review.id}`} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                        <div>
-                                            <p className="text-sm font-semibold text-gray-900">{review.reviewer_name || 'Anonymous'}</p>
-                                            <p className="text-xs text-gray-500">{formatReviewDate(review.published_at)}</p>
-                                        </div>
-                                        <StarRating rating={review.rating} />
-                                        <p className="mt-3 text-sm leading-7 text-gray-700">
-                                            {review.comment || 'No review text provided.'}
-                                        </p>
+                                        <ReviewCardContent review={review} />
                                     </article>
                                 ))}
                             </div>
@@ -121,14 +142,7 @@ export default function ClientReviewsSection({
                                 <div className="grid grid-cols-3 gap-4">
                                     {slide.map((review) => (
                                         <article key={`client-review-desktop-${review.id}`} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                            <div>
-                                                <p className="text-sm font-semibold text-gray-900">{review.reviewer_name || 'Anonymous'}</p>
-                                                <p className="text-xs text-gray-500">{formatReviewDate(review.published_at)}</p>
-                                            </div>
-                                            <StarRating rating={review.rating} />
-                                            <p className="mt-3 text-sm leading-7 text-gray-700">
-                                                {review.comment || 'No review text provided.'}
-                                            </p>
+                                            <ReviewCardContent review={review} />
                                         </article>
                                     ))}
                                 </div>

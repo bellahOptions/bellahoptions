@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
     'reviewer_email',
     'rating',
     'comment',
+    'screenshot_path',
     'is_public',
     'is_featured',
     'review_requested_at',

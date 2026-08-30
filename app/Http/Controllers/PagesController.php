@@ -229,6 +229,11 @@ class PagesController extends Controller
         return Inertia::render('Reviews');
     }
 
+    public function maintenancePage()
+    {
+        return Inertia::render('Maintenance');
+    }
+
     public function seoModulesFunctionsPage()
     {
         return Inertia::render('SeoModulesFunctions', [

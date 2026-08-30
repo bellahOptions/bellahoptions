@@ -1,10 +1,12 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import AuthCanvas from '@/Components/AuthCanvas';
+import TemplatrPromoBanner from '@/Components/TemplatrPromoBanner';
 import { Link } from '@inertiajs/react';
 
 export default function GuestLayout({ children }) {
     return (
         <div className="relative min-h-screen overflow-hidden bg-white text-gray-900">
+            <TemplatrPromoBanner />
             <AuthCanvas />
 
             <div className="relative mx-auto flex min-h-screen w-full max-w-7xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">

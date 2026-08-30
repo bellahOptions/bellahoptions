@@ -1,4 +1,5 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import TemplatrPromoBanner from "@/Components/TemplatrPromoBanner";
 import WhatsAppButton from "@/Components/WhatsAppButton";
 import { Link, usePage } from "@inertiajs/react";
 import { useState, useEffect } from "react";
@@ -110,6 +111,8 @@ export default function PageTheme({ children }) {
 
     return (
         <>
+            <TemplatrPromoBanner />
+
             {/* ── HEADER ── */}
             <header
                 className={`z-50 bg-white transition-all duration-300 md:sticky md:top-0 ${scrolled ? "md:shadow-lg md:shadow-blue-900/5" : ""}`}

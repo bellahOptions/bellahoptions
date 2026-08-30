@@ -4,14 +4,13 @@ import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage, WhenVisible } from '@inertiajs/react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Ban, Check, Loader2, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const statusOptions = [
     { value: '', label: 'All statuses' },
     { value: 'pending', label: 'Pending' },
-    { value: 'converted', label: 'Converted' },
     { value: 'ignored', label: 'Ignored' },
 ];
 
@@ -26,18 +25,26 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
     const [status, setStatus] = useState(filters.status || '');
     const [type, setType] = useState(filters.type || '');
     const [selectedIds, setSelectedIds] = useState([]);
-    const [bulkCategory, setBulkCategory] = useState(categories[0] || '');
     const [convertTarget, setConvertTarget] = useState(null);
     const [convertCategory, setConvertCategory] = useState('');
     const [convertSourceName, setConvertSourceName] = useState('');
     const [convertDescription, setConvertDescription] = useState('');
+    const [convertingAll, setConvertingAll] = useState(false);
 
     const isSyncing = useDebouncedFilterSync('admin.finance.bank-imports.show', { status, type }, 200, bankImport.id);
 
     const rows = transactions?.data || [];
-    const selectablePendingExpenseIds = useMemo(
-        () => rows.filter((row) => row.status === 'pending' && row.type === 'expense').map((row) => row.id),
+    const selectablePendingIds = useMemo(
+        () => rows.filter((row) => row.status === 'pending').map((row) => row.id),
         [rows],
+    );
+    const selectedExpenseIds = useMemo(
+        () => rows.filter((row) => row.type === 'expense' && selectedIds.includes(row.id)).map((row) => row.id),
+        [rows, selectedIds],
+    );
+    const selectedIncomeIds = useMemo(
+        () => rows.filter((row) => row.type === 'income' && selectedIds.includes(row.id)).map((row) => row.id),
+        [rows, selectedIds],
     );
 
     const toggleSelected = (id) => {
@@ -45,7 +52,7 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
     };
 
     const toggleSelectAll = () => {
-        setSelectedIds((previous) => (previous.length === selectablePendingExpenseIds.length ? [] : selectablePendingExpenseIds));
+        setSelectedIds((previous) => (previous.length === selectablePendingIds.length ? [] : selectablePendingIds));
     };
 
     const openConvert = (row) => {
@@ -78,13 +85,38 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
         router.patch(route('admin.finance.bank-imports.transactions.ignore', id), {}, { preserveScroll: true });
     };
 
-    const submitBulkConvert = () => {
-        if (selectedIds.length === 0 || !bulkCategory) return;
+    const submitBulkConvertExpenses = () => {
+        if (selectedExpenseIds.length === 0) return;
 
         router.post(
             route('admin.finance.bank-imports.bulk-convert', bankImport.id),
-            { ids: selectedIds, category: bulkCategory },
-            { preserveScroll: true, onSuccess: () => setSelectedIds([]) },
+            { ids: selectedExpenseIds },
+            { preserveScroll: true, onSuccess: () => setSelectedIds((previous) => previous.filter((id) => !selectedExpenseIds.includes(id))) },
+        );
+    };
+
+    const submitBulkConvertIncome = () => {
+        if (selectedIncomeIds.length === 0) return;
+
+        router.post(
+            route('admin.finance.bank-imports.bulk-convert', bankImport.id),
+            { ids: selectedIncomeIds },
+            { preserveScroll: true, onSuccess: () => setSelectedIds((previous) => previous.filter((id) => !selectedIncomeIds.includes(id))) },
+        );
+    };
+
+    const convertAll = () => {
+        if (bankImport.pending_count === 0) return;
+
+        if (!window.confirm(`Convert all ${bankImport.pending_count} pending transactions? Expenses use their suggested category (or "Other"); income rows use their own description as the source.`)) {
+            return;
+        }
+
+        setConvertingAll(true);
+        router.post(
+            route('admin.finance.bank-imports.convert-all', bankImport.id),
+            {},
+            { preserveScroll: true, onSuccess: () => setSelectedIds([]), onFinish: () => setConvertingAll(false) },
         );
     };
 
@@ -93,12 +125,24 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <h2 className="text-xl font-semibold leading-tight text-gray-800">{bankImport.original_filename}</h2>
-                    <Link
-                        href={route('admin.finance.bank-imports.index')}
-                        className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
-                    >
-                        Back to Imports
-                    </Link>
+                    <div className="flex items-center gap-2">
+                        {bankImport.pending_count > 0 && (
+                            <button
+                                type="button"
+                                onClick={convertAll}
+                                disabled={convertingAll}
+                                className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                {convertingAll ? 'Converting…' : `Convert All (${bankImport.pending_count} Pending)`}
+                            </button>
+                        )}
+                        <Link
+                            href={route('admin.finance.bank-imports.index')}
+                            className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        >
+                            Back to Imports
+                        </Link>
+                    </div>
                 </div>
             }
         >
@@ -183,40 +227,49 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                 ))}
                             </select>
 
-                            {selectablePendingExpenseIds.length > 0 && (
+                            {selectablePendingIds.length > 0 && (
                                 <label className="flex items-center gap-2 text-sm text-gray-700">
                                     <input
                                         type="checkbox"
-                                        checked={selectedIds.length === selectablePendingExpenseIds.length}
+                                        checked={selectedIds.length === selectablePendingIds.length}
                                         onChange={toggleSelectAll}
                                         className="rounded border-gray-300 text-brand focus:ring-brand/30"
                                     />
-                                    Select all pending expenses on this page
+                                    Select all pending rows on this page
                                 </label>
                             )}
                         </div>
 
                         {selectedIds.length > 0 && (
-                            <div className="mt-3 flex flex-col gap-2 rounded-lg border border-brand/30 bg-brand-light/40 p-3 sm:flex-row sm:items-center">
+                            <div className="mt-3 space-y-3 rounded-lg border border-brand/30 bg-brand-light/40 p-3">
                                 <span className="text-sm font-semibold text-brand">{selectedIds.length} selected</span>
-                                <select
-                                    value={bulkCategory}
-                                    onChange={(event) => setBulkCategory(event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm sm:w-auto"
-                                >
-                                    {categories.map((category) => (
-                                        <option key={category} value={category}>
-                                            {category}
-                                        </option>
-                                    ))}
-                                </select>
-                                <button
-                                    type="button"
-                                    onClick={submitBulkConvert}
-                                    className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
-                                >
-                                    Convert Selected to Expense
-                                </button>
+
+                                {selectedExpenseIds.length > 0 && (
+                                    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={submitBulkConvertExpenses}
+                                            className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                                        >
+                                            Convert {selectedExpenseIds.length} Selected to Expense
+                                        </button>
+                                        <span className="text-xs text-gray-500">
+                                            Each row uses its own suggested category (falls back to "Other").
+                                        </span>
+                                    </div>
+                                )}
+
+                                {selectedIncomeIds.length > 0 && (
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={submitBulkConvertIncome}
+                                            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                                        >
+                                            Confirm {selectedIncomeIds.length} Selected as Income
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </section>
@@ -247,7 +300,7 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                     {rows.map((row) => (
                                         <tr key={row.id} className={row.needs_review ? 'bg-red-50/50' : ''}>
                                             <td className="px-3 py-3 align-top">
-                                                {row.status === 'pending' && row.type === 'expense' && (
+                                                {row.status === 'pending' && (
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedIds.includes(row.id)}
@@ -309,11 +362,23 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                             <MobileCardList>
                                 {rows.map((row, index) => (
                                     <MobileCard key={row.id} index={index} className={row.needs_review ? 'border-red-200 bg-red-50/40' : ''}>
-                                        <MobileCardHeader
-                                            title={row.description}
-                                            subtitle={`${row.transaction_date} · ${row.channel}`}
-                                            badge={<TypeBadge type={row.type} />}
-                                        />
+                                        <div className="flex items-start gap-3">
+                                            {row.status === 'pending' && (
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(row.id)}
+                                                    onChange={() => toggleSelected(row.id)}
+                                                    className="mt-1 shrink-0 rounded border-gray-300 text-brand focus:ring-brand/30"
+                                                />
+                                            )}
+                                            <div className="min-w-0 flex-1">
+                                                <MobileCardHeader
+                                                    title={row.description}
+                                                    subtitle={`${row.transaction_date} · ${row.channel}`}
+                                                    badge={<TypeBadge type={row.type} />}
+                                                />
+                                            </div>
+                                        </div>
                                         <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
                                             <MobileCardRow
                                                 label="Amount"
@@ -358,27 +423,32 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                             </MobileCardList>
                         )}
 
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
-                            <p>
-                                Page {transactions?.current_page || 1} of {transactions?.last_page || 1}
-                            </p>
-                            <div className="flex items-center gap-2">
-                                {transactions?.prev_page_url ? (
-                                    <Link href={transactions.prev_page_url} className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50" preserveScroll>
-                                        Previous
-                                    </Link>
-                                ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">Previous</span>
+                        {transactions?.next_page_url ? (
+                            <WhenVisible
+                                always
+                                data="transactions"
+                                params={{ data: { page: (transactions?.current_page || 1) + 1 } }}
+                            >
+                                {({ fetching }) => (
+                                    <div className="mt-4 flex items-center justify-center gap-2 py-3 text-sm text-gray-500">
+                                        {fetching ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                                                Loading more…
+                                            </>
+                                        ) : (
+                                            <span className="text-gray-300">Scroll for more</span>
+                                        )}
+                                    </div>
                                 )}
-                                {transactions?.next_page_url ? (
-                                    <Link href={transactions.next_page_url} className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50" preserveScroll>
-                                        Next
-                                    </Link>
-                                ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">Next</span>
-                                )}
-                            </div>
-                        </div>
+                            </WhenVisible>
+                        ) : (
+                            rows.length > 0 && (
+                                <p className="mt-4 py-3 text-center text-sm text-gray-400">
+                                    You've reached the end — {transactions?.total ?? rows.length} transactions.
+                                </p>
+                            )
+                        )}
                     </section>
                 </div>
             </div>

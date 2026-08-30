@@ -56,6 +56,8 @@ class BankStatementParser
      */
     public function parse(string $filePath): array
     {
+        $this->assertRequiredExtensionsLoaded();
+
         $lines = $this->extractLines($filePath);
 
         $meta = $this->extractMeta($lines);
@@ -69,6 +71,35 @@ class BankStatementParser
             'meta' => $meta,
             'transactions' => $transactions,
         ];
+    }
+
+    /**
+     * smalot/pdfparser hard-requires ext-zlib (to inflate the FlateDecode
+     * compression virtually every real-world PDF uses for its page content)
+     * and ext-iconv (for font/text encoding conversion). On shared hosting
+     * (e.g. cPanel), these can be disabled in the PHP configuration even
+     * when they're enabled locally — composer doesn't re-check platform
+     * requirements if vendor/ was deployed rather than installed on the
+     * server. Without this check, a missing extension surfaces as a
+     * generic "PDF could not be read" error that's indistinguishable from
+     * an actually corrupt file.
+     *
+     * @throws RuntimeException when a required extension is missing
+     */
+    private function assertRequiredExtensionsLoaded(): void
+    {
+        $missing = array_values(array_filter(
+            ['zlib', 'iconv'],
+            static fn (string $extension): bool => ! extension_loaded($extension),
+        ));
+
+        if ($missing !== []) {
+            throw new RuntimeException(
+                'PDF statement import requires the following PHP extension(s), which are not enabled on this server: '
+                .implode(', ', $missing).'. On cPanel, enable them via "Select PHP Version" → Extensions for this '
+                .'domain\'s PHP version (or ask your host to enable them), then try again.'
+            );
+        }
     }
 
     /**

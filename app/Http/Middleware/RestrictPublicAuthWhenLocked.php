@@ -27,6 +27,6 @@ class RestrictPublicAuthWhenLocked
 
         $message = 'The portal is temporarily in maintenance mode. Please check back later.';
 
-        return redirect()->route('staff.login')->with('error', $message);
+        return redirect()->route('maintenance')->with('error', $message);
     }
 }

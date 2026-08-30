@@ -97,6 +97,9 @@ class HandleInertiaRequests extends Middleware
                         'reviewer_name' => $review->reviewer_name ?: 'Anonymous',
                         'rating' => $review->rating !== null ? (float) $review->rating : 0,
                         'comment' => $review->comment ?: '',
+                        // Stored as-is via the shared gallery-media-upload endpoint, which already
+                        // returns a browser-usable "/storage/..." path — no extra URL-building needed.
+                        'screenshot_url' => $review->screenshot_path ?: null,
                         'published_at' => $review->published_at?->toDateString(),
                         'is_featured' => (bool) $review->is_featured,
                     ])

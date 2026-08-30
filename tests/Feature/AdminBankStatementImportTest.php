@@ -153,23 +153,141 @@ class AdminBankStatementImportTest extends TestCase
         $this->assertDatabaseCount('expenses', 0);
     }
 
-    public function test_super_admin_can_bulk_convert_pending_expenses(): void
+    public function test_super_admin_can_bulk_convert_pending_expenses_without_choosing_a_category(): void
     {
         $superAdmin = User::factory()->create(['role' => 'super_admin']);
         $import = $this->makeImport();
-        $one = $this->makeTransaction($import, ['amount' => 20]);
-        $two = $this->makeTransaction($import, ['amount' => 30]);
-        $incomeRow = $this->makeTransaction($import, ['type' => BankStatementTransaction::TYPE_INCOME, 'amount' => 40]);
+        $withSuggestion = $this->makeTransaction($import, ['amount' => 20, 'suggested_category' => 'Bank & Payment Fees']);
+        $withoutSuggestion = $this->makeTransaction($import, ['amount' => 30, 'suggested_category' => null]);
 
         $this->actingAs($superAdmin)->post(route('admin.finance.bank-imports.bulk-convert', $import), [
-            'ids' => [$one->id, $two->id, $incomeRow->id],
-            'category' => 'Bank & Payment Fees',
+            'ids' => [$withSuggestion->id, $withoutSuggestion->id],
         ])->assertRedirect();
 
         $this->assertDatabaseCount('expenses', 2);
+        $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $withSuggestion->refresh()->status);
+        $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $withoutSuggestion->refresh()->status);
+
+        $this->assertSame('Bank & Payment Fees', Expense::findOrFail($withSuggestion->refresh()->expense_id)->category);
+        $this->assertSame('Other', Expense::findOrFail($withoutSuggestion->refresh()->expense_id)->category);
+    }
+
+    public function test_super_admin_can_bulk_convert_pending_income_without_a_category(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $import = $this->makeImport();
+        $one = $this->makeTransaction($import, ['type' => BankStatementTransaction::TYPE_INCOME, 'amount' => 40, 'description' => 'JOHN DOE TRANSFER']);
+        $two = $this->makeTransaction($import, ['type' => BankStatementTransaction::TYPE_INCOME, 'amount' => 60, 'description' => 'JANE ROE TRANSFER']);
+
+        $this->actingAs($superAdmin)->post(route('admin.finance.bank-imports.bulk-convert', $import), [
+            'ids' => [$one->id, $two->id],
+        ])->assertRedirect();
+
+        $this->assertDatabaseCount('other_incomes', 2);
         $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $one->refresh()->status);
         $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $two->refresh()->status);
-        $this->assertSame(BankStatementTransaction::STATUS_PENDING, $incomeRow->refresh()->status);
+
+        $income = OtherIncome::findOrFail($one->other_income_id);
+        $this->assertSame('JOHN DOE TRANSFER', $income->source_name);
+        $this->assertEquals(40, (float) $income->amount);
+    }
+
+    public function test_bulk_convert_handles_mixed_expense_and_income_selection_together(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $import = $this->makeImport();
+        $expenseRow = $this->makeTransaction($import, ['amount' => 20]);
+        $incomeRow = $this->makeTransaction($import, ['type' => BankStatementTransaction::TYPE_INCOME, 'amount' => 40]);
+
+        $this->actingAs($superAdmin)->post(route('admin.finance.bank-imports.bulk-convert', $import), [
+            'ids' => [$expenseRow->id, $incomeRow->id],
+        ])->assertRedirect();
+
+        $this->assertDatabaseCount('expenses', 1);
+        $this->assertDatabaseCount('other_incomes', 1);
+        $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $expenseRow->refresh()->status);
+        $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $incomeRow->refresh()->status);
+    }
+
+    public function test_super_admin_can_convert_all_pending_transactions_without_selecting(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $import = $this->makeImport();
+        $expenseRow = $this->makeTransaction($import, ['amount' => 20, 'suggested_category' => null]);
+        $incomeRow = $this->makeTransaction($import, ['type' => BankStatementTransaction::TYPE_INCOME, 'amount' => 40]);
+        $alreadyIgnored = $this->makeTransaction($import, ['status' => BankStatementTransaction::STATUS_IGNORED]);
+
+        $this->actingAs($superAdmin)->post(route('admin.finance.bank-imports.convert-all', $import))
+            ->assertRedirect()
+            ->assertSessionHas('success');
+
+        $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $expenseRow->refresh()->status);
+        $this->assertSame(BankStatementTransaction::STATUS_CONVERTED, $incomeRow->refresh()->status);
+        $this->assertSame(BankStatementTransaction::STATUS_IGNORED, $alreadyIgnored->refresh()->status);
+        $this->assertDatabaseCount('expenses', 1);
+        $this->assertDatabaseCount('other_incomes', 1);
+        $this->assertSame('Other', Expense::findOrFail($expenseRow->refresh()->expense_id)->category);
+    }
+
+    public function test_convert_all_returns_error_when_nothing_pending(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $import = $this->makeImport();
+        $this->makeTransaction($import, ['status' => BankStatementTransaction::STATUS_CONVERTED]);
+
+        $this->actingAs($superAdmin)->post(route('admin.finance.bank-imports.convert-all', $import))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('expenses', 0);
+        $this->assertDatabaseCount('other_incomes', 0);
+    }
+
+    public function test_converted_transactions_never_appear_in_the_review_list(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $import = $this->makeImport();
+        $this->makeTransaction($import, ['status' => BankStatementTransaction::STATUS_PENDING]);
+        $this->makeTransaction($import, ['status' => BankStatementTransaction::STATUS_IGNORED]);
+        $this->makeTransaction($import, ['status' => BankStatementTransaction::STATUS_CONVERTED]);
+
+        $this->actingAs($superAdmin)->get(route('admin.finance.bank-imports.show', $import))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('transactions.data', 2)
+            );
+
+        // Even explicitly requesting a converted-only filter must not surface converted rows.
+        $this->actingAs($superAdmin)->get(route('admin.finance.bank-imports.show', $import).'?status=converted')
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('transactions.data', 2)
+            );
+    }
+
+    public function test_infinite_scroll_page_two_appends_via_partial_reload(): void
+    {
+        if (! file_exists(public_path('build/manifest.json'))) {
+            $this->markTestSkipped('Requires built frontend assets (public/build/manifest.json) to compute the Inertia asset version.');
+        }
+
+        $superAdmin = User::factory()->create(['role' => 'super_admin']);
+        $import = $this->makeImport();
+
+        for ($i = 0; $i < 35; $i++) {
+            $this->makeTransaction($import, ['amount' => $i + 1]);
+        }
+
+        $version = (string) hash_file('xxh128', public_path('build/manifest.json'));
+
+        $this->actingAs($superAdmin)
+            ->get(route('admin.finance.bank-imports.show', $import).'?page=2', [
+                'X-Inertia' => 'true',
+                'X-Inertia-Version' => $version,
+                'X-Inertia-Partial-Component' => 'Admin/Finance/BankImports/Show',
+                'X-Inertia-Partial-Data' => 'transactions',
+            ])
+            ->assertOk()
+            ->assertJsonCount(5, 'props.transactions.data');
     }
 
     public function test_super_admin_can_ignore_a_transaction(): void

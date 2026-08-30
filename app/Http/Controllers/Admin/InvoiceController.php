@@ -222,6 +222,74 @@ class InvoiceController extends Controller
         return back()->with('success', "Invoice {$invoice->invoice_number} resent to {$invoice->customer_email}.");
     }
 
+    public function duplicate(Request $request, Invoice $invoice): RedirectResponse
+    {
+        if ($invoice->status !== 'paid') {
+            return back()->with('error', 'Only paid invoices can be duplicated.');
+        }
+
+        $guardKey = $this->makeInvoiceTriggerGuardKey('duplicate', (string) $invoice->id);
+
+        if (! Cache::add($guardKey, now()->timestamp, now()->addSeconds(12))) {
+            return back()->with('error', 'Duplicate trigger detected. Please wait a moment before trying again.');
+        }
+
+        $invoice->loadMissing('items');
+        $newInvoice = null;
+
+        try {
+            $newInvoice = Invoice::create([
+                'invoice_number' => $this->generateInvoiceNumber(),
+                'customer_id' => $invoice->customer_id,
+                'customer_name' => $invoice->customer_name,
+                'customer_email' => $invoice->customer_email,
+                'customer_occupation' => $invoice->customer_occupation,
+                'title' => $invoice->title,
+                'description' => $invoice->description,
+                'amount' => $invoice->amount,
+                'currency' => $invoice->currency,
+                'due_date' => now()->addDays(7)->toDateString(),
+                'status' => 'sent',
+                'issued_at' => now(),
+                'created_by' => $request->user()->id,
+            ]);
+
+            $newInvoice->items()->createMany(
+                $invoice->items->map(fn (InvoiceItem $item, int $index): array => [
+                    'description' => $item->description,
+                    'quantity' => $item->quantity,
+                    'unit_price' => $item->unit_price,
+                    'amount' => $item->amount,
+                    'sort_order' => $index,
+                ])->all()
+            );
+
+            Mail::to($newInvoice->customer_email)->send(new InvoiceIssuedMail($newInvoice));
+        } catch (Throwable $exception) {
+            Cache::forget($guardKey);
+
+            Log::warning('Invoice duplication failed.', [
+                'source_invoice_id' => $invoice->id,
+                'new_invoice_id' => $newInvoice->id ?? null,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return back()->with('error', 'Invoice duplication failed. Check mail configuration.');
+        }
+
+        try {
+            $this->sendInvoiceIssuedAdminAlert($newInvoice, 'issued');
+        } catch (Throwable $exception) {
+            Log::warning('Invoice duplication admin alert failed.', [
+                'invoice_id' => $newInvoice->id,
+                'customer_email' => $newInvoice->customer_email,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        return back()->with('success', "Invoice {$newInvoice->invoice_number} created from {$invoice->invoice_number} and emailed to the customer.");
+    }
+
     public function sendReminder(Invoice $invoice): RedirectResponse
     {
         if ($invoice->status === 'paid') {
