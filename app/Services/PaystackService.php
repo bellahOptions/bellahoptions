@@ -4,6 +4,8 @@ namespace App\Services;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use RuntimeException;
 
 class PaystackService
@@ -110,6 +112,11 @@ class PaystackService
     private function validatedPayload(Response $response): array
     {
         if (! $response->successful()) {
+            Log::error('Paystack API request failed.', [
+                'status' => $response->status(),
+                'body' => Str::limit($response->body(), 2000),
+            ]);
+
             throw new RuntimeException('Unable to connect to Paystack right now.');
         }
 
