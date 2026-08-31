@@ -131,6 +131,35 @@ const formatGoogleReviewDate = (value) => {
     return Number.isNaN(date.getTime()) ? '' : googleReviewDateFormatter.format(date);
 };
 
+function SubscriptionPlanPaystackStatus({ plan, onSync }) {
+    if (plan.is_quantity_priced) {
+        return <p className="text-xs text-gray-500">Recurring billing not available for quantity-priced packages.</p>;
+    }
+
+    if (plan.paystack_plan_code) {
+        return (
+            <p className="text-xs font-semibold text-emerald-700">
+                Paystack synced ({plan.paystack_plan_code})
+            </p>
+        );
+    }
+
+    return (
+        <div className="flex items-center gap-2">
+            <p className="text-xs font-semibold text-amber-700" title={plan.paystack_sync_error || ''}>
+                {plan.paystack_sync_error ? `Sync failed: ${plan.paystack_sync_error}` : 'Not synced to Paystack yet'}
+            </p>
+            <button
+                type="button"
+                onClick={() => onSync(plan)}
+                className="rounded-md border border-amber-300 px-2 py-0.5 text-xs font-semibold text-amber-800 hover:bg-amber-50"
+            >
+                Retry sync
+            </button>
+        </div>
+    );
+}
+
 function TermsEditor({ label, value, onChange, error }) {
     return (
         <div>
@@ -577,6 +606,12 @@ export default function Settings({
         }
 
         router.delete(route('admin.settings.subscription-plans.destroy', subscriptionPlan.id), {
+            preserveScroll: true,
+        });
+    };
+
+    const syncSubscriptionPlanPaystack = (subscriptionPlan) => {
+        router.post(route('admin.settings.subscription-plans.sync-paystack', subscriptionPlan.id), {}, {
             preserveScroll: true,
         });
     };
@@ -2004,6 +2039,9 @@ export default function Settings({
                                                 <p className="font-semibold text-gray-900">{subscriptionPlan.name}</p>
                                                 <p className="text-xs text-gray-500">{subscriptionPlan.billing_cycle}</p>
                                                 <p className="text-xs text-gray-500">Position: {subscriptionPlan.position}</p>
+                                                <div className="mt-2">
+                                                    <SubscriptionPlanPaystackStatus plan={subscriptionPlan} onSync={syncSubscriptionPlanPaystack} />
+                                                </div>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <p>{subscriptionPlan.service_name}</p>
@@ -2110,6 +2148,9 @@ export default function Settings({
                                                 <p className="text-xs text-gray-500">
                                                     {subscriptionPlan.billing_cycle} · Position {subscriptionPlan.position}
                                                 </p>
+                                                <div className="mt-1">
+                                                    <SubscriptionPlanPaystackStatus plan={subscriptionPlan} onSync={syncSubscriptionPlanPaystack} />
+                                                </div>
                                             </div>
                                         </div>
 

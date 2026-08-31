@@ -88,6 +88,7 @@ class SubscriptionPlanCatalog
                     (string) $plan->service_slug,
                     (string) $plan->package_code,
                     $bestDiscount?->code,
+                    (int) $plan->id,
                 ),
             ];
         }
@@ -243,7 +244,7 @@ class SubscriptionPlanCatalog
         return $serviceSlug.'::'.$packageCode;
     }
 
-    private function checkoutLink(string $serviceSlug, string $packageCode, ?string $discountCode = null): string
+    private function checkoutLink(string $serviceSlug, string $packageCode, ?string $discountCode = null, ?int $planId = null): string
     {
         $params = [
             'serviceSlug' => $serviceSlug,
@@ -252,6 +253,10 @@ class SubscriptionPlanCatalog
 
         if (is_string($discountCode) && trim($discountCode) !== '') {
             $params['discount'] = strtoupper(trim($discountCode));
+        }
+
+        if ($planId !== null) {
+            $params['plan'] = $planId;
         }
 
         return route('orders.create', $params);

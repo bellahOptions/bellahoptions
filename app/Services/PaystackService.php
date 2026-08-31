@@ -20,7 +20,8 @@ class PaystackService
         string $reference,
         string $callbackUrl,
         string $currency = 'NGN',
-        array $metadata = []
+        array $metadata = [],
+        ?string $planCode = null
     ): array
     {
         $splitCode = trim((string) config('services.paystack.split_code', ''));
@@ -35,6 +36,7 @@ class PaystackService
                 'callback_url' => $callbackUrl,
                 'metadata' => $metadata,
                 'split_code' => $splitCode !== '' ? $splitCode : null,
+                'plan' => $planCode !== null && trim($planCode) !== '' ? trim($planCode) : null,
             ], static fn (mixed $value): bool => $value !== null));
 
         $payload = $this->validatedPayload($response);
@@ -53,6 +55,49 @@ class PaystackService
             'access_code' => $accessCode,
             'reference' => $resolvedReference,
         ];
+    }
+
+    /**
+     * @return array{plan_code: string}
+     */
+    public function createPlan(string $name, int $amountInMinor, string $interval, string $currency = 'NGN'): array
+    {
+        $response = Http::timeout(20)
+            ->withToken($this->secretKey())
+            ->post('https://api.paystack.co/plan', [
+                'name' => $name,
+                'amount' => $amountInMinor,
+                'interval' => $interval,
+                'currency' => strtoupper(trim($currency)),
+            ]);
+
+        $payload = $this->validatedPayload($response);
+        $data = (array) ($payload['data'] ?? []);
+        $planCode = (string) ($data['plan_code'] ?? '');
+
+        if ($planCode === '') {
+            throw new RuntimeException('Paystack plan creation returned no plan code.');
+        }
+
+        return ['plan_code' => $planCode];
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array<string, mixed>
+     */
+    public function updatePlan(string $planCode, array $payload): array
+    {
+        $response = Http::timeout(20)
+            ->withToken($this->secretKey())
+            ->put('https://api.paystack.co/plan/'.$planCode, $payload);
+
+        return $this->validatedPayload($response);
+    }
+
+    public static function toKobo(float $amount): int
+    {
+        return (int) round($amount * 100);
     }
 
     /**

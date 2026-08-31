@@ -102,6 +102,7 @@ class StoreServiceOrderRequest extends FormRequest
             'logo_addon_package' => [Rule::requiredIf(fn (): bool => $this->input('has_logo') === 'no' && $this->input('logo_design_interest') === 'yes'), 'nullable', Rule::in($this->allowedLogoAddonCodes())],
             'service_package' => ['required', 'string', Rule::in($this->allowedPackageCodes())],
             'package_quantity' => ['nullable', 'integer', 'min:1', 'max:1000'],
+            'subscription_plan_id' => ['nullable', 'integer', 'min:1'],
             'discount_code' => ['nullable', 'string', 'max:40', 'regex:/^[A-Z0-9\\-]+$/'],
             'prospect_draft_token' => ['nullable', 'uuid'],
             'project_summary' => ['required', 'string', 'min:30', 'max:2500'],

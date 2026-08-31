@@ -26,6 +26,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'discount_value',
     'discount_amount',
     'payment_provider',
+    'subscription_plan_id',
     'amount',
     'payment_status',
     'order_status',
@@ -96,6 +97,11 @@ class ServiceOrder extends Model
     public function discountCode(): BelongsTo
     {
         return $this->belongsTo(DiscountCode::class, 'discount_code_id');
+    }
+
+    public function subscriptionPlan(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPlan::class);
     }
 
     public function updates(): HasMany

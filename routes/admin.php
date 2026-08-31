@@ -88,6 +88,7 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::post('/admin/settings/subscription-plans', [SettingController::class, 'storeSubscriptionPlan'])->name('admin.settings.subscription-plans.store');
     Route::patch('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'updateSubscriptionPlan'])->name('admin.settings.subscription-plans.update');
     Route::delete('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'destroySubscriptionPlan'])->name('admin.settings.subscription-plans.destroy');
+    Route::post('/admin/settings/subscription-plans/{subscriptionPlan}/sync-paystack', [SettingController::class, 'syncSubscriptionPlanPaystack'])->name('admin.settings.subscription-plans.sync-paystack');
     Route::get('/admin/email-center', [EmailCenterController::class, 'index'])->name('admin.email-center.index');
     Route::post('/admin/email-center/campaigns', [EmailCenterController::class, 'storeCampaign'])->name('admin.email-center.campaigns.store');
     Route::put('/admin/email-center/campaigns/{newsletter}', [EmailCenterController::class, 'updateCampaign'])->name('admin.email-center.campaigns.update');

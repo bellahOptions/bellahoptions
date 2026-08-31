@@ -10,6 +10,7 @@ use App\Models\Term;
 use App\Support\PublicContentSecurity;
 use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
+use App\Support\PolicyContentParser;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
 use Illuminate\Support\Facades\Log;
@@ -307,23 +308,74 @@ class PagesController extends Controller
 
     public function showTerms()
     {
-        return Inertia::render('Legal/Terms', [
-            'term' => $this->resolvePolicyTermPayload('terms'),
+        return $this->renderPolicyPage('terms', 'terms-of-service', [
+            'title' => 'Terms of Service',
+            'badge' => 'Legal Agreement',
+            'heroDescription' => 'These Terms govern all services provided by Bellah Options and form a legally binding agreement between Bellah Options and every Client who engages our services.',
+            'metaItems' => [
+                ['label' => 'Registered Name', 'value' => 'Bellah Options'],
+                ['label' => 'Business Number', 'value' => 'BN3668420'],
+                ['label' => 'Jurisdiction', 'value' => 'Federal Republic of Nigeria'],
+                ['label' => 'Governing Law', 'value' => 'Nigerian Law and applicable international standards'],
+                ['label' => 'Contact Email', 'value' => 'bellahoptions@gmail.com'],
+                ['label' => 'Contact Phone', 'value' => '+234 810 867 1804 | +234 903 141 2354'],
+            ],
+            'notice' => 'Important Notice: By engaging Bellah Options through signed proposal, purchase order, verbal agreement, email confirmation, or payment, you acknowledge that you have read, understood, and agreed to these Terms. If you do not agree, do not proceed with engagement.',
         ]);
     }
 
     public function showPrivacyPolicy()
     {
-        return Inertia::render('Legal/Privacy', [
-            'term' => $this->resolvePolicyTermPayload('privacy'),
+        return $this->renderPolicyPage('privacy', 'privacy-policy', [
+            'title' => 'Privacy Policy',
+            'badge' => 'Data & Privacy',
+            'heroDescription' => 'This policy explains how Bellah Options collects, uses, stores, shares, protects, and retains information shared through the website, forms, payments, and project workflows.',
+            'metaItems' => [
+                ['label' => 'Policy Scope', 'value' => 'Website visitors, clients, leads, and form submissions'],
+                ['label' => 'Primary Use', 'value' => 'Service delivery, billing, communication, and security'],
+                ['label' => 'Legal Basis', 'value' => 'NDPA 2023 and applicable GDPR requirements'],
+                ['label' => 'Contact', 'value' => 'hello@bellahoptions.com'],
+            ],
+            'notice' => 'We only collect the information reasonably needed to communicate, secure our forms, process orders, issue invoices, meet record-keeping duties, and deliver services effectively.',
         ]);
     }
 
     public function showCookiePolicy()
     {
-        return Inertia::render('Legal/Cookies', [
-            'term' => $this->resolvePolicyTermPayload('cookie'),
+        return $this->renderPolicyPage('cookie', 'cookie-policy', [
+            'title' => 'Cookie Policy',
+            'badge' => 'Cookies & Tracking',
+            'heroDescription' => 'This page explains what cookies are, how Bellah Options uses them, and what choices you have when it comes to managing browser-based tracking technologies.',
+            'metaItems' => [
+                ['label' => 'Purpose', 'value' => 'Security, session support, performance, and analytics'],
+                ['label' => 'Control', 'value' => 'You can manage cookies through your browser settings'],
+                ['label' => 'Impact', 'value' => 'Disabling some cookies may affect forms and secure flows'],
+                ['label' => 'Applies To', 'value' => 'Bellah Options public website and related form experiences'],
+            ],
+            'notice' => 'Essential and security-related cookies may be necessary for some parts of the website, especially protected forms and order workflows.',
         ]);
+    }
+
+    /**
+     * Render a legal policy page: admin-edited database content first (parsed into
+     * sections for the shared dynamic template), falling back to the built-in
+     * static Blade page when no usable database content exists.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    private function renderPolicyPage(string $policyKey, string $staticView, array $meta): \Illuminate\Contracts\View\View
+    {
+        $termPayload = $this->resolvePolicyTermPayload($policyKey);
+        $sections = $termPayload !== null ? PolicyContentParser::resolveSections($termPayload['content']) : [];
+
+        if ($sections === []) {
+            return view($staticView);
+        }
+
+        return view('legal.dynamic-policy', array_merge($meta, [
+            'sections' => $sections,
+            'updatedAt' => $termPayload['updated_at'] ?? null,
+        ]));
     }
 
     /**

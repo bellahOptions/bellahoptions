@@ -14,6 +14,7 @@ use App\Models\DiscountCode;
 use App\Models\ServiceOrder;
 use App\Models\SubscriptionPlan;
 use App\Models\Term;
+use App\Services\PaystackService;
 use App\Support\PlatformSettings;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Http\JsonResponse;
@@ -22,6 +23,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Inertia\Response;
 use Throwable;
@@ -109,6 +111,10 @@ class SettingController extends Controller
                         'show_on_homepage' => (bool) $plan->show_on_homepage,
                         'is_homepage_featured' => (bool) $plan->is_homepage_featured,
                         'is_recommended' => (bool) $plan->is_recommended,
+                        'is_quantity_priced' => (bool) data_get($serviceCatalog, $plan->service_slug.'.packages.'.$plan->package_code.'.is_quantity_priced', false),
+                        'paystack_plan_code' => $plan->paystack_plan_code,
+                        'paystack_synced_at' => $plan->paystack_synced_at?->toIso8601String(),
+                        'paystack_sync_error' => $plan->paystack_sync_error,
                         'paid_subscriptions' => (int) ($paidSubscriptionCounts[$this->pairKey((string) $plan->service_slug, (string) $plan->package_code)] ?? 0),
                         'active_discount_code' => $bestDiscount?->code,
                         'active_discount_summary' => $bestDiscount ? $this->discountSummary($bestDiscount) : null,
@@ -266,7 +272,7 @@ class SettingController extends Controller
         return back()->with('success', 'Discount code deleted successfully.');
     }
 
-    public function storeSubscriptionPlan(StoreSubscriptionPlanRequest $request): RedirectResponse
+    public function storeSubscriptionPlan(StoreSubscriptionPlanRequest $request, ServiceOrderCatalog $catalog, PaystackService $paystackService): RedirectResponse
     {
         $payload = $request->validated();
 
@@ -289,11 +295,12 @@ class SettingController extends Controller
         $this->normalizeSubscriptionPlanFlags($plan);
         $plan->save();
         $this->synchronizeExclusivePlanFlags($plan);
+        $this->syncSubscriptionPlanToPaystack($plan, $catalog, $paystackService);
 
         return back()->with('success', 'Subscription plan created successfully.');
     }
 
-    public function updateSubscriptionPlan(UpdateSubscriptionPlanRequest $request, SubscriptionPlan $subscriptionPlan): RedirectResponse
+    public function updateSubscriptionPlan(UpdateSubscriptionPlanRequest $request, SubscriptionPlan $subscriptionPlan, ServiceOrderCatalog $catalog, PaystackService $paystackService): RedirectResponse
     {
         $payload = $request->validated();
 
@@ -321,13 +328,91 @@ class SettingController extends Controller
             return back()->with('error', 'No subscription plan changes were submitted.');
         }
 
+        $nameOrCycleChanged = (array_key_exists('name', $updates) && $updates['name'] !== $subscriptionPlan->name)
+            || (array_key_exists('billing_cycle', $updates) && $updates['billing_cycle'] !== $subscriptionPlan->billing_cycle);
+
         $subscriptionPlan->fill($updates);
         $this->normalizeSubscriptionPlanFlags($subscriptionPlan);
         $subscriptionPlan->save();
 
         $this->synchronizeExclusivePlanFlags($subscriptionPlan);
 
+        if ($nameOrCycleChanged || $subscriptionPlan->paystack_plan_code === null) {
+            $this->syncSubscriptionPlanToPaystack($subscriptionPlan, $catalog, $paystackService);
+        }
+
         return back()->with('success', 'Subscription plan updated successfully.');
+    }
+
+    public function syncSubscriptionPlanPaystack(Request $request, SubscriptionPlan $subscriptionPlan, ServiceOrderCatalog $catalog, PaystackService $paystackService): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->canManageSettings(), 403);
+
+        $this->syncSubscriptionPlanToPaystack($subscriptionPlan, $catalog, $paystackService);
+        $synced = $subscriptionPlan->fresh()?->paystack_plan_code !== null;
+
+        return back()->with(
+            $synced ? 'success' : 'error',
+            $synced
+                ? 'Subscription plan synced to Paystack.'
+                : 'Unable to sync this subscription plan to Paystack. See the error shown for details.',
+        );
+    }
+
+    /**
+     * Create (or update, if already synced) the matching Paystack recurring
+     * billing Plan for a subscription plan. Best-effort: failures are recorded
+     * on the model rather than thrown, so they never block saving the local
+     * marketing record. Quantity-priced packages are skipped entirely since a
+     * fixed recurring amount can't represent a per-order quantity choice.
+     */
+    private function syncSubscriptionPlanToPaystack(SubscriptionPlan $plan, ServiceOrderCatalog $catalog, PaystackService $paystackService): void
+    {
+        $package = $catalog->package((string) $plan->service_slug, (string) $plan->package_code);
+
+        if (! is_array($package) || (bool) ($package['is_quantity_priced'] ?? false)) {
+            $plan->update(['paystack_plan_code' => null, 'paystack_synced_at' => null, 'paystack_sync_error' => null]);
+
+            return;
+        }
+
+        $price = round((float) ($package['price'] ?? 0), 2);
+
+        if ($price <= 0) {
+            $plan->update(['paystack_sync_error' => 'This package has no price configured yet.']);
+
+            return;
+        }
+
+        $interval = match (strtolower((string) $plan->billing_cycle)) {
+            'yearly' => 'annually',
+            default => strtolower((string) $plan->billing_cycle),
+        };
+
+        try {
+            if ($plan->paystack_plan_code !== null) {
+                $paystackService->updatePlan($plan->paystack_plan_code, [
+                    'name' => $plan->name,
+                    'interval' => $interval,
+                ]);
+            } else {
+                $result = $paystackService->createPlan($plan->name, PaystackService::toKobo($price), $interval);
+                $plan->paystack_plan_code = $result['plan_code'];
+            }
+
+            $plan->update([
+                'paystack_plan_code' => $plan->paystack_plan_code,
+                'paystack_synced_at' => now(),
+                'paystack_sync_error' => null,
+            ]);
+        } catch (Throwable $exception) {
+            Log::warning('Paystack subscription plan sync failed.', [
+                'subscription_plan_id' => $plan->id,
+                'error' => $exception->getMessage(),
+            ]);
+
+            $plan->update(['paystack_sync_error' => Str::limit($exception->getMessage(), 480)]);
+        }
     }
 
     public function destroySubscriptionPlan(Request $request, SubscriptionPlan $subscriptionPlan): RedirectResponse
@@ -477,7 +562,11 @@ class SettingController extends Controller
             'package' => $plan->package_code,
         ];
 
-        if (is_string($discountCode) && trim($discountCode) !== '') {
+        if ($plan->paystack_plan_code !== null) {
+            // Discount codes don't apply once recurring billing takes over Paystack's
+            // fixed plan price, so a plan_code checkout intentionally omits `discount`.
+            $params['plan'] = $plan->id;
+        } elseif (is_string($discountCode) && trim($discountCode) !== '') {
             $params['discount'] = strtoupper(trim($discountCode));
         }
 

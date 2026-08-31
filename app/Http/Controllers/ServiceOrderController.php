@@ -16,6 +16,8 @@ use App\Models\Invoice;
 use App\Models\OrderProspect;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
+use App\Models\Subscription;
+use App\Models\SubscriptionPlan;
 use App\Models\Term;
 use App\Services\FlutterwaveService;
 use App\Models\User;
@@ -23,6 +25,7 @@ use App\Services\PaystackService;
 use App\Support\ClientReviewService;
 use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
+use App\Support\ServiceOrderRenewal;
 use App\Support\VisitorLocalization;
 use App\Support\ServiceOrderCatalog;
 use Illuminate\Auth\Events\Registered;
@@ -99,6 +102,8 @@ class ServiceOrderController extends Controller
             ? null
             : $this->resolveCheckoutDiscountCandidate($request, $selectedServiceSlug);
 
+        $subscriptionPlan = $this->resolveCheckoutSubscriptionPlan($request, $selectedServiceSlug, $selectedPackageCode);
+
         $humanCheck = $this->createHumanVerificationChallenge($request);
 
         return Inertia::render('Orders/Create', [
@@ -111,6 +116,8 @@ class ServiceOrderController extends Controller
             'logoAddons' => $logoAddons,
             'selectedServiceSlug' => $selectedServiceSlug,
             'selectedPackageCode' => $selectedPackageCode !== '' ? $selectedPackageCode : null,
+            'subscriptionPlanId' => $subscriptionPlan?->id,
+            'subscriptionBillingCycle' => $subscriptionPlan?->billing_cycle,
             'visitorLocalization' => $localization,
             'paymentReadiness' => $this->orderFormPaymentReadiness($localization, $paystackService),
             'profileDefaults' => [
@@ -118,6 +125,25 @@ class ServiceOrderController extends Controller
                 'email' => $request->user()?->email,
             ],
         ]);
+    }
+
+    private function resolveCheckoutSubscriptionPlan(Request $request, string $serviceSlug, string $packageCode): ?SubscriptionPlan
+    {
+        $planId = (int) $request->query('plan', 0);
+
+        if ($planId <= 0 || $packageCode === '') {
+            return null;
+        }
+
+        $plan = SubscriptionPlan::query()
+            ->where('id', $planId)
+            ->where('is_active', true)
+            ->where('service_slug', $serviceSlug)
+            ->where('package_code', $packageCode)
+            ->whereNotNull('paystack_plan_code')
+            ->first();
+
+        return $plan;
     }
 
     public function saveProspectDraft(Request $request, string $serviceSlug, ServiceOrderCatalog $catalog): JsonResponse
@@ -259,12 +285,25 @@ class ServiceOrderController extends Controller
             ]);
         }
 
+        $requestedSubscriptionPlanId = (int) ($payload['subscription_plan_id'] ?? 0);
+        $subscriptionPlan = $requestedSubscriptionPlanId > 0
+            ? SubscriptionPlan::query()
+                ->where('id', $requestedSubscriptionPlanId)
+                ->where('is_active', true)
+                ->where('service_slug', $serviceSlug)
+                ->where('package_code', $packageCode)
+                ->whereNotNull('paystack_plan_code')
+                ->first()
+            : null;
+
         $submittedDiscountCode = strtoupper(trim((string) ($payload['discount_code'] ?? '')));
         if ($submittedDiscountCode === '' && ! $isTrialOrder) {
             $submittedDiscountCode = strtoupper(trim((string) $request->session()->get('checkout_discount_code', '')));
         }
 
-        if ($isTrialOrder) {
+        if ($isTrialOrder || $subscriptionPlan) {
+            // Paystack always charges a plan's fixed configured price on every
+            // charge (first and renewals), so a discount can't apply here.
             $submittedDiscountCode = '';
         }
 
@@ -311,6 +350,7 @@ class ServiceOrderController extends Controller
                 'discount_amount' => $discountAmount,
                 'amount' => $finalAmount,
                 'payment_provider' => (string) ($localization['payment_processor'] ?? 'paystack'),
+                'subscription_plan_id' => $subscriptionPlan?->id,
                 'payment_status' => $requiresConsultation ? 'not_required' : 'pending',
                 'order_status' => $requiresConsultation ? 'pending_consultation' : 'awaiting_payment',
                 'progress_percent' => $requiresConsultation ? 10 : 5,
@@ -502,11 +542,12 @@ class ServiceOrderController extends Controller
             } else {
                 $payment = $paystackService->initialize(
                     $serviceOrder->email,
-                    (int) round((float) $serviceOrder->amount * 100),
+                    PaystackService::toKobo((float) $serviceOrder->amount),
                     $reference,
                     $callbackUrl,
                     (string) $serviceOrder->currency,
                     $encryptedMetadata,
+                    $serviceOrder->subscriptionPlan?->paystack_plan_code,
                 );
             }
         } catch (Throwable $exception) {
@@ -936,19 +977,30 @@ class ServiceOrderController extends Controller
 
         /** @var array<string, mixed> $event */
         $event = (array) $request->json()->all();
+        $eventName = (string) ($event['event'] ?? '');
 
-        if (($event['event'] ?? null) !== 'charge.success') {
-            return response()->json(['message' => 'Ignored event.']);
-        }
+        return match ($eventName) {
+            'charge.success' => $this->handlePaystackChargeSuccess($event, $paystackService),
+            'subscription.create' => $this->handlePaystackSubscriptionCreate($event),
+            'subscription.disable' => $this->handlePaystackSubscriptionDisable($event),
+            default => response()->json(['message' => 'Ignored event.']),
+        };
+    }
 
+    /**
+     * @param  array<string, mixed>  $event
+     */
+    private function handlePaystackChargeSuccess(array $event, PaystackService $paystackService): JsonResponse
+    {
         $reference = trim((string) data_get($event, 'data.reference', ''));
         if ($reference === '') {
             return response()->json(['message' => 'Missing reference.'], 400);
         }
 
         $serviceOrder = ServiceOrder::query()->with('invoice')->where('paystack_reference', $reference)->first();
+
         if (! $serviceOrder) {
-            return response()->json(['message' => 'Order not found.'], 404);
+            return $this->handlePaystackSubscriptionRenewalCharge($event, $reference);
         }
 
         if ($serviceOrder->payment_status === 'paid') {
@@ -963,11 +1015,12 @@ class ServiceOrderController extends Controller
             $amount = (int) ($data['amount'] ?? 0);
             $currency = strtoupper((string) ($data['currency'] ?? ''));
 
-            $expectedAmount = (int) round((float) $serviceOrder->amount * 100);
+            $expectedAmount = PaystackService::toKobo((float) $serviceOrder->amount);
             $expectedCurrency = strtoupper((string) $serviceOrder->currency);
 
             if ($status === 'success' && $amount >= $expectedAmount && $currency === $expectedCurrency) {
                 $this->markOrderPaid($serviceOrder, $reference, $data);
+                $this->activateSubscriptionFromCharge($serviceOrder, $data);
 
                 return response()->json(['message' => 'Payment recorded.']);
             }
@@ -982,6 +1035,162 @@ class ServiceOrderController extends Controller
 
             return response()->json(['message' => 'Verification failed.'], 500);
         }
+    }
+
+    /**
+     * Handle a charge.success event whose reference doesn't match any known
+     * ServiceOrder — this is how Paystack auto-renewal charges arrive, since
+     * each renewal gets a fresh reference. Matched back to our subscription
+     * record via the plan code + customer code the payload carries.
+     *
+     * @param  array<string, mixed>  $event
+     */
+    private function handlePaystackSubscriptionRenewalCharge(array $event, string $reference): JsonResponse
+    {
+        $status = (string) data_get($event, 'data.status', '');
+        $planCode = trim((string) data_get($event, 'data.plan.plan_code', ''));
+        $customerCode = trim((string) data_get($event, 'data.customer.customer_code', ''));
+
+        if ($status !== 'success' || $planCode === '' || $customerCode === '') {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
+
+        $subscription = Subscription::query()
+            ->where('paystack_plan_code', $planCode)
+            ->where('paystack_customer_code', $customerCode)
+            ->first();
+        $previousOrder = $subscription?->latestOrder;
+
+        if (! $subscription || ! $previousOrder) {
+            Log::warning('Paystack renewal charge could not be matched to a subscription.', [
+                'plan_code' => $planCode,
+                'customer_code' => $customerCode,
+                'reference' => $reference,
+            ]);
+
+            return response()->json(['message' => 'Subscription not found.'], 404);
+        }
+
+        try {
+            $renewal = ServiceOrderRenewal::renew($previousOrder, [
+                'payment_status' => 'paid',
+                'paid_at' => now(),
+                'paystack_reference' => $reference,
+            ]);
+
+            $subscription->update([
+                'service_order_id' => $renewal['order']->id,
+                'next_payment_date' => data_get($event, 'data.plan.next_payment_date')
+                    ?? data_get($event, 'data.next_payment_date'),
+            ]);
+
+            Mail::to($renewal['order']->email)->send(new ServiceOrderPaymentThankYouMail($renewal['order']));
+
+            return response()->json(['message' => 'Renewal recorded.']);
+        } catch (Throwable $exception) {
+            Log::warning('Subscription renewal order creation failed.', [
+                'subscription_id' => $subscription->id,
+                'reference' => $reference,
+                'error' => $exception->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Renewal failed.'], 500);
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $event
+     */
+    private function handlePaystackSubscriptionCreate(array $event): JsonResponse
+    {
+        $planCode = trim((string) data_get($event, 'data.plan.plan_code', ''));
+        $customerCode = trim((string) data_get($event, 'data.customer.customer_code', ''));
+
+        if ($planCode === '' || $customerCode === '') {
+            return response()->json(['message' => 'Ignored event.']);
+        }
+
+        $subscription = Subscription::query()
+            ->where('paystack_plan_code', $planCode)
+            ->where('paystack_customer_code', $customerCode)
+            ->first();
+
+        if (! $subscription) {
+            Log::warning('Paystack subscription.create could not be matched to a pending subscription.', [
+                'plan_code' => $planCode,
+                'customer_code' => $customerCode,
+            ]);
+
+            return response()->json(['message' => 'Subscription not found.'], 404);
+        }
+
+        $subscription->update([
+            'paystack_subscription_code' => (string) data_get($event, 'data.subscription_code', $subscription->paystack_subscription_code),
+            'paystack_email_token' => (string) data_get($event, 'data.email_token', $subscription->paystack_email_token),
+            'next_payment_date' => data_get($event, 'data.next_payment_date', $subscription->next_payment_date),
+            'status' => 'active',
+        ]);
+
+        return response()->json(['message' => 'Subscription activated.']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $event
+     */
+    private function handlePaystackSubscriptionDisable(array $event): JsonResponse
+    {
+        $subscriptionCode = trim((string) data_get($event, 'data.subscription_code', ''));
+
+        if ($subscriptionCode === '') {
+            return response()->json(['message' => 'Ignored event.']);
+        }
+
+        $updated = Subscription::query()
+            ->where('paystack_subscription_code', $subscriptionCode)
+            ->update(['status' => 'cancelled']);
+
+        if ($updated === 0) {
+            return response()->json(['message' => 'Subscription not found.'], 404);
+        }
+
+        return response()->json(['message' => 'Subscription cancelled.']);
+    }
+
+    /**
+     * @param  array<string, mixed>  $chargeData
+     */
+    private function activateSubscriptionFromCharge(ServiceOrder $serviceOrder, array $chargeData): void
+    {
+        if ($serviceOrder->subscription_plan_id === null) {
+            return;
+        }
+
+        $planCode = trim((string) data_get($chargeData, 'plan.plan_code', ''));
+        $customerCode = trim((string) data_get($chargeData, 'customer.customer_code', ''));
+
+        if ($planCode === '' || $customerCode === '') {
+            Log::warning('Subscription order paid but charge payload had no plan/customer code.', [
+                'service_order_id' => $serviceOrder->id,
+            ]);
+
+            return;
+        }
+
+        Subscription::query()->updateOrCreate(
+            [
+                'paystack_plan_code' => $planCode,
+                'paystack_customer_code' => $customerCode,
+            ],
+            [
+                'subscription_plan_id' => $serviceOrder->subscription_plan_id,
+                'service_order_id' => $serviceOrder->id,
+                'user_id' => $serviceOrder->user_id,
+                'customer_email' => $serviceOrder->email,
+                'customer_name' => $serviceOrder->full_name,
+                'amount' => $serviceOrder->amount,
+                'currency' => $serviceOrder->currency,
+            ],
+        );
     }
 
     public function flutterwaveWebhook(Request $request, FlutterwaveService $flutterwaveService): JsonResponse

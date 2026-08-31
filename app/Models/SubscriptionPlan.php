@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
     'name',
@@ -21,6 +22,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'is_homepage_featured',
     'is_recommended',
     'created_by',
+    'paystack_plan_code',
+    'paystack_synced_at',
+    'paystack_sync_error',
 ])]
 class SubscriptionPlan extends Model
 {
@@ -37,11 +41,17 @@ class SubscriptionPlan extends Model
             'show_on_homepage' => 'boolean',
             'is_homepage_featured' => 'boolean',
             'is_recommended' => 'boolean',
+            'paystack_synced_at' => 'datetime',
         ];
     }
 
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class);
     }
 }

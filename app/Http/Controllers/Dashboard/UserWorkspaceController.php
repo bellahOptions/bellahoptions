@@ -13,6 +13,7 @@ use App\Models\ServiceOrderUpdate;
 use App\Models\SupportTicket;
 use App\Models\SupportTicketMessage;
 use App\Models\User;
+use App\Support\ServiceOrderRenewal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,67 +86,12 @@ class UserWorkspaceController extends Controller
         $newInvoice = null;
 
         try {
-            DB::transaction(function () use ($serviceOrder, $user, $request, &$newOrder, &$newInvoice): void {
-                $newOrder = ServiceOrder::create([
-                    'uuid' => (string) Str::uuid(),
-                    'order_code' => $this->generateOrderCode(),
-                    'user_id' => $user->id,
-                    'customer_id' => $serviceOrder->customer_id,
-                    'service_slug' => $serviceOrder->service_slug,
-                    'service_name' => $serviceOrder->service_name,
-                    'package_code' => $serviceOrder->package_code,
-                    'package_name' => $serviceOrder->package_name,
-                    'currency' => $serviceOrder->currency,
-                    'base_amount' => $serviceOrder->amount,
-                    'amount' => $serviceOrder->amount,
-                    'payment_provider' => $serviceOrder->payment_provider ?: 'paystack',
-                    'payment_status' => 'pending',
-                    'order_status' => 'awaiting_payment',
-                    'progress_percent' => 5,
-                    'full_name' => $serviceOrder->full_name,
-                    'email' => $serviceOrder->email,
-                    'phone' => $serviceOrder->phone,
-                    'business_name' => $serviceOrder->business_name,
-                    'position' => $serviceOrder->position,
-                    'business_website' => $serviceOrder->business_website,
-                    'project_summary' => $serviceOrder->project_summary,
-                    'project_goals' => $serviceOrder->project_goals,
-                    'target_audience' => $serviceOrder->target_audience,
-                    'preferred_style' => $serviceOrder->preferred_style,
-                    'deliverables' => $serviceOrder->deliverables,
-                    'additional_details' => $serviceOrder->additional_details,
-                    'brief_payload' => $serviceOrder->brief_payload,
-                    'wants_account' => false,
-                    'created_by_ip' => $request->ip(),
-                    'user_agent' => Str::limit((string) $request->userAgent(), 1000),
-                ]);
-
-                $newInvoice = Invoice::create([
-                    'invoice_number' => $this->generateInvoiceNumber(),
-                    'customer_id' => $serviceOrder->customer_id,
-                    'customer_name' => $serviceOrder->full_name,
-                    'customer_email' => $serviceOrder->email,
-                    'title' => $serviceOrder->service_name.' - '.$serviceOrder->package_name.' (Renewal)',
-                    'description' => 'Renewal of order '.$serviceOrder->order_code.'.',
-                    'amount' => $serviceOrder->amount,
-                    'currency' => $serviceOrder->currency,
-                    'due_date' => now()->addDays(7)->toDateString(),
-                    'status' => 'sent',
-                    'issued_at' => now(),
-                    'created_by' => $user->id,
-                ]);
-
-                $newOrder->update(['invoice_id' => $newInvoice->id]);
-
-                ServiceOrderUpdate::create([
-                    'service_order_id' => $newOrder->id,
-                    'status' => 'awaiting_payment',
-                    'progress_percent' => 5,
-                    'note' => 'Renewal order created from '.$serviceOrder->order_code.' and is awaiting payment confirmation.',
-                    'is_public' => true,
-                    'created_by' => $user->id,
-                ]);
-            });
+            $renewal = ServiceOrderRenewal::renew($serviceOrder, [
+                'created_by_ip' => $request->ip(),
+                'user_agent' => Str::limit((string) $request->userAgent(), 1000),
+            ]);
+            $newOrder = $renewal['order'];
+            $newInvoice = $renewal['invoice'];
         } catch (Throwable $exception) {
             Cache::forget($guardKey);
 
@@ -512,36 +458,4 @@ class UserWorkspaceController extends Controller
         return trim(preg_replace('/\s+/u', ' ', strip_tags($messageHtml)) ?? '');
     }
 
-    private function generateOrderCode(): string
-    {
-        do {
-            $orderCode = 'BO'.strtoupper(Str::random(6));
-        } while (ServiceOrder::query()->where('order_code', $orderCode)->exists());
-
-        return $orderCode;
-    }
-
-    private function generateInvoiceNumber(): string
-    {
-        $startNumber = 200;
-
-        $highestNumericInvoiceNumber = Invoice::query()
-            ->pluck('invoice_number')
-            ->map(static fn (mixed $invoiceNumber): string => trim((string) $invoiceNumber))
-            ->filter(static fn (string $invoiceNumber): bool => ctype_digit($invoiceNumber))
-            ->map(static fn (string $invoiceNumber): int => (int) $invoiceNumber)
-            ->max();
-
-        $nextNumber = max(
-            $startNumber,
-            ($highestNumericInvoiceNumber ?? ($startNumber - 1)) + 1,
-        );
-
-        do {
-            $number = (string) $nextNumber;
-            $nextNumber++;
-        } while (Invoice::query()->where('invoice_number', $number)->exists());
-
-        return $number;
-    }
 }

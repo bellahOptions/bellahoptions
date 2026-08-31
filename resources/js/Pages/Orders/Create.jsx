@@ -3,6 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
+import { Button } from "@/Components/ui/button";
+import { Input } from "@/Components/ui/input";
+import { Select } from "@/Components/ui/select";
+import { Textarea } from "@/Components/ui/textarea";
+import { Label } from "@/Components/ui/label";
 import {
     ArrowLeftIcon,
     ArrowRightIcon,
@@ -14,19 +19,19 @@ import { buildOrderFormSeed, formatMoney } from "./orderUtils";
 import { loadTurnstileScript } from "@/lib/turnstile";
 
 const steps = [
-    "Client",
-    "Service",
-    "Business",
-    "Package",
-    "Account",
-    "Review",
+    "Your Details",
+    "Service & Package",
+    "Project Details",
+    "Review & Submit",
 ];
 
 const errorStepMap = {
     full_name: 1,
     email: 1,
     phone: 1,
-    position: 1,
+    service_package: 2,
+    package_quantity: 2,
+    discount_code: 2,
     business_name: 3,
     business_website: 3,
     has_logo: 3,
@@ -35,23 +40,23 @@ const errorStepMap = {
     logo_design_interest: 3,
     logo_addon_package: 3,
     project_summary: 3,
-    project_goals: 3,
-    target_audience: 3,
-    preferred_style: 3,
-    deliverables: 3,
-    timeline_preference: 3,
     additional_details: 3,
-    service_package: 4,
-    package_quantity: 4,
-    discount_code: 4,
-    create_account: 5,
-    password: 5,
-    password_confirmation: 5,
-    human_check_answer: 6,
-    turnstile_token: 6,
-    human_check_nonce: 6,
-    form_rendered_at: 6,
+    timeline_preference: 3,
+    create_account: 4,
+    password: 4,
+    password_confirmation: 4,
+    human_check_answer: 4,
+    turnstile_token: 4,
+    human_check_nonce: 4,
+    form_rendered_at: 4,
 };
+
+const timelinePresetOptions = [
+    "As soon as possible",
+    "2-4 weeks",
+    "1-2 months",
+    "Flexible - let's discuss on a call",
+];
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phonePattern = /^[+0-9()\-\s]+$/;
@@ -102,6 +107,8 @@ export default function OrderCreate({
     logoAddons = {},
     selectedServiceSlug,
     selectedPackageCode,
+    subscriptionPlanId = null,
+    subscriptionBillingCycle = "",
     visitorLocalization,
     paymentReadiness = {},
     profileDefaults = {},
@@ -127,6 +134,7 @@ export default function OrderCreate({
             form_rendered_at: formRenderedAt || 0,
             turnstile_token: "",
             discount_code: discountCode || "",
+            subscription_plan_id: subscriptionPlanId || "",
             prospect_draft_token: "",
         }),
     );
@@ -202,10 +210,6 @@ export default function OrderCreate({
             return null;
         }
 
-        if (fieldName === "position") {
-            return normalized.length > 120 ? "Role/position must not exceed 120 characters." : null;
-        }
-
         if (fieldName === "business_website") {
             if (normalized === "") return null;
             if (normalized.length > 255) return "Business website must not exceed 255 characters.";
@@ -271,10 +275,6 @@ export default function OrderCreate({
             return null;
         }
 
-        if (fieldName === "project_goals") return normalized.length > 1500 ? "Project goals must not exceed 1500 characters." : null;
-        if (fieldName === "target_audience") return normalized.length > 1000 ? "Target audience must not exceed 1000 characters." : null;
-        if (fieldName === "preferred_style") return normalized.length > 1000 ? "Preferred style must not exceed 1000 characters." : null;
-        if (fieldName === "deliverables") return normalized.length > 1500 ? "Deliverables must not exceed 1500 characters." : null;
         if (fieldName === "additional_details") return normalized.length > 2000 ? "Additional details must not exceed 2000 characters." : null;
         if (fieldName === "timeline_preference") return normalized.length > 120 ? "Timeline preference must not exceed 120 characters." : null;
 
@@ -716,11 +716,17 @@ export default function OrderCreate({
 
     const fieldsForStep = (stepNumber, nextData) => {
         if (stepNumber === 1) {
-            return ["full_name", "email", "phone", "position"];
+            return ["full_name", "email", "phone"];
         }
 
         if (stepNumber === 2) {
-            return [];
+            const fields = ["service_package", "discount_code"];
+
+            if (activePackages[nextData.service_package]?.is_quantity_priced) {
+                fields.push("package_quantity");
+            }
+
+            return fields;
         }
 
         if (stepNumber === 3) {
@@ -733,12 +739,8 @@ export default function OrderCreate({
                 "has_logo",
                 "has_content",
                 "project_summary",
-                "project_goals",
-                "target_audience",
-                "preferred_style",
-                "deliverables",
-                "timeline_preference",
                 "additional_details",
+                "timeline_preference",
                 ...intakeFields,
             ];
 
@@ -758,27 +760,11 @@ export default function OrderCreate({
         }
 
         if (stepNumber === 4) {
-            const fields = ["service_package", "discount_code"];
-
-            if (activePackages[nextData.service_package]?.is_quantity_priced) {
-                fields.push("package_quantity");
-            }
-
-            return fields;
-        }
-
-        if (stepNumber === 5) {
             const fields = ["create_account"];
 
             if (!isAuthenticated && nextData.create_account) {
                 fields.push("password", "password_confirmation");
             }
-
-            return fields;
-        }
-
-        if (stepNumber === 6) {
-            const fields = [];
 
             if (humanVerificationMode === "turnstile") {
                 fields.push("turnstile_token");
@@ -902,7 +888,7 @@ export default function OrderCreate({
                                         Start your Bellah Options project.
                                     </h1>
                                     <p className="mt-5 max-w-2xl text-base leading-8 text-blue-100">
-                                        Complete the guided form below to choose a service, select a package, and create your order record.
+                                        A quick 4-step form: your details, service and package, project brief, then review and submit.
                                     </p>
                                 </div>
 
@@ -1019,21 +1005,20 @@ export default function OrderCreate({
                                 {currentStep === 1 && (
                                     <section>
                                         <SectionTitle
-                                            title="Client Information"
+                                            title="Your Details"
                                             text="Tell us who is making the request so we can set up the order correctly."
                                         />
                                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                             <Field label="Full Name" error={errors.full_name}>
-                                                <input
+                                                <Input
                                                     autoComplete="name"
                                                     value={data.full_name}
                                                     onChange={(event) => updateField("full_name", event.target.value)}
                                                     disabled={isAuthenticated}
-                                                    className={`${inputClassName} disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500`}
                                                 />
                                             </Field>
-                                            <Field label="Email Address" error={errors.email}>
-                                                <input
+                                            <Field label="Email Address" error={errors.email} hint="We'll send order and payment updates here.">
+                                                <Input
                                                     type="email"
                                                     inputMode="email"
                                                     autoComplete="email"
@@ -1041,22 +1026,17 @@ export default function OrderCreate({
                                                     value={data.email}
                                                     onChange={(event) => updateField("email", event.target.value)}
                                                     disabled={isAuthenticated}
-                                                    className={`${inputClassName} disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500`}
                                                 />
                                             </Field>
-                                            <Field label="Phone / WhatsApp" error={errors.phone}>
-                                                <input
+                                            <Field label="Phone / WhatsApp" error={errors.phone} hint="Used only for order updates, never shared or sold.">
+                                                <Input
                                                     type="tel"
                                                     inputMode="tel"
                                                     autoComplete="tel"
                                                     placeholder="+234 800 000 0000"
                                                     value={data.phone}
                                                     onChange={(event) => updateField("phone", event.target.value)}
-                                                    className={inputClassName}
                                                 />
-                                            </Field>
-                                            <Field label="Role / Position" error={errors.position}>
-                                                <input value={data.position} onChange={(event) => updateField("position", event.target.value)} className={inputClassName} />
                                             </Field>
                                         </div>
                                     </section>
@@ -1065,8 +1045,8 @@ export default function OrderCreate({
                                 {currentStep === 2 && (
                                     <section>
                                         <SectionTitle
-                                            title="Service Selection"
-                                            text="Choose the service lane and we’ll update the package and brief questions automatically."
+                                            title="Service & Package"
+                                            text="Choose the service lane, then pick a package. Packages update automatically based on the service you choose."
                                         />
                                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                             {availableServices.map(([slug, service]) => (
@@ -1081,87 +1061,214 @@ export default function OrderCreate({
                                                 </button>
                                             ))}
                                         </div>
+
+                                        <div className="mt-8 border-t border-gray-100 pt-8">
+                                            <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Choose a Package</p>
+                                            <p className="mt-2 text-sm leading-6 text-gray-600">
+                                                Pick a regular plan/pack, or choose the trial request option for one-off work outside plans and packs.
+                                            </p>
+                                            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+                                                {regularPackageEntries.map(([code, pack]) => {
+                                                    const selected = data.service_package === code;
+
+                                                    return (
+                                                        <button
+                                                            key={code}
+                                                            type="button"
+                                                            onClick={() => updateField("service_package", code)}
+                                                            className={`border p-5 text-left transition ${selected ? "border-brand bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
+                                                        >
+                                                            <div className="flex items-start justify-between gap-2">
+                                                                <p className="text-lg font-black text-gray-950">{pack.name}</p>
+                                                                {pack.is_recommended && (
+                                                                    <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-brand">
+                                                                        Recommended
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {pack.discount_price && Number(pack.base_price_ngn || 0) > Number(pack.discount_price || 0) ? (
+                                                                <div className="mt-2 flex items-center gap-2">
+                                                                    <p className="text-sm font-bold text-brand">{formatMoney(pack.discount_price, currency, locale)}</p>
+                                                                    <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="mt-2 text-sm font-bold text-brand">
+                                                                    {formatMoney(pack.price, currency, locale)}
+                                                                    {pack.is_quantity_priced && <span className="font-semibold text-gray-500"> / unit</span>}
+                                                                </p>
+                                                            )}
+                                                            <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
+                                                            {Array.isArray(pack.features) && pack.features.length > 0 && (
+                                                                <ul className="mt-3 space-y-1">
+                                                                    {pack.features.slice(0, 4).map((feature) => (
+                                                                        <li key={`${code}-${feature}`} className="text-xs text-gray-600">
+                                                                            - {feature}
+                                                                        </li>
+                                                                    ))}
+                                                                </ul>
+                                                            )}
+                                                            {pack.sample_image && (
+                                                                <img
+                                                                    src={String(pack.sample_image).startsWith('/') || /^https?:\/\//i.test(String(pack.sample_image))
+                                                                        ? String(pack.sample_image)
+                                                                        : `/${String(pack.sample_image)}`}
+                                                                    alt={pack.name}
+                                                                    className="mt-3 h-16 w-full rounded object-cover"
+                                                                />
+                                                            )}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                            {activePackages[data.service_package]?.is_quantity_priced && (
+                                                <div className="mt-6 max-w-xs border border-gray-200 bg-white p-5">
+                                                    <Field label="Quantity" error={errors.package_quantity}>
+                                                        <Input
+                                                            type="number"
+                                                            min={1}
+                                                            max={1000}
+                                                            step={1}
+                                                            value={data.package_quantity}
+                                                            onChange={(event) => updateField("package_quantity", event.target.value === "" ? "" : Number(event.target.value))}
+                                                        />
+                                                    </Field>
+                                                    <p className="mt-3 text-sm font-bold text-brand">
+                                                        Total: {formatMoney(Number(activePackages[data.service_package]?.price || 0) * Math.max(1, Number(data.package_quantity) || 1), currency, locale)}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {trialPackageEntry && (
+                                                <div className="mt-6 rounded-lg border border-dashed border-brand bg-blue-50 p-5">
+                                                    <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Outside Plans / Packs</p>
+                                                    <div className="mt-4">
+                                                        {(() => {
+                                                            const [code, pack] = trialPackageEntry;
+                                                            const selected = data.service_package === code;
+
+                                                            return (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => updateField("service_package", code)}
+                                                                    className={`w-full border p-5 text-left transition ${selected ? "border-brand bg-white" : "border-blue-200 bg-blue-50/30 hover:border-blue-300"}`}
+                                                                >
+                                                                    <p className="text-lg font-black text-gray-950">{pack.name}</p>
+                                                                    <p className="mt-2 text-sm font-bold text-brand">{formatMoney(pack.price, currency, locale)}</p>
+                                                                    <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
+                                                                    <p className="mt-3 text-xs font-semibold text-gray-500">
+                                                                        This trial option uses a fixed fee and does not accept discount codes.
+                                                                    </p>
+                                                                </button>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {errors.service_package && <p className="mt-3 text-sm text-red-600">{errors.service_package}</p>}
+                                        </div>
+
+                                        {data.service_package !== trialPackageCode && !data.subscription_plan_id && (
+                                            <div className="mt-8 max-w-sm border-t border-gray-100 pt-8">
+                                                <Field label="Discount Code" error={errors.discount_code} hint="Optional — apply a promo code if you have one.">
+                                                    <Input
+                                                        value={data.discount_code}
+                                                        onChange={(event) => updateField("discount_code", event.target.value.toUpperCase())}
+                                                        placeholder="e.g. WELCOME10"
+                                                    />
+                                                </Field>
+                                            </div>
+                                        )}
+                                        {data.subscription_plan_id && (
+                                            <p className="mt-8 max-w-sm text-xs text-gray-500">
+                                                Discount codes aren't available for recurring subscriptions — this plan is charged at its listed price every cycle.
+                                            </p>
+                                        )}
                                     </section>
                                 )}
 
                                 {currentStep === 3 && (
                                     <section>
                                         <SectionTitle
-                                            title="Business and Project Details"
+                                            title="Project Details"
                                             text="Give us the context we need to scope the work properly."
                                         />
                                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
                                             <Field label="Business Name" error={errors.business_name}>
-                                                <input value={data.business_name} onChange={(event) => updateField("business_name", event.target.value)} className={inputClassName} />
+                                                <Input value={data.business_name} onChange={(event) => updateField("business_name", event.target.value)} />
                                             </Field>
-                                            <Field label="Business Website" error={errors.business_website}>
-                                                <input
+                                            <Field label="Business Website" error={errors.business_website} hint="Optional — helps our designers understand your brand.">
+                                                <Input
                                                     type="url"
                                                     inputMode="url"
                                                     placeholder="https://yourbusiness.com"
                                                     value={data.business_website}
                                                     onChange={(event) => updateField("business_website", event.target.value)}
-                                                    className={inputClassName}
                                                 />
                                             </Field>
                                             <Field label="Do You Already Have a Logo?" error={errors.has_logo}>
-                                                <select value={data.has_logo} onChange={(event) => updateField("has_logo", event.target.value, ["logo_design_interest", "logo_addon_package"])} className={inputClassName}>
+                                                <Select value={data.has_logo} onChange={(event) => updateField("has_logo", event.target.value, ["logo_design_interest", "logo_addon_package"])}>
                                                     <option value="">Select an option</option>
                                                     <option value="yes">Yes, we already have a logo</option>
                                                     <option value="no">No, we need logo support</option>
-                                                </select>
+                                                </Select>
                                             </Field>
                                             <Field label="Do You Already Have Content for the Designs?" error={errors.has_content}>
-                                                <select value={data.has_content} onChange={(event) => updateField("has_content", event.target.value, ["content_development_interest"])} className={inputClassName}>
+                                                <Select value={data.has_content} onChange={(event) => updateField("has_content", event.target.value, ["content_development_interest"])}>
                                                     <option value="">Select an option</option>
                                                     <option value="yes">Yes, content is available</option>
                                                     <option value="no">No, content is not available yet</option>
-                                                </select>
+                                                </Select>
                                             </Field>
                                             {data.has_content === "no" && (
                                                 <Field label="Do You Want Bellah to Develop Content for the Designs?" error={errors.content_development_interest}>
-                                                    <select value={data.content_development_interest} onChange={(event) => updateField("content_development_interest", event.target.value)} className={inputClassName}>
+                                                    <Select value={data.content_development_interest} onChange={(event) => updateField("content_development_interest", event.target.value)}>
                                                         <option value="">Select an option</option>
                                                         <option value="yes">Yes, please develop content</option>
                                                         <option value="no">No, we will provide content later</option>
-                                                    </select>
+                                                    </Select>
                                                 </Field>
                                             )}
                                             {data.has_logo === "no" && (
                                                 <Field label="Do You Want Us to Design a Logo?" error={errors.logo_design_interest}>
-                                                    <select value={data.logo_design_interest} onChange={(event) => updateField("logo_design_interest", event.target.value, ["logo_addon_package"])} className={inputClassName}>
+                                                    <Select value={data.logo_design_interest} onChange={(event) => updateField("logo_design_interest", event.target.value, ["logo_addon_package"])}>
                                                         <option value="">Select an option</option>
                                                         <option value="yes">Yes, add logo / brand design</option>
                                                         <option value="no">No, not right now</option>
-                                                    </select>
+                                                    </Select>
                                                 </Field>
                                             )}
-                                            <Field label="Business / Project Summary" error={errors.project_summary} className="sm:col-span-2">
-                                                <textarea rows={4} value={data.project_summary} onChange={(event) => updateField("project_summary", event.target.value)} className={inputClassName} />
+                                            <Field
+                                                label="Business / Project Summary"
+                                                error={errors.project_summary}
+                                                className="sm:col-span-2"
+                                                hint="Describe what you need designed and why — at least 30 characters."
+                                            >
+                                                <Textarea rows={4} value={data.project_summary} onChange={(event) => updateField("project_summary", event.target.value)} />
                                             </Field>
-                                            <Field label="Project Goals" error={errors.project_goals} className="sm:col-span-2">
-                                                <textarea rows={3} value={data.project_goals} onChange={(event) => updateField("project_goals", event.target.value)} className={inputClassName} />
+                                            <Field
+                                                label="Anything Else We Should Know?"
+                                                error={errors.additional_details}
+                                                className="sm:col-span-2"
+                                                hint="Optional — goals, target audience, preferred style, deliverables, or anything else worth mentioning."
+                                            >
+                                                <Textarea rows={3} value={data.additional_details} onChange={(event) => updateField("additional_details", event.target.value)} />
                                             </Field>
-                                            <Field label="Target Audience" error={errors.target_audience}>
-                                                <textarea rows={3} value={data.target_audience} onChange={(event) => updateField("target_audience", event.target.value)} className={inputClassName} />
-                                            </Field>
-                                            <Field label="Preferred Style" error={errors.preferred_style}>
-                                                <textarea rows={3} value={data.preferred_style} onChange={(event) => updateField("preferred_style", event.target.value)} className={inputClassName} />
-                                            </Field>
-                                            <Field label="Expected Deliverables" error={errors.deliverables}>
-                                                <textarea rows={3} value={data.deliverables} onChange={(event) => updateField("deliverables", event.target.value)} className={inputClassName} />
-                                            </Field>
-                                            <Field label="Timeline Preference" error={errors.timeline_preference}>
-                                                <input
-                                                    value={data.timeline_preference}
-                                                    readOnly={Boolean(autoTimelinePreference)}
-                                                    onChange={(event) => updateField("timeline_preference", event.target.value)}
-                                                    className={`${inputClassName} ${autoTimelinePreference ? "bg-gray-50" : ""}`}
-                                                />
-                                            </Field>
-                                            <Field label="Additional Details" error={errors.additional_details} className="sm:col-span-2">
-                                                <textarea rows={3} value={data.additional_details} onChange={(event) => updateField("additional_details", event.target.value)} className={inputClassName} />
-                                            </Field>
+                                            {autoTimelinePreference ? (
+                                                <div className="sm:col-span-2">
+                                                    <Label>Timeline</Label>
+                                                    <p className="mt-2 border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                                        {autoTimelinePreference}
+                                                    </p>
+                                                </div>
+                                            ) : (
+                                                <Field label="Timeline Preference" error={errors.timeline_preference} hint="Optional — pick whichever fits your project best.">
+                                                    <Select value={data.timeline_preference} onChange={(event) => updateField("timeline_preference", event.target.value)}>
+                                                        <option value="">Select an option</option>
+                                                        {timelinePresetOptions.map((option) => (
+                                                            <option key={option} value={option}>{option}</option>
+                                                        ))}
+                                                    </Select>
+                                                </Field>
+                                            )}
                                         </div>
 
                                         {data.has_logo === "no" && data.logo_design_interest === "yes" && (
@@ -1214,116 +1321,20 @@ export default function OrderCreate({
                                 {currentStep === 4 && (
                                     <section>
                                         <SectionTitle
-                                            title="Choose Package"
-                                            text="Pick a regular plan/pack, or choose the trial request option for one-off work outside plans and packs."
+                                            title="Review and Submit"
+                                            text="Choose your account preference, check the core details, then submit."
                                         />
-                                        <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                                            {regularPackageEntries.map(([code, pack]) => {
-                                                const selected = data.service_package === code;
 
-                                                return (
-                                                    <button
-                                                        key={code}
-                                                        type="button"
-                                                        onClick={() => updateField("service_package", code)}
-                                                        className={`border p-5 text-left transition ${selected ? "border-brand bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
-                                                    >
-                                                        <div className="flex items-start justify-between gap-2">
-                                                            <p className="text-lg font-black text-gray-950">{pack.name}</p>
-                                                            {pack.is_recommended && (
-                                                                <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-brand">
-                                                                    Recommended
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {pack.discount_price && Number(pack.base_price_ngn || 0) > Number(pack.discount_price || 0) ? (
-                                                            <div className="mt-2 flex items-center gap-2">
-                                                                <p className="text-sm font-bold text-brand">{formatMoney(pack.discount_price, currency, locale)}</p>
-                                                                <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
-                                                            </div>
-                                                        ) : (
-                                                            <p className="mt-2 text-sm font-bold text-brand">
-                                                                {formatMoney(pack.price, currency, locale)}
-                                                                {pack.is_quantity_priced && <span className="font-semibold text-gray-500"> / unit</span>}
-                                                            </p>
-                                                        )}
-                                                        <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
-                                                        {Array.isArray(pack.features) && pack.features.length > 0 && (
-                                                            <ul className="mt-3 space-y-1">
-                                                                {pack.features.slice(0, 4).map((feature) => (
-                                                                    <li key={`${code}-${feature}`} className="text-xs text-gray-600">
-                                                                        - {feature}
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        )}
-                                                        {pack.sample_image && (
-                                                            <img
-                                                                src={String(pack.sample_image).startsWith('/') || /^https?:\/\//i.test(String(pack.sample_image))
-                                                                    ? String(pack.sample_image)
-                                                                    : `/${String(pack.sample_image)}`}
-                                                                alt={pack.name}
-                                                                className="mt-3 h-16 w-full rounded object-cover"
-                                                            />
-                                                        )}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                        {activePackages[data.service_package]?.is_quantity_priced && (
-                                            <div className="mt-6 max-w-xs border border-gray-200 bg-white p-5">
-                                                <Field label="Quantity" error={errors.package_quantity}>
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        max={1000}
-                                                        step={1}
-                                                        value={data.package_quantity}
-                                                        onChange={(event) => updateField("package_quantity", event.target.value === "" ? "" : Number(event.target.value))}
-                                                        className={inputClassName}
-                                                    />
-                                                </Field>
-                                                <p className="mt-3 text-sm font-bold text-brand">
-                                                    Total: {formatMoney(Number(activePackages[data.service_package]?.price || 0) * Math.max(1, Number(data.package_quantity) || 1), currency, locale)}
+                                        {data.subscription_plan_id && (
+                                            <div className="mt-6 border border-cyan-200 bg-cyan-50 p-5 text-sm leading-6 text-cyan-900">
+                                                <p className="font-black uppercase tracking-[0.14em] text-cyan-700">Recurring Subscription</p>
+                                                <p className="mt-2">
+                                                    This is a recurring {subscriptionBillingCycle || "recurring"} subscription. Once you complete payment, your card will be charged{" "}
+                                                    {formatMoney(Number(activePackages[data.service_package]?.price || 0), currency, locale)} automatically every {subscriptionBillingCycle || "cycle"} until you cancel.
                                                 </p>
                                             </div>
                                         )}
-                                        {trialPackageEntry && (
-                                            <div className="mt-6 rounded-lg border border-dashed border-brand bg-blue-50 p-5">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Outside Plans / Packs</p>
-                                                <div className="mt-4">
-                                                    {(() => {
-                                                        const [code, pack] = trialPackageEntry;
-                                                        const selected = data.service_package === code;
 
-                                                        return (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => updateField("service_package", code)}
-                                                                className={`w-full border p-5 text-left transition ${selected ? "border-brand bg-white" : "border-blue-200 bg-blue-50/30 hover:border-blue-300"}`}
-                                                            >
-                                                                <p className="text-lg font-black text-gray-950">{pack.name}</p>
-                                                                <p className="mt-2 text-sm font-bold text-brand">{formatMoney(pack.price, currency, locale)}</p>
-                                                                <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
-                                                                <p className="mt-3 text-xs font-semibold text-gray-500">
-                                                                    This trial option uses a fixed fee and does not accept discount codes.
-                                                                </p>
-                                                            </button>
-                                                        );
-                                                    })()}
-                                                </div>
-                                            </div>
-                                        )}
-                                        {errors.service_package && <p className="mt-3 text-sm text-red-600">{errors.service_package}</p>}
-                                    </section>
-                                )}
-
-                                {currentStep === 5 && (
-                                    <section>
-                                        <SectionTitle
-                                            title="Account Preference"
-                                            text="Choose whether to continue as a guest or create a Bellah Options account for tracking."
-                                        />
                                         {isAuthenticated ? (
                                             <div className="mt-6 border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-700">
                                                 You are already logged in. This order will be linked to your account automatically.
@@ -1345,25 +1356,17 @@ export default function OrderCreate({
                                                 {data.create_account && (
                                                     <div className="grid gap-4 sm:grid-cols-2">
                                                         <Field label="Password" error={errors.password}>
-                                                            <input type="password" value={data.password} onChange={(event) => updateField("password", event.target.value, ["password_confirmation"])} className={inputClassName} />
+                                                            <Input type="password" value={data.password} onChange={(event) => updateField("password", event.target.value, ["password_confirmation"])} />
                                                         </Field>
                                                         <Field label="Confirm Password" error={errors.password_confirmation}>
-                                                            <input type="password" value={data.password_confirmation} onChange={(event) => updateField("password_confirmation", event.target.value)} className={inputClassName} />
+                                                            <Input type="password" value={data.password_confirmation} onChange={(event) => updateField("password_confirmation", event.target.value)} />
                                                         </Field>
                                                     </div>
                                                 )}
                                             </div>
                                         )}
-                                    </section>
-                                )}
 
-                                {currentStep === 6 && (
-                                    <section>
-                                        <SectionTitle
-                                            title="Review and Submit"
-                                            text="Check the core details below before we create the order."
-                                        />
-                                        <div className="mt-6 grid gap-4 lg:grid-cols-[1fr_320px]">
+                                        <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px]">
                                             <div className="border border-gray-200">
                                                 {summaryItems.map(([label, value]) => (
                                                     <div key={label} className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 last:border-b-0">
@@ -1375,7 +1378,7 @@ export default function OrderCreate({
                                             <div className="bg-brand p-6 text-white">
                                                 <p className="text-sm font-black uppercase tracking-[0.18em] text-gray-300">Summary</p>
                                                 <p className="mt-3 text-2xl font-black">Submit the order</p>
-                                                <p className="mt-3 text-sm leading-6 text-blue-100">We’ll create the order record first. If payment is required, you’ll be taken straight to the payment screen.</p>
+                                                <p className="mt-3 text-sm leading-6 text-blue-100">We'll create the order record first. If payment is required, you'll be taken straight to the payment screen.</p>
                                             </div>
                                         </div>
                                         <div className="mt-6 max-w-sm">
@@ -1390,12 +1393,11 @@ export default function OrderCreate({
                                                     )}
                                                 </Field>
                                             ) : (
-                                                <Field label={`Human Check: ${humanCheckQuestion}`} error={errors.human_check_answer}>
-                                                    <input
+                                                <Field label={`Human Check: ${humanCheckQuestion}`} error={errors.human_check_answer} hint="A quick spam check — solve the sum above.">
+                                                    <Input
                                                         type="text"
                                                         value={data.human_check_answer}
                                                         onChange={(event) => updateField("human_check_answer", event.target.value)}
-                                                        className={inputClassName}
                                                         autoComplete="off"
                                                     />
                                                 </Field>
@@ -1409,23 +1411,24 @@ export default function OrderCreate({
                                 <input type="hidden" value={data.human_check_nonce} readOnly />
                                 <input type="hidden" value={data.form_rendered_at} readOnly />
                                 <input type="hidden" value={data.discount_code} readOnly />
+                                <input type="hidden" value={data.subscription_plan_id} readOnly />
 
                                 <div className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex gap-3">
-                                        <button type="button" onClick={previousStep} disabled={currentStep === 1} className="inline-flex items-center gap-2 rounded-md border border-gray-300 px-5 py-3 text-sm font-black text-gray-700 disabled:cursor-not-allowed disabled:opacity-50">
+                                        <Button type="button" variant="outline" onClick={previousStep} disabled={currentStep === 1} className="rounded-md px-5 py-3">
                                             <ArrowLeftIcon className="h-4 w-4" />
                                             Back
-                                        </button>
+                                        </Button>
                                         {currentStep < steps.length ? (
-                                            <button type="button" onClick={nextStep} className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-black text-white">
+                                            <Button type="button" onClick={nextStep} className="rounded-md px-5 py-3">
                                                 Continue
                                                 <ArrowRightIcon className="h-4 w-4" />
-                                            </button>
+                                            </Button>
                                         ) : (
-                                            <button type="submit" disabled={processing} className="inline-flex items-center gap-2 rounded-md bg-brand px-5 py-3 text-sm font-black text-white disabled:opacity-60">
+                                            <Button type="submit" disabled={processing} className="rounded-md px-5 py-3">
                                                 {processing ? "Submitting..." : "Submit Order"}
                                                 <ArrowRightIcon className="h-4 w-4" />
-                                            </button>
+                                            </Button>
                                         )}
                                     </div>
                                     <Link href="/services" className="text-sm font-black text-brand">
@@ -1440,8 +1443,6 @@ export default function OrderCreate({
         </>
     );
 }
-
-const inputClassName = "w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-950 focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30";
 
 function resolveErrorStep(formErrors, activeService) {
     const serviceSpecificFields = new Set((activeService?.intake || []).map((field) => field.name));
@@ -1467,11 +1468,12 @@ function SectionTitle({ title, text }) {
     );
 }
 
-function Field({ label, error, className = "", children }) {
+function Field({ label, error, hint, className = "", children }) {
     return (
         <div className={className}>
-            <label className="mb-2 block text-sm font-bold text-gray-700">{label}</label>
+            <Label className="mb-2 block font-bold text-gray-700">{label}</Label>
             {children}
+            {hint && !error && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
             {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
         </div>
     );
@@ -1481,29 +1483,27 @@ function DynamicField({ field, value, error, onChange }) {
     const className = field.type === "textarea" ? "sm:col-span-2" : "";
 
     return (
-        <Field label={field.label} error={error} className={className}>
+        <Field label={field.label} error={error} hint={field.hint} className={className}>
             {field.type === "textarea" ? (
-                <textarea rows={field.rows || 3} value={value} onChange={(event) => onChange(event.target.value)} className={inputClassName} />
+                <Textarea rows={field.rows || 3} value={value} onChange={(event) => onChange(event.target.value)} />
             ) : field.type === "select" ? (
-                <select value={value} onChange={(event) => onChange(event.target.value)} className={inputClassName}>
+                <Select value={value} onChange={(event) => onChange(event.target.value)}>
                     <option value="">Select an option</option>
                     {Object.entries(field.options || {}).map(([optionValue, optionLabel]) => (
                         <option key={optionValue} value={optionValue}>
                             {optionLabel}
                         </option>
                     ))}
-                </select>
+                </Select>
             ) : (
-                <input
+                <Input
                     type={field.type === "number" ? "number" : field.type === "url" ? "url" : "text"}
                     inputMode={field.type === "url" ? "url" : field.type === "number" ? "numeric" : undefined}
                     placeholder={field.placeholder || ""}
                     value={value}
                     onChange={(event) => onChange(event.target.value)}
-                    className={inputClassName}
                 />
             )}
-            {field.hint && <p className="mt-1 text-xs text-gray-500">{field.hint}</p>}
         </Field>
     );
 }

@@ -48,6 +48,7 @@ export function buildOrderFormSeed(checkoutServices, defaults = {}) {
         timeline_preference: "",
         service_package: defaults.service_package || "",
         package_quantity: 1,
+        subscription_plan_id: defaults.subscription_plan_id || "",
         create_account: false,
         password: "",
         password_confirmation: "",

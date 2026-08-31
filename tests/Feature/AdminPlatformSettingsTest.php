@@ -7,6 +7,7 @@ use App\Models\DiscountCode;
 use App\Models\SubscriptionPlan;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class AdminPlatformSettingsTest extends TestCase
@@ -135,6 +136,11 @@ class AdminPlatformSettingsTest extends TestCase
 
     public function test_super_admin_can_create_and_manage_subscription_plan(): void
     {
+        // Plan creation attempts a best-effort Paystack sync; fake it so this test
+        // never depends on (or hits) the real Paystack API regardless of the
+        // ambient .env secret key.
+        Http::fake();
+
         $superAdmin = User::factory()->create([
             'role' => User::ROLE_SUPER_ADMIN,
         ]);
