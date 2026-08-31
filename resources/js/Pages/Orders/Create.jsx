@@ -638,6 +638,8 @@ export default function OrderCreate({
 
                 turnstileWidgetIdRef.current = turnstile.render(turnstileContainerRef.current, {
                     sitekey: turnstileSiteKey,
+                    appearance: "always",
+                    execution: "render",
                     callback: (token) => {
                         updateField("turnstile_token", token);
                         setTurnstileClientError("");

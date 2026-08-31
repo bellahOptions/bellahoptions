@@ -41,6 +41,8 @@ export default function HumanVerificationField({
 
                 turnstileWidgetIdRef.current = turnstile.render(turnstileContainerRef.current, {
                     sitekey: turnstileSiteKey,
+                    appearance: "always",
+                    execution: "render",
                     callback: (token) => {
                         onTurnstileChangeRef.current?.(token);
                         setTurnstileClientError("");
