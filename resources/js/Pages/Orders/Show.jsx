@@ -2,6 +2,8 @@ import { Head, Link, router } from "@inertiajs/react";
 import { useEffect } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
+import { buttonVariants } from "@/Components/ui/button";
+import { cn } from "@/lib/utils";
 import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatMoney, statusLabel } from "./orderUtils";
 
@@ -76,15 +78,20 @@ export default function OrderShow({ order, serviceBriefLabels = {}, serviceBrief
 
                                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                                     {order.payment_status !== "paid" && order.payment_status !== "not_required" && Number(order.amount || 0) > 0 && (
-                                        <Link href={route("orders.payment.show", order.order_code)} className="inline-flex items-center justify-center gap-2 bg-brand px-5 py-3 text-sm font-black text-white">
+                                        <Link href={route("orders.payment.show", order.order_code)} className={cn(buttonVariants({ variant: "default" }), "rounded-md px-5 py-3")}>
                                             Complete Payment
                                             <ArrowRightIcon className="h-4 w-4" />
                                         </Link>
                                     )}
-                                    <Link href="/services" className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-black text-gray-700">
+                                    <Link href="/services" className={cn(buttonVariants({ variant: "outline" }), "rounded-md px-5 py-3")}>
                                         Order Another Service
                                     </Link>
                                 </div>
+                                {isWatchingForPayment && (
+                                    <p className="mt-3 text-xs text-gray-500">
+                                        This page refreshes automatically every few seconds while your payment is being confirmed.
+                                    </p>
+                                )}
                             </div>
 
                             <div className="bg-white p-6 shadow-sm ring-1 ring-gray-200">

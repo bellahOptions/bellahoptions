@@ -2,6 +2,10 @@ import { Head, Link, router, usePage } from "@inertiajs/react";
 import { useMemo, useState } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
+import { Button, buttonVariants } from "@/Components/ui/button";
+import { Input } from "@/Components/ui/input";
+import { Label } from "@/Components/ui/label";
+import { cn } from "@/lib/utils";
 import { ArrowRightIcon, CreditCardIcon, LifebuoyIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatMoney, statusLabel } from "./orderUtils";
 import { termsSections } from "@/Pages/Legal/policyData";
@@ -140,10 +144,15 @@ export default function OrderPayment({
                                     </div>
 
                                     {canPay ? (
-                                        <button type="button" onClick={handlePayNow} className="mt-5 inline-flex w-full items-center justify-center gap-2 bg-brand px-6 py-3 text-sm font-black text-white">
-                                            Pay Online With {String(paymentProvider).toUpperCase()}
-                                            <ArrowRightIcon className="h-4 w-4" />
-                                        </button>
+                                        <>
+                                            <Button type="button" onClick={handlePayNow} className="mt-5 w-full rounded-md px-6 py-3">
+                                                Pay Online With {String(paymentProvider).toUpperCase()}
+                                                <ArrowRightIcon className="h-4 w-4" />
+                                            </Button>
+                                            <p className="mt-2 text-xs text-gray-500">
+                                                You'll be redirected to {String(paymentProvider).toUpperCase()}'s secure page to complete payment, then brought back here automatically.
+                                            </p>
+                                        </>
                                     ) : (
                                         <div className="mt-5 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
                                             {paymentGatewayIssue
@@ -169,44 +178,49 @@ export default function OrderPayment({
 
                                         {canPay && (
                                             <>
-                                                <label htmlFor="transfer-reference" className="mt-4 block text-xs font-black uppercase tracking-[0.12em] text-gray-500">
+                                                <Label htmlFor="transfer-reference" className="mt-4 block text-xs font-black uppercase tracking-[0.12em] text-gray-500">
                                                     Transfer Reference (optional)
-                                                </label>
-                                                <input
+                                                </Label>
+                                                <Input
                                                     id="transfer-reference"
                                                     type="text"
                                                     value={transferReference}
                                                     onChange={(event) => setTransferReference(event.target.value)}
                                                     placeholder="Example: INV-12345"
-                                                    className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-brand focus:ring-2 focus:ring-brand/30"
+                                                    className="mt-2"
                                                 />
-                                                <button
+                                                <p className="mt-1 text-xs text-gray-500">
+                                                    Add your bank's transaction reference if you have it — this helps us confirm your payment faster.
+                                                </p>
+                                                <Button
                                                     type="button"
+                                                    variant="outline"
                                                     onClick={handleTransferSubmit}
-                                                    className="mt-4 inline-flex w-full items-center justify-center border border-brand px-6 py-3 text-sm font-black text-brand"
+                                                    className="mt-4 w-full rounded-md border-brand px-6 py-3 text-brand"
                                                 >
                                                     I Have Paid By Transfer
-                                                </button>
+                                                </Button>
                                             </>
                                         )}
                                     </div>
                                 )}
 
                                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                                    <Link href={route("orders.show", order.order_code)} className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-black text-gray-700">
+                                    <Link href={route("orders.show", order.order_code)} className={cn(buttonVariants({ variant: "outline" }), "rounded-md px-5 py-3")}>
                                         View Order Progress
                                     </Link>
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="outline"
                                         onClick={() => {
                                             setPendingAction(null);
                                             setShowTermsModal(true);
                                         }}
-                                        className="inline-flex items-center justify-center border border-gray-300 px-5 py-3 text-sm font-black text-gray-700"
+                                        className="rounded-md px-5 py-3"
                                     >
                                         Review Terms
-                                    </button>
-                                    <Link href="/contact-us" className="inline-flex items-center justify-center gap-2 border border-gray-300 px-5 py-3 text-sm font-black text-gray-700">
+                                    </Button>
+                                    <Link href="/contact-us" className={cn(buttonVariants({ variant: "outline" }), "rounded-md px-5 py-3")}>
                                         Need Help?
                                         <LifebuoyIcon className="h-4 w-4" />
                                     </Link>
@@ -287,24 +301,21 @@ export default function OrderPayment({
                         </div>
 
                         <div className="flex flex-col gap-3 border-t border-gray-200 px-6 py-5 sm:flex-row sm:justify-end">
-                            <button
+                            <Button
                                 type="button"
+                                variant="outline"
                                 onClick={() => {
                                     setTermsAccepted(false);
                                     setPendingAction(null);
                                     setShowTermsModal(false);
                                 }}
-                                className="border border-gray-300 px-5 py-3 text-sm font-black text-gray-700"
+                                className="rounded-md px-5 py-3"
                             >
                                 Reject Terms
-                            </button>
-                            <button
-                                type="button"
-                                onClick={agreeAndContinue}
-                                className="bg-brand px-5 py-3 text-sm font-black text-white"
-                            >
+                            </Button>
+                            <Button type="button" onClick={agreeAndContinue} className="rounded-md px-5 py-3">
                                 {pendingAction ? "Agree and Continue" : "Agree to Terms"}
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
