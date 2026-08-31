@@ -23,16 +23,19 @@ class PaystackService
         array $metadata = []
     ): array
     {
+        $splitCode = trim((string) config('services.paystack.split_code', ''));
+
         $response = Http::timeout(20)
             ->withToken($this->secretKey())
-            ->post('https://api.paystack.co/transaction/initialize', [
+            ->post('https://api.paystack.co/transaction/initialize', array_filter([
                 'email' => $email,
                 'amount' => $amountInMinor,
                 'reference' => $reference,
                 'currency' => strtoupper(trim($currency)),
                 'callback_url' => $callbackUrl,
                 'metadata' => $metadata,
-            ]);
+                'split_code' => $splitCode !== '' ? $splitCode : null,
+            ], static fn (mixed $value): bool => $value !== null));
 
         $payload = $this->validatedPayload($response);
         $data = (array) ($payload['data'] ?? []);

@@ -486,7 +486,7 @@ class ServiceOrderController extends Controller
             $callbackUrl = 'https://'.ltrim(substr($callbackUrl, 7), '/');
         }
 
-        $reference = $serviceOrder->paystack_reference ?: strtoupper('BO-'.Str::random(24));
+        $reference = strtoupper('BO-'.Str::random(24));
         $encryptedMetadata = $this->buildEncryptedPaymentMetadata($serviceOrder, $provider);
 
         try {
