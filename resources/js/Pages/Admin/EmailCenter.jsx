@@ -186,12 +186,14 @@ export default function EmailCenter({
             html_template: campaignForm.data.html_template || toBlockHtml(campaignForm.data.builder_layout),
         };
 
+        campaignForm.transform(() => payload);
+
         if (campaignForm.data.id) {
-            campaignForm.transform(() => payload).put(route('admin.email-center.campaigns.update', campaignForm.data.id), { preserveScroll: true });
+            campaignForm.put(route('admin.email-center.campaigns.update', campaignForm.data.id), { preserveScroll: true });
             return;
         }
 
-        campaignForm.transform(() => payload).post(route('admin.email-center.campaigns.store'), {
+        campaignForm.post(route('admin.email-center.campaigns.store'), {
             preserveScroll: true,
             onSuccess: () => campaignForm.reset(),
         });

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\ImageUploader;
+use App\Support\CloudinaryUploader;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -17,7 +19,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(ImageUploader::class, CloudinaryUploader::class);
     }
 
     /**

@@ -113,6 +113,44 @@ class ServiceOrderCatalog
     }
 
     /**
+     * A lightweight name/description/package-name shape of the full catalog,
+     * suitable for admin dropdowns (discount codes, subscription plans) that
+     * only need to label services and packages, not their pricing.
+     *
+     * @return array<string, array{name: string, description: string, packages: array<string, array{name: string, description: string}>}>
+     */
+    public function meta(): array
+    {
+        $mapped = [];
+
+        foreach ($this->all() as $serviceSlug => $service) {
+            if (! is_array($service)) {
+                continue;
+            }
+
+            $packages = [];
+            foreach ((array) ($service['packages'] ?? []) as $packageCode => $package) {
+                if (! is_array($package)) {
+                    continue;
+                }
+
+                $packages[$packageCode] = [
+                    'name' => (string) ($package['name'] ?? ucfirst((string) $packageCode)),
+                    'description' => (string) ($package['description'] ?? ''),
+                ];
+            }
+
+            $mapped[$serviceSlug] = [
+                'name' => (string) ($service['name'] ?? ucfirst((string) $serviceSlug)),
+                'description' => (string) ($service['description'] ?? ''),
+                'packages' => $packages,
+            ];
+        }
+
+        return $mapped;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function service(string $serviceSlug): ?array

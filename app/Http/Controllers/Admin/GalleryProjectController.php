@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Contracts\ImageUploader;
 use App\Http\Controllers\Controller;
 use App\Models\GalleryProject;
+use App\Models\MediaUpload;
 use App\Support\PublicContentSecurity;
-use App\Support\WebpImageConverter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 
 class GalleryProjectController extends Controller
 {
@@ -81,7 +83,7 @@ class GalleryProjectController extends Controller
         return response()->json($this->mediaLibraryPayload());
     }
 
-    public function upload(Request $request, WebpImageConverter $converter): JsonResponse
+    public function upload(Request $request, ImageUploader $uploader): JsonResponse
     {
         $validated = $request->validate([
             'file' => [
@@ -100,66 +102,83 @@ class GalleryProjectController extends Controller
             ]);
         }
 
-        $extension = strtolower($file->getClientOriginalExtension());
-
         try {
-            $storedPath = $converter->storePublicWebp(
-                $file,
-                'gallery-projects',
-                'public',
-                82,
-                $validated['crop_aspect'] ?? null,
-            );
-        } catch (\RuntimeException $exception) {
+            $result = $uploader->uploadImage($file, 'gallery-projects', $validated['crop_aspect'] ?? null);
+        } catch (RuntimeException $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
             ]);
         }
 
-        $publicPath = '/storage/'.$storedPath;
+        $this->recordUpload($result, 'gallery-projects', $request->user()?->id);
 
         return response()->json([
-            'path' => $publicPath,
-            'url' => $publicPath,
+            'path' => $result['secure_url'],
+            'url' => $result['secure_url'],
             'message' => 'Image uploaded successfully.',
         ], 201);
     }
 
-    public function crop(Request $request, WebpImageConverter $converter): JsonResponse
+    public function crop(Request $request, ImageUploader $uploader): JsonResponse
     {
         $validated = $request->validate([
-            'path' => ['required', 'string', 'max:255'],
+            'path' => ['required', 'string', 'max:2048'],
             'crop_aspect' => ['required', 'string', 'in:1:1,4:3,16:9,3:4,9:16'],
         ]);
 
         $path = PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($validated['path'] ?? null);
-        if (! is_string($path) || ! PublicContentSecurity::isSafeRelativePath($path)) {
+
+        $sourceUrl = null;
+        if (is_string($path) && PublicContentSecurity::isSafeHttpUrl($path)) {
+            $sourceUrl = $path;
+        } elseif (is_string($path) && PublicContentSecurity::isSafeRelativePath($path)) {
+            $sourceUrl = rtrim((string) config('app.url'), '/').$path;
+        }
+
+        if ($sourceUrl === null) {
             throw ValidationException::withMessages([
                 'path' => 'Please provide a valid public media path.',
             ]);
         }
 
         try {
-            $storedPath = $converter->cropExistingPublicImageToWebp(
-                $path,
-                'gallery-projects',
-                'public',
-                82,
-                (string) $validated['crop_aspect'],
-            );
-        } catch (\RuntimeException $exception) {
+            $result = $uploader->uploadFromUrl($sourceUrl, 'gallery-projects', (string) $validated['crop_aspect']);
+        } catch (RuntimeException $exception) {
             throw ValidationException::withMessages([
                 'path' => $exception->getMessage(),
             ]);
         }
 
-        $publicPath = '/storage/'.$storedPath;
+        $this->recordUpload($result, 'gallery-projects', $request->user()?->id);
 
         return response()->json([
-            'path' => $publicPath,
-            'url' => $publicPath,
+            'path' => $result['secure_url'],
+            'url' => $result['secure_url'],
             'message' => 'Image cropped successfully.',
         ], 201);
+    }
+
+    /**
+     * @param array{secure_url: string, public_id: string, format: string, bytes: int, width: int, height: int} $result
+     */
+    private function recordUpload(array $result, string $folder, ?int $uploadedBy): void
+    {
+        if ($result['public_id'] === '' || $result['secure_url'] === '') {
+            return;
+        }
+
+        MediaUpload::query()->updateOrCreate(
+            ['public_id' => $result['public_id']],
+            [
+                'secure_url' => $result['secure_url'],
+                'folder' => $folder,
+                'format' => $result['format'],
+                'bytes' => $result['bytes'],
+                'width' => $result['width'],
+                'height' => $result['height'],
+                'uploaded_by' => $uploadedBy,
+            ]
+        );
     }
 
     /**
@@ -216,9 +235,41 @@ class GalleryProjectController extends Controller
      */
     private function mediaLibraryPayload(): array
     {
+        $files = [...$this->listCloudinaryMediaFiles(), ...$this->listPublicMediaFiles()];
+
+        usort($files, static fn (array $a, array $b): int => strcmp((string) $b['updated_at'], (string) $a['updated_at']));
+
         return [
-            'files' => $this->listPublicMediaFiles(),
+            'files' => array_values($files),
         ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function listCloudinaryMediaFiles(): array
+    {
+        if (! Schema::hasTable('media_uploads')) {
+            return [];
+        }
+
+        return MediaUpload::query()
+            ->latest('id')
+            ->get()
+            ->map(static function (MediaUpload $media): array {
+                $name = basename((string) $media->public_id).'.'.$media->format;
+
+                return [
+                    'name' => $name,
+                    'path' => $media->secure_url,
+                    'directory' => (string) ($media->folder ?: '/'),
+                    'extension' => (string) $media->format,
+                    'size' => (int) $media->bytes,
+                    'updated_at' => $media->updated_at?->toAtomString() ?? now()->toAtomString(),
+                    'preview_url' => $media->secure_url,
+                ];
+            })
+            ->all();
     }
 
     /**
@@ -279,9 +330,25 @@ class GalleryProjectController extends Controller
         return array_values($files);
     }
 
-    private function deleteIfManagedUpload(mixed $path): void
+    private function deleteIfManagedUpload(mixed $path, ?ImageUploader $uploader = null): void
     {
-        if (! is_string($path) || ! str_starts_with($path, '/storage/gallery-projects/')) {
+        if (! is_string($path) || $path === '') {
+            return;
+        }
+
+        if (str_contains($path, 'res.cloudinary.com')) {
+            $uploader ??= app(ImageUploader::class);
+            $publicId = $uploader->extractPublicId($path);
+
+            if ($publicId !== null) {
+                $uploader->destroy($publicId);
+                MediaUpload::query()->where('public_id', $publicId)->delete();
+            }
+
+            return;
+        }
+
+        if (! str_starts_with($path, '/storage/gallery-projects/')) {
             return;
         }
 

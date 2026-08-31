@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Dashboard;
 
+use App\Contracts\ImageUploader;
 use App\Http\Controllers\Controller;
 use App\Mail\InvoiceIssuedMail;
 use App\Mail\SupportTicketCreatedAdminAlertMail;
 use App\Mail\SupportTicketCreatedCustomerMail;
 use App\Mail\SupportTicketCustomerReplyAdminAlertMail;
 use App\Models\Invoice;
+use App\Models\MediaUpload;
 use App\Models\ServiceOrder;
 use App\Models\ServiceOrderUpdate;
 use App\Models\SupportTicket;
@@ -17,6 +19,7 @@ use App\Support\ServiceOrderRenewal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -24,8 +27,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
+use RuntimeException;
 use Throwable;
 
 class UserWorkspaceController extends Controller
@@ -249,7 +254,9 @@ class UserWorkspaceController extends Controller
                     'messages' => $ticket->messages->map(function (SupportTicketMessage $message): array {
                         $attachmentUrl = null;
                         if (is_string($message->attachment_path) && trim($message->attachment_path) !== '') {
-                            $attachmentUrl = Storage::disk('public')->url($message->attachment_path);
+                            $attachmentUrl = str_starts_with($message->attachment_path, 'http://') || str_starts_with($message->attachment_path, 'https://')
+                                ? $message->attachment_path
+                                : Storage::disk('public')->url($message->attachment_path);
                         }
 
                         return [
@@ -269,7 +276,7 @@ class UserWorkspaceController extends Controller
         ]);
     }
 
-    public function storeSupportTicket(Request $request): RedirectResponse
+    public function storeSupportTicket(Request $request, ImageUploader $uploader): RedirectResponse
     {
         $user = $this->customerUser($request);
 
@@ -289,7 +296,7 @@ class UserWorkspaceController extends Controller
         }
 
         $attachment = $request->file('attachment');
-        $attachmentPath = $attachment?->store('support-tickets', 'public');
+        $attachmentPath = $this->uploadSupportAttachment($attachment, $uploader, $user->id);
 
         /** @var SupportTicket $ticket */
         $ticket = DB::transaction(function () use ($validated, $user, $messageHtml, $attachmentPath, $attachment): SupportTicket {
@@ -319,7 +326,7 @@ class UserWorkspaceController extends Controller
         return back()->with('success', 'Support ticket created. Our team has been notified.');
     }
 
-    public function replySupportTicket(Request $request, SupportTicket $ticket): RedirectResponse
+    public function replySupportTicket(Request $request, SupportTicket $ticket, ImageUploader $uploader): RedirectResponse
     {
         $user = $this->customerUser($request);
         abort_unless($ticket->user_id === $user->id, 403);
@@ -338,7 +345,7 @@ class UserWorkspaceController extends Controller
         }
 
         $attachment = $request->file('attachment');
-        $attachmentPath = $attachment?->store('support-tickets', 'public');
+        $attachmentPath = $this->uploadSupportAttachment($attachment, $uploader, $user->id);
 
         /** @var SupportTicketMessage $message */
         $message = DB::transaction(function () use ($user, $ticket, $messageHtml, $attachmentPath, $attachment): SupportTicketMessage {
@@ -436,6 +443,38 @@ class UserWorkspaceController extends Controller
             ->unique()
             ->values()
             ->all();
+    }
+
+    private function uploadSupportAttachment(?UploadedFile $attachment, ImageUploader $uploader, int $uploadedBy): ?string
+    {
+        if ($attachment === null) {
+            return null;
+        }
+
+        try {
+            $result = $uploader->uploadImage($attachment, 'support-tickets');
+        } catch (RuntimeException $exception) {
+            throw ValidationException::withMessages([
+                'attachment' => $exception->getMessage(),
+            ]);
+        }
+
+        if ($result['public_id'] !== '' && $result['secure_url'] !== '') {
+            MediaUpload::query()->updateOrCreate(
+                ['public_id' => $result['public_id']],
+                [
+                    'secure_url' => $result['secure_url'],
+                    'folder' => 'support-tickets',
+                    'format' => $result['format'],
+                    'bytes' => $result['bytes'],
+                    'width' => $result['width'],
+                    'height' => $result['height'],
+                    'uploaded_by' => $uploadedBy,
+                ]
+            );
+        }
+
+        return $result['secure_url'];
     }
 
     private function sanitizeSupportMessageHtml(string $rawMessage): string

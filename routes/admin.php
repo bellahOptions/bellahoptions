@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\BankStatementController;
 use App\Http\Controllers\Admin\ClientReviewController as AdminClientReviewController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DiscountCodeController;
 use App\Http\Controllers\Admin\EmailCenterController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\InvoiceController;
@@ -20,11 +21,27 @@ use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\FaqController;
 use App\Http\Controllers\Admin\GalleryProjectController;
 use App\Http\Controllers\Admin\ServicePricingController;
+use App\Http\Controllers\Admin\SubscriptionPlanController;
 use App\Http\Controllers\Dashboard\UserWorkspaceController;
 
-Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('service-pricing', [ServicePricingController::class, 'edit'])->name('service-pricing.edit');
-    Route::patch('service-pricing', [ServicePricingController::class, 'update'])->name('service-pricing.update');
+$servicePricingSlugs = [
+    'social-media-design',
+    'graphic-design',
+    'brand-design',
+    'web-design',
+    'special-service',
+    'mobile-app-development',
+    'ui-ux',
+    'manage-hires',
+];
+
+Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->prefix('admin')->name('admin.')->group(function () use ($servicePricingSlugs) {
+    Route::get('service-pricing/{serviceSlug}', [ServicePricingController::class, 'edit'])
+        ->whereIn('serviceSlug', $servicePricingSlugs)
+        ->name('service-pricing.edit');
+    Route::patch('service-pricing/{serviceSlug}', [ServicePricingController::class, 'update'])
+        ->whereIn('serviceSlug', $servicePricingSlugs)
+        ->name('service-pricing.update');
     Route::get('gallery/media', [GalleryProjectController::class, 'mediaIndex'])->name('gallery.media.index');
     Route::post('gallery/media/upload', [GalleryProjectController::class, 'upload'])->name('gallery.media.upload');
     Route::post('gallery/media/crop', [GalleryProjectController::class, 'crop'])->name('gallery.media.crop');
@@ -79,16 +96,18 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
 Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function (): void {
     Route::get('/admin/settings', [SettingController::class, 'edit'])->name('admin.settings.edit');
     Route::patch('/admin/settings', [SettingController::class, 'update'])->name('admin.settings.update');
-    Route::post('/admin/settings/discount-codes', [SettingController::class, 'storeDiscount'])->name('admin.settings.discounts.store');
-    Route::patch('/admin/settings/discount-codes/{discountCode}/status', [SettingController::class, 'toggleDiscountStatus'])->name('admin.settings.discounts.status');
-    Route::delete('/admin/settings/discount-codes/{discountCode}', [SettingController::class, 'destroyDiscount'])->name('admin.settings.discounts.destroy');
+    Route::get('/admin/discount-codes', [DiscountCodeController::class, 'index'])->name('admin.discount-codes.index');
+    Route::post('/admin/discount-codes', [DiscountCodeController::class, 'store'])->name('admin.discount-codes.store');
+    Route::patch('/admin/discount-codes/{discountCode}/status', [DiscountCodeController::class, 'updateStatus'])->name('admin.discount-codes.status');
+    Route::delete('/admin/discount-codes/{discountCode}', [DiscountCodeController::class, 'destroy'])->name('admin.discount-codes.destroy');
     Route::post('/admin/client-reviews', [AdminClientReviewController::class, 'store'])->name('admin.client-reviews.store');
     Route::patch('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'update'])->name('admin.client-reviews.update');
     Route::delete('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'destroy'])->name('admin.client-reviews.destroy');
-    Route::post('/admin/settings/subscription-plans', [SettingController::class, 'storeSubscriptionPlan'])->name('admin.settings.subscription-plans.store');
-    Route::patch('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'updateSubscriptionPlan'])->name('admin.settings.subscription-plans.update');
-    Route::delete('/admin/settings/subscription-plans/{subscriptionPlan}', [SettingController::class, 'destroySubscriptionPlan'])->name('admin.settings.subscription-plans.destroy');
-    Route::post('/admin/settings/subscription-plans/{subscriptionPlan}/sync-paystack', [SettingController::class, 'syncSubscriptionPlanPaystack'])->name('admin.settings.subscription-plans.sync-paystack');
+    Route::get('/admin/subscription-plans', [SubscriptionPlanController::class, 'index'])->name('admin.subscription-plans.index');
+    Route::post('/admin/subscription-plans', [SubscriptionPlanController::class, 'store'])->name('admin.subscription-plans.store');
+    Route::patch('/admin/subscription-plans/{subscriptionPlan}', [SubscriptionPlanController::class, 'update'])->name('admin.subscription-plans.update');
+    Route::delete('/admin/subscription-plans/{subscriptionPlan}', [SubscriptionPlanController::class, 'destroy'])->name('admin.subscription-plans.destroy');
+    Route::post('/admin/subscription-plans/{subscriptionPlan}/sync-paystack', [SubscriptionPlanController::class, 'syncPaystack'])->name('admin.subscription-plans.sync-paystack');
     Route::get('/admin/email-center', [EmailCenterController::class, 'index'])->name('admin.email-center.index');
     Route::post('/admin/email-center/campaigns', [EmailCenterController::class, 'storeCampaign'])->name('admin.email-center.campaigns.store');
     Route::put('/admin/email-center/campaigns/{newsletter}', [EmailCenterController::class, 'updateCampaign'])->name('admin.email-center.campaigns.update');

@@ -5,6 +5,17 @@ import WhatsAppButton from '@/Components/WhatsAppButton';
 import { Link, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
+const SERVICE_PRICING_SLUGS = [
+    { slug: 'social-media-design', label: 'Social Media Design' },
+    { slug: 'graphic-design', label: 'Graphic Design' },
+    { slug: 'brand-design', label: 'Brand Design' },
+    { slug: 'web-design', label: 'Web Design' },
+    { slug: 'special-service', label: 'Special Service' },
+    { slug: 'mobile-app-development', label: 'Mobile App Development' },
+    { slug: 'ui-ux', label: 'UI/UX' },
+    { slug: 'manage-hires', label: 'Manage Hires' },
+];
+
 export default function AuthenticatedLayout({ header, children }) {
     const user = usePage().props.auth.user;
     const isStaff = Boolean(user?.is_staff);
@@ -75,10 +86,29 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: canManageSettings,
             },
             {
+                type: 'group',
                 label: 'Service Pricing',
-                href: route('admin.service-pricing.edit'),
-                active: route().current('admin.service-pricing.*'),
                 show: canManageSettings,
+                active: route().current('admin.service-pricing.*')
+                    || route().current('admin.subscription-plans.*')
+                    || route().current('admin.discount-codes.*'),
+                children: [
+                    ...SERVICE_PRICING_SLUGS.map(({ slug, label }) => ({
+                        label,
+                        href: route('admin.service-pricing.edit', slug),
+                        active: route().current('admin.service-pricing.edit', { serviceSlug: slug }),
+                    })),
+                    {
+                        label: 'Subscription Plans',
+                        href: route('admin.subscription-plans.index'),
+                        active: route().current('admin.subscription-plans.*'),
+                    },
+                    {
+                        label: 'Discount Codes',
+                        href: route('admin.discount-codes.index'),
+                        active: route().current('admin.discount-codes.*'),
+                    },
+                ],
             },
             {
                 label: 'Projects',
@@ -149,13 +179,17 @@ export default function AuthenticatedLayout({ header, children }) {
 
                 <nav className="flex-1 space-y-1 overflow-y-auto px-4 py-6">
                     {navItems.map((item) => (
-                        <SidebarLink
-                            key={item.label}
-                            href={item.href}
-                            active={item.active}
-                        >
-                            {item.label}
-                        </SidebarLink>
+                        item.type === 'group' ? (
+                            <SidebarGroup key={item.label} label={item.label} active={item.active} items={item.children} />
+                        ) : (
+                            <SidebarLink
+                                key={item.label}
+                                href={item.href}
+                                active={item.active}
+                            >
+                                {item.label}
+                            </SidebarLink>
+                        )
                     ))}
                 </nav>
 
@@ -281,14 +315,24 @@ export default function AuthenticatedLayout({ header, children }) {
                         <div className="border-t border-gray-100 bg-white px-4 py-4 shadow-sm lg:hidden">
                             <div className="space-y-1">
                                 {navItems.map((item) => (
-                                    <SidebarLink
-                                        key={item.label}
-                                        href={item.href}
-                                        active={item.active}
-                                        onClick={() => setShowingNavigationDropdown(false)}
-                                    >
-                                        {item.label}
-                                    </SidebarLink>
+                                    item.type === 'group' ? (
+                                        <SidebarGroup
+                                            key={item.label}
+                                            label={item.label}
+                                            active={item.active}
+                                            items={item.children}
+                                            onNavigate={() => setShowingNavigationDropdown(false)}
+                                        />
+                                    ) : (
+                                        <SidebarLink
+                                            key={item.label}
+                                            href={item.href}
+                                            active={item.active}
+                                            onClick={() => setShowingNavigationDropdown(false)}
+                                        >
+                                            {item.label}
+                                        </SidebarLink>
+                                    )
                                 ))}
                             </div>
                         </div>
@@ -308,6 +352,54 @@ export default function AuthenticatedLayout({ header, children }) {
 
             {!isStaff && <WhatsAppButton />}
 
+        </div>
+    );
+}
+
+function SidebarGroup({ label, active, items = [], onNavigate }) {
+    const [open, setOpen] = useState(active);
+
+    return (
+        <div>
+            <button
+                type="button"
+                onClick={() => setOpen((previous) => !previous)}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+                    active
+                        ? 'bg-brand-light text-brand'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-brand'
+                }`}
+                aria-expanded={open}
+            >
+                {label}
+                <svg
+                    className={`h-4 w-4 shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                >
+                    <path
+                        fillRule="evenodd"
+                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                        clipRule="evenodd"
+                    />
+                </svg>
+            </button>
+
+            {open && (
+                <div className="mt-1 space-y-1 border-l border-gray-100 pl-3">
+                    {items.map((child) => (
+                        <SidebarLink
+                            key={child.label}
+                            href={child.href}
+                            active={child.active}
+                            onClick={onNavigate}
+                        >
+                            {child.label}
+                        </SidebarLink>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

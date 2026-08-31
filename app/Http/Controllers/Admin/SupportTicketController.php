@@ -77,7 +77,9 @@ class SupportTicketController extends Controller
                     'messages' => $ticket->messages->map(function (SupportTicketMessage $message): array {
                         $attachmentUrl = null;
                         if (is_string($message->attachment_path) && trim($message->attachment_path) !== '') {
-                            $attachmentUrl = Storage::disk('public')->url($message->attachment_path);
+                            $attachmentUrl = str_starts_with($message->attachment_path, 'http://') || str_starts_with($message->attachment_path, 'https://')
+                                ? $message->attachment_path
+                                : Storage::disk('public')->url($message->attachment_path);
                         }
 
                         return [

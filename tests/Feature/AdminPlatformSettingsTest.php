@@ -112,7 +112,7 @@ class AdminPlatformSettingsTest extends TestCase
         ]);
 
         $this->actingAs($superAdmin)
-            ->post(route('admin.settings.discounts.store'), [
+            ->post(route('admin.discount-codes.store'), [
                 'name' => 'Launch Promo',
                 'code' => 'LAUNCH20',
                 'discount_type' => 'percentage',
@@ -146,7 +146,7 @@ class AdminPlatformSettingsTest extends TestCase
         ]);
 
         $this->actingAs($superAdmin)
-            ->post(route('admin.settings.subscription-plans.store'), [
+            ->post(route('admin.subscription-plans.store'), [
                 'name' => 'Growth Social Plan',
                 'service_slug' => 'social-media-design',
                 'package_code' => 'standard',
@@ -171,7 +171,7 @@ class AdminPlatformSettingsTest extends TestCase
         $this->assertTrue((bool) $plan?->is_recommended);
 
         $this->actingAs($superAdmin)
-            ->patch(route('admin.settings.subscription-plans.update', $plan), [
+            ->patch(route('admin.subscription-plans.update', $plan), [
                 'show_on_homepage' => false,
             ])
             ->assertRedirect();

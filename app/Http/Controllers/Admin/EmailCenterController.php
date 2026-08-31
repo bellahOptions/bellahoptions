@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Contracts\ImageUploader;
 use App\Http\Controllers\Controller;
 use App\Mail\NewsletterCampaignMail;
 use App\Models\Customer;
@@ -19,7 +20,6 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -276,7 +276,7 @@ class EmailCenterController extends Controller
         return back()->with('success', 'System email templates updated.');
     }
 
-    public function uploadHeaderImage(Request $request): JsonResponse
+    public function uploadHeaderImage(Request $request, ImageUploader $uploader): JsonResponse
     {
         abort_unless((bool) $request->user()?->canManageSettings(), 403);
 
@@ -292,7 +292,7 @@ class EmailCenterController extends Controller
         }
 
         try {
-            $publicPath = $this->storeEmailHeaderImage($file);
+            $result = $uploader->uploadImage($file, 'email-headers', null, 'jpg', 'auto');
         } catch (RuntimeException $exception) {
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
@@ -300,8 +300,8 @@ class EmailCenterController extends Controller
         }
 
         return response()->json([
-            'path' => $publicPath,
-            'url' => $publicPath,
+            'path' => $result['secure_url'],
+            'url' => $result['secure_url'],
             'message' => 'Header image uploaded and optimized successfully.',
         ], 201);
     }
@@ -592,125 +592,4 @@ class EmailCenterController extends Controller
         return [$resolvedSubject, $resolvedHtml];
     }
 
-    private function storeEmailHeaderImage(UploadedFile $file): string
-    {
-        $maxWidth = 1200;
-        $quality = 78;
-
-        $binary = class_exists(\Imagick::class)
-            ? $this->convertHeaderWithImagick($file, $maxWidth, $quality)
-            : $this->convertHeaderWithGd($file, $maxWidth, $quality);
-
-        $path = 'email-headers/'.Str::uuid().'.jpg';
-        Storage::disk('public')->put($path, $binary, ['visibility' => 'public']);
-
-        return '/storage/'.$path;
-    }
-
-    private function convertHeaderWithImagick(UploadedFile $file, int $maxWidth, int $quality): string
-    {
-        $path = $file->getRealPath() ?: '';
-        if ($path === '' || ! is_file($path)) {
-            throw new RuntimeException('Image upload failed. Please try again.');
-        }
-
-        $imagick = new \Imagick();
-
-        try {
-            $imagick->readImage($path);
-            $imagick->autoOrient();
-            $imagick->setImageBackgroundColor('white');
-            $imagick = $imagick->mergeImageLayers(\Imagick::LAYERMETHOD_FLATTEN);
-
-            $width = (int) $imagick->getImageWidth();
-            $height = (int) $imagick->getImageHeight();
-
-            if ($width <= 0 || $height <= 0) {
-                throw new RuntimeException('Unsupported image dimensions.');
-            }
-
-            if ($width > $maxWidth) {
-                $newHeight = max(1, (int) round(($height * $maxWidth) / $width));
-                $imagick->resizeImage($maxWidth, $newHeight, \Imagick::FILTER_LANCZOS, 1, true);
-            }
-
-            $imagick->setImageFormat('jpeg');
-            $imagick->setImageCompression(\Imagick::COMPRESSION_JPEG);
-            $imagick->setImageCompressionQuality($quality);
-            $imagick->setInterlaceScheme(\Imagick::INTERLACE_PLANE);
-            $imagick->stripImage();
-
-            $blob = $imagick->getImageBlob();
-            if (! is_string($blob) || $blob === '') {
-                throw new RuntimeException('Could not optimize image for email.');
-            }
-
-            return $blob;
-        } catch (Throwable $exception) {
-            throw new RuntimeException('Could not optimize image for email.', previous: $exception);
-        } finally {
-            $imagick->clear();
-            $imagick->destroy();
-        }
-    }
-
-    private function convertHeaderWithGd(UploadedFile $file, int $maxWidth, int $quality): string
-    {
-        if (! function_exists('imagejpeg')) {
-            throw new RuntimeException('Image processing is not enabled on this server.');
-        }
-
-        $source = $this->makeImageResourceFromUpload($file);
-        if ($source === false) {
-            throw new RuntimeException('Unsupported image format. Please upload JPG, PNG, GIF, or WebP.');
-        }
-
-        $sourceWidth = imagesx($source);
-        $sourceHeight = imagesy($source);
-        if ($sourceWidth <= 0 || $sourceHeight <= 0) {
-            imagedestroy($source);
-            throw new RuntimeException('Unsupported image dimensions.');
-        }
-
-        $targetWidth = $sourceWidth > $maxWidth ? $maxWidth : $sourceWidth;
-        $targetHeight = max(1, (int) round(($sourceHeight * $targetWidth) / $sourceWidth));
-
-        $canvas = imagecreatetruecolor($targetWidth, $targetHeight);
-        $white = imagecolorallocate($canvas, 255, 255, 255);
-        imagefill($canvas, 0, 0, $white);
-        imagecopyresampled($canvas, $source, 0, 0, 0, 0, $targetWidth, $targetHeight, $sourceWidth, $sourceHeight);
-
-        ob_start();
-        $written = imagejpeg($canvas, null, $quality);
-        $binary = ob_get_clean();
-
-        imagedestroy($canvas);
-        imagedestroy($source);
-
-        if (! $written || ! is_string($binary) || $binary === '') {
-            throw new RuntimeException('Could not optimize image for email.');
-        }
-
-        return $binary;
-    }
-
-    private function makeImageResourceFromUpload(UploadedFile $file): mixed
-    {
-        $path = $file->getRealPath() ?: '';
-        $mime = strtolower(trim((string) $file->getMimeType()));
-
-        if ($path === '' || ! is_file($path)) {
-            return false;
-        }
-
-        return match ($mime) {
-            'image/jpeg', 'image/jpg' => @imagecreatefromjpeg($path),
-            'image/png' => @imagecreatefrompng($path),
-            'image/gif' => @imagecreatefromgif($path),
-            'image/webp' => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($path) : false,
-            'image/bmp', 'image/x-ms-bmp' => function_exists('imagecreatefrombmp') ? @imagecreatefrombmp($path) : false,
-            'image/avif' => function_exists('imagecreatefromavif') ? @imagecreatefromavif($path) : false,
-            default => false,
-        };
-    }
 }

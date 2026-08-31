@@ -41,7 +41,7 @@ class SubscriptionPlanPaystackSyncTest extends TestCase
         ]);
 
         $this->actingAs($superAdmin)
-            ->post(route('admin.settings.subscription-plans.store'), [
+            ->post(route('admin.subscription-plans.store'), [
                 'name' => 'Growth Social Plan',
                 'service_slug' => 'social-media-design',
                 'package_code' => 'standard',
@@ -74,7 +74,7 @@ class SubscriptionPlanPaystackSyncTest extends TestCase
         Http::fake();
 
         $this->actingAs($superAdmin)
-            ->post(route('admin.settings.subscription-plans.store'), [
+            ->post(route('admin.subscription-plans.store'), [
                 'name' => 'Graphic Item Plan',
                 'service_slug' => 'graphic-design',
                 'package_code' => $packageCode,
@@ -106,7 +106,7 @@ class SubscriptionPlanPaystackSyncTest extends TestCase
         ]);
 
         $this->actingAs($superAdmin)
-            ->post(route('admin.settings.subscription-plans.store'), [
+            ->post(route('admin.subscription-plans.store'), [
                 'name' => 'Growth Social Plan',
                 'service_slug' => 'social-media-design',
                 'package_code' => 'standard',

@@ -57,13 +57,9 @@ class HandleInertiaRequests extends Middleware
                     'email' => $user->email,
                     'role' => $user->role,
                     'address' => $user->address,
-                    'profile_photo_url' => $user->profile_photo_path
-                        ? Storage::disk('public')->url($user->profile_photo_path)
-                        : null,
+                    'profile_photo_url' => $this->resolveMediaUrl($user->profile_photo_path),
                     'company_name' => $user->company_name,
-                    'company_logo_url' => $user->company_logo_path
-                        ? Storage::disk('public')->url($user->company_logo_path)
-                        : null,
+                    'company_logo_url' => $this->resolveMediaUrl($user->company_logo_path),
                     'social_media_info' => $user->social_media_info,
                     'business_number' => $user->business_number,
                     'business_official_email' => $user->business_official_email,
@@ -106,5 +102,16 @@ class HandleInertiaRequests extends Middleware
                     ->values()
                     ->all(),
         ];
+    }
+
+    private function resolveMediaUrl(mixed $path): ?string
+    {
+        if (! is_string($path) || $path === '') {
+            return null;
+        }
+
+        return str_starts_with($path, 'http://') || str_starts_with($path, 'https://')
+            ? $path
+            : Storage::disk('public')->url($path);
     }
 }
