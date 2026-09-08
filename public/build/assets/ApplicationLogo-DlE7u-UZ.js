@@ -1,0 +1,1 @@
+import{a as e,d as t}from"./app-CVEM5D6k.js";var n=e();function r(e){let{branding:r={}}=t().props,i=r?.logo_path||`/logo-06.svg`;return(0,n.jsx)(`img`,{...e,src:i,alt:`Bellah Options`})}export{r as t};
