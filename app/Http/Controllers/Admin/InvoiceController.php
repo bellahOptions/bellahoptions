@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MarkInvoicePaidRequest;
 use App\Http\Requests\Admin\StoreInvoiceRequest;
+use App\Mail\InvoiceDeletedMail;
 use App\Mail\InvoiceIssuedAdminAlertMail;
 use App\Mail\InvoiceIssuedMail;
 use App\Mail\InvoicePaidReceiptMail;
@@ -14,6 +15,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\ServiceOrderUpdate;
 use App\Support\ClientReviewService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -65,7 +67,8 @@ class InvoiceController extends Controller
                 'status' => $status,
             ],
             'permissions' => [
-                'can_delete_invoices' => (bool) $request->user()?->isSuperAdmin(),
+                'can_delete_invoices' => (bool) $request->user()?->canManageInvoices(),
+                'can_delete_paid_invoices' => (bool) $request->user()?->isSuperAdmin(),
             ],
             'occupations' => config('occupations.list', []),
             'stats' => [
@@ -87,7 +90,8 @@ class InvoiceController extends Controller
 
         return Inertia::render('Admin/Invoices/Show', [
             'permissions' => [
-                'can_delete_invoices' => (bool) $request->user()?->isSuperAdmin(),
+                'can_delete_invoices' => (bool) $request->user()?->canManageInvoices(),
+                'can_delete_paid_invoices' => (bool) $request->user()?->isSuperAdmin(),
             ],
             'invoice' => $this->mapInvoice($invoice, true),
         ]);
@@ -133,45 +137,59 @@ class InvoiceController extends Controller
         }
 
         try {
-            $invoice = Invoice::create([
-                'invoice_number' => $this->generateInvoiceNumber(),
-                'customer_id' => $customer?->id,
-                'customer_name' => $customerName ?: $data['customer_name'],
-                'customer_email' => $customerEmail,
-                'customer_occupation' => $customer?->occupation ?? ($data['customer_occupation'] ?? null),
-                'title' => $data['title'],
-                'description' => $data['description'] ?? null,
-                'amount' => $totalAmount,
-                'currency' => strtoupper($data['currency']),
-                'due_date' => $data['due_date'] ?? null,
-                'status' => 'sent',
-                'issued_at' => now(),
-                'created_by' => $request->user()->id,
-            ]);
+            $invoice = DB::transaction(function () use ($data, $customer, $customerName, $customerEmail, $totalAmount, $items, $request): Invoice {
+                $invoice = Invoice::create([
+                    'invoice_number' => $this->generateInvoiceNumber(),
+                    'customer_id' => $customer?->id,
+                    'customer_name' => $customerName ?: $data['customer_name'],
+                    'customer_email' => $customerEmail,
+                    'customer_occupation' => $customer?->occupation ?? ($data['customer_occupation'] ?? null),
+                    'title' => $data['title'],
+                    'description' => $data['description'] ?? null,
+                    'amount' => $totalAmount,
+                    'currency' => strtoupper($data['currency']),
+                    'due_date' => $data['due_date'] ?? null,
+                    'status' => 'sent',
+                    'issued_at' => now(),
+                    'created_by' => $request->user()->id,
+                ]);
 
-            $invoice->items()->createMany(array_map(
-                fn (array $item, int $index): array => [
-                    'description' => (string) $item['description'],
-                    'quantity' => (int) $item['quantity'],
-                    'unit_price' => (float) $item['unit_price'],
-                    'amount' => (int) $item['quantity'] * (float) $item['unit_price'],
-                    'sort_order' => $index,
-                ],
-                $items,
-                array_keys($items),
-            ));
+                $invoice->items()->createMany(array_map(
+                    fn (array $item, int $index): array => [
+                        'description' => (string) $item['description'],
+                        'quantity' => (int) $item['quantity'],
+                        'unit_price' => (float) $item['unit_price'],
+                        'amount' => (int) $item['quantity'] * (float) $item['unit_price'],
+                        'sort_order' => $index,
+                    ],
+                    $items,
+                    array_keys($items),
+                ));
 
-            Mail::to($invoice->customer_email)->send(new InvoiceIssuedMail($invoice));
+                return $invoice;
+            });
         } catch (Throwable $exception) {
             Cache::forget($guardKey);
 
+            Log::error('Invoice creation failed.', [
+                'customer_email' => $customerEmail,
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString(),
+            ]);
+
+            return back()->with('error', 'Invoice creation failed. Please check the form and try again.');
+        }
+
+        try {
+            Mail::to($invoice->customer_email)->send(new InvoiceIssuedMail($invoice));
+        } catch (Throwable $exception) {
             Log::warning('Invoice email failed.', [
-                'invoice_id' => $invoice->id ?? null,
+                'invoice_id' => $invoice->id,
                 'customer_email' => $customerEmail,
                 'error' => $exception->getMessage(),
             ]);
 
-            return back()->with('error', 'Invoice creation succeeded, but email delivery failed.');
+            return back()->with('error', "Invoice {$invoice->invoice_number} was created, but the email to the customer failed to send. Check mail configuration, then use Resend to try again.");
         }
 
         try {
@@ -222,72 +240,42 @@ class InvoiceController extends Controller
         return back()->with('success', "Invoice {$invoice->invoice_number} resent to {$invoice->customer_email}.");
     }
 
-    public function duplicate(Request $request, Invoice $invoice): RedirectResponse
+    /**
+     * Return this invoice's details as a template so staff can review and edit
+     * them before creating (and sending) a new invoice from it. This performs
+     * no writes and sends no email — the new invoice is only created, and the
+     * customer only notified, when the rep explicitly submits the pre-filled
+     * "New Invoice" form via store().
+     */
+    public function duplicate(Request $request, Invoice $invoice): JsonResponse
     {
+        abort_unless((bool) $request->user()?->canManageInvoices(), 403);
+
         if ($invoice->status !== 'paid') {
-            return back()->with('error', 'Only paid invoices can be duplicated.');
-        }
-
-        $guardKey = $this->makeInvoiceTriggerGuardKey('duplicate', (string) $invoice->id);
-
-        if (! Cache::add($guardKey, now()->timestamp, now()->addSeconds(12))) {
-            return back()->with('error', 'Duplicate trigger detected. Please wait a moment before trying again.');
+            return response()->json([
+                'message' => 'Only paid invoices can be duplicated.',
+            ], 422);
         }
 
         $invoice->loadMissing('items');
-        $newInvoice = null;
 
-        try {
-            $newInvoice = Invoice::create([
-                'invoice_number' => $this->generateInvoiceNumber(),
+        return response()->json([
+            'invoice' => [
                 'customer_id' => $invoice->customer_id,
                 'customer_name' => $invoice->customer_name,
                 'customer_email' => $invoice->customer_email,
                 'customer_occupation' => $invoice->customer_occupation,
                 'title' => $invoice->title,
                 'description' => $invoice->description,
-                'amount' => $invoice->amount,
                 'currency' => $invoice->currency,
                 'due_date' => now()->addDays(7)->toDateString(),
-                'status' => 'sent',
-                'issued_at' => now(),
-                'created_by' => $request->user()->id,
-            ]);
-
-            $newInvoice->items()->createMany(
-                $invoice->items->map(fn (InvoiceItem $item, int $index): array => [
+                'items' => $invoice->items->map(fn (InvoiceItem $item): array => [
                     'description' => $item->description,
                     'quantity' => $item->quantity,
-                    'unit_price' => $item->unit_price,
-                    'amount' => $item->amount,
-                    'sort_order' => $index,
-                ])->all()
-            );
-
-            Mail::to($newInvoice->customer_email)->send(new InvoiceIssuedMail($newInvoice));
-        } catch (Throwable $exception) {
-            Cache::forget($guardKey);
-
-            Log::warning('Invoice duplication failed.', [
-                'source_invoice_id' => $invoice->id,
-                'new_invoice_id' => $newInvoice->id ?? null,
-                'error' => $exception->getMessage(),
-            ]);
-
-            return back()->with('error', 'Invoice duplication failed. Check mail configuration.');
-        }
-
-        try {
-            $this->sendInvoiceIssuedAdminAlert($newInvoice, 'issued');
-        } catch (Throwable $exception) {
-            Log::warning('Invoice duplication admin alert failed.', [
-                'invoice_id' => $newInvoice->id,
-                'customer_email' => $newInvoice->customer_email,
-                'error' => $exception->getMessage(),
-            ]);
-        }
-
-        return back()->with('success', "Invoice {$newInvoice->invoice_number} created from {$invoice->invoice_number} and emailed to the customer.");
+                    'unit_price' => (string) $item->unit_price,
+                ])->all(),
+            ],
+        ]);
     }
 
     public function sendReminder(Invoice $invoice): RedirectResponse
@@ -397,14 +385,43 @@ class InvoiceController extends Controller
 
     public function destroy(Request $request, Invoice $invoice): RedirectResponse
     {
-        abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
+        $user = $request->user();
+
+        abort_unless((bool) $user?->canManageInvoices(), 403);
+
+        // Deleting a paid invoice removes a real payment record, so that stays
+        // restricted to super admins. Any staff member who can manage invoices
+        // may delete a not-yet-paid one that was sent in error.
+        if ($invoice->status === 'paid') {
+            abort_unless((bool) $user?->isSuperAdmin(), 403);
+        }
 
         $invoiceNumber = $invoice->invoice_number;
+        $customerEmail = $invoice->customer_email;
+        $reason = trim((string) $request->input('reason', ''));
+        $customerNotified = true;
+
+        try {
+            Mail::to($customerEmail)->send(new InvoiceDeletedMail($invoice, $user, $reason !== '' ? $reason : null));
+        } catch (Throwable $exception) {
+            $customerNotified = false;
+
+            Log::warning('Invoice deletion apology email failed.', [
+                'invoice_id' => $invoice->id,
+                'customer_email' => $customerEmail,
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
         $invoice->delete();
+
+        $message = $customerNotified
+            ? "Invoice {$invoiceNumber} has been deleted and the customer notified by email."
+            : "Invoice {$invoiceNumber} has been deleted, but the customer notification email failed to send.";
 
         return redirect()
             ->route('admin.invoices.index')
-            ->with('success', "Invoice {$invoiceNumber} has been deleted.");
+            ->with($customerNotified ? 'success' : 'error', $message);
     }
 
     /**

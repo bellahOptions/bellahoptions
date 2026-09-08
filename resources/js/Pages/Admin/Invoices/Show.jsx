@@ -5,14 +5,18 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 export default function InvoiceShow({ invoice, permissions = {} }) {
     const { flash } = usePage().props;
     const canDeleteInvoices = Boolean(permissions?.can_delete_invoices);
+    const canDeletePaidInvoices = Boolean(permissions?.can_delete_paid_invoices);
+    const canDeleteThisInvoice = invoice.status === 'paid' ? canDeletePaidInvoices : canDeleteInvoices;
 
     const resendInvoice = () => {
         router.post(route('admin.invoices.resend', invoice.id), {}, { preserveScroll: true });
     };
 
     const duplicateInvoice = () => {
-        if (!window.confirm(`Create a new invoice from ${invoice.invoice_number}? It will be emailed to the customer as a new, unpaid invoice.`)) return;
-        router.post(route('admin.invoices.duplicate', invoice.id), {}, { preserveScroll: true });
+        router.visit(route('admin.invoices.index', {
+            duplicate: invoice.id,
+            duplicate_number: invoice.invoice_number,
+        }));
     };
 
     const sendReminder = () => {
@@ -34,11 +38,18 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
     };
 
     const deleteInvoice = () => {
-        if (!window.confirm(`Delete invoice ${invoice.invoice_number}? This cannot be undone.`)) {
+        if (!window.confirm(`Delete invoice ${invoice.invoice_number}? The customer will automatically be emailed an apology letting them know it was sent in error.`)) {
             return;
         }
 
-        router.delete(route('admin.invoices.destroy', invoice.id));
+        const reason = window.prompt(
+            'Optional: add a short note to include in the apology email to the customer (leave blank to skip).',
+            '',
+        );
+
+        router.delete(route('admin.invoices.destroy', invoice.id), {
+            data: { reason: reason || '' },
+        });
     };
 
     return (
@@ -138,7 +149,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                     Mark as Paid
                                 </button>
                             )}
-                            {canDeleteInvoices && (
+                            {canDeleteThisInvoice && (
                                 <button
                                     type="button"
                                     onClick={deleteInvoice}

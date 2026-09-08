@@ -15,11 +15,12 @@ const toneClasses = {
     red: 'bg-red-100 text-red-700',
     sky: 'bg-sky-100 text-sky-700',
     slate: 'bg-slate-100 text-slate-700',
+    fuchsia: 'bg-fuchsia-100 text-fuchsia-700',
 };
 
 export function StatCard({ icon: Icon, label, value, tone = 'brand', className }) {
     return (
-        <div className={cn('min-w-[150px] flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm', className)}>
+        <div className={cn('min-w-[190px] flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm', className)}>
             <div className="flex items-center gap-3">
                 {Icon && (
                     <span
@@ -33,7 +34,8 @@ export function StatCard({ icon: Icon, label, value, tone = 'brand', className }
                 )}
                 <div className="min-w-0">
                     <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-gray-500 sm:text-xs">{label}</p>
-                    <p className="mt-0.5 truncate text-lg font-bold text-gray-900 sm:text-xl">{value}</p>
+                    {/* Never truncate the value — a cut-off number is unreadable, so it wraps instead. */}
+                    <p className="mt-0.5 break-words text-lg font-bold text-gray-900 sm:text-xl">{value}</p>
                 </div>
             </div>
         </div>

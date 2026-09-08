@@ -75,4 +75,9 @@ class Invoice extends Model
     {
         return $this->hasOne(IncomeSplit::class);
     }
+
+    public function staffCommissions(): HasMany
+    {
+        return $this->hasMany(InvoiceStaffCommission::class);
+    }
 }

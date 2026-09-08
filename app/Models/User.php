@@ -20,6 +20,9 @@ use Illuminate\Support\Str;
     'email',
     'password',
     'role',
+    'position',
+    'commission_eligible',
+    'commission_percent',
     'address',
     'profile_photo_path',
     'company_name',
@@ -62,6 +65,8 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'commission_eligible' => 'boolean',
+            'commission_percent' => 'decimal:2',
         ];
     }
 
@@ -83,6 +88,25 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canManageInvoices(): bool
     {
         return $this->isSuperAdmin() || $this->isCustomerRep();
+    }
+
+    /**
+     * A human-readable job title for use in staff-signed customer communications
+     * (e.g. apology emails), falling back to a label derived from the role.
+     */
+    public function signatureTitle(): string
+    {
+        $position = trim((string) $this->position);
+
+        if ($position !== '') {
+            return $position;
+        }
+
+        return match ($this->role) {
+            self::ROLE_SUPER_ADMIN, 'admin' => 'Administrator',
+            self::ROLE_CUSTOMER_REP, 'staff' => 'Customer Service Representative',
+            default => 'Team Member',
+        };
     }
 
     public function canManageSettings(): bool
@@ -108,6 +132,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function supportTickets(): HasMany
     {
         return $this->hasMany(SupportTicket::class);
+    }
+
+    public function invoiceCommissions(): HasMany
+    {
+        return $this->hasMany(InvoiceStaffCommission::class);
+    }
+
+    public function isCommissionEligible(): bool
+    {
+        return (bool) $this->commission_eligible && (float) $this->commission_percent > 0;
     }
 
     public function getRouteKeyName(): string

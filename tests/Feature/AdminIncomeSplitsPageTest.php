@@ -89,4 +89,39 @@ class AdminIncomeSplitsPageTest extends TestCase
                 ->where('formula.partner_percent', 20)
             );
     }
+
+    public function test_super_admin_sees_a_staff_commission_breakdown_per_invoice_and_roster_totals(): void
+    {
+        $superAdmin = User::factory()->create(['role' => 'super_admin', 'email' => 'ahmed@bellahoptions.com']);
+
+        $rep = User::factory()->create([
+            'role' => 'customer_rep',
+            'name' => 'Commission Rep',
+            'position' => 'Sales Lead',
+            'commission_eligible' => true,
+            'commission_percent' => 10,
+        ]);
+
+        $invoice = $this->payInvoice(100000);
+
+        $this->actingAs($superAdmin)->get(route('admin.finance.income-splits'))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/Finance/IncomeSplits')
+                ->where('totals.staff_commission_total', '10000')
+                ->where('splits.data.0.staff_commissions.0.user_name', 'Commission Rep')
+                ->where('splits.data.0.staff_commissions.0.amount', '10000.00')
+                ->where('splits.data.0.staff_commissions.0.percent', '10.00')
+                ->where('staffRoster.0.name', 'Commission Rep')
+                ->where('staffRoster.0.position', 'Sales Lead')
+                ->where('staffRoster.0.total_earned', '10000')
+                ->where('staffRoster.0.invoice_count', 1)
+            );
+
+        $this->assertDatabaseHas('invoice_staff_commissions', [
+            'invoice_id' => $invoice->id,
+            'user_id' => $rep->id,
+            'commission_amount' => 10000,
+        ]);
+    }
 }

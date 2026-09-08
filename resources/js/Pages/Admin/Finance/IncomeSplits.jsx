@@ -3,9 +3,9 @@ import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
-import { Bot, CheckCircle2, Database, Megaphone, User, Wallet } from 'lucide-react';
+import { Bot, CheckCircle2, Database, Megaphone, Users, User, Wallet } from 'lucide-react';
 
-export default function IncomeSplits({ totals = {}, formula = {}, splits }) {
+export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = [], splits }) {
     const rows = splits?.data || [];
 
     return (
@@ -30,18 +30,71 @@ export default function IncomeSplits({ totals = {}, formula = {}, splits }) {
                             <span className="rounded-full bg-violet-100 px-3 py-1.5 text-violet-700">Data Savings {formatPercent(formula.data_savings_percent)}%</span>
                             <span className="rounded-full bg-amber-100 px-3 py-1.5 text-amber-700">AI Savings {formatPercent(formula.ai_savings_percent)}%</span>
                             <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-emerald-700">Partner {formatPercent(formula.partner_percent)}%</span>
+                            <span className="rounded-full bg-fuchsia-100 px-3 py-1.5 text-fuchsia-700">Staff commissions: per-person %</span>
                             <span className="rounded-full bg-brand-light px-3 py-1.5 text-brand">You: remainder</span>
                         </div>
                     </section>
 
                     <StatGrid>
-                        <StatCard icon={Wallet} label="Total Split Across" value={formatMoney(totals.grand_total)} tone="brand" />
+                        <StatCard icon={Wallet} label="Total Split" value={formatMoney(totals.grand_total)} tone="brand" />
                         <StatCard icon={Megaphone} label="Ads Savings" value={formatMoney(totals.ads_savings)} tone="sky" />
                         <StatCard icon={Database} label="Data Savings" value={formatMoney(totals.data_savings)} tone="slate" />
                         <StatCard icon={Bot} label="AI Savings" value={formatMoney(totals.ai_savings)} tone="amber" />
-                        <StatCard icon={User} label="Paid to Partner" value={formatMoney(totals.partner_total)} tone="emerald" />
-                        <StatCard icon={CheckCircle2} label="Retained by Owner" value={formatMoney(totals.owner_total)} tone="brand" />
+                        <StatCard icon={User} label="Partner Paid" value={formatMoney(totals.partner_total)} tone="emerald" />
+                        <StatCard icon={Users} label="Staff Commissions" value={formatMoney(totals.staff_commission_total)} tone="fuchsia" />
+                        <StatCard icon={CheckCircle2} label="Owner Retains" value={formatMoney(totals.owner_total)} tone="brand" />
                     </StatGrid>
+
+                    {staffRoster.length > 0 && (
+                        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900">Commission-Eligible Staff</h3>
+                            <p className="mt-1 text-sm text-gray-600">
+                                Lifetime earnings for every staff member currently flagged eligible for commissions.
+                            </p>
+
+                            <div className="mt-4 hidden overflow-x-auto md:block">
+                                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="px-3 py-2 text-left font-semibold text-gray-600">Staff</th>
+                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Commission %</th>
+                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Invoices</th>
+                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Total Earned</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100">
+                                        {staffRoster.map((staff) => (
+                                            <tr key={staff.name}>
+                                                <td className="px-3 py-3 align-top">
+                                                    <p className="font-semibold text-gray-900">{staff.name}</p>
+                                                    <p className="text-xs text-gray-500">{staff.position || 'Staff'}</p>
+                                                </td>
+                                                <td className="px-3 py-3 align-top text-right text-gray-700">{formatPercent(staff.commission_percent)}%</td>
+                                                <td className="px-3 py-3 align-top text-right text-gray-700">{staff.invoice_count}</td>
+                                                <td className="px-3 py-3 align-top text-right font-semibold text-fuchsia-700">
+                                                    {formatMoney(staff.total_earned)}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <MobileCardList>
+                                {staffRoster.map((staff, index) => (
+                                    <MobileCard key={staff.name} index={index}>
+                                        <p className="font-semibold text-gray-900">{staff.name}</p>
+                                        <p className="text-xs text-gray-500">{staff.position || 'Staff'}</p>
+                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                            <MobileCardRow label="Commission %" value={`${formatPercent(staff.commission_percent)}%`} />
+                                            <MobileCardRow label="Invoices" value={staff.invoice_count} />
+                                            <MobileCardRow label="Total Earned" value={formatMoney(staff.total_earned)} />
+                                        </div>
+                                    </MobileCard>
+                                ))}
+                            </MobileCardList>
+                        </section>
+                    )}
 
                     <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                         <h3 className="text-lg font-semibold text-gray-900">Split History</h3>
@@ -56,13 +109,14 @@ export default function IncomeSplits({ totals = {}, formula = {}, splits }) {
                                         <th className="px-3 py-2 text-right font-semibold text-gray-600">Data</th>
                                         <th className="px-3 py-2 text-right font-semibold text-gray-600">AI</th>
                                         <th className="px-3 py-2 text-right font-semibold text-gray-600">Partner</th>
+                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Staff Commissions</th>
                                         <th className="px-3 py-2 text-right font-semibold text-gray-600">Owner</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {rows.length === 0 && (
                                         <tr>
-                                            <td className="px-3 py-4 text-gray-500" colSpan={7}>
+                                            <td className="px-3 py-4 text-gray-500" colSpan={8}>
                                                 No paid invoices have been split yet.
                                             </td>
                                         </tr>
@@ -85,6 +139,22 @@ export default function IncomeSplits({ totals = {}, formula = {}, splits }) {
                                                 <p className="text-xs text-gray-500">
                                                     {split.partner_name || 'Partner'} · {split.partner_notified ? 'Notified' : 'Not notified'}
                                                 </p>
+                                            </td>
+                                            <td className="px-3 py-3 align-top">
+                                                {split.staff_commissions?.length ? (
+                                                    <ul className="space-y-1">
+                                                        {split.staff_commissions.map((commission, index) => (
+                                                            <li key={`${split.id}-${index}`} className="text-xs">
+                                                                <span className="font-semibold text-fuchsia-700">
+                                                                    {formatMoney(commission.amount, split.currency)}
+                                                                </span>
+                                                                <span className="text-gray-500"> · {commission.user_name || 'Staff'} ({formatPercent(commission.percent)}%)</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400">None</span>
+                                                )}
                                             </td>
                                             <td className="px-3 py-3 align-top text-right">
                                                 <p className="font-semibold text-brand">{formatMoney(split.owner_amount, split.currency)}</p>
@@ -110,6 +180,13 @@ export default function IncomeSplits({ totals = {}, formula = {}, splits }) {
                                             <MobileCardRow label="Data Savings" value={formatMoney(split.data_savings_amount, split.currency)} />
                                             <MobileCardRow label="AI Savings" value={formatMoney(split.ai_savings_amount, split.currency)} />
                                             <MobileCardRow label={split.partner_name || 'Partner'} value={formatMoney(split.partner_amount, split.currency)} />
+                                            {split.staff_commissions?.map((commission, index) => (
+                                                <MobileCardRow
+                                                    key={`${split.id}-${index}`}
+                                                    label={commission.user_name || 'Staff'}
+                                                    value={formatMoney(commission.amount, split.currency)}
+                                                />
+                                            ))}
                                             <MobileCardRow label={split.owner_name || 'Owner'} value={formatMoney(split.owner_amount, split.currency)} />
                                         </div>
                                     </MobileCard>

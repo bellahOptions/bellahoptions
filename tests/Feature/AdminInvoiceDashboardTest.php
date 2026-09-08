@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\InvoiceDeletedMail;
 use App\Mail\InvoiceIssuedAdminAlertMail;
 use App\Mail\InvoiceIssuedMail;
 use App\Mail\InvoicePaidReceiptMail;
@@ -281,7 +282,7 @@ class AdminInvoiceDashboardTest extends TestCase
         Mail::assertSent(InvoiceIssuedMail::class, 1);
     }
 
-    public function test_staff_can_duplicate_a_paid_invoice_and_email_customer(): void
+    public function test_staff_can_fetch_a_paid_invoice_as_a_duplicate_template_without_sending_anything(): void
     {
         Mail::fake();
 
@@ -301,27 +302,25 @@ class AdminInvoiceDashboardTest extends TestCase
             'paid_at' => now()->subYear(),
             'created_by' => $staff->id,
         ]);
+        $invoice->items()->create([
+            'description' => 'Annual retainer',
+            'quantity' => 1,
+            'unit_price' => 80000,
+            'amount' => 80000,
+            'sort_order' => 0,
+        ]);
 
-        $response = $this->actingAs($staff)->from(route('admin.invoices.index'))
-            ->post(route('admin.invoices.duplicate', $invoice));
+        $response = $this->actingAs($staff)->getJson(route('admin.invoices.duplicate', $invoice));
 
-        $response->assertRedirect(route('admin.invoices.index'));
-        $response->assertSessionHas('success');
+        $response->assertOk();
+        $response->assertJsonPath('invoice.customer_email', 'renewing@example.com');
+        $response->assertJsonPath('invoice.title', $invoice->title);
+        $response->assertJsonCount(1, 'invoice.items');
 
-        $this->assertDatabaseCount('invoices', 2);
-
-        $newInvoice = Invoice::query()->where('id', '!=', $invoice->id)->firstOrFail();
-
-        $this->assertSame('sent', $newInvoice->status);
-        $this->assertNull($newInvoice->paid_at);
-        $this->assertSame('renewing@example.com', $newInvoice->customer_email);
-        $this->assertSame($invoice->title, $newInvoice->title);
-        $this->assertEquals(80000, (float) $newInvoice->amount);
-        $this->assertNotSame($invoice->invoice_number, $newInvoice->invoice_number);
-
-        Mail::assertSent(InvoiceIssuedMail::class, function (InvoiceIssuedMail $mail) use ($newInvoice): bool {
-            return $mail->hasTo('renewing@example.com') && $mail->invoice->is($newInvoice);
-        });
+        // Fetching a duplicate template must not create anything or email anyone —
+        // the rep still has to review/edit and explicitly submit the "New Invoice" form.
+        $this->assertDatabaseCount('invoices', 1);
+        Mail::assertNothingSent();
     }
 
     public function test_cannot_duplicate_an_unpaid_invoice(): void
@@ -342,42 +341,12 @@ class AdminInvoiceDashboardTest extends TestCase
             'created_by' => $staff->id,
         ]);
 
-        $this->actingAs($staff)->from(route('admin.invoices.index'))
-            ->post(route('admin.invoices.duplicate', $invoice))
-            ->assertSessionHas('error');
+        $this->actingAs($staff)
+            ->getJson(route('admin.invoices.duplicate', $invoice))
+            ->assertStatus(422);
 
         $this->assertDatabaseCount('invoices', 1);
         Mail::assertNothingSent();
-    }
-
-    public function test_rapid_repeat_duplicate_trigger_is_blocked_temporarily(): void
-    {
-        Mail::fake();
-
-        $staff = User::factory()->create(['role' => 'admin']);
-
-        $invoice = Invoice::create([
-            'invoice_number' => 'BO-PAID-002',
-            'customer_name' => 'Rapid Duplicate',
-            'customer_email' => 'rapid-duplicate@example.com',
-            'title' => 'SEO Package',
-            'amount' => 50000,
-            'currency' => 'NGN',
-            'status' => 'paid',
-            'issued_at' => now(),
-            'paid_at' => now(),
-            'created_by' => $staff->id,
-        ]);
-
-        $this->actingAs($staff)->from(route('admin.invoices.index'))
-            ->post(route('admin.invoices.duplicate', $invoice))
-            ->assertSessionHas('success');
-
-        $this->actingAs($staff)->from(route('admin.invoices.index'))
-            ->post(route('admin.invoices.duplicate', $invoice))
-            ->assertSessionHas('error');
-
-        $this->assertDatabaseCount('invoices', 2);
     }
 
     public function test_staff_customer_search_scans_customers_and_non_staff_users(): void
@@ -427,5 +396,124 @@ class AdminInvoiceDashboardTest extends TestCase
         $response->assertJsonMissing([
             'email' => $staffUser->email,
         ]);
+    }
+
+    public function test_customer_rep_can_delete_a_sent_invoice_and_customer_is_emailed_an_apology(): void
+    {
+        Mail::fake();
+
+        $rep = User::factory()->create([
+            'role' => 'customer_rep',
+            'name' => 'Amaka Rep',
+            'position' => 'Customer Success Lead',
+        ]);
+
+        $invoice = Invoice::create([
+            'invoice_number' => 'BO-ERROR-001',
+            'customer_name' => 'Mistaken Customer',
+            'customer_email' => 'mistake@example.com',
+            'title' => 'Sent By Mistake',
+            'amount' => 15000,
+            'currency' => 'NGN',
+            'status' => 'sent',
+            'issued_at' => now(),
+            'created_by' => $rep->id,
+        ]);
+
+        $response = $this->actingAs($rep)->from(route('admin.invoices.index'))
+            ->delete(route('admin.invoices.destroy', $invoice), [
+                'reason' => 'This was created against the wrong customer record.',
+            ]);
+
+        $response->assertRedirect(route('admin.invoices.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+
+        Mail::assertSent(InvoiceDeletedMail::class, function (InvoiceDeletedMail $mail) use ($rep): bool {
+            return $mail->hasTo('mistake@example.com')
+                && $mail->deletedBy->is($rep)
+                && $mail->reason === 'This was created against the wrong customer record.';
+        });
+    }
+
+    public function test_customer_rep_cannot_delete_a_paid_invoice(): void
+    {
+        Mail::fake();
+
+        $rep = User::factory()->create(['role' => 'customer_rep']);
+
+        $invoice = Invoice::create([
+            'invoice_number' => 'BO-PAID-003',
+            'customer_name' => 'Already Paid',
+            'customer_email' => 'paid@example.com',
+            'title' => 'Paid Package',
+            'amount' => 30000,
+            'currency' => 'NGN',
+            'status' => 'paid',
+            'issued_at' => now(),
+            'paid_at' => now(),
+            'created_by' => $rep->id,
+        ]);
+
+        $this->actingAs($rep)
+            ->delete(route('admin.invoices.destroy', $invoice))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id]);
+        Mail::assertNothingSent();
+    }
+
+    public function test_super_admin_can_delete_a_paid_invoice_and_customer_is_notified(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['role' => 'super_admin', 'name' => 'Site Admin']);
+
+        $invoice = Invoice::create([
+            'invoice_number' => 'BO-PAID-004',
+            'customer_name' => 'Refund Needed',
+            'customer_email' => 'refund@example.com',
+            'title' => 'Duplicate Charge',
+            'amount' => 45000,
+            'currency' => 'NGN',
+            'status' => 'paid',
+            'issued_at' => now(),
+            'paid_at' => now(),
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.invoices.destroy', $invoice))
+            ->assertRedirect(route('admin.invoices.index'));
+
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+        Mail::assertSent(InvoiceDeletedMail::class, fn (InvoiceDeletedMail $mail): bool => $mail->hasTo('refund@example.com'));
+    }
+
+    public function test_non_staff_user_cannot_delete_invoices(): void
+    {
+        Mail::fake();
+
+        $user = User::factory()->create(['role' => 'user']);
+
+        $invoice = Invoice::create([
+            'invoice_number' => 'BO-BLOCKED-001',
+            'customer_name' => 'Protected Customer',
+            'customer_email' => 'protected@example.com',
+            'title' => 'Protected Invoice',
+            'amount' => 10000,
+            'currency' => 'NGN',
+            'status' => 'sent',
+            'issued_at' => now(),
+            'created_by' => $user->id,
+        ]);
+
+        $this->actingAs($user)
+            ->delete(route('admin.invoices.destroy', $invoice))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('invoices', ['id' => $invoice->id]);
+        Mail::assertNothingSent();
     }
 }

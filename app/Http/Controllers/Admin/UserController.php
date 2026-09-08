@@ -94,6 +94,8 @@ class UserController extends Controller
             $name = trim($firstName.' '.$lastName);
         }
 
+        $commissionEligible = (bool) ($data['commission_eligible'] ?? false);
+
         $user->update([
             'name' => $name,
             'first_name' => $firstName !== '' ? $firstName : $name,
@@ -101,6 +103,9 @@ class UserController extends Controller
             'email' => strtolower(trim((string) $data['email'])),
             'role' => $data['role'],
             'address' => $data['address'] ?? null,
+            'position' => $data['position'] ?? null,
+            'commission_eligible' => $commissionEligible,
+            'commission_percent' => $commissionEligible ? $data['commission_percent'] : null,
         ]);
 
         return back()->with('success', 'User updated successfully.');
@@ -161,7 +166,10 @@ class UserController extends Controller
             'last_name' => $user->last_name,
             'email' => $user->email,
             'role' => $user->role,
+            'position' => $user->position,
             'address' => $user->address,
+            'commission_eligible' => (bool) $user->commission_eligible,
+            'commission_percent' => $user->commission_percent !== null ? (string) $user->commission_percent : null,
             'is_super_admin' => $user->isSuperAdmin(),
             'is_staff' => $user->isStaff(),
             'email_verified_at' => $user->email_verified_at?->toDateTimeString(),

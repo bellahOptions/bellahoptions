@@ -12,7 +12,10 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
         last_name: userRecord.last_name || '',
         email: userRecord.email || '',
         role: userRecord.role || 'user',
+        position: userRecord.position || '',
         address: userRecord.address || '',
+        commission_eligible: Boolean(userRecord.commission_eligible),
+        commission_percent: userRecord.commission_percent || '',
     });
 
     const submit = (event) => {
@@ -71,7 +74,14 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                             <div className="mt-4 space-y-2 text-sm text-gray-700">
                                 <p><span className="font-semibold">Email:</span> {userRecord.email}</p>
                                 <p><span className="font-semibold">Role:</span> {formatRole(userRecord.role)}</p>
+                                <p><span className="font-semibold">Position:</span> {userRecord.position || 'N/A'}</p>
                                 <p><span className="font-semibold">Staff:</span> {userRecord.is_staff ? 'Yes' : 'No'}</p>
+                                <p>
+                                    <span className="font-semibold">Commission Eligible:</span>{' '}
+                                    {userRecord.commission_eligible
+                                        ? `Yes (${userRecord.commission_percent}%)`
+                                        : 'No'}
+                                </p>
                                 <p><span className="font-semibold">Email Verified:</span> {userRecord.email_verified_at || 'No'}</p>
                                 <p><span className="font-semibold">Created At:</span> {userRecord.created_at || 'N/A'}</p>
                                 <p><span className="font-semibold">Updated At:</span> {userRecord.updated_at || 'N/A'}</p>
@@ -169,6 +179,60 @@ export default function UserShow({ userRecord, roleOptions = [] }) {
                                         ))}
                                     </select>
                                 </FieldError>
+
+                                <FieldError error={errors.position}>
+                                    <label htmlFor="position" className="mb-1 block text-sm font-medium text-gray-700">
+                                        Position / Title
+                                    </label>
+                                    <input
+                                        id="position"
+                                        value={data.position}
+                                        onChange={(event) => setData('position', event.target.value)}
+                                        placeholder="e.g. Customer Service Representative"
+                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    />
+                                    <p className="mt-1 text-xs text-gray-500">
+                                        Used as this staff member&apos;s signature title on customer emails (e.g. invoice deletion notices).
+                                    </p>
+                                </FieldError>
+
+                                <div className="rounded-lg border border-gray-200 p-3">
+                                    <label htmlFor="commission_eligible" className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                        <input
+                                            id="commission_eligible"
+                                            type="checkbox"
+                                            checked={data.commission_eligible}
+                                            onChange={(event) => setData('commission_eligible', event.target.checked)}
+                                            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand/30"
+                                        />
+                                        Eligible for commission on paid invoices
+                                    </label>
+                                    {errors.commission_eligible && (
+                                        <p className="mt-1 text-xs text-red-600">{errors.commission_eligible}</p>
+                                    )}
+
+                                    {data.commission_eligible && (
+                                        <FieldError error={errors.commission_percent}>
+                                            <label htmlFor="commission_percent" className="mb-1 mt-3 block text-sm font-medium text-gray-700">
+                                                Commission %
+                                            </label>
+                                            <input
+                                                id="commission_percent"
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                step="0.01"
+                                                value={data.commission_percent}
+                                                onChange={(event) => setData('commission_percent', event.target.value)}
+                                                placeholder="e.g. 10"
+                                                className="w-full max-w-[160px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            />
+                                            <p className="mt-1 text-xs text-gray-500">
+                                                Applied automatically to every invoice paid from now on. Visible to super admins on the Income Splits page.
+                                            </p>
+                                        </FieldError>
+                                    )}
+                                </div>
 
                                 <FieldError error={errors.address}>
                                     <label htmlFor="address" className="mb-1 block text-sm font-medium text-gray-700">

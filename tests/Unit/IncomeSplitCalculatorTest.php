@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Mail\IncomeSplitPartnerNotificationMail;
 use App\Models\IncomeSplit;
 use App\Models\Invoice;
+use App\Models\InvoiceStaffCommission;
 use App\Models\User;
 use App\Support\IncomeSplitCalculator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -149,5 +150,84 @@ class IncomeSplitCalculatorTest extends TestCase
         $this->assertNull($split->partner_user_id);
         $this->assertNull($split->partner_notified_at);
         Mail::assertNothingSent();
+    }
+
+    public function test_commission_eligible_staff_earn_a_cut_and_owner_absorbs_the_rest(): void
+    {
+        $this->configureFormula();
+        Mail::fake();
+
+        User::factory()->create(['role' => 'customer_rep', 'email' => 'peacefrancis851@gmail.com']);
+        User::factory()->create(['role' => 'super_admin', 'email' => 'ahmed@bellahoptions.com']);
+
+        $repOne = User::factory()->create([
+            'role' => 'customer_rep',
+            'commission_eligible' => true,
+            'commission_percent' => 10,
+        ]);
+        $repTwo = User::factory()->create([
+            'role' => 'customer_rep',
+            'commission_eligible' => true,
+            'commission_percent' => 5,
+        ]);
+        // Flagged eligible but no percentage set — must be excluded entirely.
+        User::factory()->create([
+            'role' => 'customer_rep',
+            'commission_eligible' => true,
+            'commission_percent' => null,
+        ]);
+        // Has a percentage but not flagged eligible — must be excluded entirely.
+        User::factory()->create([
+            'role' => 'customer_rep',
+            'commission_eligible' => false,
+            'commission_percent' => 8,
+        ]);
+
+        $invoice = $this->makeInvoice(100000);
+
+        $split = app(IncomeSplitCalculator::class)->applyForInvoice($invoice);
+
+        // 15+15+15 savings + 20 partner + 10+5 staff = 80%, so owner absorbs the remaining 20%.
+        $this->assertSame(20000.0, (float) $split->owner_amount);
+        $this->assertSame(20.0, (float) $split->owner_percent);
+
+        $this->assertSame(2, InvoiceStaffCommission::where('invoice_id', $invoice->id)->count());
+
+        $repOneCommission = InvoiceStaffCommission::where('invoice_id', $invoice->id)->where('user_id', $repOne->id)->first();
+        $repTwoCommission = InvoiceStaffCommission::where('invoice_id', $invoice->id)->where('user_id', $repTwo->id)->first();
+
+        $this->assertSame(10000.0, (float) $repOneCommission->commission_amount);
+        $this->assertSame(5000.0, (float) $repTwoCommission->commission_amount);
+
+        $sum = (float) $split->ads_savings_amount
+            + (float) $split->data_savings_amount
+            + (float) $split->ai_savings_amount
+            + (float) $split->partner_amount
+            + (float) $repOneCommission->commission_amount
+            + (float) $repTwoCommission->commission_amount
+            + (float) $split->owner_amount;
+
+        $this->assertSame(100000.0, $sum);
+    }
+
+    public function test_owner_share_is_floored_at_zero_when_commissions_exceed_available_remainder(): void
+    {
+        $this->configureFormula();
+        Mail::fake();
+
+        User::factory()->create(['role' => 'super_admin', 'email' => 'ahmed@bellahoptions.com']);
+
+        User::factory()->create([
+            'role' => 'customer_rep',
+            'commission_eligible' => true,
+            'commission_percent' => 90,
+        ]);
+
+        $invoice = $this->makeInvoice(10000);
+
+        $split = app(IncomeSplitCalculator::class)->applyForInvoice($invoice);
+
+        $this->assertSame(0.0, (float) $split->owner_amount);
+        $this->assertSame(0.0, (float) $split->owner_percent);
     }
 }

@@ -13,7 +13,9 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
     const canDeleteInvoices = Boolean(permissions?.can_delete_invoices);
+    const canDeletePaidInvoices = Boolean(permissions?.can_delete_paid_invoices);
     const [showCreateForm, setShowCreateForm] = useState(false);
+    const [duplicateNotice, setDuplicateNotice] = useState('');
     const [customerQuery, setCustomerQuery] = useState('');
     const [customerResults, setCustomerResults] = useState([]);
     const [customerSearchLoading, setCustomerSearchLoading] = useState(false);
@@ -110,6 +112,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                 setCustomerQuery('');
                 setCustomerResults([]);
                 setShowCreateForm(false);
+                setDuplicateNotice('');
             },
         });
     };
@@ -126,10 +129,63 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
         router.post(route('admin.invoices.resend', invoiceId), {}, { preserveScroll: true });
     };
 
-    const duplicateInvoice = (invoiceId, invoiceNumber) => {
-        if (!window.confirm(`Create a new invoice from ${invoiceNumber}? It will be emailed to the customer as a new, unpaid invoice.`)) return;
-        router.post(route('admin.invoices.duplicate', invoiceId), {}, { preserveScroll: true });
+    const prefillFromInvoiceTemplate = (template, sourceInvoiceNumber) => {
+        createForm.setData({
+            customer_id: template.customer_id || '',
+            customer_name: template.customer_name || '',
+            customer_email: template.customer_email || '',
+            customer_occupation: template.customer_occupation || '',
+            title: template.title || '',
+            description: template.description || '',
+            items: template.items?.length
+                ? template.items.map((item) => ({
+                      description: item.description || '',
+                      quantity: item.quantity || 1,
+                      unit_price: item.unit_price || '',
+                  }))
+                : [{ description: '', quantity: 1, unit_price: '' }],
+            currency: template.currency || 'NGN',
+            due_date: template.due_date || '',
+        });
+
+        if (template.customer_id && template.customer_name) {
+            setSelectedCustomerLabel(`${template.customer_name} (${template.customer_email || ''})`);
+        }
+
+        setDuplicateNotice(`Reviewing a copy of invoice ${sourceInvoiceNumber}. Edit anything needed, then send when ready — nothing has been emailed yet.`);
+        setShowCreateForm(true);
+
+        window.requestAnimationFrame(() => {
+            document.getElementById('invoice-title')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
     };
+
+    const duplicateInvoice = (invoiceId, invoiceNumber) => {
+        window.axios
+            .get(route('admin.invoices.duplicate', invoiceId))
+            .then((response) => {
+                prefillFromInvoiceTemplate(response?.data?.invoice || {}, invoiceNumber);
+            })
+            .catch((error) => {
+                window.alert(error?.response?.data?.message || 'Unable to load this invoice for duplication.');
+            });
+    };
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const duplicateId = params.get('duplicate');
+        const duplicateNumber = params.get('duplicate_number');
+
+        if (duplicateId) {
+            duplicateInvoice(duplicateId, duplicateNumber || `#${duplicateId}`);
+
+            params.delete('duplicate');
+            params.delete('duplicate_number');
+            const query = params.toString();
+            window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const sendReminder = (invoiceId) => {
         router.post(route('admin.invoices.remind', invoiceId), {}, { preserveScroll: true });
@@ -149,12 +205,22 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
         );
     };
 
+    const canDeleteInvoice = (invoice) => (
+        invoice.status === 'paid' ? canDeletePaidInvoices : canDeleteInvoices
+    );
+
     const deleteInvoice = (invoiceId, invoiceNumber) => {
-        if (!window.confirm(`Delete invoice ${invoiceNumber}? This cannot be undone.`)) {
+        if (!window.confirm(`Delete invoice ${invoiceNumber}? The customer will automatically be emailed an apology letting them know it was sent in error.`)) {
             return;
         }
 
+        const reason = window.prompt(
+            'Optional: add a short note to include in the apology email to the customer (leave blank to skip).',
+            '',
+        );
+
         router.delete(route('admin.invoices.destroy', invoiceId), {
+            data: { reason: reason || '' },
             preserveScroll: true,
         });
     };
@@ -167,7 +233,10 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                     <div className="flex items-center gap-2">
                         <button
                             type="button"
-                            onClick={() => setShowCreateForm((previous) => !previous)}
+                            onClick={() => {
+                                setShowCreateForm((previous) => !previous);
+                                setDuplicateNotice('');
+                            }}
                             className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-dark"
                         >
                             {showCreateForm ? 'Close' : 'New Invoice'}
@@ -204,6 +273,12 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                             <p className="mt-1 text-sm text-gray-600">
                                 Search for an existing customer or fill in the details for a new one, then set the invoice amount.
                             </p>
+
+                            {duplicateNotice && (
+                                <div className="mt-3 rounded-lg border border-brand/30 bg-brand-light px-3 py-2 text-sm text-brand">
+                                    {duplicateNotice}
+                                </div>
+                            )}
 
                             <form onSubmit={submitCreateInvoice} className="mt-5 space-y-4">
                                 <div>
@@ -446,7 +521,10 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                 <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
                                     <button
                                         type="button"
-                                        onClick={() => setShowCreateForm(false)}
+                                        onClick={() => {
+                                            setShowCreateForm(false);
+                                            setDuplicateNotice('');
+                                        }}
                                         className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                                     >
                                         Cancel
@@ -608,7 +686,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                         Mark Paid
                                                     </button>
                                                 )}
-                                                {canDeleteInvoices && (
+                                                {canDeleteInvoice(invoice) && (
                                                     <button
                                                         type="button"
                                                         onClick={() => deleteInvoice(invoice.id, invoice.invoice_number)}
@@ -696,7 +774,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                     Mark Paid
                                                 </button>
                                             )}
-                                            {canDeleteInvoices && (
+                                            {canDeleteInvoice(invoice) && (
                                                 <button
                                                     type="button"
                                                     onClick={() => deleteInvoice(invoice.id, invoice.invoice_number)}

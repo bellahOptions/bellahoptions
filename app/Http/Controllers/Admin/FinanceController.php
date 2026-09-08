@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\StorePayoutRequest;
 use App\Models\Expense;
 use App\Models\IncomeSplit;
 use App\Models\Invoice;
+use App\Models\InvoiceStaffCommission;
 use App\Models\OtherIncome;
 use App\Models\Payout;
 use App\Models\User;
@@ -93,7 +94,12 @@ class FinanceController extends Controller
         abort_unless((bool) $request->user()?->isSuperAdmin(), 403);
 
         $splits = IncomeSplit::query()
-            ->with(['invoice:id,invoice_number,title,paid_at', 'partner:id,name', 'owner:id,name'])
+            ->with([
+                'invoice:id,invoice_number,title,paid_at',
+                'invoice.staffCommissions.user:id,name,position',
+                'partner:id,name',
+                'owner:id,name',
+            ])
             ->latest('id')
             ->paginate(20)
             ->through(fn (IncomeSplit $split): array => [
@@ -113,6 +119,15 @@ class FinanceController extends Controller
                 'owner_name' => $split->owner?->name,
                 'owner_amount' => (string) $split->owner_amount,
                 'owner_percent' => (string) $split->owner_percent,
+                'staff_commissions' => $split->invoice?->staffCommissions
+                    ->map(fn (InvoiceStaffCommission $commission): array => [
+                        'user_name' => $commission->user?->name,
+                        'user_position' => $commission->user?->position,
+                        'percent' => (string) $commission->commission_percent,
+                        'amount' => (string) $commission->commission_amount,
+                    ])
+                    ->values()
+                    ->all() ?? [],
             ])
             ->withQueryString();
 
@@ -123,12 +138,34 @@ class FinanceController extends Controller
                 'data_savings' => (string) IncomeSplit::sum('data_savings_amount'),
                 'ai_savings' => (string) IncomeSplit::sum('ai_savings_amount'),
                 'partner_total' => (string) IncomeSplit::sum('partner_amount'),
+                'staff_commission_total' => (string) InvoiceStaffCommission::sum('commission_amount'),
                 'owner_total' => (string) IncomeSplit::sum('owner_amount'),
                 'invoice_count' => IncomeSplit::count(),
             ],
             'formula' => config('finance.income_split'),
+            'staffRoster' => $this->commissionEligibleStaff(),
             'splits' => $splits,
         ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function commissionEligibleStaff(): array
+    {
+        return User::query()
+            ->where('commission_eligible', true)
+            ->orderBy('name')
+            ->get(['id', 'name', 'position', 'commission_percent'])
+            ->map(fn (User $user): array => [
+                'name' => $user->name,
+                'position' => $user->position,
+                'commission_percent' => (string) $user->commission_percent,
+                'total_earned' => (string) InvoiceStaffCommission::where('user_id', $user->id)->sum('commission_amount'),
+                'invoice_count' => InvoiceStaffCommission::where('user_id', $user->id)->count(),
+            ])
+            ->values()
+            ->all();
     }
 
     public function ledger(Request $request): Response

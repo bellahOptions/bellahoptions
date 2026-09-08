@@ -1,0 +1,1 @@
+import{i as e,r as t}from"./app-Ax6Rc58R.js";import n from"./ErrorCanvas-DuAKPXUu.js";var r=t();function i({status:t=500,title:i=null,message:a=null}){return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(e,{title:`${t} Error`}),(0,r.jsx)(n,{status:t,title:i,message:a})]})}export{i as default};

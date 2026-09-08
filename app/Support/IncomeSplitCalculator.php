@@ -5,15 +5,17 @@ namespace App\Support;
 use App\Mail\IncomeSplitPartnerNotificationMail;
 use App\Models\IncomeSplit;
 use App\Models\Invoice;
+use App\Models\InvoiceStaffCommission;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Throwable;
 
 /**
- * Splits every paid invoice five ways: three fixed reserve percentages
- * (ads / data / AI savings), a fixed partner percentage, and an owner
- * percentage that absorbs whatever remains — so the five buckets always
+ * Splits every paid invoice into: three fixed reserve percentages (ads /
+ * data / AI savings), a fixed partner percentage, a commission percentage
+ * for every staff member flagged commission-eligible, and an owner
+ * percentage that absorbs whatever remains — so the buckets always
  * reconcile to exactly 100% of the invoice, with no rounding dust lost.
  */
 class IncomeSplitCalculator
@@ -35,11 +37,26 @@ class IncomeSplitCalculator
         $aiSavings = round($total * $config['ai_savings_percent'] / 100, 2);
         $partnerAmount = round($total * $config['partner_percent'] / 100, 2);
 
-        // The owner absorbs whatever is left after the four fixed buckets, so the
-        // split always reconciles exactly to the invoice total regardless of
-        // rounding — no fraction of a kobo goes unaccounted for.
-        $ownerAmount = round($total - $adsSavings - $dataSavings - $aiSavings - $partnerAmount, 2);
-        $ownerPercent = $total > 0 ? round(100 - $config['ads_savings_percent'] - $config['data_savings_percent'] - $config['ai_savings_percent'] - $config['partner_percent'], 2) : 0.0;
+        $eligibleStaff = User::query()
+            ->where('commission_eligible', true)
+            ->where('commission_percent', '>', 0)
+            ->get(['id', 'commission_percent']);
+
+        $staffCommissionPercent = (float) $eligibleStaff->sum(fn (User $user): float => (float) $user->commission_percent);
+        $staffCommissionAmounts = $eligibleStaff->mapWithKeys(
+            fn (User $user): array => [$user->id => round($total * (float) $user->commission_percent / 100, 2)]
+        );
+        $staffCommissionTotal = (float) $staffCommissionAmounts->sum();
+
+        // The owner absorbs whatever is left after the fixed buckets and every staff
+        // commission, so the split always reconciles exactly to the invoice total
+        // regardless of rounding — no fraction of a kobo goes unaccounted for. If the
+        // configured percentages ever add up to more than 100%, the owner's share is
+        // floored at zero rather than going negative.
+        $ownerAmount = max(0.0, round($total - $adsSavings - $dataSavings - $aiSavings - $partnerAmount - $staffCommissionTotal, 2));
+        $ownerPercent = $total > 0
+            ? max(0.0, round(100 - $config['ads_savings_percent'] - $config['data_savings_percent'] - $config['ai_savings_percent'] - $config['partner_percent'] - $staffCommissionPercent, 2))
+            : 0.0;
 
         $partner = $this->resolveUserByEmail($config['partner_email']);
         $owner = $this->resolveUserByEmail($config['owner_email']);
@@ -61,6 +78,16 @@ class IncomeSplitCalculator
             'owner_percent' => $ownerPercent,
             'owner_amount' => $ownerAmount,
         ]);
+
+        foreach ($eligibleStaff as $staff) {
+            InvoiceStaffCommission::create([
+                'invoice_id' => $invoice->id,
+                'user_id' => $staff->id,
+                'currency' => $invoice->currency,
+                'commission_percent' => $staff->commission_percent,
+                'commission_amount' => $staffCommissionAmounts->get($staff->id, 0.0),
+            ]);
+        }
 
         if ($partner !== null) {
             $this->notifyPartner($split->fresh(), $partner, $invoice);

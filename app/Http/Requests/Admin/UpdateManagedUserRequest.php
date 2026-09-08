@@ -41,6 +41,15 @@ class UpdateManagedUserRequest extends FormRequest
                 'user',
             ])],
             'address' => ['nullable', 'string', 'max:2000'],
+            'position' => ['nullable', 'string', 'max:120'],
+            'commission_eligible' => ['nullable', 'boolean'],
+            'commission_percent' => [
+                Rule::requiredIf((bool) $this->boolean('commission_eligible')),
+                'nullable',
+                'numeric',
+                'min:0',
+                'max:100',
+            ],
         ];
     }
 }

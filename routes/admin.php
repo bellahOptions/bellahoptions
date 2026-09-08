@@ -79,9 +79,10 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
     Route::post('/admin/customers', [CustomerController::class, 'store'])->name('admin.customers.store');
     Route::post('/admin/invoices', [InvoiceController::class, 'store'])->name('admin.invoices.store');
     Route::post('/admin/invoices/{invoice}/resend', [InvoiceController::class, 'resend'])->name('admin.invoices.resend');
-    Route::post('/admin/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('admin.invoices.duplicate');
+    Route::get('/admin/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('admin.invoices.duplicate');
     Route::post('/admin/invoices/{invoice}/remind', [InvoiceController::class, 'sendReminder'])->name('admin.invoices.remind');
     Route::patch('/admin/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('admin.invoices.mark-paid');
+    Route::delete('/admin/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('admin.invoices.destroy');
     Route::post('/admin/service-orders/{serviceOrder}/updates', [ServiceOrderController::class, 'storeUpdate'])
         ->name('admin.service-orders.updates.store');
     Route::get('/admin/my-earnings', [MyEarningsController::class, 'index'])->name('admin.my-earnings');
@@ -118,7 +119,6 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::post('/admin/email-center/assets/header-image', [EmailCenterController::class, 'uploadHeaderImage'])->name('admin.email-center.assets.header-image');
     Route::patch('/admin/email-center/templates', [EmailCenterController::class, 'updateTemplateLibrary'])->name('admin.email-center.templates.update');
     Route::patch('/admin/email-center/invoice-style', [EmailCenterController::class, 'updateInvoiceStyle'])->name('admin.email-center.invoice-style.update');
-    Route::delete('/admin/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('admin.invoices.destroy');
 
     Route::get('/admin/users', [UserController::class, 'index'])->name('admin.users.index');
     Route::get('/admin/users/{user}', [UserController::class, 'show'])->name('admin.users.show');
