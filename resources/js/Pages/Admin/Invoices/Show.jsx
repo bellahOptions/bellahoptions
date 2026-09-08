@@ -10,18 +10,18 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
     const canDeleteThisInvoice = invoice.status === 'paid' ? canDeletePaidInvoices : canDeleteInvoices;
 
     const resendInvoice = () => {
-        router.post(route('admin.invoices.resend', invoice.id), {}, { preserveScroll: true });
+        router.post(route('admin.invoices.resend', invoice.uuid), {}, { preserveScroll: true });
     };
 
     const duplicateInvoice = () => {
         router.visit(route('admin.invoices.index', {
-            duplicate: invoice.id,
+            duplicate: invoice.uuid,
             duplicate_number: invoice.invoice_number,
         }));
     };
 
     const sendReminder = () => {
-        router.post(route('admin.invoices.remind', invoice.id), {}, { preserveScroll: true });
+        router.post(route('admin.invoices.remind', invoice.uuid), {}, { preserveScroll: true });
     };
 
     const markInvoicePaid = () => {
@@ -32,7 +32,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
         }
 
         router.patch(
-            route('admin.invoices.mark-paid', invoice.id),
+            route('admin.invoices.mark-paid', invoice.uuid),
             { payment_reference: paymentReference },
             { preserveScroll: true },
         );
@@ -48,7 +48,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
             '',
         );
 
-        router.delete(route('admin.invoices.destroy', invoice.id), {
+        router.delete(route('admin.invoices.destroy', invoice.uuid), {
             data: { reason: reason || '' },
         });
     };

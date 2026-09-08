@@ -653,7 +653,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             </td>
                                             <td className="space-x-2 px-3 py-3 align-top">
                                                 <Link
-                                                    href={route('admin.invoices.show', invoice.id)}
+                                                    href={route('admin.invoices.show', invoice.uuid)}
                                                     className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                                                 >
                                                     View
@@ -661,7 +661,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 {invoice.status === 'paid' ? (
                                                     <button
                                                         type="button"
-                                                        onClick={() => duplicateInvoice(invoice.id, invoice.invoice_number)}
+                                                        onClick={() => duplicateInvoice(invoice.uuid, invoice.invoice_number)}
                                                         className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
                                                     >
                                                         Duplicate
@@ -669,7 +669,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 ) : (
                                                     <button
                                                         type="button"
-                                                        onClick={() => resendInvoice(invoice.id)}
+                                                        onClick={() => resendInvoice(invoice.uuid)}
                                                         className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
                                                     >
                                                         Resend
@@ -678,7 +678,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 {invoice.status !== 'paid' && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => sendReminder(invoice.id)}
+                                                        onClick={() => sendReminder(invoice.uuid)}
                                                         className="rounded-md border border-amber-200 px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50"
                                                     >
                                                         Remind
@@ -687,7 +687,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 {invoice.status !== 'paid' && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => markInvoicePaid(invoice.id)}
+                                                        onClick={() => markInvoicePaid(invoice.uuid)}
                                                         className="rounded-md border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
                                                     >
                                                         Mark Paid
@@ -696,7 +696,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 {canDeleteInvoice(invoice) && (
                                                     <button
                                                         type="button"
-                                                        onClick={() => deleteInvoice(invoice.id, invoice.invoice_number)}
+                                                        onClick={() => deleteInvoice(invoice.uuid, invoice.invoice_number)}
                                                         className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
                                                     >
                                                         Delete
@@ -741,7 +741,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
 
                                         <MobileCardActions>
                                             <Link
-                                                href={route('admin.invoices.show', invoice.id)}
+                                                href={route('admin.invoices.show', invoice.uuid)}
                                                 className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                                             >
                                                 View
@@ -749,7 +749,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             {invoice.status === 'paid' ? (
                                                 <button
                                                     type="button"
-                                                    onClick={() => duplicateInvoice(invoice.id, invoice.invoice_number)}
+                                                    onClick={() => duplicateInvoice(invoice.uuid, invoice.invoice_number)}
                                                     className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                                                 >
                                                     Duplicate
@@ -757,7 +757,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             ) : (
                                                 <button
                                                     type="button"
-                                                    onClick={() => resendInvoice(invoice.id)}
+                                                    onClick={() => resendInvoice(invoice.uuid)}
                                                     className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
                                                 >
                                                     Resend
@@ -766,7 +766,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             {invoice.status !== 'paid' && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => sendReminder(invoice.id)}
+                                                    onClick={() => sendReminder(invoice.uuid)}
                                                     className="rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50"
                                                 >
                                                     Remind
@@ -775,7 +775,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             {invoice.status !== 'paid' && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => markInvoicePaid(invoice.id)}
+                                                    onClick={() => markInvoicePaid(invoice.uuid)}
                                                     className="rounded-md border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
                                                 >
                                                     Mark Paid
@@ -784,7 +784,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             {canDeleteInvoice(invoice) && (
                                                 <button
                                                     type="button"
-                                                    onClick={() => deleteInvoice(invoice.id, invoice.invoice_number)}
+                                                    onClick={() => deleteInvoice(invoice.uuid, invoice.invoice_number)}
                                                     className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
                                                 >
                                                     Delete

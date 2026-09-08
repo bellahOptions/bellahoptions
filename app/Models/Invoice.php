@@ -10,9 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Str;
 
 #[ObservedBy(InvoiceObserver::class)]
 #[Fillable([
+    'uuid',
     'invoice_number',
     'customer_id',
     'customer_name',
@@ -36,6 +38,15 @@ class Invoice extends Model
 {
     use HasFactory;
 
+    protected static function booted(): void
+    {
+        static::creating(function (self $invoice): void {
+            if (! is_string($invoice->uuid) || trim($invoice->uuid) === '') {
+                $invoice->uuid = (string) Str::uuid();
+            }
+        });
+    }
+
     /**
      * @return array<string, string>
      */
@@ -49,6 +60,15 @@ class Invoice extends Model
             'last_manual_reminder_sent_at' => 'datetime',
             'amount' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Invoices are looked up by their opaque uuid in routes rather than their
+     * sequential id, so staff can't enumerate invoices by guessing numbers.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
     }
 
     public function creator(): BelongsTo

@@ -437,7 +437,15 @@ class InvoiceController extends Controller
             }
         }
 
-        $invoice->delete();
+        // Delete dependent financial records explicitly rather than trusting the
+        // database's ON DELETE CASCADE alone — ledger integrity is too important
+        // to leave to FK enforcement that could be bypassed by config state, a
+        // different DB engine, or a tool that touches the DB outside Eloquent.
+        DB::transaction(function () use ($invoice): void {
+            $invoice->staffCommissions()->delete();
+            $invoice->incomeSplit()->delete();
+            $invoice->delete();
+        });
 
         $message = $customerNotified
             ? "Invoice {$invoiceNumber} has been deleted and the customer notified by email."
@@ -565,6 +573,7 @@ class InvoiceController extends Controller
     {
         return [
             'id' => $invoice->id,
+            'uuid' => $invoice->uuid,
             'invoice_number' => $invoice->invoice_number,
             'customer_id' => $invoice->customer_id,
             'customer_name' => $invoice->customer_name,
