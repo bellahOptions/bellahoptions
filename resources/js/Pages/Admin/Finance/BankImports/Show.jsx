@@ -4,6 +4,7 @@ import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, router, usePage, WhenVisible } from '@inertiajs/react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Ban, Check, Loader2, Wallet } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -548,18 +549,4 @@ function StatusBadge({ status }) {
             {status.charAt(0).toUpperCase() + status.slice(1)}
         </span>
     );
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN' || normalizedCurrency === '') {
-        return `₦${formattedAmount}`;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }

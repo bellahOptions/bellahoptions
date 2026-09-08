@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\MarkInvoicePaidRequest;
 use App\Http\Requests\Admin\StoreInvoiceRequest;
+use App\Mail\InvoiceCommissionInvalidatedMail;
 use App\Mail\InvoiceDeletedMail;
 use App\Mail\InvoiceIssuedAdminAlertMail;
 use App\Mail\InvoiceIssuedMail;
@@ -413,11 +414,40 @@ class InvoiceController extends Controller
             ]);
         }
 
+        // A paid invoice may already have staff commissions recorded against it —
+        // those earnings are no longer real once the invoice is gone, so every
+        // staff member who earned one must be told before the rows cascade-delete.
+        $commissions = $invoice->staffCommissions()->with('user')->get();
+        $staffNotifiedCount = 0;
+
+        foreach ($commissions as $commission) {
+            if ($commission->user?->email === null) {
+                continue;
+            }
+
+            try {
+                Mail::to($commission->user->email)->send(new InvoiceCommissionInvalidatedMail($commission, $invoice));
+                $staffNotifiedCount++;
+            } catch (Throwable $exception) {
+                Log::warning('Invoice commission invalidation email failed.', [
+                    'invoice_id' => $invoice->id,
+                    'user_id' => $commission->user->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
+
         $invoice->delete();
 
         $message = $customerNotified
             ? "Invoice {$invoiceNumber} has been deleted and the customer notified by email."
             : "Invoice {$invoiceNumber} has been deleted, but the customer notification email failed to send.";
+
+        if ($commissions->isNotEmpty()) {
+            $message .= $staffNotifiedCount === $commissions->count()
+                ? " {$staffNotifiedCount} staff member(s) were notified that their commission on it is void."
+                : " {$staffNotifiedCount} of {$commissions->count()} staff member(s) were notified that their commission on it is void.";
+        }
 
         return redirect()
             ->route('admin.invoices.index')

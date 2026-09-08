@@ -1,5 +1,6 @@
 import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 
 export default function InvoiceShow({ invoice, permissions = {} }) {
@@ -276,22 +277,4 @@ function Info({ label, value }) {
             <p className="mt-1 text-sm font-semibold text-gray-900">{value}</p>
         </div>
     );
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN') {
-        return `₦${formattedAmount}`;
-    }
-
-    if (normalizedCurrency === '') {
-        return formattedAmount;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }

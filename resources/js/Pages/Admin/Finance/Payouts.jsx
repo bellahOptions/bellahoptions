@@ -3,6 +3,7 @@ import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { Check, CheckCircle2, Clock, Hash, Loader2, Plus, RotateCcw, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
@@ -379,16 +380,3 @@ function StatusBadge({ status }) {
     );
 }
 
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN' || normalizedCurrency === '') {
-        return `₦${formattedAmount}`;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
-}

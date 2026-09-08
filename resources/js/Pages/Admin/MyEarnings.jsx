@@ -1,6 +1,7 @@
 import { MobileCard, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import { Calendar, ReceiptText, Wallet } from 'lucide-react';
 
@@ -118,18 +119,4 @@ export default function MyEarnings({ stats = {}, splits }) {
             </div>
         </AuthenticatedLayout>
     );
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN' || normalizedCurrency === '') {
-        return `₦${formattedAmount}`;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }

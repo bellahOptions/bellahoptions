@@ -1,6 +1,7 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { formatMoney, formatStatusLabel, StatusBadge } from './Index';
+import { formatStatusLabel, StatusBadge } from './Index';
 
 const updatableStatuses = ['awaiting_payment', 'queued', 'in_progress', 'in_review', 'completed', 'cancelled'];
 

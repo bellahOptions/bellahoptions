@@ -884,6 +884,13 @@ class PlatformSettings
                 'html_template' => '',
                 'builder_layout' => [],
             ],
+            'invoice_commission_invalidated' => [
+                'name' => 'Invoice Commission Invalidated',
+                'subject_template' => 'Commission voided: invoice {{invoice_number}} was deleted',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
             'service_order_summary' => [
                 'name' => 'Service Order Summary',
                 'subject_template' => 'Order Received: {{service_name}} ({{order_code}})',

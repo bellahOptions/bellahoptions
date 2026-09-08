@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Mail\InvoiceCommissionInvalidatedMail;
 use App\Mail\InvoiceDeletedMail;
 use App\Mail\InvoiceIssuedAdminAlertMail;
 use App\Mail\InvoiceIssuedMail;
@@ -489,6 +490,54 @@ class AdminInvoiceDashboardTest extends TestCase
 
         $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
         Mail::assertSent(InvoiceDeletedMail::class, fn (InvoiceDeletedMail $mail): bool => $mail->hasTo('refund@example.com'));
+    }
+
+    public function test_deleting_a_paid_invoice_notifies_commission_eligible_staff_that_their_earnings_are_void(): void
+    {
+        Mail::fake();
+
+        $admin = User::factory()->create(['role' => 'super_admin', 'email' => 'ahmed@bellahoptions.com']);
+        $rep = User::factory()->create([
+            'role' => 'customer_rep',
+            'name' => 'Commission Rep',
+            'email' => 'commission-rep@example.com',
+            'commission_eligible' => true,
+            'commission_percent' => 10,
+        ]);
+
+        $invoice = Invoice::create([
+            'invoice_number' => 'BO-PAID-COMMISSION-001',
+            'customer_name' => 'Commission Test Customer',
+            'customer_email' => 'commission-customer@example.com',
+            'title' => 'Commissioned Work',
+            'amount' => 100000,
+            'currency' => 'NGN',
+            'status' => 'unpaid',
+            'issued_at' => now(),
+            'created_by' => $admin->id,
+        ]);
+
+        // Transitioning to paid (not creating already-paid) is what fires the
+        // observer that actually creates the income split + staff commissions.
+        $invoice->update(['status' => 'paid', 'paid_at' => now()]);
+
+        $this->assertDatabaseHas('invoice_staff_commissions', [
+            'invoice_id' => $invoice->id,
+            'user_id' => $rep->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->delete(route('admin.invoices.destroy', $invoice))
+            ->assertRedirect(route('admin.invoices.index'));
+
+        $this->assertDatabaseMissing('invoices', ['id' => $invoice->id]);
+        $this->assertDatabaseMissing('invoice_staff_commissions', ['invoice_id' => $invoice->id]);
+
+        Mail::assertSent(InvoiceCommissionInvalidatedMail::class, function (InvoiceCommissionInvalidatedMail $mail) use ($rep, $invoice): bool {
+            return $mail->hasTo($rep->email)
+                && $mail->invoice->is($invoice)
+                && (float) $mail->commission->commission_amount === 10000.0;
+        });
     }
 
     public function test_non_staff_user_cannot_delete_invoices(): void

@@ -2,6 +2,7 @@ import Modal from '@/Components/Modal';
 import { Badge } from '@/Components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { CreditCard, FolderKanban, LayoutDashboard, PlusCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -1449,24 +1450,6 @@ function displayCustomerName(customer) {
     }
 
     return customer?.email || 'Customer';
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN') {
-        return `₦${formattedAmount}`;
-    }
-
-    if (normalizedCurrency === '') {
-        return formattedAmount;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }
 
 function formatOrderStatus(status) {

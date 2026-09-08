@@ -3,6 +3,7 @@ import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { CalendarDays, Hash, Loader2, Plus, RotateCcw, Search, Trash2, Wallet } from 'lucide-react';
 import { useState } from 'react';
@@ -363,16 +364,3 @@ export default function FinanceExpenses({ expenses, stats = {}, filters = {}, ca
     );
 }
 
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN' || normalizedCurrency === '') {
-        return `₦${formattedAmount}`;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
-}

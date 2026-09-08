@@ -2,6 +2,7 @@ import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, Mobile
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { BadgeDollarSign, CheckCircle2, Clock, FileText, Loader2, RotateCcw, Search, Wallet } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -473,38 +474,44 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
 
                                     <div className="space-y-2">
                                         {createForm.data.items.map((item, index) => (
-                                            <div key={index} className="grid grid-cols-[1fr_70px_110px_auto] items-center gap-2">
+                                            <div key={index} className="grid grid-cols-1 gap-2 rounded-md border border-gray-100 p-2 sm:grid-cols-[1fr_70px_110px_auto] sm:items-center sm:border-0 sm:p-0">
                                                 <input
                                                     value={item.description}
                                                     onChange={(event) => updateItem(index, 'description', event.target.value)}
                                                     placeholder="e.g. Logo design"
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                    className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                                 />
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    value={item.quantity}
-                                                    onChange={(event) => updateItem(index, 'quantity', event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                                <input
-                                                    type="number"
-                                                    min="0"
-                                                    step="0.01"
-                                                    value={item.unit_price}
-                                                    onChange={(event) => updateItem(index, 'unit_price', event.target.value)}
-                                                    placeholder="Unit price"
-                                                    className="w-full rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeItem(index)}
-                                                    disabled={createForm.data.items.length === 1}
-                                                    title="Remove item"
-                                                    className="rounded-md border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
-                                                >
-                                                    ✕
-                                                </button>
+                                                {/* On mobile this wrapper stacks qty/price/remove as a row below the
+                                                    description; from sm: up, `contents` drops it from the layout so
+                                                    its children rejoin the parent grid's fixed columns directly. */}
+                                                <div className="grid grid-cols-[1fr_1fr_auto] items-center gap-2 sm:contents">
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={item.quantity}
+                                                        onChange={(event) => updateItem(index, 'quantity', event.target.value)}
+                                                        placeholder="Qty"
+                                                        className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                    />
+                                                    <input
+                                                        type="number"
+                                                        min="0"
+                                                        step="0.01"
+                                                        value={item.unit_price}
+                                                        onChange={(event) => updateItem(index, 'unit_price', event.target.value)}
+                                                        placeholder="Unit price"
+                                                        className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeItem(index)}
+                                                        disabled={createForm.data.items.length === 1}
+                                                        title="Remove item"
+                                                        className="rounded-md border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
                                             </div>
                                         ))}
                                     </div>
@@ -827,22 +834,4 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
             </div>
         </AuthenticatedLayout>
     );
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN') {
-        return `₦${formattedAmount}`;
-    }
-
-    if (normalizedCurrency === '') {
-        return formattedAmount;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }

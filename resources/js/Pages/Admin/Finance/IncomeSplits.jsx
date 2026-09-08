@@ -2,6 +2,7 @@ import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobil
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link } from '@inertiajs/react';
 import { Bot, CheckCircle2, Database, Megaphone, Users, User, Wallet } from 'lucide-react';
 
@@ -225,18 +226,4 @@ export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = 
 function formatPercent(value) {
     const number = Number(value || 0);
     return Number.isInteger(number) ? number : number.toFixed(2);
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN' || normalizedCurrency === '') {
-        return `₦${formattedAmount}`;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }

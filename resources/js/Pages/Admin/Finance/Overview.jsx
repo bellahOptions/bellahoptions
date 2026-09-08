@@ -1,5 +1,6 @@
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { ArrowDownRight, ArrowUpRight, Wallet } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -191,20 +192,6 @@ function KpiCard({ label, value, change, tone = 'emerald', invertChangeTone = fa
             )}
         </div>
     );
-}
-
-function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN' || normalizedCurrency === '') {
-        return `₦${formattedAmount}`;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }
 
 function compactMoney(amount) {

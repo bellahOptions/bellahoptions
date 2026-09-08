@@ -2,6 +2,7 @@ import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, Mobile
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { formatMoney } from '@/lib/utils';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { CheckCircle2, Clock, Loader2, Package, RefreshCw, RotateCcw, Search, Wallet } from 'lucide-react';
 import { useState } from 'react';
@@ -339,22 +340,4 @@ export function formatStatusLabel(value) {
         .filter(Boolean)
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
-}
-
-export function formatMoney(amount, currency = 'NGN') {
-    const formattedAmount = Number(amount).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
-    const normalizedCurrency = String(currency || '').toUpperCase();
-
-    if (normalizedCurrency === 'NGN') {
-        return `₦${formattedAmount}`;
-    }
-
-    if (normalizedCurrency === '') {
-        return formattedAmount;
-    }
-
-    return `${normalizedCurrency} ${formattedAmount}`;
 }
