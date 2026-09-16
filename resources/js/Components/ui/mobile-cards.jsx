@@ -24,8 +24,8 @@ export function MobileCard({ index = 0, className, children, onClick }) {
             whileTap={onClick ? { scale: 0.98 } : undefined}
             onClick={onClick}
             className={cn(
-                'overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm',
-                onClick && 'cursor-pointer active:bg-gray-50',
+                'overflow-hidden rounded-jv border border-jv-line bg-white/[0.04] p-4',
+                onClick && 'cursor-pointer active:bg-white/[0.07]',
                 className,
             )}
         >
@@ -38,8 +38,8 @@ export function MobileCardHeader({ title, subtitle, badge }) {
     return (
         <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-gray-900">{title}</p>
-                {subtitle ? <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p> : null}
+                <p className="truncate text-sm font-semibold text-white">{title}</p>
+                {subtitle ? <p className="mt-0.5 truncate text-xs text-white/45">{subtitle}</p> : null}
             </div>
             {badge ? <div className="shrink-0">{badge}</div> : null}
         </div>
@@ -53,12 +53,12 @@ export function MobileCardRow({ label, value, className }) {
 
     return (
         <div className={cn('flex items-center justify-between gap-3 py-1 text-sm', className)}>
-            <span className="shrink-0 text-gray-500">{label}</span>
-            <span className="min-w-0 flex-1 truncate text-right font-medium text-gray-800">{value}</span>
+            <span className="shrink-0 text-white/45">{label}</span>
+            <span className="min-w-0 flex-1 truncate text-right font-medium text-white/85">{value}</span>
         </div>
     );
 }
 
 export function MobileCardActions({ children }) {
-    return <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-gray-100 pt-3">{children}</div>;
+    return <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-jv-line pt-3">{children}</div>;
 }

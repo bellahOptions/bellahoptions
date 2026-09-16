@@ -1,7 +1,15 @@
 import { cn } from '@/lib/utils';
 
 function Card({ className, ...props }) {
-    return <div className={cn('rounded-xl border border-slate-200 bg-white text-slate-950 shadow-sm', className)} {...props} />;
+    return (
+        <div
+            className={cn(
+                'jv-card rounded-jv border border-jv-line bg-white/[0.04] text-white backdrop-blur-sm',
+                className,
+            )}
+            {...props}
+        />
+    );
 }
 
 function CardHeader({ className, ...props }) {
@@ -9,11 +17,16 @@ function CardHeader({ className, ...props }) {
 }
 
 function CardTitle({ className, ...props }) {
-    return <h3 className={cn('text-lg font-semibold leading-none tracking-tight', className)} {...props} />;
+    return (
+        <h3
+            className={cn('text-lg font-semibold leading-none tracking-tight text-white', className)}
+            {...props}
+        />
+    );
 }
 
 function CardDescription({ className, ...props }) {
-    return <p className={cn('text-sm text-slate-600', className)} {...props} />;
+    return <p className={cn('text-sm text-white/55', className)} {...props} />;
 }
 
 function CardContent({ className, ...props }) {
