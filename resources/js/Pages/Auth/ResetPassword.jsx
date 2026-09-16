@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
+import { Display, Eyebrow } from '@/Components/PublicUI';
 import { Head, useForm } from '@inertiajs/react';
 
 export default function ResetPassword({ token, email }) {
@@ -23,85 +24,74 @@ export default function ResetPassword({ token, email }) {
         <GuestLayout>
             <Head title="Reset Password" />
 
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
-                    Password Reset
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-                    Set a new password
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Choose a strong password to secure your account.
-                </p>
-            </div>
+            <Eyebrow>Password reset</Eyebrow>
 
-            <form onSubmit={submit} className="mt-6 space-y-4">
-                <div>
-                    <label htmlFor="email" className="text-sm font-medium text-slate-700">
-                        Email Address
+            <Display as="h2" size="sm" className="mt-5">
+                Set a new password
+            </Display>
+            <p className="jv-body mt-3">
+                Choose a strong password to secure your account.
+            </p>
+
+            <form onSubmit={submit} className="mt-7 space-y-5">
+                <div className="jv-field">
+                    <label htmlFor="email" className="jv-label">
+                        Email address
                     </label>
                     <input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        className="jv-input"
                         autoComplete="username"
                         onChange={(e) => setData('email', e.target.value)}
                         required
                     />
-
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} />
                 </div>
 
-                <div>
-                    <label htmlFor="password" className="text-sm font-medium text-slate-700">
-                        New Password
+                <div className="jv-field">
+                    <label htmlFor="password" className="jv-label">
+                        New password
                     </label>
                     <PasswordInput
                         id="password"
                         name="password"
                         value={data.password}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        inputClassName="jv-input"
                         autoComplete="new-password"
                         onChange={(e) => setData('password', e.target.value)}
                         required
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div>
-                    <label htmlFor="password_confirmation" className="text-sm font-medium text-slate-700">
-                        Confirm New Password
+                <div className="jv-field">
+                    <label htmlFor="password_confirmation" className="jv-label">
+                        Confirm new password
                     </label>
                     <PasswordInput
                         id="password_confirmation"
                         name="password_confirmation"
                         value={data.password_confirmation}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        inputClassName="jv-input"
                         autoComplete="new-password"
                         onChange={(e) =>
                             setData('password_confirmation', e.target.value)
                         }
                         required
                     />
-
-                    <InputError
-                        message={errors.password_confirmation}
-                        className="mt-2"
-                    />
+                    <InputError message={errors.password_confirmation} />
                 </div>
 
-                <div className="pt-1">
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        Reset Password
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="jv-btn jv-btn--primary w-full"
+                >
+                    Reset Password
+                </button>
             </form>
         </GuestLayout>
     );

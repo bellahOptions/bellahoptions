@@ -76,7 +76,7 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Discount Codes</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight text-white/90">Discount Codes</h2>}
         >
             <Head title="Discount Codes" />
 
@@ -94,41 +94,41 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                         </div>
                     )}
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900">Discount Codes & Links</h3>
-                        <p className="mt-1 text-sm text-gray-600">
+                    <div className="rounded-2xl border border-jv-line bg-white/[0.04] p-6 ">
+                        <h3 className="text-lg font-semibold text-white">Discount Codes & Links</h3>
+                        <p className="mt-1 text-sm text-white/65">
                             Create service-specific discount links that auto-apply on checkout.
                         </p>
 
                         <form onSubmit={submitDiscountCode} className="mt-5 grid gap-4 lg:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Name (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Name (optional)</label>
                                 <input
                                     type="text"
                                     value={discountForm.data.name}
                                     onChange={(event) => discountForm.setData('name', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Code</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Code</label>
                                 <input
                                     type="text"
                                     value={discountForm.data.code}
                                     onChange={(event) => discountForm.setData('code', event.target.value)}
                                     placeholder="PROMO20"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm uppercase focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {discountForm.errors.code && <p className="mt-1 text-xs text-red-600">{discountForm.errors.code}</p>}
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Discount Type</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Discount Type</label>
                                 <select
                                     value={discountForm.data.discount_type}
                                     onChange={(event) => discountForm.setData('discount_type', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 >
                                     <option value="percentage">Percentage</option>
                                     <option value="fixed">Fixed Amount</option>
@@ -136,27 +136,27 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Discount Value</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Discount Value</label>
                                 <input
                                     type="number"
                                     min="0.01"
                                     step="0.01"
                                     value={discountForm.data.discount_value}
                                     onChange={(event) => discountForm.setData('discount_value', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {discountForm.errors.discount_value && <p className="mt-1 text-xs text-red-600">{discountForm.errors.discount_value}</p>}
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Service</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Service</label>
                                 <select
                                     value={discountForm.data.service_slug}
                                     onChange={(event) => {
                                         discountForm.setData('service_slug', event.target.value);
                                         discountForm.setData('package_code', '');
                                     }}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 >
                                     {serviceEntries.map(([serviceSlug, service]) => (
                                         <option key={`discount-service-${serviceSlug}`} value={serviceSlug}>
@@ -168,11 +168,11 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Package (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Package (optional)</label>
                                 <select
                                     value={discountForm.data.package_code}
                                     onChange={(event) => discountForm.setData('package_code', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 >
                                     <option value="">All packages in this service</option>
                                     {Object.entries(selectedServicePackages).map(([packageCode, packageMeta]) => (
@@ -186,46 +186,46 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
 
                             {discountForm.data.discount_type === 'fixed' && (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Currency</label>
+                                    <label className="mb-1 block text-sm font-medium text-white/75">Currency</label>
                                     <input
                                         type="text"
                                         value={discountForm.data.currency}
                                         onChange={(event) => discountForm.setData('currency', event.target.value.toUpperCase())}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm uppercase focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm uppercase focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                     />
                                     {discountForm.errors.currency && <p className="mt-1 text-xs text-red-600">{discountForm.errors.currency}</p>}
                                 </div>
                             )}
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Starts At (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Starts At (optional)</label>
                                 <input
                                     type="date"
                                     value={discountForm.data.starts_at}
                                     onChange={(event) => discountForm.setData('starts_at', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Ends At (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Ends At (optional)</label>
                                 <input
                                     type="date"
                                     value={discountForm.data.ends_at}
                                     onChange={(event) => discountForm.setData('ends_at', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Max Redemptions (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Max Redemptions (optional)</label>
                                 <input
                                     type="number"
                                     min="1"
                                     step="1"
                                     value={discountForm.data.max_redemptions}
                                     onChange={(event) => discountForm.setData('max_redemptions', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                             </div>
 
@@ -235,9 +235,9 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                     type="checkbox"
                                     checked={Boolean(discountForm.data.is_active)}
                                     onChange={(event) => discountForm.setData('is_active', event.target.checked)}
-                                    className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                    className="h-4 w-4 rounded border-jv-line-strong text-jv-accent focus:ring-jv-accent"
                                 />
-                                <label htmlFor="discount_is_active" className="text-sm font-medium text-gray-700">Active immediately</label>
+                                <label htmlFor="discount_is_active" className="text-sm font-medium text-white/75">Active immediately</label>
                             </div>
 
                             {(discountForm.errors.discount_type || discountForm.errors.starts_at || discountForm.errors.ends_at || discountForm.errors.max_redemptions) && (
@@ -259,7 +259,7 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
 
                         <div className="mt-6 hidden overflow-x-auto md:block">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
+                                <thead className="bg-white/[0.04] text-xs uppercase tracking-wide text-white/65">
                                     <tr>
                                         <th className="px-3 py-2 text-left">Code</th>
                                         <th className="px-3 py-2 text-left">Scope</th>
@@ -270,10 +270,10 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                         <th className="px-3 py-2 text-left">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+                                <tbody className="divide-y divide-gray-100 bg-white/[0.04] text-white/75">
                                     {discountCodes.length === 0 && (
                                         <tr>
-                                            <td className="px-3 py-4 text-sm text-gray-500" colSpan={7}>
+                                            <td className="px-3 py-4 text-sm text-white/50" colSpan={7}>
                                                 No discount codes yet.
                                             </td>
                                         </tr>
@@ -282,12 +282,12 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                     {discountCodes.map((discountCode) => (
                                         <tr key={`discount-${discountCode.id}`}>
                                             <td className="px-3 py-3">
-                                                <p className="font-semibold text-gray-900">{discountCode.code}</p>
-                                                <p className="text-xs text-gray-500">{discountCode.name || 'Unnamed discount'}</p>
+                                                <p className="font-semibold text-white">{discountCode.code}</p>
+                                                <p className="text-xs text-white/50">{discountCode.name || 'Unnamed discount'}</p>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <p>{serviceCatalog?.[discountCode.service_slug]?.name || discountCode.service_slug}</p>
-                                                <p className="text-xs text-gray-500">{discountCode.package_code || 'All service packages'}</p>
+                                                <p className="text-xs text-white/50">{discountCode.package_code || 'All service packages'}</p>
                                             </td>
                                             <td className="px-3 py-3">
                                                 {discountCode.discount_type === 'percentage'
@@ -296,16 +296,16 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                             </td>
                                             <td className="px-3 py-3">
                                                 <p>{discountCode.total_redemptions} redeemed</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-white/50">
                                                     {discountCode.max_redemptions ? `Limit: ${discountCode.max_redemptions}` : 'No limit'}
                                                 </p>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                                                    discountCode.is_active
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-gray-100 text-gray-600'
-                                                }`}>
+ discountCode.is_active
+ ? 'bg-emerald-100 text-emerald-700'
+ : 'bg-white/[0.06] text-white/65'
+ }`}>
                                                     {discountCode.is_active ? 'Active' : 'Inactive'}
                                                 </span>
                                             </td>
@@ -314,7 +314,7 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                                     href={discountCode.discount_link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="break-all text-xs text-brand hover:text-brand-dark"
+                                                    className="break-all text-xs text-jv-accent hover:text-jv-accent-dark"
                                                 >
                                                     {discountCode.discount_link}
                                                 </a>
@@ -324,14 +324,14 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                                     <button
                                                         type="button"
                                                         onClick={() => toggleDiscountStatus(discountCode)}
-                                                        className="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                        className="rounded-md border border-jv-line px-2.5 py-1 text-xs font-semibold text-white/75 hover:bg-white/[0.04]"
                                                     >
                                                         {discountCode.is_active ? 'Deactivate' : 'Activate'}
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => copyDiscountLink(discountCode)}
-                                                        className="rounded-md border border-brand/30 px-2.5 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                        className="rounded-md border border-jv-accent/30 px-2.5 py-1 text-xs font-semibold text-jv-accent hover:bg-jv-accent/15"
                                                     >
                                                         {copiedLinkId === discountCode.id ? 'Copied' : 'Copy Link'}
                                                     </button>
@@ -351,36 +351,36 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                         </div>
 
                         {discountCodes.length === 0 ? (
-                            <p className="mt-6 text-sm text-gray-500 md:hidden">No discount codes yet.</p>
+                            <p className="mt-6 text-sm text-white/50 md:hidden">No discount codes yet.</p>
                         ) : (
                             <MobileCardList className="mt-6">
                                 {discountCodes.map((discountCode, index) => (
                                     <MobileCard key={`discount-mobile-${discountCode.id}`} index={index}>
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0">
-                                                <p className="truncate text-sm font-semibold text-gray-900">{discountCode.code}</p>
-                                                <p className="truncate text-xs text-gray-500">{discountCode.name || 'Unnamed discount'}</p>
+                                                <p className="truncate text-sm font-semibold text-white">{discountCode.code}</p>
+                                                <p className="truncate text-xs text-white/50">{discountCode.name || 'Unnamed discount'}</p>
                                             </div>
                                             <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
-                                                discountCode.is_active
-                                                    ? 'bg-emerald-100 text-emerald-700'
-                                                    : 'bg-gray-100 text-gray-600'
-                                            }`}>
+ discountCode.is_active
+ ? 'bg-emerald-100 text-emerald-700'
+ : 'bg-white/[0.06] text-white/65'
+ }`}>
                                                 {discountCode.is_active ? 'Active' : 'Inactive'}
                                             </span>
                                         </div>
 
                                         <div className="mt-3 space-y-1.5 text-sm">
-                                            <p className="text-gray-700">
+                                            <p className="text-white/75">
                                                 {serviceCatalog?.[discountCode.service_slug]?.name || discountCode.service_slug}
-                                                <span className="text-gray-500"> · {discountCode.package_code || 'All service packages'}</span>
+                                                <span className="text-white/50"> · {discountCode.package_code || 'All service packages'}</span>
                                             </p>
-                                            <p className="text-gray-700">
+                                            <p className="text-white/75">
                                                 {discountCode.discount_type === 'percentage'
                                                     ? `${discountCode.discount_value}% off`
                                                     : `${discountCode.currency || 'NGN'} ${discountCode.discount_value} off`}
                                             </p>
-                                            <p className="text-xs text-gray-500">
+                                            <p className="text-xs text-white/50">
                                                 {discountCode.total_redemptions} redeemed
                                                 {discountCode.max_redemptions ? ` · Limit: ${discountCode.max_redemptions}` : ' · No limit'}
                                             </p>
@@ -388,7 +388,7 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                                 href={discountCode.discount_link}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block break-all text-xs text-brand hover:text-brand-dark"
+                                                className="block break-all text-xs text-jv-accent hover:text-jv-accent-dark"
                                             >
                                                 {discountCode.discount_link}
                                             </a>
@@ -398,14 +398,14 @@ export default function DiscountCodesIndex({ serviceCatalog = {}, discountCodes 
                                             <button
                                                 type="button"
                                                 onClick={() => toggleDiscountStatus(discountCode)}
-                                                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                className="rounded-md border border-jv-line px-2.5 py-1.5 text-xs font-semibold text-white/75 hover:bg-white/[0.04]"
                                             >
                                                 {discountCode.is_active ? 'Deactivate' : 'Activate'}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => copyDiscountLink(discountCode)}
-                                                className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                className="rounded-md border border-jv-accent/30 px-2.5 py-1.5 text-xs font-semibold text-jv-accent hover:bg-jv-accent/15"
                                             >
                                                 {copiedLinkId === discountCode.id ? 'Copied' : 'Copy Link'}
                                             </button>

@@ -1,3 +1,4 @@
+import { Eyebrow } from '@/Components/PublicUI';
 import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -36,18 +37,18 @@ export default function AdminDashboard({
         <AuthenticatedLayout>
             <Head title="Staff Dashboard" />
 
-            <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-                <section className="rounded-2xl border border-slate-200 bg-gradient-to-r from-white via-sky-50 to-blue-50 p-6">
-                    <p className="text-sm font-semibold uppercase tracking-[0.2em] text-blue-700">Admin & Staff Workspace</p>
-                    <h1 className="mt-2 text-2xl font-black text-slate-900">Welcome, {user?.name || 'Team Member'}</h1>
-                    <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                        Monitor invoices, pending payments, and team operations from one light-themed dashboard.
+            <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+                <section className="jv-card jv-card--pad">
+                    <Eyebrow>Admin &amp; Staff Workspace</Eyebrow>
+                    <h1 className="jv-display jv-display--md mt-5">Welcome, {user?.name || 'Team Member'}</h1>
+                    <p className="jv-lead mt-4 max-w-2xl">
+                        Monitor invoices, pending payments, and team operations from one dark workspace.
                     </p>
-                    <div className="mt-4 flex flex-wrap gap-3">
-                        <Link href={route('admin.support-tickets.index')} className="rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark">
+                    <div className="mt-6 flex flex-wrap gap-3">
+                        <Link href={route('admin.support-tickets.index')} className="jv-btn jv-btn--primary">
                             Open Support Tickets
                         </Link>
-                        <Link href={route('admin.invoices.index')} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
+                        <Link href={route('admin.invoices.index')} className="jv-btn jv-btn--ghost">
                             Manage Invoices
                         </Link>
                     </div>
@@ -99,11 +100,11 @@ export default function AdminDashboard({
 
 function Panel({ title, actionHref, actionLabel, children }) {
     return (
-        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center justify-between gap-3">
-                <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+        <section className="jv-card jv-card--pad">
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-lg font-semibold tracking-tight text-white">{title}</h2>
                 {actionHref && actionLabel ? (
-                    <Link href={actionHref} className="text-sm font-semibold text-blue-700 hover:text-blue-800">
+                    <Link href={actionHref} className="text-sm font-semibold text-jv-accent transition hover:text-[#5c93ff]">
                         {actionLabel}
                     </Link>
                 ) : null}
@@ -115,7 +116,7 @@ function Panel({ title, actionHref, actionLabel, children }) {
 
 function Table({ rows = [], columns = [], emptyText = 'No records found.' }) {
     if (rows.length === 0) {
-        return <p className="text-sm text-slate-500">{emptyText}</p>;
+        return <p className="text-sm text-white/45">{emptyText}</p>;
     }
 
     const [titleColumn, ...restColumns] = columns;
@@ -124,21 +125,21 @@ function Table({ rows = [], columns = [], emptyText = 'No records found.' }) {
     return (
         <>
             <div className="hidden overflow-x-auto md:block">
-                <table className="min-w-full divide-y divide-slate-200 text-sm">
+                <table className="min-w-full text-sm">
                     <thead>
-                        <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+                        <tr className="border-b border-jv-line text-left text-xs uppercase tracking-wide text-white/45">
                             {columns.map((column) => (
-                                <th key={column.key} className="px-3 py-2">
+                                <th key={column.key} className="px-3 py-2 font-medium">
                                     {column.label}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody>
                         {rows.map((row) => (
-                            <tr key={row.id}>
+                            <tr key={row.id} className="border-b border-jv-line/70 transition hover:bg-white/[0.04]">
                                 {columns.map((column) => (
-                                    <td key={column.key} className="px-3 py-3 text-slate-700">
+                                    <td key={column.key} className="px-3 py-3 text-white/80">
                                         {cellValue(row, column)}
                                     </td>
                                 ))}
@@ -151,8 +152,8 @@ function Table({ rows = [], columns = [], emptyText = 'No records found.' }) {
             <MobileCardList>
                 {rows.map((row, index) => (
                     <MobileCard key={row.id} index={index}>
-                        <p className="text-sm font-semibold text-slate-900">{cellValue(row, titleColumn)}</p>
-                        <div className="mt-2 space-y-0.5 divide-y divide-gray-50">
+                        <p className="text-sm font-semibold text-white">{cellValue(row, titleColumn)}</p>
+                        <div className="mt-2 space-y-0.5 divide-y divide-jv-line/70">
                             {restColumns.map((column) => (
                                 <MobileCardRow key={column.key} label={column.label} value={cellValue(row, column)} />
                             ))}

@@ -1,9 +1,19 @@
-import { Head, Link, usePage } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import { resolvePublicAssetUrl } from "@/lib/publicPageHeaders";
 import {
-    ArrowRightIcon,
+    Button,
+    Card,
+    CheckItem,
+    Display,
+    Eyebrow,
+    Section,
+    SectionHeading,
+    Stagger,
+    StaggerItem,
+    Stat,
+} from "@/Components/PublicUI";
+import {
     BoltIcon,
     BriefcaseIcon,
     ChartPieIcon,
@@ -14,7 +24,6 @@ import {
     PaintBrushIcon,
     PhotoIcon,
     RocketLaunchIcon,
-    SparklesIcon,
     SwatchIcon,
     WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
@@ -103,6 +112,8 @@ const values = [
     "Content direction",
 ];
 
+const builtFor = ["Startups", "SMEs", "Creators", "Founders"];
+
 export default function About() {
     const { publicPageHeaders = {} } = usePage().props;
     const headerConfig = publicPageHeaders?.about && typeof publicPageHeaders.about === "object"
@@ -117,266 +128,313 @@ export default function About() {
             <Head title="About Bellah Options" />
 
             <PageTheme>
-                <main className="min-h-screen overflow-x-hidden bg-white text-gray-950">
-                    <RevealSection
-                        className={`${headerBackgroundImage ? "bg-cover bg-center bg-no-repeat" : "bg-gray-50"} py-16 sm:py-20 lg:py-24`}
-                        style={headerBackgroundImage
-                            ? {
-                                backgroundImage: `linear-gradient(rgba(249, 250, 251, 0.96), rgba(249, 250, 251, 0.94)), url("${headerBackgroundImage}")`,
-                            }
-                            : undefined}
-                    >
-                        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
-                            <div className="text-center lg:text-left">
-                                <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
-                                    {headerTitle}
-                                </h1>
+                <main className="text-white">
+                    {/* ── HERO ── */}
+                    <section className="jv-glow jv-grid-bg relative overflow-hidden pt-16 pb-14 sm:pt-20 sm:pb-16 lg:pt-24 lg:pb-20">
+                        {headerBackgroundImage ? (
+                            <div
+                                aria-hidden="true"
+                                className="absolute inset-0 bg-cover bg-center opacity-25"
+                                style={{ backgroundImage: `url("${headerBackgroundImage}")` }}
+                            />
+                        ) : null}
+                        <div
+                            aria-hidden="true"
+                            className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-jv-bg"
+                        />
 
-                                <p className="mt-6 text-base leading-8 text-gray-600 sm:text-lg">
-                                    {headerText}
-                                </p>
-
-                                <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
-                                    <Link
-                                        href="/contact-us"
-                                        className="group inline-flex items-center justify-center gap-3 rounded-md bg-brand px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-brand-dark"
-                                    >
-                                        Work With Us
-                                        <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
-                                    </Link>
-                                    <Link
-                                        href="/services"
-                                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-black text-gray-900 transition hover:border-brand hover:text-brand"
-                                    >
-                                        Explore Services
-                                    </Link>
-                                </div>
-                            </div>
-
-                            <Stagger className="grid gap-4 sm:grid-cols-2">
-                                <StaggerItem className="border-l-4 border-brand bg-white p-6 shadow-sm">
-                                    <SwatchIcon className="mb-6 h-9 w-9 text-brand" />
-                                    <h2 className="text-xl font-black text-gray-950">Design With Purpose</h2>
-                                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                                        Every visual choice is tied to clarity, recognition, and what your audience needs to do next.
+                        <div className="jv-container relative">
+                            <div className="grid gap-14 lg:grid-cols-[1.02fr_0.98fr] lg:items-center lg:gap-16">
+                                <div className="text-center lg:text-left">
+                                    <Eyebrow>About us</Eyebrow>
+                                    <h1 className="jv-display jv-display--xl mt-6">
+                                        {headerTitle}
+                                    </h1>
+                                    <p className="jv-lead mx-auto mt-6 max-w-xl lg:mx-0">
+                                        {headerText}
                                     </p>
-                                </StaggerItem>
 
-                                <StaggerItem className="bg-brand p-6 text-white shadow-sm sm:translate-y-8">
-                                    <p className="text-5xl font-black">BOSS</p>
-                                    <h2 className="mt-5 text-xl font-black">A scalable future</h2>
-                                    <p className="mt-3 text-sm leading-6 text-blue-100">
-                                        Our subscription-based web platform helps SMEs and startups move online with less friction.
-                                    </p>
-                                </StaggerItem>
-
-                                <StaggerItem className="bg-blue-50 p-6 shadow-sm sm:-translate-y-4">
-                                    <RocketLaunchIcon className="mb-6 h-9 w-9 text-blue-700" />
-                                    <h2 className="text-xl font-black text-gray-950">Built to launch</h2>
-                                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                                        We create the assets founders need to show up, sell, and stay consistent.
-                                    </p>
-                                </StaggerItem>
-
-                                <StaggerItem className="border border-gray-200 bg-white p-6 shadow-sm">
-                                    <p className="text-sm font-black uppercase tracking-widest text-gray-500">Built For</p>
-                                    <div className="mt-5 flex flex-wrap gap-2">
-                                        {["Startups", "SMEs", "Creators", "Founders"].map((item) => (
-                                            <span key={item} className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold text-gray-700">
-                                                {item}
-                                            </span>
-                                        ))}
+                                    <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center lg:justify-start">
+                                        <Button href="/contact-us" variant="primary" icon>
+                                            Work With Us
+                                        </Button>
+                                        <Button href="/services" variant="ghost">
+                                            Explore Services
+                                        </Button>
                                     </div>
-                                </StaggerItem>
-                            </Stagger>
-                        </div>
-                    </RevealSection>
+                                </div>
 
-                    <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="mx-auto max-w-3xl text-center">
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
-                                    Why We Exist
-                                </p>
-                                <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
-                                    Because great brands do not happen by accident.
-                                </h2>
-                                <p className="mt-5 text-base leading-8 text-gray-600 sm:text-lg">
-                                    Attention is currency. Brands that look good, speak clearly, and connect instantly win. We give businesses the systems, content, and platforms they need to stand out and scale.
-                                </p>
-                            </div>
+                                <Stagger className="grid gap-4 sm:grid-cols-2">
+                                    <StaggerItem className="h-full">
+                                        <Card hover className="h-full">
+                                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                <SwatchIcon className="h-5 w-5" />
+                                            </span>
+                                            <h2 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                                Design With Purpose
+                                            </h2>
+                                            <p className="jv-body mt-3">
+                                                Every visual choice is tied to clarity,
+                                                recognition, and what your audience needs to do
+                                                next.
+                                            </p>
+                                        </Card>
+                                    </StaggerItem>
 
-                            <Stagger className="mt-10 grid gap-5 md:grid-cols-3">
-                                {pitchItems.map((item) => {
-                                    const Icon = item.icon;
+                                    <StaggerItem className="h-full sm:translate-y-8">
+                                        <Card featured className="h-full">
+                                            <p className="jv-display jv-display--md">BOSS</p>
+                                            <h2 className="mt-5 text-lg font-semibold tracking-tight text-white">
+                                                A scalable future
+                                            </h2>
+                                            <p className="jv-body mt-3">
+                                                Our subscription-based web platform helps SMEs
+                                                and startups move online with less friction.
+                                            </p>
+                                        </Card>
+                                    </StaggerItem>
 
-                                    return (
-                                        <StaggerItem as="article" key={item.title} className="border border-gray-200 bg-white p-6 shadow-sm">
-                                            <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 text-brand">
-                                                <Icon className="h-7 w-7" />
+                                    <StaggerItem className="h-full sm:-translate-y-4">
+                                        <Card hover className="h-full">
+                                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                <RocketLaunchIcon className="h-5 w-5" />
+                                            </span>
+                                            <h2 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                                Built to launch
+                                            </h2>
+                                            <p className="jv-body mt-3">
+                                                We create the assets founders need to show up,
+                                                sell, and stay consistent.
+                                            </p>
+                                        </Card>
+                                    </StaggerItem>
+
+                                    <StaggerItem className="h-full">
+                                        <Card hover className="h-full">
+                                            <p className="jv-mono text-white/40">Built For</p>
+                                            <div className="mt-5 flex flex-wrap gap-2">
+                                                {builtFor.map((item) => (
+                                                    <span key={item} className="jv-tag">
+                                                        {item}
+                                                    </span>
+                                                ))}
                                             </div>
-                                            <h3 className="text-xl font-black text-gray-950">{item.title}</h3>
-                                            <p className="mt-3 text-sm leading-6 text-gray-600">{item.text}</p>
-                                        </StaggerItem>
-                                    );
-                                })}
-                            </Stagger>
+                                        </Card>
+                                    </StaggerItem>
+                                </Stagger>
+                            </div>
                         </div>
-                    </RevealSection>
+                    </section>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:px-8">
-                            <div className="overflow-hidden rounded-2xl bg-blue-50 shadow-sm">
+                    {/* ── WHY WE EXIST ── */}
+                    <Section className="border-y border-jv-line jv-glow overflow-hidden text-center">
+                        <SectionHeading
+                            eyebrow="Why we exist"
+                            title="Because great brands do not"
+                            muted="happen by accident."
+                            description="Attention is currency. Brands that look good, speak clearly, and connect instantly win. We give businesses the systems, content, and platforms they need to stand out and scale."
+                        />
+
+                        <Stagger className="mt-14 grid gap-5 text-left md:grid-cols-3">
+                            {pitchItems.map((item) => {
+                                const Icon = item.icon;
+
+                                return (
+                                    <StaggerItem as="article" key={item.title} className="h-full">
+                                        <Card hover className="h-full">
+                                            <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                <Icon className="h-5 w-5" />
+                                            </span>
+                                            <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                                {item.title}
+                                            </h3>
+                                            <p className="jv-body mt-3">{item.text}</p>
+                                        </Card>
+                                    </StaggerItem>
+                                );
+                            })}
+                        </Stagger>
+                    </Section>
+
+                    {/* ── WHAT WE OFFER ── */}
+                    <Section>
+                        <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-16">
+                            <div className="jv-media jv-glow overflow-hidden">
                                 <img
                                     src="https://bellahoptions.com/images/Bellah.gif"
-                                    className="w-full"
                                     alt="Bellah Options creative work"
                                 />
                             </div>
 
                             <div>
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
-                                    What We Offer
-                                </p>
-                                <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
-                                    Creative work designed for impact, scalability, and measurable ROI.
-                                </h2>
-                                <p className="mt-5 text-base leading-8 text-gray-600">
-                                    We build visual clarity and digital tools that help teams launch, sell, communicate, and grow with confidence.
+                                <Eyebrow>What we offer</Eyebrow>
+                                <Display size="lg" className="mt-6">
+                                    Creative work designed for impact, scalability, and
+                                    measurable ROI.
+                                </Display>
+                                <p className="jv-lead mt-6 max-w-xl">
+                                    We build visual clarity and digital tools that help teams
+                                    launch, sell, communicate, and grow with confidence.
                                 </p>
 
-                                <Stagger className="mt-8 grid gap-4 sm:grid-cols-2">
+                                <Stagger className="mt-9 grid gap-4 sm:grid-cols-2">
                                     {offers.map((offer) => {
                                         const Icon = offer.icon;
 
                                         return (
-                                            <StaggerItem key={offer.title}>
-                                                <Link
+                                            <StaggerItem key={offer.title} className="h-full">
+                                                <a
                                                     href={offer.href}
-                                                    className="group block h-full border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                                                    className="jv-group block h-full"
                                                 >
-                                                    <Icon className="h-8 w-8 text-brand" />
-                                                    <h3 className="mt-4 font-black text-gray-950">{offer.title}</h3>
-                                                    <p className="mt-2 text-sm leading-6 text-gray-600">{offer.text}</p>
-                                                </Link>
+                                                    <Card hover className="h-full">
+                                                        <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                            <Icon className="h-5 w-5" />
+                                                        </span>
+                                                        <h3 className="mt-5 text-base font-semibold tracking-tight text-white">
+                                                            {offer.title}
+                                                        </h3>
+                                                        <p className="jv-body mt-2">
+                                                            {offer.text}
+                                                        </p>
+                                                    </Card>
+                                                </a>
                                             </StaggerItem>
                                         );
                                     })}
                                 </Stagger>
                             </div>
                         </div>
-                    </RevealSection>
+                    </Section>
 
-                    <RevealSection className="bg-white py-16 sm:py-20">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="grid gap-5 sm:grid-cols-3">
-                                {stats.map((stat) => (
-                                    <div key={stat.label} className="border border-gray-200 bg-white p-8 text-center shadow-sm">
-                                        <p className="text-5xl font-black text-brand">{stat.value}</p>
-                                        <p className="mt-3 text-sm font-bold uppercase tracking-widest text-gray-500">{stat.label}</p>
-                                    </div>
-                                ))}
+                    {/* ── STATS ── */}
+                    <Section tight className="border-y border-jv-line">
+                        <Stagger className="grid gap-5 sm:grid-cols-3">
+                            {stats.map((stat) => (
+                                <StaggerItem key={stat.label}>
+                                    <Card hover className="text-center">
+                                        <Stat value={stat.value} label={stat.label} />
+                                    </Card>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+                    </Section>
+
+                    {/* ── TEAM ── */}
+                    <Section>
+                        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+                            <div>
+                                <Eyebrow>Our team</Eyebrow>
+                                <Display size="lg" className="mt-6">
+                                    Meet the creative minds behind Bellah Options.
+                                </Display>
                             </div>
+                            <p className="jv-lead lg:justify-self-end">
+                                A focused team of strategists, designers, and builders
+                                dedicated to bringing your brand vision to life.
+                            </p>
                         </div>
-                    </RevealSection>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-                                <div>
-                                    <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Our Team</p>
-                                    <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
-                                        Meet the creative minds behind Bellah Options.
-                                    </h2>
-                                </div>
-                                <p className="max-w-2xl text-base leading-8 text-gray-600 lg:justify-self-end">
-                                    A focused team of strategists, designers, and builders dedicated to bringing your brand vision to life.
-                                </p>
-                            </div>
+                        <Stagger className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {team.map((member) => {
+                                const RoleIcon = member.icon;
 
-                            <Stagger className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                                {team.map((member) => {
-                                    const RoleIcon = member.icon;
-
-                                    return (
-                                        <StaggerItem as="article" key={member.name} className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200">
-                                            <div className="relative h-80 overflow-hidden bg-blue-50">
+                                return (
+                                    <StaggerItem as="article" key={member.name} className="h-full">
+                                        <Card
+                                            hover
+                                            pad={false}
+                                            className="jv-group flex h-full flex-col overflow-hidden"
+                                        >
+                                            <div className="jv-media jv-media--zoom aspect-[4/5] rounded-b-none border-0 border-b border-jv-line">
                                                 {member.image ? (
-                                                    <img
-                                                        src={member.image}
-                                                        alt={member.name}
-                                                        className="absolute inset-0 h-full w-full object-cover transition duration-500 hover:scale-105"
-                                                    />
+                                                    <img src={member.image} alt={member.name} />
                                                 ) : (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-brand">
-                                                        <PhotoIcon className="h-24 w-24 text-white" />
+                                                    <div className="flex h-full w-full items-center justify-center bg-white/[0.03] text-white/25">
+                                                        <PhotoIcon className="h-16 w-16" />
                                                     </div>
                                                 )}
                                             </div>
-                                            <div className="p-6">
-                                                <h3 className="text-2xl font-black text-gray-950">{member.name}</h3>
-                                                <p className="mt-2 flex items-center gap-2 font-semibold text-brand">
-                                                    <RoleIcon className="h-5 w-5" />
+
+                                            <div className="flex flex-1 flex-col p-6">
+                                                <h3 className="text-xl font-semibold tracking-tight text-white">
+                                                    {member.name}
+                                                </h3>
+                                                <p className="mt-2 flex items-center gap-2 text-sm font-medium text-jv-accent">
+                                                    <RoleIcon className="h-4 w-4" />
                                                     {member.role}
                                                 </p>
-                                                <p className="mt-4 text-sm leading-6 text-gray-600">{member.bio}</p>
+                                                <p className="jv-body mt-4">{member.bio}</p>
                                             </div>
-                                        </StaggerItem>
-                                    );
-                                })}
-                            </Stagger>
-                        </div>
-                    </RevealSection>
+                                        </Card>
+                                    </StaggerItem>
+                                );
+                            })}
+                        </Stagger>
+                    </Section>
 
-                    <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:px-8">
+                    {/* ── VISION ── */}
+                    <Section className="border-t border-jv-line">
+                        <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
                             <div>
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Our Vision</p>
-                                <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-5xl">
+                                <Eyebrow>Our vision</Eyebrow>
+                                <Display size="lg" className="mt-6">
                                     A creative-tech brand with a scalable future.
-                                </h2>
-                                <p className="mt-5 text-base leading-8 text-gray-600">
-                                    Bellah Options is building an ecosystem where creativity meets technology and sustainable growth. With BOSS, we are opening a recurring model that empowers SMEs and startups.
+                                </Display>
+                                <p className="jv-lead mt-6 max-w-xl">
+                                    Bellah Options is building an ecosystem where creativity
+                                    meets technology and sustainable growth. With BOSS, we are
+                                    opening a recurring model that empowers SMEs and startups.
                                 </p>
+                                <div className="mt-9">
+                                    <Button href="/manage-your-hires" variant="ghost" icon>
+                                        See retainer plans
+                                    </Button>
+                                </div>
                             </div>
 
-                            <Stagger className="grid gap-3 sm:grid-cols-2">
+                            <Stagger className="grid gap-4 sm:grid-cols-2">
                                 {values.map((value) => (
-                                    <StaggerItem key={value} className="flex items-center gap-3 border border-gray-200 bg-gray-50 p-4">
-                                        <CheckCircleIcon className="h-5 w-5 shrink-0 text-brand" />
-                                        <span className="text-sm font-black text-gray-800">{value}</span>
+                                    <StaggerItem key={value}>
+                                        <Card flat className="h-full">
+                                            <ul>
+                                                <CheckItem>{value}</CheckItem>
+                                            </ul>
+                                        </Card>
                                     </StaggerItem>
                                 ))}
                             </Stagger>
                         </div>
-                    </RevealSection>
+                    </Section>
 
-                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
-                        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[1fr_auto] lg:items-center lg:px-8">
-                            <div>
-                                <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Ready when you are</p>
-                                <h2 className="mt-5 max-w-3xl text-3xl font-black tracking-tight sm:text-5xl">
-                                    Whether you are ready to build your brand or invest in ours, let's talk.
-                                </h2>
-                            </div>
-
-                            <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
-                                <Link
-                                    href="/contact-us"
-                                    className="group inline-flex items-center justify-center gap-3 rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
-                                >
-                                    Work With Us
-                                    <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
-                                </Link>
-                                <Link
-                                    href="/services"
-                                    className="inline-flex items-center justify-center rounded-md border border-white/30 px-6 py-3 text-sm font-black text-white transition hover:bg-white/10"
-                                >
-                                    Explore Services
-                                </Link>
+                    {/* ── FINAL CTA ── */}
+                    <Section tight>
+                        <div className="jv-card jv-grid-bg relative overflow-hidden p-8 text-center sm:p-14 lg:p-20">
+                            <div
+                                aria-hidden="true"
+                                className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[min(760px,110%)] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,85,255,0.4),transparent_72%)]"
+                            />
+                            <div className="relative mx-auto flex max-w-3xl flex-col items-center">
+                                <Eyebrow>Ready when you are</Eyebrow>
+                                <Display size="lg" className="mt-6">
+                                    Whether you are ready to build your brand or invest in
+                                    ours, let&apos;s talk.
+                                </Display>
+                                <p className="jv-lead mx-auto mt-6 max-w-2xl">
+                                    Tell us what you are building and we will map the right
+                                    creative direction, service lane, and next step.
+                                </p>
+                                <div className="mt-9 flex flex-wrap justify-center gap-3">
+                                    <Button href="/contact-us" variant="primary" size="lg" icon>
+                                        Work With Us
+                                    </Button>
+                                    <Button href="/services" variant="ghost" size="lg">
+                                        Explore Services
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </RevealSection>
+                    </Section>
                 </main>
             </PageTheme>
         </>

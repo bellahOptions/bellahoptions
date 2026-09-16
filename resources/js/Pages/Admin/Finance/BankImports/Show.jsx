@@ -1,6 +1,12 @@
 import Modal from '@/Components/Modal';
+import { Badge } from '@/Components/ui/badge';
+import { Card } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
+import { Select } from '@/Components/ui/select';
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
+import { Textarea } from '@/Components/ui/textarea';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
@@ -20,6 +26,9 @@ const typeOptions = [
     { value: 'income', label: 'Income' },
     { value: 'expense', label: 'Expense' },
 ];
+
+const checkboxClass =
+    'h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent accent-jv-accent focus:ring-2 focus:ring-jv-accent/40 focus:ring-offset-0';
 
 export default function BankImportShow({ import: bankImport, filters = {}, categories = [], transactions }) {
     const { flash } = usePage().props;
@@ -125,21 +134,21 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
         <AuthenticatedLayout
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">{bankImport.original_filename}</h2>
-                    <div className="flex items-center gap-2">
+                    <h2 className="jv-display jv-display--sm break-words">{bankImport.original_filename}</h2>
+                    <div className="flex flex-wrap items-center gap-2">
                         {bankImport.pending_count > 0 && (
                             <button
                                 type="button"
                                 onClick={convertAll}
                                 disabled={convertingAll}
-                                className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                                className="jv-btn jv-btn--primary jv-btn--sm"
                             >
                                 {convertingAll ? 'Converting…' : `Convert All (${bankImport.pending_count} Pending)`}
                             </button>
                         )}
                         <Link
                             href={route('admin.finance.bank-imports.index')}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                            className="jv-btn jv-btn--ghost jv-btn--sm"
                         >
                             Back to Imports
                         </Link>
@@ -152,43 +161,43 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
                     {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-jv-sm border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {flash.error}
                         </div>
                     )}
 
                     <FinanceTabs active="bank-imports" />
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <Card className="p-5">
                         <div className="grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
                             <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Account</p>
-                                <p className="font-semibold text-gray-900">{bankImport.account_name || 'N/A'}</p>
-                                <p className="text-xs text-gray-500">{bankImport.account_number}</p>
+                                <p className="text-xs uppercase tracking-wide text-white/45">Account</p>
+                                <p className="font-semibold text-white">{bankImport.account_name || 'N/A'}</p>
+                                <p className="text-xs text-white/45">{bankImport.account_number}</p>
                             </div>
                             <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Period</p>
-                                <p className="font-semibold text-gray-900">
+                                <p className="text-xs uppercase tracking-wide text-white/45">Period</p>
+                                <p className="font-semibold text-white">
                                     {bankImport.period_start} → {bankImport.period_end}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Opening / Closing Balance</p>
-                                <p className="font-semibold text-gray-900">
+                                <p className="text-xs uppercase tracking-wide text-white/45">Opening / Closing Balance</p>
+                                <p className="font-semibold text-white">
                                     {formatMoney(bankImport.opening_balance, bankImport.currency)} → {formatMoney(bankImport.closing_balance, bankImport.currency)}
                                 </p>
                             </div>
                             <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Total Rows</p>
-                                <p className="font-semibold text-gray-900">{bankImport.total_rows}</p>
+                                <p className="text-xs uppercase tracking-wide text-white/45">Total Rows</p>
+                                <p className="font-semibold text-white">{bankImport.total_rows}</p>
                             </div>
                         </div>
-                    </section>
+                    </Card>
 
                     <StatGrid>
                         <StatCard icon={Wallet} label="Pending Review" value={bankImport.pending_count} tone="amber" />
@@ -197,44 +206,44 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                         <StatCard icon={AlertTriangle} label="Flagged for Review" value={bankImport.flagged_rows} tone="red" />
                     </StatGrid>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                    <Card className="p-4 sm:p-5">
                         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
                             <div className="flex items-center gap-2">
-                                <select
+                                <Select
                                     value={status}
                                     onChange={(event) => setStatus(event.target.value)}
                                     aria-label="Status"
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                    className="w-full lg:w-auto"
                                 >
                                     {statusOptions.map((option) => (
                                         <option key={option.value} value={option.value}>
                                             {option.label}
                                         </option>
                                     ))}
-                                </select>
-                                {isSyncing && <Loader2 className="h-4 w-4 animate-spin text-brand" />}
+                                </Select>
+                                {isSyncing && <Loader2 className="h-4 w-4 animate-spin text-jv-accent" />}
                             </div>
 
-                            <select
+                            <Select
                                 value={type}
                                 onChange={(event) => setType(event.target.value)}
                                 aria-label="Type"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="w-full lg:w-auto"
                             >
                                 {typeOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
                                         {option.label}
                                     </option>
                                 ))}
-                            </select>
+                            </Select>
 
                             {selectablePendingIds.length > 0 && (
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
+                                <label className="flex items-center gap-2 text-sm text-white/70">
                                     <input
                                         type="checkbox"
                                         checked={selectedIds.length === selectablePendingIds.length}
                                         onChange={toggleSelectAll}
-                                        className="rounded border-gray-300 text-brand focus:ring-brand/30"
+                                        className={checkboxClass}
                                     />
                                     Select all pending rows on this page
                                 </label>
@@ -242,19 +251,19 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                         </div>
 
                         {selectedIds.length > 0 && (
-                            <div className="mt-3 space-y-3 rounded-lg border border-brand/30 bg-brand-light/40 p-3">
-                                <span className="text-sm font-semibold text-brand">{selectedIds.length} selected</span>
+                            <div className="mt-3 space-y-3 rounded-jv-sm border border-jv-accent/30 bg-jv-accent/10 p-3">
+                                <span className="text-sm font-semibold text-white">{selectedIds.length} selected</span>
 
                                 {selectedExpenseIds.length > 0 && (
                                     <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
                                         <button
                                             type="button"
                                             onClick={submitBulkConvertExpenses}
-                                            className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                                            className="jv-btn jv-btn--primary jv-btn--sm"
                                         >
                                             Convert {selectedExpenseIds.length} Selected to Expense
                                         </button>
-                                        <span className="text-xs text-gray-500">
+                                        <span className="text-xs text-white/45">
                                             Each row uses its own suggested category (falls back to "Other").
                                         </span>
                                     </div>
@@ -265,7 +274,7 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                         <button
                                             type="button"
                                             onClick={submitBulkConvertIncome}
-                                            className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"
+                                            className="jv-btn jv-btn--sm border-transparent bg-emerald-600 text-white hover:bg-emerald-500"
                                         >
                                             Confirm {selectedIncomeIds.length} Selected as Income
                                         </button>
@@ -273,50 +282,53 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                 )}
                             </div>
                         )}
-                    </section>
+                    </Card>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <Card className="overflow-hidden">
                         <div className="hidden overflow-x-auto md:block">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full text-sm">
+                                <thead className="border-b border-jv-line">
                                     <tr>
-                                        <th className="px-3 py-2 text-left"></th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Date</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Description</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Type</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Amount</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Status</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Actions</th>
+                                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45"></th>
+                                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Date</th>
+                                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Description</th>
+                                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Type</th>
+                                        <th className="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-white/45">Amount</th>
+                                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Status</th>
+                                        <th className="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody>
                                     {rows.length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-4 text-gray-500" colSpan={7}>
+                                        <tr className="border-b border-jv-line/70">
+                                            <td className="px-3 py-4 text-white/45" colSpan={7}>
                                                 No transactions match these filters.
                                             </td>
                                         </tr>
                                     )}
 
                                     {rows.map((row) => (
-                                        <tr key={row.id} className={row.needs_review ? 'bg-red-50/50' : ''}>
+                                        <tr
+                                            key={row.id}
+                                            className={`border-b border-jv-line/70 transition hover:bg-white/[0.04] ${row.needs_review ? 'bg-red-500/10' : ''}`}
+                                        >
                                             <td className="px-3 py-3 align-top">
                                                 {row.status === 'pending' && (
                                                     <input
                                                         type="checkbox"
                                                         checked={selectedIds.includes(row.id)}
                                                         onChange={() => toggleSelected(row.id)}
-                                                        className="rounded border-gray-300 text-brand focus:ring-brand/30"
+                                                        className={checkboxClass}
                                                     />
                                                 )}
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">{row.transaction_date}</td>
-                                            <td className="px-3 py-3 align-top text-gray-900">
+                                            <td className="px-3 py-3 align-top text-white/80">{row.transaction_date}</td>
+                                            <td className="px-3 py-3 align-top text-white">
                                                 <p className="max-w-md">{row.description}</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-white/45">
                                                     {row.channel}
                                                     {row.needs_review && (
-                                                        <span className="ml-2 inline-flex items-center gap-1 text-red-600">
+                                                        <span className="ml-2 inline-flex items-center gap-1 text-red-300">
                                                             <AlertTriangle className="h-3 w-3" /> Needs review
                                                         </span>
                                                     )}
@@ -325,26 +337,26 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                             <td className="px-3 py-3 align-top">
                                                 <TypeBadge type={row.type} />
                                             </td>
-                                            <td className={`px-3 py-3 align-top text-right font-semibold ${row.type === 'income' ? 'text-emerald-700' : 'text-red-700'}`}>
+                                            <td className={`px-3 py-3 align-top text-right font-semibold ${row.type === 'income' ? 'text-emerald-300' : 'text-red-300'}`}>
                                                 {row.type === 'income' ? '+' : '-'}{formatMoney(row.amount, bankImport.currency)}
                                             </td>
                                             <td className="px-3 py-3 align-top">
                                                 <StatusBadge status={row.status} />
                                             </td>
-                                            <td className="space-x-2 px-3 py-3 align-top">
+                                            <td className="space-x-2 px-3 py-3 align-top whitespace-nowrap">
                                                 {row.status === 'pending' && (
                                                     <>
                                                         <button
                                                             type="button"
                                                             onClick={() => openConvert(row)}
-                                                            className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                            className="jv-btn jv-btn--outline jv-btn--sm"
                                                         >
                                                             {row.type === 'income' ? 'Confirm Income' : 'Convert to Expense'}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => ignoreRow(row.id)}
-                                                            className="rounded-md border border-gray-200 px-2 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                                                            className="jv-btn jv-btn--ghost jv-btn--sm"
                                                         >
                                                             Ignore
                                                         </button>
@@ -358,18 +370,18 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                         </div>
 
                         {rows.length === 0 ? (
-                            <p className="text-sm text-gray-500 md:hidden">No transactions match these filters.</p>
+                            <p className="p-5 text-sm text-white/45 md:hidden">No transactions match these filters.</p>
                         ) : (
-                            <MobileCardList>
+                            <MobileCardList className="p-4">
                                 {rows.map((row, index) => (
-                                    <MobileCard key={row.id} index={index} className={row.needs_review ? 'border-red-200 bg-red-50/40' : ''}>
+                                    <MobileCard key={row.id} index={index} className={row.needs_review ? 'border-red-500/30 bg-red-500/10' : ''}>
                                         <div className="flex items-start gap-3">
                                             {row.status === 'pending' && (
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedIds.includes(row.id)}
                                                     onChange={() => toggleSelected(row.id)}
-                                                    className="mt-1 shrink-0 rounded border-gray-300 text-brand focus:ring-brand/30"
+                                                    className={`mt-1 shrink-0 ${checkboxClass}`}
                                                 />
                                             )}
                                             <div className="min-w-0 flex-1">
@@ -380,11 +392,11 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                                 />
                                             </div>
                                         </div>
-                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                        <div className="mt-3 space-y-0.5 divide-y divide-jv-line">
                                             <MobileCardRow
                                                 label="Amount"
                                                 value={
-                                                    <span className={row.type === 'income' ? 'text-emerald-700' : 'text-red-700'}>
+                                                    <span className={row.type === 'income' ? 'text-emerald-300' : 'text-red-300'}>
                                                         {row.type === 'income' ? '+' : '-'}{formatMoney(row.amount, bankImport.currency)}
                                                     </span>
                                                 }
@@ -394,7 +406,7 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                                 <MobileCardRow
                                                     label="Flag"
                                                     value={
-                                                        <span className="inline-flex items-center gap-1 text-red-600">
+                                                        <span className="inline-flex items-center gap-1 text-red-300">
                                                             <AlertTriangle className="h-3 w-3" /> Needs review
                                                         </span>
                                                     }
@@ -406,14 +418,14 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                                 <button
                                                     type="button"
                                                     onClick={() => openConvert(row)}
-                                                    className="flex-1 rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                    className="jv-btn jv-btn--outline jv-btn--sm flex-1"
                                                 >
                                                     {row.type === 'income' ? 'Confirm Income' : 'Convert to Expense'}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => ignoreRow(row.id)}
-                                                    className="flex-1 rounded-md border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50"
+                                                    className="jv-btn jv-btn--ghost jv-btn--sm flex-1"
                                                 >
                                                     Ignore
                                                 </button>
@@ -431,89 +443,86 @@ export default function BankImportShow({ import: bankImport, filters = {}, categ
                                 params={{ data: { page: (transactions?.current_page || 1) + 1 } }}
                             >
                                 {({ fetching }) => (
-                                    <div className="mt-4 flex items-center justify-center gap-2 py-3 text-sm text-gray-500">
+                                    <div className="mt-4 flex items-center justify-center gap-2 border-t border-jv-line py-3 text-sm text-white/45">
                                         {fetching ? (
                                             <>
-                                                <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                                                <Loader2 className="h-4 w-4 animate-spin text-jv-accent" />
                                                 Loading more…
                                             </>
                                         ) : (
-                                            <span className="text-gray-300">Scroll for more</span>
+                                            <span className="text-white/30">Scroll for more</span>
                                         )}
                                     </div>
                                 )}
                             </WhenVisible>
                         ) : (
                             rows.length > 0 && (
-                                <p className="mt-4 py-3 text-center text-sm text-gray-400">
+                                <p className="mt-4 border-t border-jv-line py-3 text-center text-sm text-white/40">
                                     You've reached the end — {transactions?.total ?? rows.length} transactions.
                                 </p>
                             )
                         )}
-                    </section>
+                    </Card>
                 </div>
             </div>
 
             <Modal show={convertTarget !== null} onClose={closeConvert} maxWidth="lg">
                 {convertTarget && (
                     <form onSubmit={submitConvert} className="p-5 sm:p-6">
-                        <h3 className="text-lg font-semibold text-gray-900">
+                        <h3 className="text-lg font-semibold text-white">
                             {convertTarget.type === 'income' ? 'Confirm as Income' : 'Convert to Expense'}
                         </h3>
-                        <p className="mt-1 text-sm text-gray-600">
+                        <p className="mt-1 text-sm text-white/70">
                             {formatMoney(convertTarget.amount, bankImport.currency)} on {convertTarget.transaction_date}
                         </p>
 
                         <div className="mt-4 space-y-4">
                             {convertTarget.type === 'expense' ? (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Category</label>
-                                    <select
+                                    <Label className="mb-1 block">Category</Label>
+                                    <Select
                                         value={convertCategory}
                                         onChange={(event) => setConvertCategory(event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                     >
                                         {categories.map((category) => (
                                             <option key={category} value={category}>
                                                 {category}
                                             </option>
                                         ))}
-                                    </select>
+                                    </Select>
                                 </div>
                             ) : (
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Source / Payer Name</label>
-                                    <input
+                                    <Label className="mb-1 block">Source / Payer Name</Label>
+                                    <Input
                                         value={convertSourceName}
                                         onChange={(event) => setConvertSourceName(event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                         required
                                     />
                                 </div>
                             )}
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
-                                <textarea
+                                <Label className="mb-1 block">Description</Label>
+                                <Textarea
                                     value={convertDescription}
                                     onChange={(event) => setConvertDescription(event.target.value)}
                                     rows={3}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
                                 />
                             </div>
                         </div>
 
-                        <div className="mt-5 flex justify-end gap-3 border-t border-gray-100 pt-4">
+                        <div className="mt-5 flex justify-end gap-3 border-t border-jv-line pt-4">
                             <button
                                 type="button"
                                 onClick={closeConvert}
-                                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                className="jv-btn jv-btn--ghost"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark"
+                                className="jv-btn jv-btn--primary"
                             >
                                 {convertTarget.type === 'income' ? 'Confirm Income' : 'Save Expense'}
                             </button>
@@ -530,23 +539,23 @@ function TypeBadge({ type }) {
     const Icon = isIncome ? ArrowUpRight : ArrowDownRight;
 
     return (
-        <span className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-medium ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+        <Badge variant={isIncome ? 'success' : 'danger'} className="shrink-0 gap-1 font-medium">
             <Icon className="h-3 w-3" />
             {isIncome ? 'Income' : 'Expense'}
-        </span>
+        </Badge>
     );
 }
 
 function StatusBadge({ status }) {
     const config = {
-        pending: 'bg-amber-100 text-amber-700',
-        converted: 'bg-emerald-100 text-emerald-700',
-        ignored: 'bg-gray-100 text-gray-600',
+        pending: 'warning',
+        converted: 'success',
+        ignored: 'secondary',
     };
 
     return (
-        <span className={`inline-flex shrink-0 rounded-full px-2 py-1 text-xs font-medium ${config[status] || config.pending}`}>
+        <Badge variant={config[status] || config.pending} className="shrink-0 font-medium">
             {status.charAt(0).toUpperCase() + status.slice(1)}
-        </span>
+        </Badge>
     );
 }

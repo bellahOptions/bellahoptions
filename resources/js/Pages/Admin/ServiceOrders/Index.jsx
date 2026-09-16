@@ -48,10 +48,10 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
         <AuthenticatedLayout
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">Order Management</h2>
+                    <h2 className="text-xl font-semibold leading-tight tracking-tight text-white">Order Management</h2>
                     <Link
                         href={route('dashboard')}
-                        className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        className="jv-btn jv-btn--ghost jv-btn--sm"
                     >
                         Back to Dashboard
                     </Link>
@@ -63,13 +63,13 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
 
                     {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {flash.error}
                         </div>
                     )}
@@ -82,19 +82,19 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                         <StatCard icon={Wallet} label="Paid Total" value={formatMoney(stats.paid_total ?? 0, 'NGN')} tone="emerald" />
                     </StatGrid>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                    <section className="jv-card p-4 sm:p-5">
                         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
                             <div className="relative flex-1 lg:min-w-[240px]">
-                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                                 <input
                                     id="order-search"
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder="Search order code, customer, email, service…"
-                                    className="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-9 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="jv-input py-2.5 pl-9 pr-9"
                                 />
                                 {isSyncing && (
-                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-brand" />
+                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-jv-accent" />
                                 )}
                             </div>
 
@@ -103,7 +103,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                 value={orderStatus}
                                 onChange={(event) => setOrderStatus(event.target.value)}
                                 aria-label="Order status"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-select w-full py-2.5 lg:w-auto"
                             >
                                 <option value="">All statuses</option>
                                 {orderStatusOptions.map((option) => (
@@ -118,7 +118,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                 value={paymentStatus}
                                 onChange={(event) => setPaymentStatus(event.target.value)}
                                 aria-label="Payment status"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-select w-full py-2.5 lg:w-auto"
                             >
                                 <option value="">All payments</option>
                                 {paymentStatusOptions.map((option) => (
@@ -133,7 +133,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                 value={serviceSlug}
                                 onChange={(event) => setServiceSlug(event.target.value)}
                                 aria-label="Service"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-select w-full py-2.5 lg:w-auto"
                             >
                                 <option value="">All services</option>
                                 {serviceSlugs.map((slug) => (
@@ -147,7 +147,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                 type="button"
                                 onClick={resetFilters}
                                 disabled={!hasActiveFilters}
-                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 lg:w-auto"
+                                className="jv-btn jv-btn--ghost w-full disabled:cursor-not-allowed disabled:opacity-40 lg:w-auto"
                             >
                                 <RotateCcw className="h-3.5 w-3.5" />
                                 Reset
@@ -155,45 +155,45 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                         </div>
                     </section>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <section className="jv-card p-4 sm:p-5">
                         <div className="hidden overflow-x-auto md:block">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Order</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Customer</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Service</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Amount</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Payment</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Order Status</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Progress</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Actions</th>
+                            <table className="min-w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-jv-line">
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Order</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Customer</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Service</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Amount</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Payment</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Order Status</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Progress</th>
+                                        <th className="px-3 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody>
                                     {(orders?.data || []).length === 0 && (
                                         <tr>
-                                            <td className="px-3 py-4 text-gray-500" colSpan={8}>
+                                            <td className="px-3 py-4 text-white/45" colSpan={8}>
                                                 No orders found.
                                             </td>
                                         </tr>
                                     )}
 
                                     {(orders?.data || []).map((order) => (
-                                        <tr key={order.id}>
+                                        <tr key={order.id} className="border-b border-jv-line/70 transition last:border-0 hover:bg-white/[0.04]">
                                             <td className="px-3 py-3 align-top">
-                                                <p className="font-semibold text-gray-900">{order.order_code}</p>
-                                                <p className="text-xs text-gray-500">{order.created_at}</p>
+                                                <p className="font-semibold text-white">{order.order_code}</p>
+                                                <p className="text-xs text-white/45">{order.created_at}</p>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">
+                                            <td className="px-3 py-3 align-top text-white/80">
                                                 <p>{order.full_name}</p>
-                                                <p className="text-xs text-gray-500">{order.email}</p>
+                                                <p className="text-xs text-white/45">{order.email}</p>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">
+                                            <td className="px-3 py-3 align-top text-white/80">
                                                 <p>{order.service_name}</p>
-                                                <p className="text-xs text-gray-500">{order.package_name}</p>
+                                                <p className="text-xs text-white/45">{order.package_name}</p>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">
+                                            <td className="px-3 py-3 align-top text-white/80">
                                                 {formatMoney(order.amount, order.currency)}
                                             </td>
                                             <td className="px-3 py-3 align-top">
@@ -202,13 +202,13 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                             <td className="px-3 py-3 align-top">
                                                 <StatusBadge status={order.order_status} kind="order" />
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">
+                                            <td className="px-3 py-3 align-top text-white/80">
                                                 {order.progress_percent}%
                                             </td>
                                             <td className="px-3 py-3 align-top">
                                                 <Link
                                                     href={route('admin.service-orders.show', order.order_code)}
-                                                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                    className="jv-btn jv-btn--outline jv-btn--sm"
                                                 >
                                                     View
                                                 </Link>
@@ -220,7 +220,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                         </div>
 
                         {(orders?.data || []).length === 0 ? (
-                            <p className="text-sm text-gray-500 md:hidden">No orders found.</p>
+                            <p className="text-sm text-white/45 md:hidden">No orders found.</p>
                         ) : (
                             <MobileCardList>
                                 {(orders?.data || []).map((order, index) => (
@@ -231,7 +231,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                             badge={<StatusBadge status={order.payment_status} kind="payment" />}
                                         />
 
-                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
+                                        <div className="mt-3 space-y-0.5 divide-y divide-jv-line/70">
                                             <MobileCardRow label="Customer" value={order.full_name} />
                                             <MobileCardRow label="Email" value={order.email} />
                                             <MobileCardRow label="Service" value={`${order.service_name} · ${order.package_name}`} />
@@ -241,14 +241,14 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                         <div className="mt-3 flex items-center justify-between gap-3">
                                             <StatusBadge status={order.order_status} kind="order" />
                                             <div className="flex-1">
-                                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                                                <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/[0.08]">
                                                     <div
-                                                        className="h-full rounded-full bg-brand transition-all"
+                                                        className="h-full rounded-full bg-jv-accent transition-all"
                                                         style={{ width: `${Math.max(0, Math.min(100, order.progress_percent || 0))}%` }}
                                                     />
                                                 </div>
                                             </div>
-                                            <span className="shrink-0 text-xs font-semibold text-gray-500">
+                                            <span className="shrink-0 text-xs font-semibold text-white/45">
                                                 {order.progress_percent}%
                                             </span>
                                         </div>
@@ -256,7 +256,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                         <MobileCardActions>
                                             <Link
                                                 href={route('admin.service-orders.show', order.order_code)}
-                                                className="w-full rounded-md border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                className="jv-btn jv-btn--outline jv-btn--sm w-full"
                                             >
                                                 View Order
                                             </Link>
@@ -266,7 +266,7 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                             </MobileCardList>
                         )}
 
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-white/55">
                             <p>
                                 Page {orders?.current_page || 1} of {orders?.last_page || 1}
                             </p>
@@ -274,26 +274,26 @@ export default function ServiceOrderIndex({ orders, stats = {}, filters = {}, se
                                 {orders?.prev_page_url ? (
                                     <Link
                                         href={orders.prev_page_url}
-                                        className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50"
+                                        className="jv-btn jv-btn--ghost jv-btn--sm"
                                         preserveScroll
                                     >
                                         Previous
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">
+                                    <span className="jv-btn jv-btn--ghost jv-btn--sm cursor-not-allowed opacity-40">
                                         Previous
                                     </span>
                                 )}
                                 {orders?.next_page_url ? (
                                     <Link
                                         href={orders.next_page_url}
-                                        className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50"
+                                        className="jv-btn jv-btn--ghost jv-btn--sm"
                                         preserveScroll
                                     >
                                         Next
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">
+                                    <span className="jv-btn jv-btn--ghost jv-btn--sm cursor-not-allowed opacity-40">
                                         Next
                                     </span>
                                 )}
@@ -310,25 +310,25 @@ export function StatusBadge({ status, kind = 'order' }) {
     const normalized = String(status || '').toLowerCase();
 
     const orderColors = {
-        completed: 'bg-emerald-100 text-emerald-700',
-        in_review: 'bg-sky-100 text-sky-700',
-        in_progress: 'bg-sky-100 text-sky-700',
-        queued: 'bg-indigo-100 text-indigo-700',
-        cancelled: 'bg-red-100 text-red-700',
+        completed: 'bg-emerald-500/15 text-emerald-300',
+        in_review: 'bg-sky-500/15 text-sky-300',
+        in_progress: 'bg-sky-500/15 text-sky-300',
+        queued: 'bg-indigo-500/15 text-indigo-300',
+        cancelled: 'bg-red-500/15 text-red-300',
     };
 
     const paymentColors = {
-        paid: 'bg-emerald-100 text-emerald-700',
-        processing: 'bg-sky-100 text-sky-700',
-        not_required: 'bg-slate-100 text-slate-700',
-        failed: 'bg-red-100 text-red-700',
+        paid: 'bg-emerald-500/15 text-emerald-300',
+        processing: 'bg-sky-500/15 text-sky-300',
+        not_required: 'bg-white/[0.07] text-white/70',
+        failed: 'bg-red-500/15 text-red-300',
     };
 
     const colorMap = kind === 'payment' ? paymentColors : orderColors;
-    const className = colorMap[normalized] || 'bg-amber-100 text-amber-700';
+    const className = colorMap[normalized] || 'bg-amber-500/15 text-amber-300';
 
     return (
-        <span className={`inline-flex shrink-0 rounded-full px-2 py-1 text-xs font-medium ${className}`}>
+        <span className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold ${className}`}>
             {formatStatusLabel(status)}
         </span>
     );

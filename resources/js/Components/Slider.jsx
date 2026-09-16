@@ -1,6 +1,7 @@
 import { Link } from "@inertiajs/react";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
+import { ArrowRightIcon } from "@heroicons/react/24/outline";
 import Particles, { initParticlesEngine } from "@tsparticles/react";
 import { loadSlim } from "@tsparticles/slim";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -11,36 +12,36 @@ import "swiper/css/pagination";
 
 const BACKGROUND_THEMES = {
     "particles-ocean": {
-        gradient: "from-brand via-[#0891b2] to-[#111827]",
-        particleColors: ["#ffffff", "#67e8f9", "#c4b5fd"],
+        gradient: "from-[#050508] via-[#0a1a4d] to-[#050508]",
+        particleColors: ["#ffffff", "#4d8bff", "#0055ff"],
     },
     "particles-aurora": {
-        gradient: "from-[#111827] via-[#2563eb] to-[#0f766e]",
-        particleColors: ["#bfdbfe", "#67e8f9", "#93c5fd"],
+        gradient: "from-[#050508] via-[#0b2280] to-[#050508]",
+        particleColors: ["#bfdbfe", "#6d9bff", "#0055ff"],
     },
     "particles-cosmic": {
-        gradient: "from-[#0f172a] via-[#7c3aed] to-[#0369a1]",
-        particleColors: ["#ffffff", "#a78bfa", "#38bdf8"],
+        gradient: "from-[#050508] via-[#101a5c] to-[#050508]",
+        particleColors: ["#ffffff", "#93b4ff", "#4d8bff"],
     },
     "particles-sunset": {
-        gradient: "from-[#7f1d1d] via-[#ea580c] to-[#f59e0b]",
-        particleColors: ["#fff7ed", "#fdba74", "#fca5a5"],
+        gradient: "from-[#050508] via-[#0d2fa8] to-[#050508]",
+        particleColors: ["#dbe7ff", "#79a6ff", "#0055ff"],
     },
     "particles-nebula": {
-        gradient: "from-[#1e1b4b] via-[#7c3aed] to-[#db2777]",
-        particleColors: ["#f5d0fe", "#c4b5fd", "#f9a8d4"],
+        gradient: "from-[#050508] via-[#131a6e] to-[#050508]",
+        particleColors: ["#e0e8ff", "#a8c0ff", "#6d9bff"],
     },
     "particles-forest": {
-        gradient: "from-[#022c22] via-[#0f766e] to-[#65a30d]",
-        particleColors: ["#d1fae5", "#99f6e4", "#bef264"],
+        gradient: "from-[#050508] via-[#062a5c] to-[#050508]",
+        particleColors: ["#d1fae5", "#7cc4ff", "#0055ff"],
     },
     "particles-midnight": {
-        gradient: "from-[#020617] via-[#1d4ed8] to-[#0f172a]",
-        particleColors: ["#dbeafe", "#93c5fd", "#67e8f9"],
+        gradient: "from-[#020205] via-[#0a1c66] to-[#050508]",
+        particleColors: ["#dbeafe", "#93c5fd", "#0055ff"],
     },
     "particles-ember": {
-        gradient: "from-[#431407] via-[#dc2626] to-[#f97316]",
-        particleColors: ["#ffedd5", "#fdba74", "#fca5a5"],
+        gradient: "from-[#050508] via-[#1b2bb0] to-[#050508]",
+        particleColors: ["#e8eeff", "#8fb2ff", "#3d78ff"],
     },
 };
 
@@ -223,25 +224,31 @@ function SlideCallToAction({ slide, children }) {
         return null;
     }
 
+    const className =
+        "jv-btn jv-btn--primary jv-btn--lg jv-group mt-9";
+
     if (isExternalUrl(slide.slide_link)) {
         return (
             <a
                 href={slide.slide_link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
+                className={className}
             >
                 {children}
+                <span className="jv-btn-arrow h-7 w-7">
+                    <ArrowRightIcon className="h-3.5 w-3.5" />
+                </span>
             </a>
         );
     }
 
     return (
-        <Link
-            href={slide.slide_link}
-            className="mt-8 inline-flex items-center justify-center rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
-        >
+        <Link href={slide.slide_link} className={className}>
             {children}
+            <span className="jv-btn-arrow h-7 w-7">
+                <ArrowRightIcon className="h-3.5 w-3.5" />
+            </span>
         </Link>
     );
 }
@@ -266,7 +273,7 @@ function ForegroundMedia({ slide, mediaAnimation, mediaPosition = "center", medi
 
     return (
         <motion.div
-            className="relative overflow-hidden"
+            className="jv-media relative overflow-hidden"
             initial={resolveAnimationVariant(mediaAnimation).hidden}
             animate={resolveAnimationVariant(mediaAnimation).visible}
             transition={{ duration: 0.55, delay: 0.2, ease: "easeOut" }}
@@ -312,15 +319,15 @@ function SlideContent({ slide, index }) {
     if (useSplitLayout) {
         return (
             <motion.div
-                className="absolute inset-0 bg-black/50 px-4 py-16 text-white sm:px-6 lg:px-8"
+                className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/55 to-black/75 px-4 py-20 text-white sm:px-6 lg:px-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.45 }}
             >
-                <div className="mx-auto grid h-full w-full max-w-7xl items-center gap-8 lg:grid-cols-2">
+                <div className="jv-container grid h-full w-full items-center gap-10 lg:grid-cols-2">
                     <div className={`flex flex-col ${textContainerAlignmentClass} ${textAlignClass} ${mediaFirst ? 'order-2 lg:order-2' : 'order-1'}`}>
                         <motion.h2
-                            className="max-w-3xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-6xl"
+                            className="jv-display jv-display--xl max-w-3xl"
                             initial={resolveAnimationVariant(titleAnimation).hidden}
                             animate={resolveAnimationVariant(titleAnimation).visible}
                             transition={{ duration: 0.58, delay: 0.1, ease: "easeOut" }}
@@ -328,7 +335,7 @@ function SlideContent({ slide, index }) {
                             {slide.slide_title}
                         </motion.h2>
                         <motion.p
-                            className="mt-5 max-w-2xl text-base leading-7 text-gray-100 sm:text-lg"
+                            className="jv-lead mt-6 max-w-2xl"
                             initial={resolveAnimationVariant(textAnimation).hidden}
                             animate={resolveAnimationVariant(textAnimation).visible}
                             transition={{ duration: 0.54, delay: 0.2, ease: "easeOut" }}
@@ -363,13 +370,13 @@ function SlideContent({ slide, index }) {
 
     return (
         <motion.div
-            className="absolute inset-0 flex flex-col items-center justify-center bg-black/45 px-4 py-16 text-center text-white sm:px-6 lg:px-8"
+            className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-b from-black/65 via-black/50 to-black/75 px-4 py-20 text-center text-white sm:px-6 lg:px-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.45 }}
         >
             <motion.h2
-                className="max-w-4xl text-4xl font-black leading-tight tracking-tight sm:text-5xl lg:text-7xl"
+                className="jv-display jv-display--xl max-w-4xl"
                 initial={resolveAnimationVariant(titleAnimation).hidden}
                 animate={resolveAnimationVariant(titleAnimation).visible}
                 transition={{ duration: 0.55, delay: 0.12, ease: "easeOut" }}
@@ -377,7 +384,7 @@ function SlideContent({ slide, index }) {
                 {slide.slide_title}
             </motion.h2>
             <motion.p
-                className="mt-5 max-w-2xl text-base leading-7 text-gray-100 sm:text-lg"
+                className="jv-lead mt-6 max-w-2xl"
                 initial={resolveAnimationVariant(textAnimation).hidden}
                 animate={resolveAnimationVariant(textAnimation).visible}
                 transition={{ duration: 0.5, delay: 0.22, ease: "easeOut" }}
@@ -386,7 +393,7 @@ function SlideContent({ slide, index }) {
             </motion.p>
 
             {hasForegroundMedia && (
-                <div className="mt-8 w-full max-w-3xl">
+                <div className="mt-9 w-full max-w-3xl">
                     <ForegroundMedia
                         slide={slide}
                         mediaAnimation={mediaAnimation}
@@ -412,9 +419,8 @@ function SlideContent({ slide, index }) {
 }
 
 export default function Slider({ slides = [] }) {
-    const resolvedSlides = Array.isArray(slides) && slides.length > 2
-        ? slides
-        : fallbackSlides;
+    const hasRealSlides = Array.isArray(slides) && slides.length > 0;
+    const resolvedSlides = hasRealSlides ? slides : fallbackSlides;
     const [particlesReady, setParticlesReady] = useState(false);
 
     useEffect(() => {
@@ -433,9 +439,77 @@ export default function Slider({ slides = [] }) {
         };
     }, []);
 
+    const heightClass =
+        "h-[min(760px,calc(100svh-84px))] min-h-[520px] w-full sm:h-[min(800px,calc(100svh-96px))] sm:min-h-[600px]";
+
+    // With no admin-authored slides we render one branded hero rather than an
+    // empty carousel, so the homepage always opens with a real statement.
+    if (!hasRealSlides) {
+        return (
+            <section className={`relative overflow-hidden ${heightClass}`}>
+                <SlideVisual slide={{ slide_background: "particles-midnight" }} index={0} particlesReady={particlesReady} />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/45 to-jv-bg" />
+                {/* absolute inset-0 rather than h-full: percentage heights do not
+                    resolve against the arbitrary-value section height, which would
+                    drop this block into flow *below* the absolute siblings. */}
+                <div className="jv-container absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <motion.span
+                        className="jv-kicker jv-kicker--center jv-kicker--strong"
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                    >
+                        Your creative partner
+                    </motion.span>
+
+                    <motion.h1
+                        className="jv-display jv-display--xl mt-7 max-w-4xl"
+                        initial={{ opacity: 0, y: 22 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.08, ease: "easeOut" }}
+                    >
+                        Ideas Are Visions.
+                        <br />
+                        <span className="jv-muted">Design Is How We Deliver Them.</span>
+                    </motion.h1>
+
+                    <motion.p
+                        className="jv-lead mx-auto mt-7 max-w-2xl"
+                        initial={{ opacity: 0, y: 18 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.55, delay: 0.18, ease: "easeOut" }}
+                    >
+                        At Bellah Options, we turn ideas into experiences — building brands that
+                        are seen, felt, and remembered. We make it easy to bring your ideas to
+                        life, guiding you from concept to fully launched brand.
+                    </motion.p>
+
+                    <motion.div
+                        className="mt-10 flex flex-wrap items-center justify-center gap-3"
+                        initial={{ opacity: 0, y: 16 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
+                    >
+                        <Link href="/gallery" className="jv-btn jv-btn--primary jv-btn--lg jv-group">
+                            See Our Work
+                            <span className="jv-btn-arrow h-7 w-7">
+                                <ArrowRightIcon className="h-3.5 w-3.5" />
+                            </span>
+                        </Link>
+                        <Link href="/contact-us" className="jv-btn jv-btn--ghost jv-btn--lg">
+                            Book a call
+                        </Link>
+                    </motion.div>
+                </div>
+
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-b from-transparent to-jv-bg" />
+            </section>
+        );
+    }
+
     return (
         <Swiper
-            className="h-[min(760px,calc(100svh-84px))] min-h-[520px] w-full sm:h-[min(800px,calc(100svh-96px))] sm:min-h-[600px]"
+            className={heightClass}
             modules={[Navigation, Pagination, Autoplay]}
             loop
             navigation
@@ -542,19 +616,19 @@ function AnimatedParticlesBackground({ backgroundId, index, particlesReady }) {
                 />
             )}
             <motion.div
-                className="absolute -left-24 top-12 h-28 w-[70vw] rotate-[-18deg] bg-white/15 blur-2xl"
+                className="absolute -left-24 top-12 h-28 w-[70vw] rotate-[-18deg] bg-jv-accent/20 blur-2xl"
                 animate={{ x: ["-12%", "18%", "-12%"], opacity: [0.25, 0.45, 0.25] }}
                 transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-                className="absolute bottom-12 right-[-10%] h-36 w-[80vw] rotate-[-18deg] bg-cyan-200/20 blur-2xl"
+                className="absolute bottom-12 right-[-10%] h-36 w-[80vw] rotate-[-18deg] bg-[#4d8bff]/20 blur-2xl"
                 animate={{ x: ["12%", "-16%", "12%"], opacity: [0.2, 0.5, 0.2] }}
                 transition={{ duration: 16, repeat: Infinity, ease: "easeInOut" }}
             />
             <motion.div
-                className="absolute inset-0 opacity-30"
+                className="absolute inset-0 opacity-20"
                 style={{
-                    backgroundImage: "linear-gradient(rgba(255,255,255,0.22) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px)",
+                    backgroundImage: "linear-gradient(rgba(255,255,255,0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px)",
                     backgroundSize: "56px 56px",
                 }}
                 animate={{ backgroundPosition: ["0px 0px", "56px 56px"] }}

@@ -137,6 +137,48 @@ body {
     }
 }
 
+/* Swiper chrome restyled for the dark canvas */
+.swiper-button-next,
+.swiper-button-prev {
+    width: 46px;
+    height: 46px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(10, 10, 14, 0.6);
+    color: #fff;
+    backdrop-filter: blur(14px);
+    transition: background 200ms ease, border-color 200ms ease;
+}
+
+.swiper-button-next:hover,
+.swiper-button-prev:hover {
+    background: var(--jv-accent);
+    border-color: var(--jv-accent);
+}
+
+.swiper-button-next::after,
+.swiper-button-prev::after {
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.swiper-pagination-progressbar {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.swiper-pagination-progressbar .swiper-pagination-progressbar-fill {
+    background: var(--jv-accent);
+}
+
+.swiper-pagination-bullet {
+    background: rgba(255, 255, 255, 0.4);
+    opacity: 1;
+}
+
+.swiper-pagination-bullet-active {
+    background: var(--jv-accent);
+}
+
 body.marketing-ui * {
             box-sizing: border-box;
         }
@@ -147,11 +189,9 @@ body.marketing-ui {
         }
 body.marketing-ui {
             font-family: 'DM Sans', sans-serif;
-            color: var(--ink);
-            background:
-                radial-gradient(circle at 8% 8%, rgba(59, 109, 255, 0.16), transparent 40%),
-                radial-gradient(circle at 92% 4%, rgba(37, 80, 255, 0.16), transparent 38%),
-                linear-gradient(180deg, #f7faff 0%, #ecf3ff 44%, #ffffff 100%);
+            color: var(--jv-white);
+            /* dark canvas first; app.css .jv-canvas paints the fixed gradient layer */
+            background-color: var(--jv-bg);
             min-height: 100vh;
         }
 body.marketing-ui a {
@@ -270,24 +310,36 @@ body.marketing-ui a {
             background: rgba(37, 80, 255, 0.1);
             border: 1px solid rgba(37, 80, 255, 0.22);
         }
-body.marketing-ui h1,
-        body.marketing-ui h2,
-        body.marketing-ui h3 {
+/* Scoped to UNSTYLED elements only (`:not([class])`).
+   At `body.marketing-ui h1/h2/h3/p` these rules carried (0,1,1) specificity,
+   which outranked BOTH the `.jv-*` component classes and every Tailwind spacing
+   utility (only (0,1,0)). The consequence was site-wide: `mt-6`/`mt-3` on card
+   headings and body copy computed to `margin-top: 0px`, so icon, title and text
+   sat flush against each other and could not be spaced from the markup.
+   The legacy Blade pages (legal policies, legacy order views) render plain
+   headings, so they keep these styles; React pages use .jv-* classes and no
+   longer have their spacing silently overridden. */
+body.marketing-ui h1:not([class]),
+        body.marketing-ui h2:not([class]),
+        body.marketing-ui h3:not([class]) {
             margin: 0;
             line-height: 1.15;
             letter-spacing: -0.02em;
             color: var(--navy);
         }
-body.marketing-ui h1 {
+body.marketing-ui h1:not([class]) {
             font-family: var(--font-main);
             font-size: clamp(2rem, 4.6vw, 3.85rem);
             margin-top: 1rem;
         }
-body.marketing-ui h2 {
+body.marketing-ui h2:not([class]) {
             font-family: var(--font-main);
             font-size: clamp(1.5rem, 3.4vw, 2.5rem);
         }
-body.marketing-ui p {
+body.marketing-ui h3:not([class]) {
+            font-size: 1.25rem;
+        }
+body.marketing-ui p:not([class]) {
             line-height: 1.72;
             margin: 0;
             color: var(--ink-soft);
@@ -490,28 +542,33 @@ body.marketing-ui p {
             margin: 0;
             padding-left: 1rem;
         }
-body.marketing-ui input,
-        body.marketing-ui select,
-        body.marketing-ui textarea {
+/* These legacy form-control rules are kept for the Blade pages that still use
+   this layout (legal policies, legacy order views), but they are scoped away
+   from the `.jv-*` design system. `body.marketing-ui input` has specificity
+   (0,1,1) and would otherwise beat `.jv-input` (0,1,0), painting the React
+   contact/register forms white-on-white on the dark canvas. */
+body.marketing-ui input:not([class*="jv-"]),
+        body.marketing-ui select:not([class*="jv-"]),
+        body.marketing-ui textarea:not([class*="jv-"]) {
             width: 100%;
-            border: 1px solid rgba(17, 24, 39, 0.18);
+            border: 1px solid var(--jv-line-strong);
             border-radius: 12px;
             padding: 0.72rem 0.84rem;
-            background: #fff;
-            color: var(--ink);
+            background: var(--jv-glass);
+            color: var(--jv-white);
             font-family: var(--font-main);
         }
-body.marketing-ui input:focus,
-        body.marketing-ui select:focus,
-        body.marketing-ui textarea:focus {
-            outline: 2px solid rgba(37, 80, 255, 0.28);
-            border-color: transparent;
+body.marketing-ui input:not([class*="jv-"]):focus,
+        body.marketing-ui select:not([class*="jv-"]):focus,
+        body.marketing-ui textarea:not([class*="jv-"]):focus {
+            outline: none;
+            border-color: var(--jv-accent);
         }
-body.marketing-ui label {
+body.marketing-ui label:not([class*="jv-"]) {
             display: inline-block;
             margin-bottom: 0.35rem;
-            font-weight: 700;
-            color: var(--navy);
+            font-weight: 500;
+            color: var(--jv-fog);
             font-size: 0.92rem;
         }
 
@@ -566,7 +623,7 @@ body.marketing-ui label {
             max-height: 84vh;
             object-fit: contain;
             border-radius: 14px;
-            background: #fff;
+            background: var(--jv-ink);
             box-shadow: 0 18px 42px rgba(0, 0, 0, 0.4);
         }
 
@@ -588,8 +645,8 @@ body.marketing-ui label {
             position: relative;
             overflow: hidden;
             border-radius: var(--radius);
-            border: 1px solid var(--line);
-            background: #fff;
+            border: 1px solid var(--jv-line);
+            background: var(--jv-ink);
             box-shadow: var(--shadow);
         }
 
@@ -750,8 +807,8 @@ body.marketing-ui label {
                 display: none;
                 flex-direction: column;
                 align-items: stretch;
-                background: #ffffff;
-                border: 1px solid var(--line);
+                background: rgba(10, 10, 14, 0.96);
+                border: 1px solid var(--jv-line);
                 box-shadow: var(--shadow);
                 border-radius: 14px;
                 padding: 0.5rem;
@@ -820,71 +877,74 @@ body.marketing-ui .footer-bottom {
         --font-sans: 'Geist Variable', sans-serif;
     }
   :root {
-        --background: oklch(1 0 0);
-        --foreground: oklch(0.145 0 0);
-        --card: oklch(1 0 0);
-        --card-foreground: oklch(0.145 0 0);
-        --popover: oklch(1 0 0);
-        --popover-foreground: oklch(0.145 0 0);
-        --primary: oklch(0.205 0 0);
+        /* Dark base tokens: the whole product now sits on the near-black
+           canvas, so `body` must not default to white (it showed through at
+           overscroll/edges on pages without a .jv-canvas wrapper). */
+        --background: oklch(0.145 0.005 275);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.19 0.006 275);
+        --card-foreground: oklch(0.985 0 0);
+        --popover: oklch(0.19 0.006 275);
+        --popover-foreground: oklch(0.985 0 0);
+        --primary: oklch(0.55 0.24 262);
         --primary-foreground: oklch(0.985 0 0);
-        --secondary: oklch(0.97 0 0);
-        --secondary-foreground: oklch(0.205 0 0);
-        --muted: oklch(0.97 0 0);
-        --muted-foreground: oklch(0.556 0 0);
-        --accent: oklch(0.97 0 0);
-        --accent-foreground: oklch(0.205 0 0);
-        --destructive: oklch(0.577 0.245 27.325);
-        --border: oklch(0.922 0 0);
-        --input: oklch(0.922 0 0);
-        --ring: oklch(0.708 0 0);
-        --chart-1: oklch(0.87 0 0);
-        --chart-2: oklch(0.556 0 0);
-        --chart-3: oklch(0.439 0 0);
-        --chart-4: oklch(0.371 0 0);
-        --chart-5: oklch(0.269 0 0);
+        --secondary: oklch(0.26 0.006 275);
+        --secondary-foreground: oklch(0.985 0 0);
+        --muted: oklch(0.26 0.006 275);
+        --muted-foreground: oklch(0.7 0 0);
+        --accent: oklch(0.26 0.006 275);
+        --accent-foreground: oklch(0.985 0 0);
+        --destructive: oklch(0.62 0.22 27.325);
+        --border: oklch(1 0 0 / 12%);
+        --input: oklch(1 0 0 / 15%);
+        --ring: oklch(0.55 0.24 262);
+        --chart-1: oklch(0.62 0.21 262);
+        --chart-2: oklch(0.72 0.16 190);
+        --chart-3: oklch(0.75 0.16 145);
+        --chart-4: oklch(0.78 0.16 85);
+        --chart-5: oklch(0.68 0.2 20);
         --radius: 0.625rem;
-        --sidebar: oklch(0.985 0 0);
-        --sidebar-foreground: oklch(0.145 0 0);
-        --sidebar-primary: oklch(0.205 0 0);
+        --sidebar: oklch(0.17 0.005 275);
+        --sidebar-foreground: oklch(0.985 0 0);
+        --sidebar-primary: oklch(0.55 0.24 262);
         --sidebar-primary-foreground: oklch(0.985 0 0);
-        --sidebar-accent: oklch(0.97 0 0);
-        --sidebar-accent-foreground: oklch(0.205 0 0);
-        --sidebar-border: oklch(0.922 0 0);
-        --sidebar-ring: oklch(0.708 0 0);
+        --sidebar-accent: oklch(0.26 0.006 275);
+        --sidebar-accent-foreground: oklch(0.985 0 0);
+        --sidebar-border: oklch(1 0 0 / 12%);
+        --sidebar-ring: oklch(0.55 0.24 262);
     }
   .dark {
-        --background: oklch(1 0 0);
-        --foreground: oklch(0.145 0 0);
-        --card: oklch(1 0 0);
-        --card-foreground: oklch(0.145 0 0);
-        --popover: oklch(1 0 0);
-        --popover-foreground: oklch(0.145 0 0);
-        --primary: oklch(0.205 0 0);
+        --background: oklch(0.145 0.005 275);
+        --foreground: oklch(0.985 0 0);
+        --card: oklch(0.19 0.006 275);
+        --card-foreground: oklch(0.985 0 0);
+        --popover: oklch(0.19 0.006 275);
+        --popover-foreground: oklch(0.985 0 0);
+        --primary: oklch(0.55 0.24 262);
         --primary-foreground: oklch(0.985 0 0);
-        --secondary: oklch(0.97 0 0);
-        --secondary-foreground: oklch(0.205 0 0);
-        --muted: oklch(0.97 0 0);
-        --muted-foreground: oklch(0.556 0 0);
-        --accent: oklch(0.97 0 0);
-        --accent-foreground: oklch(0.205 0 0);
-        --destructive: oklch(0.577 0.245 27.325);
-        --border: oklch(0.922 0 0);
-        --input: oklch(0.922 0 0);
-        --ring: oklch(0.708 0 0);
-        --chart-1: oklch(0.87 0 0);
-        --chart-2: oklch(0.556 0 0);
-        --chart-3: oklch(0.439 0 0);
-        --chart-4: oklch(0.371 0 0);
-        --chart-5: oklch(0.269 0 0);
-        --sidebar: oklch(0.985 0 0);
-        --sidebar-foreground: oklch(0.145 0 0);
-        --sidebar-primary: oklch(0.205 0 0);
+        --secondary: oklch(0.26 0.006 275);
+        --secondary-foreground: oklch(0.985 0 0);
+        --muted: oklch(0.26 0.006 275);
+        --muted-foreground: oklch(0.7 0 0);
+        --accent: oklch(0.26 0.006 275);
+        --accent-foreground: oklch(0.985 0 0);
+        --destructive: oklch(0.62 0.22 27.325);
+        --border: oklch(1 0 0 / 12%);
+        --input: oklch(1 0 0 / 15%);
+        --ring: oklch(0.55 0.24 262);
+        --chart-1: oklch(0.62 0.21 262);
+        --chart-2: oklch(0.72 0.16 190);
+        --chart-3: oklch(0.75 0.16 145);
+        --chart-4: oklch(0.78 0.16 85);
+        --chart-5: oklch(0.68 0.2 20);
+        --sidebar: oklch(0.17 0.005 275);
+        --sidebar-foreground: oklch(0.985 0 0);
+        --sidebar-primary: oklch(0.55 0.24 262);
         --sidebar-primary-foreground: oklch(0.985 0 0);
-        --sidebar-accent: oklch(0.97 0 0);
-        --sidebar-accent-foreground: oklch(0.205 0 0);
-        --sidebar-border: oklch(0.922 0 0);
-        --sidebar-ring: oklch(0.708 0 0);
+        --sidebar-accent: oklch(0.26 0.006 275);
+        --sidebar-accent-foreground: oklch(0.985 0 0);
+        --sidebar-border: oklch(1 0 0 / 12%);
+        --sidebar-ring: oklch(0.55 0.24 262);
     }
   * {
     border-color: var(--border);
@@ -905,6 +965,60 @@ body.marketing-ui .footer-bottom {
    type · rounded-full CTAs. Prefixed .jv- so it never collides with existing
    utility markup.
    ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Bare form controls on the dark canvas.
+   `@tailwindcss/forms` sets `background-color:#fff` on every text-like input,
+   select and textarea. Any field that does not carry an explicit background
+   utility (several admin forms style only the border) therefore rendered as a
+   white box on the black canvas. This gives every unclassed field the dark
+   surface by default; `.jv-input` and Tailwind utilities still win because they
+   are more specific or later in the cascade.
+   -------------------------------------------------------------------------- */
+.jv-canvas input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='file']):not([type='color']):not([type='submit']):not([type='button']):not([type='reset']):not([type='image']):not([type='hidden']),
+.jv-canvas textarea,
+.jv-canvas select {
+    background-color: var(--jv-glass);
+    color: var(--jv-white);
+}
+
+.jv-canvas input::placeholder,
+.jv-canvas textarea::placeholder {
+    color: rgba(255, 255, 255, 0.34);
+}
+
+/* Checkboxes and radios still default to a white fill from @tailwindcss/forms. */
+.jv-canvas input[type='checkbox'],
+.jv-canvas input[type='radio'] {
+    background-color: rgba(255, 255, 255, 0.06);
+    border-color: var(--jv-line-strong);
+    color: var(--jv-accent);
+}
+
+.jv-canvas input[type='checkbox']:checked,
+.jv-canvas input[type='radio']:checked {
+    background-color: var(--jv-accent);
+    border-color: var(--jv-accent);
+}
+
+.jv-canvas input[type='checkbox']:focus,
+.jv-canvas input[type='radio']:focus {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 85, 255, 0.16);
+}
+
+/* Quill's toolbar embeds real inputs (header picker, link tooltip, search) that
+   are not covered by the .jv-quill[type=text] rule and would show white. */
+.jv-quill input,
+.jv-quill select,
+.jv-quill textarea {
+    background-color: transparent;
+    color: var(--jv-white);
+}
+
+.jv-quill .ql-snow .ql-tooltip input[type='text'] {
+    background-color: #14141a;
+}
 
 :root {
     --jv-accent: #0055ff;
@@ -1008,6 +1122,15 @@ body.marketing-ui .footer-bottom {
     max-width: 1240px;
     margin-inline: auto;
     padding-inline: 1.25rem;
+    /* Keep the 1240px cap (and any Tailwind max-w-* utility) honest: without
+       border-box the padding is added on top of both and overflows the parent. */
+    box-sizing: border-box;
+}
+
+/* An absolutely-positioned .jv-container must still respect its own max-width,
+   otherwise it stretches from the inset edges to the full parent width. */
+.jv-container[class*="absolute"] {
+    max-width: min(1240px, 100%);
 }
 
 @media (min-width: 640px) {
@@ -1079,40 +1202,80 @@ body.marketing-ui .footer-bottom {
     text-transform: uppercase;
 }
 
-/* ── Eyebrow / pill badge ───────────────────────────────────────────────── */
+/* ── Heading / body rhythm ──────────────────────────────────────────────── */
+/* Card interiors were consistently cramped: headings sat only 8px above their
+   body copy and only 8px below the icon tile, so an icon + title + paragraph
+   read as one dense block. Rather than patch the ~20 files that pair a heading
+   with a tight `mt-2`/`mt-3` body, set a sane default for any heading followed
+   by body copy, and for body copy following a heading.
+   `:where()` keeps specificity at 0, so a utility such as `mt-2` on a specific
+   element still wins where a tighter or looser gap is genuinely wanted. */
+:where(h1, h2, h3, h4) + :where(p, ul, ol),
+:where(.jv-display) + :where(p, ul, ol) {
+    margin-top: 1rem;
+}
 
-.jv-eyebrow {
+:where(p, ul, ol) + :where(h1, h2, h3, h4),
+:where(p, ul, ol) + :where(.jv-display) {
+    margin-top: 1.5rem;
+}
+
+/* The icon tile above a card title needs more air than a text-to-text gap. */
+:where(span, div, a) + :where(h1, h2, h3, h4) {
+    margin-top: 1.5rem;
+}
+
+/* ── Section marker ─────────────────────────────────────────────────────── */
+/* Replaces the old `.jv-eyebrow` pill.
+   The pill treatment (capsule + glowing dot) read as a status badge, and sat in
+   the same visual family as .jv-tag / Badge / jv-eyebrow--solid elsewhere on a
+   page — so a section label and a real badge looked identical. This is a
+   typographic marker instead: a short accent rule followed by letterspaced,
+   uppercase sans text. Nothing about it competes with the badges, and it scales
+   down cleanly in the dense admin/dashboard headers. */
+
+.jv-kicker {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    border-radius: 999px;
-    border: 1px solid var(--jv-line-strong);
-    background: var(--jv-glass);
-    padding: 0.4rem 0.9rem;
+    gap: 0.75rem;
+    /* deliberately not uppercase-transformed in CSS: several call sites pass
+       already-capitalised copy, and text-transform would also alter "FAQ" etc. */
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    line-height: 1;
     color: var(--jv-fog);
-    backdrop-filter: blur(10px);
     white-space: nowrap;
 }
 
-.jv-eyebrow::before {
+.jv-kicker::before {
     content: '';
-    width: 6px;
-    height: 6px;
+    width: 1.5rem;
+    height: 2px;
     border-radius: 999px;
-    background: var(--jv-accent);
-    box-shadow: 0 0 10px rgba(0, 85, 255, 0.9);
+    background: linear-gradient(90deg, var(--jv-accent), rgba(0, 85, 255, 0.25));
     flex-shrink: 0;
 }
 
-.jv-eyebrow--solid {
-    border-color: transparent;
-    background: var(--jv-accent);
-    color: #fff;
+/* Centred section headings: the label must centre as a unit, not stretch. */
+.jv-kicker--center {
+    justify-content: center;
 }
 
-.jv-eyebrow--solid::before {
-    background: #fff;
-    box-shadow: none;
+.jv-kicker--strong {
+    color: var(--jv-white);
+}
+
+/* Slightly smaller variant for dense toolbars and card headers. */
+.jv-kicker--sm {
+    gap: 0.5rem;
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+}
+
+.jv-kicker--sm::before {
+    width: 1rem;
 }
 
 .jv-tag {
@@ -1166,6 +1329,12 @@ body.marketing-ui .footer-bottom {
     box-shadow: 0 0 0 1px rgba(0, 85, 255, 0.12), 0 30px 80px -30px rgba(0, 85, 255, 0.6);
 }
 
+/* A block-level <form> inside a `.jv-card` must span the card rather than
+   shrink-wrap to its own text when the card is a stretch-aligned flex column. */
+.jv-card > form {
+    width: 100%;
+}
+
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 
 .jv-btn {
@@ -1180,8 +1349,34 @@ body.marketing-ui .footer-bottom {
     font-weight: 600;
     line-height: 1;
     cursor: pointer;
+    /* The pill itself never wraps. Text handed directly to the button (some call
+       sites write the label as a bare text node) stays on one line, which is
+       what keeps normal buttons from breaking mid-label. Wrapping is enabled
+       only on `.jv-btn__label` below, where we control the element.
+       Deliberately NOT relying on Tailwind's `whitespace-*`: `.jv-btn` is
+       unlayered, so it beats layered utilities and a page could not opt in —
+       that is why `min-w-0 whitespace-normal` previously still overflowed. */
     white-space: nowrap;
+    /* `fit-content` guarantees the pill is never narrower than its own label.
+       A plain `min-width: auto`/`0` does not help once a caller applies
+       `flex-1`, because `flex-basis: 0` discards the min-content size — that is
+       what squeezed "Subscribe now" into an 87px pill with a 39px content box. */
+    min-width: fit-content;
+    flex: 0 1 auto;
+    text-align: center;
     transition: transform 200ms ease, background 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+/* The label is a real flex item, so it can wrap and break independently of any
+   trailing icon (which must never be squeezed). */
+.jv-btn__label {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.jv-btn > svg {
+    flex-shrink: 0;
 }
 
 .jv-btn:focus-visible {
@@ -1252,6 +1447,43 @@ body.marketing-ui .footer-bottom {
     font-size: 0.8125rem;
 }
 
+/* Tone variants for outline buttons.
+   NOTE: `.jv-btn*` is unlayered CSS, so it wins over Tailwind's layered
+   utilities — `class="jv-btn text-emerald-300"` is silently ignored. Use one of
+   these instead of trying to recolour an outline button with a text-* utility. */
+.jv-btn--warn.jv-btn--outline {
+    border-color: rgba(252, 211, 77, 0.4);
+    color: #fcd34d;
+}
+
+.jv-btn--warn.jv-btn--outline:hover {
+    background: rgba(252, 211, 77, 0.12);
+    border-color: #fcd34d;
+    color: #fde68a;
+}
+
+.jv-btn--success.jv-btn--outline {
+    border-color: rgba(110, 231, 183, 0.4);
+    color: #6ee7b7;
+}
+
+.jv-btn--success.jv-btn--outline:hover {
+    background: rgba(110, 231, 183, 0.12);
+    border-color: #6ee7b7;
+    color: #a7f3d0;
+}
+
+.jv-btn--danger.jv-btn--outline {
+    border-color: rgba(248, 113, 113, 0.4);
+    color: #fca5a5;
+}
+
+.jv-btn--danger.jv-btn--outline:hover {
+    background: rgba(248, 113, 113, 0.12);
+    border-color: #f87171;
+    color: #fecaca;
+}
+
 .jv-btn-arrow {
     display: inline-flex;
     align-items: center;
@@ -1306,8 +1538,17 @@ body.marketing-ui .footer-bottom {
     letter-spacing: 0.01em;
 }
 
+/* Field surfaces are deliberately element-qualified (input.jv-input etc).
+   The `@tailwindcss/forms` base sets `background-color:#fff` on `input:where(...)`
+   at (0,1,0) specificity, and plain `.jv-input` is also (0,1,0) — so the winner
+   depended purely on source order, and any added/reset stylesheet could flip
+   every field on the site back to a white background. Qualifying the selector
+   raises it to (0,1,1) so the dark surface always wins. */
+input.jv-input,
 .jv-input,
+select.jv-select,
 .jv-select,
+textarea.jv-textarea,
 .jv-textarea {
     width: 100%;
     border-radius: var(--jv-radius-xs);
@@ -1320,13 +1561,18 @@ body.marketing-ui .footer-bottom {
     transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
+input.jv-input::placeholder,
 .jv-input::placeholder,
+textarea.jv-textarea::placeholder,
 .jv-textarea::placeholder {
     color: rgba(255, 255, 255, 0.34);
 }
 
+input.jv-input:focus,
 .jv-input:focus,
+select.jv-select:focus,
 .jv-select:focus,
+textarea.jv-textarea:focus,
 .jv-textarea:focus {
     outline: none;
     border-color: var(--jv-accent);
@@ -1337,6 +1583,36 @@ body.marketing-ui .footer-bottom {
 .jv-select option {
     background: #14141a;
     color: #fff;
+}
+
+/* Chrome paints autofilled fields with its own near-white background and dark
+   text, applied with !important so it beats .jv-input and leaves the value
+   unreadable on the dark canvas. An inset box-shadow (which autofill does not
+   override) replaces that background, and the transition delay stops Chrome
+   from repainting it. Applied to bare inputs too, so admin forms match. */
+.jv-input:-webkit-autofill,
+.jv-input:-webkit-autofill:hover,
+.jv-input:-webkit-autofill:focus,
+.jv-input:-webkit-autofill:active,
+.jv-select:-webkit-autofill,
+.jv-textarea:-webkit-autofill,
+.jv-canvas input:-webkit-autofill,
+.jv-canvas select:-webkit-autofill,
+.jv-canvas textarea:-webkit-autofill {
+    -webkit-text-fill-color: var(--jv-white);
+    -webkit-box-shadow: 0 0 0 1000px #1b1b22 inset;
+    box-shadow: 0 0 0 1000px #1b1b22 inset;
+    border-color: var(--jv-line-strong);
+    caret-color: var(--jv-white);
+    transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+/* Keep the focused-autofill state visually consistent with a normal focus. */
+.jv-input:-webkit-autofill:focus,
+.jv-canvas input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px #1b1b22 inset, 0 0 0 4px rgba(0, 85, 255, 0.16);
+    box-shadow: 0 0 0 1000px #1b1b22 inset, 0 0 0 4px rgba(0, 85, 255, 0.16);
+    border-color: var(--jv-accent);
 }
 
 /* ── Nav ────────────────────────────────────────────────────────────────── */
@@ -1389,6 +1665,142 @@ body.marketing-ui .footer-bottom {
 .jv-check svg {
     color: var(--jv-accent);
     flex-shrink: 0;
+}
+
+/* ── Rich text (blog bodies) ────────────────────────────────────────────── */
+
+.jv-prose {
+    color: rgba(255, 255, 255, 0.72);
+    font-size: 1.0625rem;
+    line-height: 1.85;
+}
+
+.jv-prose > * + * {
+    margin-top: 1.5rem;
+}
+
+.jv-prose h2,
+.jv-prose h3,
+.jv-prose h4 {
+    color: var(--jv-white);
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    font-weight: 600;
+}
+
+.jv-prose h2 {
+    font-size: clamp(1.5rem, 2.6vw, 2rem);
+    margin-top: 3rem;
+}
+
+.jv-prose h3 {
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+    margin-top: 2.25rem;
+}
+
+.jv-prose h4 {
+    font-size: 1.0625rem;
+    margin-top: 2rem;
+}
+
+.jv-prose strong,
+.jv-prose b {
+    color: var(--jv-white);
+    font-weight: 600;
+}
+
+.jv-prose a {
+    color: #8fb4ff;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.jv-prose a:hover {
+    color: #fff;
+}
+
+.jv-prose ul,
+.jv-prose ol {
+    padding-left: 1.35rem;
+}
+
+.jv-prose ul {
+    list-style: disc;
+}
+
+.jv-prose ol {
+    list-style: decimal;
+}
+
+.jv-prose li + li {
+    margin-top: 0.6rem;
+}
+
+.jv-prose li::marker {
+    color: var(--jv-accent);
+}
+
+.jv-prose img {
+    width: 100%;
+    border-radius: var(--jv-radius);
+    border: 1px solid var(--jv-line);
+}
+
+.jv-prose blockquote {
+    border-left: 2px solid var(--jv-accent);
+    padding-left: 1.25rem;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 1.0625rem;
+    font-style: italic;
+}
+
+.jv-prose code {
+    border-radius: 6px;
+    border: 1px solid var(--jv-line);
+    background: var(--jv-glass);
+    padding: 0.15rem 0.4rem;
+    font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    font-size: 0.85em;
+    color: #dbe7ff;
+}
+
+.jv-prose pre {
+    overflow-x: auto;
+    border-radius: var(--jv-radius-sm);
+    border: 1px solid var(--jv-line);
+    background: rgba(0, 0, 0, 0.45);
+    padding: 1.1rem 1.25rem;
+    font-size: 0.875rem;
+}
+
+.jv-prose pre code {
+    border: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.jv-prose hr {
+    border: 0;
+    height: 1px;
+    background: var(--jv-line-strong);
+}
+
+.jv-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+}
+
+.jv-prose th,
+.jv-prose td {
+    border: 1px solid var(--jv-line);
+    padding: 0.7rem 0.9rem;
+    text-align: left;
+}
+
+.jv-prose th {
+    color: var(--jv-white);
+    background: var(--jv-glass);
 }
 
 .jv-marquee {
@@ -1468,4 +1880,126 @@ body.marketing-ui .footer-bottom {
 .jv-scroll-x::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.16);
     border-radius: 999px;
+}
+
+/* ── Quill rich-text editor (RichTextEditor.jsx) retuned for the dark canvas ─ */
+
+.jv-quill .ql-toolbar.ql-snow,
+.jv-quill .ql-container.ql-snow {
+    border-color: var(--jv-line);
+}
+
+.jv-quill .ql-toolbar.ql-snow {
+    border-top-left-radius: var(--jv-radius-xs);
+    border-top-right-radius: var(--jv-radius-xs);
+    background: var(--jv-glass);
+}
+
+.jv-quill .ql-container.ql-snow {
+    border-bottom-left-radius: var(--jv-radius-xs);
+    border-bottom-right-radius: var(--jv-radius-xs);
+    background: rgba(0, 0, 0, 0.25);
+    font-family: inherit;
+    font-size: 0.9375rem;
+}
+
+.jv-quill .ql-editor {
+    color: #fff;
+    min-height: 220px;
+    line-height: 1.75;
+}
+
+.jv-quill .ql-editor.ql-blank::before {
+    color: rgba(255, 255, 255, 0.35);
+    font-style: normal;
+}
+
+.jv-quill .ql-editor h2,
+.jv-quill .ql-editor h3,
+.jv-quill .ql-editor h4 {
+    color: #fff;
+    letter-spacing: -0.02em;
+}
+
+.jv-quill .ql-editor blockquote {
+    border-left: 2px solid var(--jv-accent);
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.jv-quill .ql-editor a {
+    color: #8fb4ff;
+}
+
+.jv-quill .ql-snow .ql-stroke {
+    stroke: #fff;
+}
+
+.jv-quill .ql-snow .ql-fill,
+.jv-quill .ql-snow .ql-stroke.ql-fill {
+    fill: #fff;
+}
+
+.jv-quill .ql-snow .ql-picker {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.jv-quill .ql-snow .ql-picker-label {
+    color: rgba(255, 255, 255, 0.7);
+    border-color: var(--jv-line);
+}
+
+.jv-quill .ql-snow .ql-picker-label:hover,
+.jv-quill .ql-snow .ql-picker-label.ql-active,
+.jv-quill .ql-snow .ql-picker-item:hover,
+.jv-quill .ql-snow .ql-picker-item.ql-selected {
+    color: #fff;
+}
+
+.jv-quill .ql-snow .ql-picker-label:hover .ql-stroke,
+.jv-quill .ql-snow .ql-picker-label.ql-active .ql-stroke,
+.jv-quill .ql-snow .ql-picker-item:hover .ql-stroke,
+.jv-quill .ql-snow .ql-picker-item.ql-selected .ql-stroke {
+    stroke: #fff;
+}
+
+.jv-quill .ql-snow .ql-picker-options {
+    border-color: var(--jv-line-strong);
+    border-radius: var(--jv-radius-xs);
+    background: #14141a;
+    color: #fff;
+}
+
+.jv-quill .ql-snow .ql-tooltip {
+    border-color: var(--jv-line-strong);
+    border-radius: var(--jv-radius-xs);
+    background: #14141a;
+    color: #fff;
+    box-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.9);
+}
+
+.jv-quill .ql-snow .ql-tooltip::before {
+    color: rgba(255, 255, 255, 0.55);
+}
+
+.jv-quill .ql-snow .ql-tooltip input[type='text'] {
+    border-color: var(--jv-line-strong);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+}
+
+.jv-quill .ql-snow .ql-tooltip a,
+.jv-quill .ql-snow .ql-action::after,
+.jv-quill .ql-snow .ql-remove::before {
+    color: #8fb4ff;
+}
+
+.jv-quill .ql-snow button:hover .ql-stroke,
+.jv-quill .ql-snow button:focus .ql-stroke,
+.jv-quill .ql-snow button.ql-active .ql-stroke {
+    stroke: #fff;
+}
+
+.jv-quill .ql-snow .ql-color-picker .ql-picker-label svg,
+.jv-quill .ql-snow .ql-icon-picker .ql-picker-label svg {
+    color: #fff;
 }

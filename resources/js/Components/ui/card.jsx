@@ -1,10 +1,23 @@
 import { cn } from '@/lib/utils';
 
-function Card({ className, ...props }) {
+/**
+ * Card surface. `as` lets callers render it as a different element/component
+ * (e.g. an Inertia <Link>), and `hover`/`flat`/`solid`/`featured` select the
+ * surface treatment.
+ *
+ * These are component API props and must NOT reach the DOM — React warns
+ * ("Received `true` for a non-boolean attribute") and renders `hover="true"`
+ * if they are spread through.
+ */
+function Card({ className, as: Tag = 'div', hover, flat, solid, featured, ...props }) {
     return (
-        <div
+        <Tag
             className={cn(
                 'jv-card rounded-jv border border-jv-line bg-white/[0.04] text-white backdrop-blur-sm',
+                hover && 'jv-card--hover',
+                flat && 'jv-card--flat',
+                solid && 'jv-card--solid',
+                featured && 'jv-card--featured',
                 className,
             )}
             {...props}

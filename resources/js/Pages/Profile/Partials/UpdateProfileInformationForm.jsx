@@ -183,14 +183,14 @@ export default function UpdateProfileInformation({
     return (
         <section className={className}>
             <header>
-                <h2 className="text-lg font-medium text-gray-900">
+                <h2 className="text-lg font-semibold tracking-tight text-white">
                     Profile Information
                 </h2>
 
-                <p className="mt-1 text-sm text-gray-600">
+                <p className="mt-1 text-sm text-white/70">
                     Update your account profile information.
                 </p>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-white/45">
                     Changes save automatically when you leave a field or upload files.
                 </p>
             </header>
@@ -217,11 +217,11 @@ export default function UpdateProfileInformation({
                     <InputLabel htmlFor="profile_photo" value="Profile Photo" />
 
                     <div className="mt-2 flex items-center gap-4">
-                        <div className="h-14 w-14 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
+                        <div className="h-14 w-14 overflow-hidden rounded-full border border-jv-line bg-white/[0.06]">
                             {profilePhotoPreview ? (
                                 <img src={profilePhotoPreview} alt="Profile preview" className="h-full w-full object-cover" />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-500">
+                                <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-white/45">
                                     N/A
                                 </div>
                             )}
@@ -231,7 +231,7 @@ export default function UpdateProfileInformation({
                             type="file"
                             accept=".jpg,.jpeg,.png,.webp"
                             onChange={(e) => setData('profile_photo', e.target.files?.[0] || null)}
-                            className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-800"
+                            className="block w-full text-sm text-white/70 file:mr-4 file:rounded-full file:border-0 file:bg-jv-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#1a68ff]"
                         />
                     </div>
 
@@ -251,7 +251,7 @@ export default function UpdateProfileInformation({
                         required
                         autoComplete="username"
                     />
-                    <p className="mt-1 text-xs text-gray-500">
+                    <p className="mt-1 text-xs text-white/45">
                         Registered email address cannot be changed here.
                     </p>
 
@@ -264,7 +264,7 @@ export default function UpdateProfileInformation({
                     <textarea
                         id="address"
                         rows={3}
-                        className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+                        className="jv-textarea mt-1 block w-full"
                         value={data.address}
                         onChange={(e) => setData('address', e.target.value)}
                         onBlur={handleFieldBlur}
@@ -273,9 +273,9 @@ export default function UpdateProfileInformation({
                     <InputError className="mt-2" message={errors.address} />
                 </div>
 
-                <div className="rounded-lg border border-blue-100 bg-blue-50 p-4">
-                    <h3 className="text-sm font-semibold text-blue-900">Company KYC Details</h3>
-                    <p className="mt-1 text-xs text-blue-700">
+                <div className="rounded-jv-sm border border-jv-accent-line bg-jv-accent/10 p-4">
+                    <h3 className="text-sm font-semibold text-white">Company KYC Details</h3>
+                    <p className="mt-1 text-xs text-[#a9c4ff]">
                         Add your company details for verification and smoother onboarding.
                     </p>
 
@@ -307,11 +307,11 @@ export default function UpdateProfileInformation({
                         <div className="md:col-span-2">
                             <InputLabel htmlFor="company_logo" value="Company Logo" />
                             <div className="mt-2 flex items-center gap-4">
-                                <div className="h-16 w-16 overflow-hidden rounded-lg border border-gray-200 bg-white">
+                                <div className="h-16 w-16 overflow-hidden rounded-jv-sm border border-jv-line bg-white/[0.06]">
                                     {companyLogoPreview ? (
                                         <img src={companyLogoPreview} alt="Company logo preview" className="h-full w-full object-cover" />
                                     ) : (
-                                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-gray-500">
+                                        <div className="flex h-full w-full items-center justify-center text-[10px] font-semibold text-white/45">
                                             No Logo
                                         </div>
                                     )}
@@ -321,7 +321,7 @@ export default function UpdateProfileInformation({
                                     type="file"
                                     accept=".jpg,.jpeg,.png,.webp"
                                     onChange={(e) => setData('company_logo', e.target.files?.[0] || null)}
-                                    className="block w-full text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-blue-800"
+                                    className="block w-full text-sm text-white/70 file:mr-4 file:rounded-full file:border-0 file:bg-jv-accent file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-[#1a68ff]"
                                 />
                             </div>
                             <InputError className="mt-2" message={errors.company_logo} />
@@ -359,7 +359,7 @@ export default function UpdateProfileInformation({
                         <textarea
                             id="business_address"
                             rows={3}
-                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand"
+                            className="jv-textarea mt-1 block w-full"
                             value={data.business_address}
                             onChange={(e) => setData('business_address', e.target.value)}
                             onBlur={handleFieldBlur}
@@ -370,20 +370,20 @@ export default function UpdateProfileInformation({
 
                 {mustVerifyEmail && user.email_verified_at === null && (
                     <div>
-                        <p className="mt-2 text-sm text-gray-800">
+                        <p className="mt-2 text-sm text-white/85">
                             Your email address is unverified.
                             <Link
                                 href={route('verification.send')}
                                 method="post"
                                 as="button"
-                                className="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+                                className="rounded-md text-sm text-white/70 underline hover:text-white focus:outline-none focus:ring-2 focus:ring-jv-accent focus:ring-offset-2 focus:ring-offset-black"
                             >
                                 Click here to re-send the verification email.
                             </Link>
                         </p>
 
                         {status === 'verification-link-sent' && (
-                            <div className="mt-2 text-sm font-medium text-green-600">
+                            <div className="mt-2 text-sm font-medium text-emerald-300">
                                 A new verification link has been sent to your
                                 email address.
                             </div>
@@ -401,7 +401,7 @@ export default function UpdateProfileInformation({
                         leave="transition ease-in-out"
                         leaveTo="opacity-0"
                     >
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-white/70">
                             Saved.
                         </p>
                     </Transition>

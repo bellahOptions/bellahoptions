@@ -1,14 +1,19 @@
 import { usePage } from "@inertiajs/react";
 import { RevealSection } from "@/Components/MotionReveal";
+import { Eyebrow } from "@/Components/PublicUI";
 import { resolvePublicAssetUrl } from "@/lib/publicPageHeaders";
 
+/**
+ * Joyce-style page hero: soft accent glow over the dark canvas, a pill eyebrow,
+ * oversized display title, and a centered lead paragraph.
+ */
 export default function PublicPageHeader({
     pageKey,
     fallbackTitle,
     fallbackText,
     eyebrow = "",
     children = null,
-    className = "py-20 text-white sm:py-24 lg:py-28",
+    className = "pt-16 pb-14 sm:pt-20 sm:pb-16 lg:pt-24 lg:pb-20",
 }) {
     const { publicPageHeaders = {} } = usePage().props;
     const configured = publicPageHeaders?.[pageKey];
@@ -20,21 +25,26 @@ export default function PublicPageHeader({
     const hasBackgroundImage = backgroundImage.length > 0;
 
     return (
-        <RevealSection
-            className={`${hasBackgroundImage ? "bg-slate-900 bg-cover bg-center bg-no-repeat" : "bg-brand"} ${className}`}
-            style={hasBackgroundImage
-                ? {
-                    backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.72), rgba(2, 6, 23, 0.68)), url("${backgroundImage}")`,
-                }
-                : undefined}
-        >
-            <div className="mx-auto max-w-5xl px-4 text-center sm:px-6 lg:px-8">
-                {eyebrow ? (
-                    <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">{eyebrow}</p>
-                ) : null}
-                <h1 className="mt-5 text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl">{title}</h1>
-                <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-blue-100">{text}</p>
-                {children}
+        <RevealSection className={`jv-glow jv-grid-bg relative overflow-hidden ${className}`}>
+            {hasBackgroundImage ? (
+                <div
+                    aria-hidden="true"
+                    className="absolute inset-0 bg-cover bg-center opacity-30"
+                    style={{ backgroundImage: `url("${backgroundImage}")` }}
+                />
+            ) : null}
+            <div
+                aria-hidden="true"
+                className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-jv-bg"
+            />
+
+            <div className="jv-container relative">
+                <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+                    {eyebrow ? <Eyebrow>{eyebrow}</Eyebrow> : null}
+                    <h1 className="jv-display jv-display--xl mt-6">{title}</h1>
+                    <p className="jv-lead mx-auto mt-6 max-w-2xl">{text}</p>
+                    {children}
+                </div>
             </div>
         </RevealSection>
     );

@@ -23,7 +23,7 @@ function EyeIcon({ hidden = false }) {
 export default forwardRef(function PasswordInput(
     {
         className = '',
-        inputClassName = '',
+        inputClassName = 'jv-input',
         showToggleLabel = true,
         ...props
     },
@@ -43,12 +43,12 @@ export default forwardRef(function PasswordInput(
                     {...props}
                     ref={inputRef}
                     type={visible ? 'text' : 'password'}
-                    className={`${inputClassName} pr-20`}
+                    className={`${inputClassName} ${showToggleLabel ? 'pr-20' : 'pr-11'}`}
                 />
                 <button
                     type="button"
                     onClick={() => setVisible((state) => !state)}
-                    className="absolute inset-y-0 right-2 inline-flex items-center gap-1 rounded-md px-2 text-xs font-semibold text-blue-700 hover:bg-blue-50"
+                    className="absolute inset-y-1 right-1 inline-flex items-center gap-1 rounded-full px-2.5 text-xs font-semibold text-white/50 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-jv-accent"
                     aria-label={visible ? 'Hide password' : 'Show password'}
                 >
                     <EyeIcon hidden={visible} />

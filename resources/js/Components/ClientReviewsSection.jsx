@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import { RevealSection } from '@/Components/MotionReveal';
+import { usePage } from '@inertiajs/react';
+import { Button, Card, Section, SectionHeading } from '@/Components/PublicUI';
 
 const reviewDateFormatter = new Intl.DateTimeFormat('en-NG', {
     year: 'numeric',
@@ -29,57 +29,71 @@ function formatReviewDate(value) {
     return Number.isNaN(date.getTime()) ? '' : reviewDateFormatter.format(date);
 }
 
-function ReviewCardContent({ review }) {
-    const hasComment = Boolean(review.comment);
-    const hasScreenshot = Boolean(review.screenshot_url);
-
-    return (
-        <>
-            <div>
-                <p className="text-sm font-semibold text-gray-900">{review.reviewer_name || 'Anonymous'}</p>
-                <p className="text-xs text-gray-500">{formatReviewDate(review.published_at)}</p>
-            </div>
-            <StarRating rating={review.rating} />
-            {hasScreenshot && (
-                <img
-                    src={review.screenshot_url}
-                    alt={`WhatsApp review screenshot from ${review.reviewer_name || 'a client'}`}
-                    className="mt-3 w-full rounded-lg border border-gray-200 object-cover"
-                    loading="lazy"
-                />
-            )}
-            {(hasComment || !hasScreenshot) && (
-                <p className="mt-3 text-sm leading-7 text-gray-700">
-                    {review.comment || 'No review text provided.'}
-                </p>
-            )}
-        </>
-    );
-}
-
 function StarRating({ rating = 0 }) {
     const rounded = Math.max(0, Math.min(5, Math.round(Number(rating) || 0)));
 
     return (
-        <div className="mt-3 flex items-center gap-1" aria-label={`Rated ${rounded} out of 5`}>
+        <div className="flex items-center gap-1" aria-label={`Rated ${rounded} out of 5`}>
             {Array.from({ length: 5 }).map((_, index) => (
                 <span
                     key={`star-${index}`}
-                    className={index < rounded ? 'text-amber-500' : 'text-gray-300'}
+                    className={index < rounded ? 'text-jv-accent' : 'text-white/20'}
                     aria-hidden="true"
                 >
                     ★
                 </span>
             ))}
-            <span className="ml-1 text-xs font-semibold text-gray-500">{(Number(rating) || 0).toFixed(1)}/5</span>
+            <span className="ml-1.5 text-xs font-medium text-white/45">
+                {(Number(rating) || 0).toFixed(1)}/5
+            </span>
         </div>
+    );
+}
+
+function ReviewCard({ review }) {
+    const hasComment = Boolean(review.comment);
+    const hasScreenshot = Boolean(review.screenshot_url);
+
+    return (
+        <Card hover className="flex h-full flex-col">
+            <div className="flex items-center justify-between gap-4">
+                <div>
+                    <p className="text-sm font-semibold text-white">
+                        {review.reviewer_name || 'Anonymous'}
+                    </p>
+                    <p className="jv-mono mt-1 text-white/35">{formatReviewDate(review.published_at)}</p>
+                </div>
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-jv-line bg-white/[0.05] text-xs font-semibold text-white/50">
+                    {(review.reviewer_name || 'A').slice(0, 1).toUpperCase()}
+                </span>
+            </div>
+
+            <div className="mt-4">
+                <StarRating rating={review.rating} />
+            </div>
+
+            {hasScreenshot ? (
+                <img
+                    src={review.screenshot_url}
+                    alt={`Review screenshot from ${review.reviewer_name || 'a client'}`}
+                    className="mt-4 w-full rounded-jv-sm border border-jv-line object-cover"
+                    loading="lazy"
+                />
+            ) : null}
+
+            {hasComment || !hasScreenshot ? (
+                <p className="jv-body mt-4 line-clamp-6">
+                    {review.comment || 'No review text provided.'}
+                </p>
+            ) : null}
+        </Card>
     );
 }
 
 export default function ClientReviewsSection({
     title = 'Client Reviews',
     subtitle = 'Recent feedback submitted by Bellah Options clients.',
-    className = 'bg-white py-16 sm:py-20 lg:py-24',
+    className = '',
     maxVisible = 9,
     showEmptyState = false,
 }) {
@@ -95,13 +109,13 @@ export default function ClientReviewsSection({
         }
 
         return (
-            <RevealSection className={className}>
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-600">
+            <Section className={className}>
+                <Card className="text-center">
+                    <p className="jv-body">
                         Public client reviews will appear here as new feedback is submitted.
-                    </div>
-                </div>
-            </RevealSection>
+                    </p>
+                </Card>
+            </Section>
         );
     }
 
@@ -109,57 +123,44 @@ export default function ClientReviewsSection({
     const desktopSlides = chunkReviews(visible, 3);
 
     return (
-        <RevealSection className={className}>
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <div className="mx-auto max-w-3xl text-center">
-                    <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Client Reviews</p>
-                    <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                        {title}
-                    </h2>
-                    <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-gray-600">
-                        {subtitle}
-                    </p>
-                </div>
+        <Section className={className}>
+            <SectionHeading
+                eyebrow="Client Reviews"
+                title={title}
+                description={subtitle}
+            />
 
-                <div className="mt-8 md:hidden">
-                    <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-                        {mobileSlides.map((slide, slideIndex) => (
-                            <div key={`client-mobile-${slideIndex}`} className="w-full shrink-0 snap-start">
-                                {slide.map((review) => (
-                                    <article key={`client-review-mobile-${review.id}`} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                        <ReviewCardContent review={review} />
-                                    </article>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="mt-8 hidden md:block">
-                    <div className="flex snap-x snap-mandatory gap-4 overflow-x-auto pb-3">
-                        {desktopSlides.map((slide, slideIndex) => (
-                            <div key={`client-desktop-${slideIndex}`} className="w-full shrink-0 snap-start">
-                                <div className="grid grid-cols-3 gap-4">
-                                    {slide.map((review) => (
-                                        <article key={`client-review-desktop-${review.id}`} className="h-full rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                            <ReviewCardContent review={review} />
-                                        </article>
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="mt-6 text-center">
-                    <Link
-                        href="/reviews"
-                        className="inline-flex items-center justify-center rounded-md border border-gray-300 px-5 py-2.5 text-sm font-black text-gray-900 transition hover:border-brand hover:text-brand"
-                    >
-                        View All Reviews
-                    </Link>
+            <div className="mt-12 md:hidden">
+                <div className="jv-scroll-x">
+                    {mobileSlides.map((slide, slideIndex) => (
+                        <div key={`client-mobile-${slideIndex}`} className="w-[85vw] max-w-sm">
+                            {slide.map((review) => (
+                                <ReviewCard key={`client-review-mobile-${review.id}`} review={review} />
+                            ))}
+                        </div>
+                    ))}
                 </div>
             </div>
-        </RevealSection>
+
+            <div className="mt-12 hidden md:block">
+                <div className="jv-scroll-x">
+                    {desktopSlides.map((slide, slideIndex) => (
+                        <div key={`client-desktop-${slideIndex}`} className="w-full">
+                            <div className="grid grid-cols-3 gap-5">
+                                {slide.map((review) => (
+                                    <ReviewCard key={`client-review-desktop-${review.id}`} review={review} />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="mt-10 flex justify-center">
+                <Button href="/reviews" variant="ghost">
+                    View All Reviews
+                </Button>
+            </div>
+        </Section>
     );
 }

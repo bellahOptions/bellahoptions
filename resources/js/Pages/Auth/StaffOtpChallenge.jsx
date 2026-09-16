@@ -1,5 +1,6 @@
 import InputError from '@/Components/InputError';
 import GuestLayout from '@/Layouts/GuestLayout';
+import { Display, Eyebrow } from '@/Components/PublicUI';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 export default function StaffOtpChallenge({
@@ -42,29 +43,26 @@ export default function StaffOtpChallenge({
         <GuestLayout>
             <Head title="Staff OTP Verification" />
 
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
-                    Staff Security Check
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-                    Enter One-Time Passcode
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                    We sent a 6-digit OTP to <strong>{maskedEmail}</strong>. It expires in{' '}
-                    {expiresInMinutes} minutes.
-                </p>
-            </div>
+            <Eyebrow>Staff security check</Eyebrow>
+
+            <Display as="h2" size="sm" className="mt-5">
+                Enter one-time passcode
+            </Display>
+            <p className="jv-body mt-3">
+                We sent a 6-digit OTP to <strong className="font-semibold text-white">{maskedEmail}</strong>. It expires in{' '}
+                {expiresInMinutes} minutes.
+            </p>
 
             {status && (
-                <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                <div className="mt-6 rounded-jv-sm border border-jv-accent/30 bg-jv-accent/10 px-4 py-3 text-sm text-white/80">
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit} className="mt-6 space-y-4">
-                <div>
-                    <label htmlFor="otp" className="text-sm font-medium text-slate-700">
-                        OTP Code
+            <form onSubmit={submit} className="mt-7 space-y-5">
+                <div className="jv-field">
+                    <label htmlFor="otp" className="jv-label">
+                        OTP code
                     </label>
                     <input
                         id="otp"
@@ -72,35 +70,38 @@ export default function StaffOtpChallenge({
                         name="otp"
                         value={data.otp}
                         maxLength={6}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm tracking-[0.35em] focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        className="jv-input text-center !text-lg tracking-[0.45em]"
                         autoComplete="one-time-code"
                         onChange={(event) =>
                             setData('otp', event.target.value.replace(/\D/g, '').slice(0, 6))
                         }
                         required
                     />
-                    <InputError message={errors.otp} className="mt-2" />
+                    <InputError message={errors.otp} />
                 </div>
 
                 <button
                     type="submit"
                     disabled={processing}
-                    className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                    className="jv-btn jv-btn--primary w-full"
                 >
                     {processing ? 'Verifying...' : 'Verify & Sign In'}
                 </button>
 
-                <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-jv-line pt-5 text-sm">
                     <button
                         type="button"
                         onClick={resend}
                         disabled={processing}
-                        className="font-semibold text-blue-700 hover:text-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="font-semibold text-jv-accent transition-colors hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
                     >
                         Resend OTP
                     </button>
 
-                    <Link href={route('staff.login')} className="font-medium text-slate-600 hover:text-slate-900">
+                    <Link
+                        href={route('staff.login')}
+                        className="text-white/60 transition-colors hover:text-white"
+                    >
                         Back to staff login
                     </Link>
                 </div>

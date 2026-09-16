@@ -1,9 +1,10 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Button } from '@/Components/ui/button';
+import { Card } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
 import { Textarea } from '@/Components/ui/textarea';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -171,17 +172,17 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
     };
 
     return (
-        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Service Brief Templates</h2>}>
+        <AuthenticatedLayout header={<h2 className="text-xl font-semibold leading-tight tracking-tight text-white">Service Brief Templates</h2>}>
             <Head title="Service Brief Templates" />
 
             <div className="py-8">
                 <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-white/55">
                         Define the pre-order questions asked for each service&apos;s &quot;Start your brief&quot; wizard.
                         Saving creates a new version — clients who already submitted keep the version they answered.
                     </p>
 
-                    {flash?.success && <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{flash.success}</div>}
+                    {flash?.success && <div className="rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">{flash.success}</div>}
 
                     <div className="space-y-4">
                         {serviceSlugs.map((slug) => {
@@ -189,16 +190,16 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                             const isEditing = editingSlug === slug;
 
                             return (
-                                <section key={slug} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                                <Card key={slug} className="p-5 sm:p-6">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
-                                            <h3 className="text-base font-semibold text-gray-900">{SERVICE_LABELS[slug] || slug}</h3>
+                                            <h3 className="text-base font-semibold text-white">{SERVICE_LABELS[slug] || slug}</h3>
                                             {template ? (
-                                                <p className="mt-1 text-sm text-gray-600">
+                                                <p className="mt-1 text-sm text-white/55">
                                                     {template.name} — v{template.version} — {template.steps.reduce((n, s) => n + s.fields.length, 0)} question(s)
                                                 </p>
                                             ) : (
-                                                <p className="mt-1 text-sm text-gray-500">No template yet — the universal intake still applies.</p>
+                                                <p className="mt-1 text-sm text-white/45">No template yet — the universal intake still applies.</p>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -207,13 +208,13 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                                                     href={route('admin.service-brief-templates.preview', slug)}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                                    className="jv-btn jv-btn--ghost jv-btn--sm"
                                                 >
                                                     Preview
                                                 </a>
                                             )}
                                             {!isEditing && (
-                                                <button type="button" onClick={() => startEditing(slug)} className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light">
+                                                <button type="button" onClick={() => startEditing(slug)} className="jv-btn jv-btn--outline jv-btn--sm">
                                                     {template ? 'Edit' : 'Create'}
                                                 </button>
                                             )}
@@ -221,8 +222,8 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                                     </div>
 
                                     {isEditing && (
-                                        <form onSubmit={submitTemplate} className="mt-4 space-y-4 border-t border-gray-100 pt-4">
-                                            {formError && <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">{formError}</div>}
+                                        <form onSubmit={submitTemplate} className="mt-4 space-y-4 border-t border-jv-line pt-4">
+                                            {formError && <div className="rounded-jv-sm border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">{formError}</div>}
 
                                             <div className="grid gap-3 sm:grid-cols-3">
                                                 <div className="sm:col-span-2">
@@ -241,7 +242,7 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                                             </div>
 
                                             {form.steps.map((step, stepIndex) => (
-                                                <div key={stepIndex} className="rounded-lg border border-gray-200 p-4">
+                                                <div key={stepIndex} className="rounded-jv-sm border border-jv-line p-4">
                                                     <div className="flex items-center justify-between gap-2">
                                                         <Input
                                                             className="max-w-xs"
@@ -251,7 +252,7 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                                                             required
                                                         />
                                                         {form.steps.length > 1 && (
-                                                            <button type="button" onClick={() => removeStep(stepIndex)} className="text-xs font-semibold text-red-600 hover:text-red-700">
+                                                            <button type="button" onClick={() => removeStep(stepIndex)} className="text-xs font-semibold text-red-300 transition hover:text-red-200">
                                                                 Remove Step
                                                             </button>
                                                         )}
@@ -259,10 +260,10 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
 
                                                     <div className="mt-3 space-y-3">
                                                         {step.fields.map((field, fieldIndex) => (
-                                                            <div key={field.localId} className="rounded-md border border-gray-100 bg-gray-50 p-3">
+                                                            <div key={field.localId} className="rounded-jv-sm border border-jv-line bg-white/[0.03] p-3">
                                                                 <div className="flex items-center justify-between">
-                                                                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Question {fieldIndex + 1}</p>
-                                                                    <button type="button" onClick={() => removeField(stepIndex, field.localId)} className="text-xs font-semibold text-red-600 hover:text-red-700">
+                                                                    <p className="text-xs font-semibold uppercase tracking-wide text-white/45">Question {fieldIndex + 1}</p>
+                                                                    <button type="button" onClick={() => removeField(stepIndex, field.localId)} className="text-xs font-semibold text-red-300 transition hover:text-red-200">
                                                                         Remove
                                                                     </button>
                                                                 </div>
@@ -301,12 +302,17 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                                                                         <Label>Placeholder</Label>
                                                                         <Input className="mt-1" value={field.placeholder} onChange={(e) => updateField(stepIndex, field.localId, { placeholder: e.target.value })} />
                                                                     </div>
-                                                                    <label className="flex items-center gap-2 text-sm text-gray-700 sm:col-span-2">
-                                                                        <input type="checkbox" checked={field.required} onChange={(e) => updateField(stepIndex, field.localId, { required: e.target.checked })} />
+                                                                    <label className="flex items-center gap-2 text-sm text-white/70 sm:col-span-2">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={field.required}
+                                                                            onChange={(e) => updateField(stepIndex, field.localId, { required: e.target.checked })}
+                                                                            className="h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent accent-jv-accent focus:ring-jv-accent/40"
+                                                                        />
                                                                         Required
                                                                     </label>
                                                                     <details className="sm:col-span-2">
-                                                                        <summary className="cursor-pointer text-xs font-semibold text-gray-500">Advanced (condition / flag_on / min / max) — JSON</summary>
+                                                                        <summary className="cursor-pointer text-xs font-semibold text-white/45">Advanced (condition / flag_on / min / max) — JSON</summary>
                                                                         <Textarea
                                                                             className="mt-2 font-mono text-xs"
                                                                             rows={3}
@@ -319,24 +325,24 @@ export default function ServiceBriefTemplatesIndex({ serviceSlugs = [], template
                                                             </div>
                                                         ))}
 
-                                                        <button type="button" onClick={() => addField(stepIndex)} className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                                                        <button type="button" onClick={() => addField(stepIndex)} className="jv-btn jv-btn--ghost jv-btn--sm">
                                                             + Add Question
                                                         </button>
                                                     </div>
                                                 </div>
                                             ))}
 
-                                            <button type="button" onClick={addStep} className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50">
+                                            <button type="button" onClick={addStep} className="jv-btn jv-btn--ghost jv-btn--sm">
                                                 + Add Step
                                             </button>
 
-                                            <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+                                            <div className="flex justify-end gap-2 border-t border-jv-line pt-4">
                                                 <Button type="button" variant="outline" onClick={cancelEditing}>Cancel</Button>
                                                 <Button type="submit" disabled={processing}>{processing ? 'Saving...' : 'Save Template'}</Button>
                                             </div>
                                         </form>
                                     )}
-                                </section>
+                                </Card>
                             );
                         })}
                     </div>

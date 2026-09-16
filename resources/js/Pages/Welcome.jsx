@@ -1,8 +1,19 @@
 import { Head, Link } from "@inertiajs/react";
 import { Suspense, lazy } from "react";
 import PageTheme from "@/Layouts/PageTheme";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import ClientReviewsSection from "@/Components/ClientReviewsSection";
+import {
+    Button,
+    Card,
+    Display,
+    Eyebrow,
+    ProcessCard,
+    Section,
+    SectionHeading,
+    Stagger,
+    StaggerItem,
+    Stat,
+} from "@/Components/PublicUI";
 import {
     ArrowRightIcon,
     BoltIcon,
@@ -24,7 +35,7 @@ import {
 const Slider = lazy(() => import("@/Components/Slider"));
 
 const sliderFallbackClassName =
-    "h-[min(760px,calc(100svh-84px))] min-h-[520px] w-full animate-pulse bg-gray-100 sm:h-[min(800px,calc(100svh-96px))] sm:min-h-[600px]";
+    "h-[min(760px,calc(100svh-84px))] min-h-[520px] w-full animate-pulse bg-[#0b0b12] sm:h-[min(800px,calc(100svh-96px))] sm:min-h-[600px]";
 
 const brandLogos = [
     {
@@ -32,13 +43,22 @@ const brandLogos = [
         src: "https://bellahoptions.com/images/Wingram-07.svg",
     },
     {
-        name: "BOSS",
-        src: "https://bellahoptions.com/images/BOSS-logo-02.svg",
+        name: "Lexis Group",
+        src: "https://bellahoptions.com/images/lexis.svg", 
     },
     {
-        name: "Reup",
-        src: "https://bellahoptions.com/images/reup-05.svg",
+        name: "Velit",
+        src: "https://bellahoptions.com/images/velit.svg",
     },
+    {
+        name: "Ziego Furnitures",
+        src: "https://bellahoptions.com/images/ziego.svg",
+    },
+    {
+        name: "Neddstech",
+        src: "https://bellahoptions.com/images/neddstech.svg",
+    },
+    
 ];
 
 const services = [
@@ -48,8 +68,7 @@ const services = [
             "Logos, identity systems, brand guides, and launch assets that make your business easier to recognize and trust.",
         href: "/order/brand-design",
         icon: CheckBadgeIcon,
-        accent: "bg-blue-600",
-        tint: "bg-blue-50 text-blue-700 ring-blue-100",
+        lane: "Identity",
     },
     {
         title: "Graphic Design",
@@ -57,8 +76,7 @@ const services = [
             "Social media creatives, campaign visuals, flyers, and print-ready designs for everyday business growth.",
         href: "/order/graphic-design",
         icon: PaintBrushIcon,
-        accent: "bg-blue-500",
-        tint: "bg-blue-50 text-blue-700 ring-blue-100",
+        lane: "Campaigns",
     },
     {
         title: "Web Design",
@@ -66,8 +84,7 @@ const services = [
             "Responsive websites and landing pages shaped around clear messaging, strong visuals, and simple conversion paths.",
         href: "/order/web-design",
         icon: CodeBracketIcon,
-        accent: "bg-blue-500",
-        tint: "bg-blue-50 text-blue-700 ring-blue-100",
+        lane: "Websites",
     },
     {
         title: "UI/UX Design",
@@ -75,8 +92,7 @@ const services = [
             "Product flows, wireframes, and interface design that help your users move with less friction and more confidence.",
         href: "/order/ui-ux",
         icon: RectangleGroupIcon,
-        accent: "bg-blue-500",
-        tint: "bg-blue-50 text-blue-700 ring-blue-100",
+        lane: "Products",
     },
 ];
 
@@ -119,15 +135,6 @@ const processSteps = [
     },
 ];
 
-const outcomes = [
-    "Brand systems",
-    "Campaign creatives",
-    "Responsive websites",
-    "Product interfaces",
-    "Launch assets",
-    "Social media visuals",
-];
-
 const formatMoney = (amount, currency = "NGN") => {
     const value = Number(amount || 0);
 
@@ -163,453 +170,474 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
             <Head title="Welcome to #yourBestOPtion" />
 
             <PageTheme>
-                <div className="bg-white text-gray-950">
-                    <Suspense fallback={<div className={sliderFallbackClassName} />}>
-                        <Slider slides={slideShows} />
-                    </Suspense>
+                <Suspense fallback={<div className={sliderFallbackClassName} />}>
+                    <Slider slides={slideShows} />
+                </Suspense>
 
-                    <RevealSection className="border-y border-gray-100 bg-white py-10 sm:py-12 my-10">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="grid gap-6 lg:grid-cols-[220px_1fr] lg:items-center text-center">
-                                <div>
-                                    <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
-                                        Trusted By
-                                    </p>
-                                    <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
-                                        Growing brands, teams, and founders building stronger digital presence.
-                                    </p>
-                                </div>
-                                <div className="overflow-hidden">
-                                    <div className="flex w-max items-center gap-10 animate-scroll sm:gap-14 lg:gap-20">
-                                        {scrollingLogos.map((logo, index) => (
-                                            <img
-                                                key={`${logo.name}-${index}`}
-                                                src={logo.src}
-                                                className="h-8 w-auto shrink-0 opacity-55 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-10 lg:h-12"
-                                                alt={logo.name}
-                                            />
-                                        ))}
-                                    </div>
+                {/* ── TRUSTED BY ── */}
+                <Section tight reveal={false} className="border-y border-jv-line">
+                    <div className="grid items-center gap-8 lg:grid-cols-[240px_1fr]">
+                        <div className="text-center lg:text-left">
+                            <p className="jv-mono text-white/40">Trusted By</p>
+                            <p className="jv-small mt-2 max-w-xs">
+                                Growing brands, teams, and founders building stronger digital presence.
+                            </p>
+                        </div>
+                        <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+                            <div className="jv-marquee items-center gap-14 sm:gap-20">
+                                {scrollingLogos.map((logo, index) => (
+                                    <img
+                                        key={`${logo.name}-${index}`}
+                                        src={logo.src}
+                                        className="h-8 w-auto shrink-0 opacity-45 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-10 lg:h-11"
+                                        alt={logo.name}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </Section>
+
+                {/* ── ABOUT ── */}
+                <Section>
+                    <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
+                        <div className="jv-media jv-glow relative aspect-[4/5] w-full overflow-hidden sm:aspect-[5/4] lg:aspect-[4/5]">
+                            <img
+                                src="https://bellahoptions.com/images/Wingram-07.svg"
+                                alt="Bellah Options creative work"
+                                className="h-full w-full scale-[0.45] object-contain opacity-90"
+                            />
+                            <div
+                                aria-hidden="true"
+                                className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,85,255,0.28),transparent_70%)]"
+                            />
+                        </div>
+
+                        <div>
+                            <Eyebrow>About us</Eyebrow>
+                            <Display size="lg" muted="With design that works." className="mt-6">
+                                Building Stronger Brands
+                            </Display>
+                            <p className="jv-lead mt-6 max-w-xl">
+                                Delivering high-quality, on-demand designs with precision. Elevate
+                                your brand effortlessly, one project at a time.
+                            </p>
+
+                            <ul className="mt-8 space-y-4">
+                                {[
+                                    "Worked with clients in 10+ Countries",
+                                    "Over a decade of combined experience",
+                                    "50+ brands satisfied across four service lanes",
+                                ].map((item) => (
+                                    <li key={item} className="flex items-center gap-3">
+                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-jv-accent/15 text-jv-accent">
+                                            <CheckCircleIcon className="h-4 w-4" />
+                                        </span>
+                                        <span className="jv-body">{item}</span>
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="mt-10 flex flex-wrap items-center gap-5">
+                                <Button href="/about-bellah-options" variant="primary" icon>
+                                    View About Bellah Options
+                                </Button>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-sm tracking-[0.2em] text-jv-accent">
+                                        ★★★★★
+                                    </span>
+                                    <span className="jv-small">50+ brands satisfied</span>
                                 </div>
                             </div>
                         </div>
-                    </RevealSection>
+                    </div>
+                </Section>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-[0.95fr_1.05fr] lg:items-center lg:px-8">
-                            <div className=" text-center">
-                                <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight text-gray-950 sm:text-5xl lg:text-6xl">
-                                    We are <span className="text-brand">#yourBestOption</span>
-                                </h1>
-                                <p className="mt-6 text-base leading-8 text-gray-600 sm:text-lg">
-                                    Bellah Options transforms ideas into meaningful visual experiences. We help businesses build clarity, confidence, and consistency through purposeful brand design, graphic design, web design, and smart digital solutions.
-                                </p>
-                                <div className="mt-8 flex flex-col gap-3 sm:flex-row justify-center">
-                                    <Link
-                                        href="/about-bellah-options"
-                                        className="group inline-flex items-center justify-center gap-3 rounded-md bg-brand px-6 py-3 text-sm font-black text-white shadow-lg shadow-blue-900/20 transition hover:-translate-y-0.5 hover:bg-brand-dark"
-                                    >
-                                        Learn More About Us
-                                        <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
-                                    </Link>
-                                    <Link
-                                        href="/order/special-service"
-                                        className="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-6 py-3 text-sm font-black text-gray-900 transition hover:border-brand hover:text-brand"
-                                    >
-                                        Start a Project
-                                    </Link>
-                                </div>
-                            </div>
-
-                            <Stagger className="grid gap-4 sm:grid-cols-2">
-                                <StaggerItem className="border-l-4 border-brand bg-white p-6 shadow-sm">
-                                    <SwatchIcon className="mb-6 h-9 w-9 text-brand" />
-                                    <h2 className="text-xl font-black text-gray-950">Design With Purpose</h2>
-                                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                                        Whether you are launching a new brand or refreshing an existing one, we design with precision and practical business context.
-                                    </p>
-                                </StaggerItem>
-                                <StaggerItem className="bg-brand p-6 text-white shadow-sm sm:translate-y-8">
-                                    <p className="text-5xl font-black">4</p>
-                                    <h2 className="mt-5 text-xl font-black">Core service lanes</h2>
-                                    <p className="mt-3 text-sm leading-6 text-blue-100">
-                                        Branding, visuals, websites, and interfaces connected into one clear creative direction.
-                                    </p>
-                                </StaggerItem>
-                                <StaggerItem className="bg-purple-50 p-6 shadow-sm sm:-translate-y-4">
-                                    <BoltIcon className="mb-6 h-9 w-9 text-blue-700" />
-                                    <h2 className="text-xl font-black text-gray-950">Built to move</h2>
-                                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                                        We create assets that help you launch, sell, communicate, and show up consistently.
-                                    </p>
-                                </StaggerItem>
-                                <StaggerItem className="border border-gray-200 bg-white p-6 shadow-sm">
-                                    <p className="text-sm font-black uppercase tracking-widest text-gray-500">Built For</p>
-                                    <div className="mt-5 flex flex-wrap gap-2">
-                                        {["Startups", "SMEs", "Creators", "Founders"].map((item) => (
-                                            <span
-                                                key={item}
-                                                className="rounded-full bg-gray-100 px-3 py-1 text-sm font-bold text-gray-700"
-                                            > 
-                                                {item}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </StaggerItem>
-                            </Stagger>
-                        </div>
-                    </RevealSection>
-
-                    {hasFeaturedPlans && (
-                        <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
-                            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                                <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
-                                    <div>
-                                        <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
-                                            Featured Plans
-                                        </p>
-                                        <h2 className="mt-4 max-w-xl text-3xl font-black tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
-                                            Service plans worth putting in front of your next move.
-                                        </h2>
-                                    </div>
-                                    <p className="max-w-2xl text-base leading-8 text-gray-600 lg:justify-self-end">
-                                        These packages are selected by the Bellah Options team and can include active discounts, recommendations, and homepage feature status from the admin pricing panel.
-                                    </p>
-                                </div>
-
-                                <Stagger className="mt-10 grid gap-5 lg:grid-cols-3">
-                                    {featuredPlans.map((plan) => (
-                                        <StaggerItem
-                                            as="article"
-                                            key={plan.id}
-                                            className={`flex flex-col justify-between border bg-white p-6 shadow-sm ${
-                                                plan.is_homepage_featured
-                                                    ? "border-brand shadow-blue-900/10"
-                                                    : "border-gray-200"
-                                            }`}
-                                        >
-                                            <div>
-                                                <div className="flex flex-wrap items-center gap-2">
-                                                    {plan.is_homepage_featured && (
-                                                        <span className="rounded-full bg-brand px-3 py-1 text-xs font-black uppercase tracking-wide text-white">
-                                                            Featured
-                                                        </span>
-                                                    )}
-                                                    {plan.is_recommended && (
-                                                        <span className="rounded-full bg-cyan-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-cyan-800">
-                                                            Recommended
-                                                        </span>
-                                                    )}
-                                                    {plan.has_discount && (
-                                                        <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-black uppercase tracking-wide text-blue-800">
-                                                            {plan.discount_summary}
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                <p className="mt-6 text-sm font-black uppercase tracking-widest text-gray-500">
-                                                    {plan.service_name}
-                                                </p>
-                                                <h3 className="mt-2 text-2xl font-black text-gray-950">
-                                                    {plan.name}
-                                                </h3>
-                                                <p className="mt-3 text-sm leading-6 text-gray-600">
-                                                    {plan.short_description}
-                                                </p>
-
-                                                <div className="mt-6 flex items-end gap-2">
-                                                    <p className="text-4xl font-black text-gray-950">
-                                                        {formatMoney(plan.final_price, plan.currency)}
-                                                    </p>
-                                                    <p className="pb-1 text-sm font-bold text-gray-500">
-                                                        / {cycleLabel(plan.billing_cycle)}
-                                                    </p>
-                                                </div>
-
-                                                {plan.has_discount && (
-                                                    <p className="mt-2 text-sm text-gray-500">
-                                                        Was <span className="line-through">{formatMoney(plan.base_price, plan.currency)}</span>
-                                                        {plan.discount_code ? ` with ${plan.discount_code}` : ""}
-                                                    </p>
-                                                )}
-
-                                                <div className="mt-6 space-y-3 border-t border-gray-100 pt-5">
-                                                    {[plan.package_name, "Fast checkout", "Guided project intake"].map((item) => (
-                                                        <div key={item} className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                                                            <CheckCircleIcon className="h-5 w-5 text-brand" />
-                                                            {item}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <Link
-                                                href={plan.checkout_url}
-                                                className="group mt-8 inline-flex items-center justify-center gap-3 rounded-md bg-brand px-5 py-3 text-sm font-black text-white transition hover:bg-brand-dark"
-                                            >
-                                                Choose Plan
-                                                <ArrowRightIcon className="h-4 w-4 transition group-hover:translate-x-1" />
-                                            </Link>
-                                        </StaggerItem>
-                                    ))}
-                                </Stagger>
-                            </div>
-                        </RevealSection>
-                    )}
-
-                    <ClientReviewsSection
-                        className="bg-white py-16 sm:py-20 lg:py-24"
-                        title="Verified Client Reviews"
-                        subtitle="Recent client feedback with star ratings from completed Bellah Options projects."
+                {/* ── RESULTS ── */}
+                <Section className="jv-glow overflow-hidden text-center">
+                    <SectionHeading
+                        eyebrow="Results"
+                        title="Delivering Tangible Results"
+                        muted="That Propel Your Success"
+                        description="At the core of everything we do lies a commitment to delivering measurable outcomes that drive your success."
+                        size="lg"
                     />
 
-                    <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="flex flex-col gap-8 text-center justify-center mx-auto">
-                                <div>
-                                    <h2 className="mt-4 max-w-4xl text-3xl font-black justify-center tracking-tight text-gray-950 sm:text-4xl lg:text-5xl mx-auto">
-                                       We Clear creative systems for every place your brand shows up.
-                                    </h2>
-                                </div>
-                                <p className="text-center max-w-3xl leading-8 text-gray-600 justify-center mx-auto">
-                                    We combine strategy, visual design, and digital execution so your audience sees one confident brand across campaigns, websites, social media, and product experiences.
-                                </p>
+                    <div className="mt-10 flex justify-center">
+                        <Button href="/contact-us" variant="primary" icon>
+                            Book a 15-min call
+                        </Button>
+                    </div>
+
+                    <div className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        {[
+                            { value: "10+", label: "Countries served" },
+                            { value: "50+", label: "Brands satisfied" },
+                            { value: "4", label: "Core service lanes" },
+                            { value: "24h", label: "Typical response time" },
+                        ].map((stat) => (
+                            <Card key={stat.label} hover className="text-left">
+                                <Stat value={stat.value} label={stat.label} />
+                            </Card>
+                        ))}
+                    </div>
+                </Section>
+
+                {/* ── GALLERY ── */}
+                {hasGallerySamples && (
+                    <Section className="border-y border-jv-line">
+                        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <Eyebrow>Portfolio</Eyebrow>
+                                <Display size="md" muted="we are proud of." className="mt-6">
+                                    Selected work
+                                </Display>
                             </div>
-
-                            <Stagger className="mt-10 flex gap-4 flex-col md:flex-row">
-                                {strengths.map((strength) => {
-                                    const Icon = strength.icon;
-
-                                    return (
-                                        <StaggerItem
-                                            as="article"
-                                            key={strength.title}
-                                            className="border border-gray-200 bg-white p-6 shadow-sm"
-                                        >
-                                            <Icon className="h-9 w-9 text-brand" />
-                                            <h3 className="mt-6 text-xl font-black text-gray-950">
-                                                {strength.title}
-                                            </h3>
-                                            <p className="mt-3 text-sm leading-6 text-gray-600">
-                                            
-                                                {strength.text}
-                                            </p>
-                                        </StaggerItem>
-                                    );
-                                })}
-                            </Stagger>
+                            <Button href="/gallery" variant="ghost" icon>
+                                See all projects
+                            </Button>
                         </div>
-                    </RevealSection>
 
-                    <RevealSection id="services" className="bg-white py-16 text-white sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="flex flex-col justify-center">
-                                <div>
-                                    <h2 className="my-4 text-3xl text-gray-950 font-black text-center tracking-tight sm:text-4xl lg:text-5xl">
-                                        What We Do
-                                    </h2>
-                                </div>
-                                <p className="w-2xl text-center text-gray-500 justify-center">
-                                    Comprehensive creative solutions tailored to help your business look polished, communicate clearly, and move faster.
-                                </p>
-                            </div>
+                        <Stagger className="mt-12 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                            {gallerySamples.map((sample) => {
+                                const isExternal = sample.href.startsWith("http");
+                                const card = (
+                                    <Card hover pad={false} className="jv-group h-full overflow-hidden">
+                                        <div className="jv-media jv-media--zoom aspect-[4/3] rounded-b-none border-0 border-b border-jv-line">
+                                            <img src={sample.image} alt={sample.title} />
+                                        </div>
+                                        <div className="p-6">
+                                            <span className="jv-mono text-jv-accent">
+                                                {sample.service}
+                                            </span>
+                                            <h3 className="mt-3 text-lg font-semibold tracking-tight text-white">
+                                                {sample.title}
+                                            </h3>
+                                            <p className="jv-body mt-2 line-clamp-3">
+                                                {sample.summary}
+                                            </p>
+                                            <span className="mt-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
+                                                View sample
+                                                <span className="jv-btn-arrow h-7 w-7">
+                                                    <ArrowRightIcon className="h-3.5 w-3.5" />
+                                                </span>
+                                            </span>
+                                        </div>
+                                    </Card>
+                                );
 
-                            <Stagger className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-                                {services.map((service) => {
-                                    const Icon = service.icon;
-
-                                    return (
-                                        <StaggerItem
-                                            key={service.title}
-                                            className="h-full"
-                                        >
-                                            <Link
-                                                href={service.href}
-                                                className="group flex min-h-[290px] flex-col justify-between bg-white p-6 text-gray-950 transition hover:-translate-y-1 hover:shadow-2xl hover:shadow-black/30"
+                                return (
+                                    <StaggerItem key={sample.title} className="h-full">
+                                        {isExternal ? (
+                                            <a
+                                                href={sample.href}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="block h-full"
                                             >
-                                                <div>
-                                                    <div className={`mb-6 inline-flex h-14 w-14 items-center justify-center text-gray-600 rounded-md ring-1 ${service.tint}`}>
-                                                        <Icon className="h-7 w-7" />
-                                                    </div>
-                                                    <h3 className="text-2xl text-blue-600">{service.title}</h3>
-                                                    <p className="mt-4 text-sm leading-6 text-gray-600">
-                                                        {service.description}
-                                                    </p>
-                                                </div>
-                                                <div className="mt-8 flex items-center justify-between border-t border-gray-100 pt-5">
-                                                    <span className="text-sm font-black">Start a project</span>
-                                                    <span className={`flex h-9 w-9 items-center justify-center rounded-md text-white transition group-hover:translate-x-1 ${service.accent}`}>
-                                                        <ArrowRightIcon className="h-4 w-4" />
+                                                {card}
+                                            </a>
+                                        ) : (
+                                            <Link href={sample.href} className="block h-full">
+                                                {card}
+                                            </Link>
+                                        )}
+                                    </StaggerItem>
+                                );
+                            })}
+                        </Stagger>
+                    </Section>
+                )}
+
+                {/* ── PROCESS ── */}
+                <Section>
+                    <div className="grid gap-14 lg:grid-cols-[0.85fr_1.15fr] lg:gap-20">
+                        <div className="lg:sticky lg:top-28 lg:self-start">
+                            <Eyebrow>How we work</Eyebrow>
+                            <Display size="lg" muted="From Design To Launch." className="mt-6">
+                                We Simplify The Journey
+                            </Display>
+                            <p className="jv-lead mt-6 max-w-md">
+                                We make it easy to bring your ideas to life, guiding you from concept
+                                to a fully launched brand.
+                            </p>
+                            <div className="mt-9">
+                                <Button href="/services" variant="ghost" icon>
+                                    Explore our services
+                                </Button>
+                            </div>
+                        </div>
+
+                        <Stagger className="grid gap-5">
+                            {processSteps.map((item) => (
+                                <StaggerItem key={item.step}>
+                                    <ProcessCard
+                                        step={item.step}
+                                        title={item.title}
+                                        description={item.text}
+                                        icon={item.icon}
+                                    />
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+                    </div>
+                </Section>
+
+                {/* ── WHY US ── */}
+                <Section className="jv-glow overflow-hidden text-center">
+                    <SectionHeading
+                        title="Why should you choose us?"
+                        description="At Bellah Options we craft creative systems that elevate brands and deliver measurable results — with a team of specialists covering every lane your brand needs."
+                    />
+
+                    <Stagger className="mt-14 grid gap-5 text-left sm:grid-cols-2 lg:grid-cols-3">
+                        {[...strengths, ...strengths].slice(0, 3).map((strength) => {
+                            const Icon = strength.icon;
+
+                            return (
+                                <StaggerItem key={strength.title}>
+                                    <Card hover className="h-full">
+                                        <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                            <Icon className="h-5 w-5" />
+                                        </span>
+                                        <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                            {strength.title}
+                                        </h3>
+                                        <p className="jv-body mt-3">{strength.text}</p>
+                                    </Card>
+                                </StaggerItem>
+                            );
+                        })}
+                        <StaggerItem>
+                            <Card hover className="h-full">
+                                <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                    <UserGroupIcon className="h-5 w-5" />
+                                </span>
+                                <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                    A decade of mastery
+                                </h3>
+                                <p className="jv-body mt-3">
+                                    Ten years of shaping brands across identity, campaigns, web,
+                                    and product design.
+                                </p>
+                            </Card>
+                        </StaggerItem>
+                        <StaggerItem>
+                            <Card hover className="h-full">
+                                <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                    <BoltIcon className="h-5 w-5" />
+                                </span>
+                                <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                    Fast & flexible delivery
+                                </h3>
+                                <p className="jv-body mt-3">
+                                    Structured turnaround windows with room for focused rounds of
+                                    feedback.
+                                </p>
+                            </Card>
+                        </StaggerItem>
+                        <StaggerItem>
+                            <Card hover className="h-full">
+                                <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                    <DevicePhoneMobileIcon className="h-5 w-5" />
+                                </span>
+                                <h3 className="mt-6 text-lg font-semibold tracking-tight text-white">
+                                    Designer engagement
+                                </h3>
+                                <p className="jv-body mt-3">
+                                    Direct access to a senior designer throughout your project.
+                                </p>
+                            </Card>
+                        </StaggerItem>
+                    </Stagger>
+                </Section>
+
+                {/* ── SERVICES ── */}
+                <Section id="services" className="border-y border-jv-line">
+                    <SectionHeading
+                        eyebrow="Services"
+                        title="What We Do"
+                        description="Comprehensive creative solutions tailored to help your business look polished, communicate clearly, and move faster."
+                    />
+
+                    <Stagger className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                        {services.map((service) => {
+                            const Icon = service.icon;
+
+                            return (
+                                <StaggerItem key={service.title} className="h-full">
+                                    <Link href={service.href} className="block h-full">
+                                        <Card hover className="jv-group flex h-full min-h-[300px] flex-col justify-between">
+                                            <div>
+                                                <div className="flex items-start justify-between gap-4">
+                                                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                        <Icon className="h-5 w-5" />
+                                                    </span>
+                                                    <span className="jv-mono text-white/35">
+                                                        {service.lane}
                                                     </span>
                                                 </div>
-                                            </Link>
-                                        </StaggerItem>
-                                    );
-                                })}
-                            </Stagger>
+                                                <h3 className="mt-6 text-xl font-semibold tracking-tight text-white">
+                                                    {service.title}
+                                                </h3>
+                                                <p className="jv-body mt-4">
+                                                    {service.description}
+                                                </p>
+                                            </div>
+                                            <div className="mt-8 flex items-center justify-between border-t border-jv-line pt-5">
+                                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
+                                                    Start a project
+                                                </span>
+                                                <span className="jv-btn-arrow h-8 w-8">
+                                                    <ArrowRightIcon className="h-4 w-4" />
+                                                </span>
+                                            </div>
+                                        </Card>
+                                    </Link>
+                                </StaggerItem>
+                            );
+                        })}
+                    </Stagger>
+                </Section>
+
+                {/* ── FEATURED PLANS ── */}
+                {hasFeaturedPlans && (
+                    <Section>
+                        <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+                            <div>
+                                <Eyebrow>Featured plans</Eyebrow>
+                                <Display size="lg" className="mt-6">
+                                    Service plans worth putting in front of your next move.
+                                </Display>
+                            </div>
+                            <p className="jv-lead lg:justify-self-end">
+                                These packages are selected by the Bellah Options team and can
+                                include active discounts, recommendations, and homepage feature
+                                status from the admin pricing panel.
+                            </p>
                         </div>
-                    </RevealSection>
 
-                    {hasGallerySamples && (
-                        <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                                <div className="mx-auto max-w-3xl text-center">
-                                    <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl lg:text-5xl">
-                                        Check our works
-                                    </h2>
-                                    <p className="mt-4 text-base leading-8 text-gray-600">
-                                        Fresh portfolio previews pulled directly from the live gallery records.
-                                    </p>
-                                </div>
+                        <Stagger className="mt-14 grid gap-6 lg:grid-cols-3">
+                            {featuredPlans.map((plan) => (
+                                <StaggerItem
+                                    as="article"
+                                    key={plan.id}
+                                    className="flex h-full flex-col"
+                                >
+                                    <Card
+                                        hover
+                                        featured={Boolean(plan.is_homepage_featured)}
+                                        className="flex h-full flex-col justify-between"
+                                    >
+                                        <div>
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {plan.is_homepage_featured && (
+                                                    <span className="jv-tag border-transparent bg-jv-accent text-white">
+                                                        Featured
+                                                    </span>
+                                                )}
+                                                {plan.is_recommended && (
+                                                    <span className="jv-tag">Recommended</span>
+                                                )}
+                                                {plan.has_discount && (
+                                                    <span className="jv-tag border-jv-accent-line text-[#dbe7ff]">
+                                                        {plan.discount_summary}
+                                                    </span>
+                                                )}
+                                            </div>
 
-                                <Stagger className="mt-10 grid gap-5 grid-cols-1 md:grid-cols-4">
-                                    {gallerySamples.map((sample) => {
-                                        const isExternal = sample.href.startsWith("http");
+                                            <p className="jv-mono mt-6 text-white/35">
+                                                {plan.service_name}
+                                            </p>
+                                            <h3 className="mt-3 text-2xl font-semibold tracking-tight text-white">
+                                                {plan.name}
+                                            </h3>
+                                            <p className="jv-body mt-3">
+                                                {plan.short_description}
+                                            </p>
 
-                                        return (
-                                            <StaggerItem
-                                                as="article"
-                                                key={sample.title}
-                                                className="overflow-hidden bg-white shadow-sm ring-1 ring-gray-200"
-                                            >
-                                                <div className="aspect-[16/10] overflow-hidden bg-blue-50">
-                                                    <img
-                                                        src={sample.image}
-                                                        alt={sample.title}
-                                                        className="h-full w-full object-cover transition duration-500 hover:scale-105"
-                                                    />
-                                                </div>
-                                                <div className="p-6">
-                                                    <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-black uppercase tracking-[0.12em] text-brand">
-                                                        {sample.service}
+                                            <div className="mt-7 flex items-end gap-2">
+                                                <p className="jv-display jv-display--md">
+                                                    {formatMoney(plan.final_price, plan.currency)}
+                                                </p>
+                                                <p className="jv-small pb-1.5">
+                                                    / {cycleLabel(plan.billing_cycle)}
+                                                </p>
+                                            </div>
+
+                                            {plan.has_discount && (
+                                                <p className="jv-small mt-2">
+                                                    Was{" "}
+                                                    <span className="line-through">
+                                                        {formatMoney(plan.base_price, plan.currency)}
+                                                    </span>
+                                                    {plan.discount_code
+                                                        ? ` with ${plan.discount_code}`
+                                                        : ""}
+                                                </p>
+                                            )}
+
+                                            <div className="mt-7 space-y-3 border-t border-jv-line pt-6">
+                                                {[
+                                                    plan.package_name,
+                                                    "Fast checkout",
+                                                    "Guided project intake",
+                                                ].map((item) => (
+                                                    <div key={item} className="jv-check">
+                                                        <CheckCircleIcon className="h-4 w-4" />
+                                                        <span>{item}</span>
                                                     </div>
-                                                    <h3 className="mt-3 text-2xl font-black text-gray-950">{sample.title}</h3>
-                                                    <p className="mt-3 text-sm leading-6 text-gray-600">{sample.summary}</p>
-                                                    {isExternal ? (
-                                                        <a
-                                                            href={sample.href}
-                                                            target="_blank"
-                                                            rel="noreferrer"
-                                                            className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-brand transition hover:bg-blue-50"
-                                                        >
-                                                            View Sample
-                                                            <ArrowRightIcon className="h-4 w-4" />
-                                                        </a>
-                                                    ) : (
-                                                        <Link
-                                                            href={sample.href}
-                                                            className="mt-5 inline-flex items-center gap-2 rounded-md border border-blue-200 px-4 py-2 text-xs font-black uppercase tracking-[0.12em] text-brand transition hover:bg-blue-50"
-                                                        >
-                                                            View Sample
-                                                            <ArrowRightIcon className="h-4 w-4" />
-                                                        </Link>
-                                                    )}
-                                                </div>
-                                            </StaggerItem>
-                                        );
-                                    })}
-                                </Stagger>
-                            </div>
-                        </RevealSection>
-                    )}
+                                                ))}
+                                            </div>
+                                        </div>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:items-start">
-                                <div className="lg:sticky lg:top-28">
-                                    <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">
-                                        Our Process
-                                    </p>
-                                    <h2 className="mt-4 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                                        Simple, structured, and easy to follow.
-                                    </h2>
-                                    <p className="mt-5 text-base leading-8 text-gray-600">
-                                        Good creative work should not feel confusing. We keep the process focused so you always know what is happening and what comes next.
-                                    </p>
-                                </div>
+                                        <Button
+                                            href={plan.checkout_url}
+                                            variant="primary"
+                                            icon
+                                            className="mt-9 w-full"
+                                        >
+                                            Choose Plan
+                                        </Button>
+                                    </Card>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+                    </Section>
+                )}
 
-                                <Stagger className="flex flex-col md:flex-row">
-                                    {processSteps.map((item) => {
-                                        const Icon = item.icon;
+                <ClientReviewsSection
+                    title="Verified Client Reviews"
+                    subtitle="Recent client feedback with star ratings from completed Bellah Options projects."
+                />
 
-                                        return (
-                                            <StaggerItem
-                                                as="article"
-                                                key={item.step}
-                                                className="flex flex-col gap-5 border border-gray-200 bg-white p-6 shadow-sm sm:grid-cols-[72px_1fr]"
-                                            >
-                                                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-blue-50 text-blue-500">
-                                                    <Icon className="h-7 w-7" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-black uppercase tracking-widest text-cyan-700">
-                                                        Step {item.step}
-                                                    </p>
-                                                    <h3 className="mt-2 text-2xl font-black text-gray-950">
-                                                        {item.title}
-                                                    </h3>
-                                                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                                                        {item.text}
-                                                    </p>
-                                                </div>
-                                            </StaggerItem>
-                                        );
-                                    })}
-                                </Stagger>
+                {/* ── FINAL CTA ── */}
+                <Section className="jv-section--tight">
+                    <div className="jv-card jv-grid-bg relative overflow-hidden p-8 text-center sm:p-14 lg:p-20">
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[min(760px,110%)] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,85,255,0.4),transparent_72%)]"
+                        />
+                        <div className="relative mx-auto flex max-w-3xl flex-col items-center">
+                            <Eyebrow>Let us build together</Eyebrow>
+                            <Display size="lg" className="mt-6">
+                                Shaping the visuals your business needs to launch and grow.
+                            </Display>
+                            <p className="jv-lead mx-auto mt-6 max-w-2xl">
+                                Tell us what you are building. We will help you choose the right
+                                creative direction, service, and next step.
+                            </p>
+                            <div className="mt-9 flex flex-wrap justify-center gap-3">
+                                <Button href="/order/special-service" variant="primary" size="lg" icon>
+                                    Start Your Project
+                                </Button>
+                                <Button href="/about-bellah-options" variant="ghost" size="lg">
+                                    Meet Bellah Options
+                                </Button>
                             </div>
                         </div>
-                    </RevealSection>
-
-                    <RevealSection className="bg-brand py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="grid overflow-hidden bg-brand text-white lg:grid-cols-[1fr_0.85fr]">
-                                <div className="p-6 sm:p-10 lg:p-12">                                    
-                                    <h2 className="mt-5 max-w-2xl text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl">
-                                        Let us shape the visuals your business needs to launch, grow, or refresh.
-                                    </h2>
-                                    <p className="mt-5 max-w-2xl text-base leading-8 text-blue-100">
-                                        Tell us what you are building. We will help you choose the right creative direction, service, and next step.
-                                    </p>
-                                    <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                                        <Link
-                                            href="/order/special-service"
-                                            className="inline-flex items-center justify-center gap-3 rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
-                                        >
-                                            Start Your Project
-                                            <ArrowRightIcon className="h-4 w-4" />
-                                        </Link>
-                                        <Link
-                                            href="/about-bellah-options"
-                                            className="inline-flex items-center justify-center rounded-md border border-white/30 px-6 py-3 text-sm font-black text-white transition hover:bg-white/10"
-                                        >
-                                            Meet Bellah Options
-                                        </Link>
-                                    </div>
-                                </div>
-                                <div className="grid border-t border-white/15 bg-white/10 p-6 sm:grid-cols-2 sm:p-10 lg:border-l lg:border-t-0 lg:grid-cols-1 lg:p-12">
-                                    <div className="flex items-start gap-4 py-5">
-                                        <UserGroupIcon className="h-8 w-8 shrink-0 text-cyan-200" />
-                                        <div>
-                                            <h3 className="font-black">Audience-aware</h3>
-                                            <p className="mt-2 text-sm leading-6 text-blue-100">
-                                                Work shaped for the people you need to reach, impress, and convert.
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-start gap-4 border-t border-white/15 py-5 sm:border-l sm:border-t-0 sm:pl-6 lg:border-l-0 lg:border-t lg:pl-0">
-                                        <DevicePhoneMobileIcon className="h-8 w-8 shrink-0 text-cyan-200" />
-                                        <div>
-                                            <h3 className="font-black">Responsive by default</h3>
-                                            <p className="mt-2 text-sm leading-6 text-blue-100">
-                                                Designed to hold up across mobile screens, social feeds, and desktop layouts.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </RevealSection>
-                </div>
+                    </div>
+                </Section>
             </PageTheme>
         </>
     );

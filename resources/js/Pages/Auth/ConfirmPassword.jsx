@@ -1,6 +1,7 @@
 import InputError from '@/Components/InputError';
 import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
+import { Display, Eyebrow } from '@/Components/PublicUI';
 import { Head, useForm } from '@inertiajs/react';
 
 export default function ConfirmPassword() {
@@ -20,44 +21,38 @@ export default function ConfirmPassword() {
         <GuestLayout>
             <Head title="Confirm Password" />
 
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
-                    Security Confirmation
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-                    Confirm your password
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                    This action is protected. Re-enter your password to continue.
-                </p>
-            </div>
+            <Eyebrow>Security confirmation</Eyebrow>
 
-            <form onSubmit={submit} className="mt-6 space-y-4">
-                <div>
-                    <label htmlFor="password" className="text-sm font-medium text-slate-700">
+            <Display as="h2" size="sm" className="mt-5">
+                Confirm your password
+            </Display>
+            <p className="jv-body mt-3">
+                This action is protected. Re-enter your password to continue.
+            </p>
+
+            <form onSubmit={submit} className="mt-7 space-y-5">
+                <div className="jv-field">
+                    <label htmlFor="password" className="jv-label">
                         Password
                     </label>
                     <PasswordInput
                         id="password"
                         name="password"
                         value={data.password}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        inputClassName="jv-input"
                         onChange={(e) => setData('password', e.target.value)}
                         required
                     />
-
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <div className="pt-1">
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                        Confirm
-                    </button>
-                </div>
+                <button
+                    type="submit"
+                    disabled={processing}
+                    className="jv-btn jv-btn--primary w-full"
+                >
+                    Confirm
+                </button>
             </form>
         </GuestLayout>
     );

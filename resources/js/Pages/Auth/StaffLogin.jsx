@@ -2,6 +2,7 @@ import InputError from '@/Components/InputError';
 import HumanVerificationField from '@/Components/HumanVerificationField';
 import PasswordInput from '@/Components/PasswordInput';
 import GuestLayout from '@/Layouts/GuestLayout';
+import { Display, Eyebrow } from '@/Components/PublicUI';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useEffect } from 'react';
 
@@ -46,62 +47,59 @@ export default function StaffLogin({
         <GuestLayout>
             <Head title="Staff Login" />
 
-            <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-blue-700">
-                    Staff Portal
-                </p>
-                <h2 className="mt-2 text-3xl font-semibold text-slate-900">
-                    Admin & Staff Access
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                    For Bellah Options senior admins and customer reps.
-                </p>
-            </div>
+            <Eyebrow>Staff portal</Eyebrow>
+
+            <Display as="h2" size="sm" className="mt-5">
+                Admin &amp; staff access
+            </Display>
+            <p className="jv-body mt-3">
+                For Bellah Options senior admins and customer reps.
+            </p>
 
             {status && (
-                <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                <div className="mt-6 rounded-jv-sm border border-jv-accent/30 bg-jv-accent/10 px-4 py-3 text-sm text-white/80">
                     {status}
                 </div>
             )}
 
             {flash?.error && (
-                <div className="mt-5 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                <div className="mt-6 rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                     {flash.error}
                 </div>
             )}
 
-            <form onSubmit={submit} className="mt-6 space-y-4">
-                <div>
-                    <label htmlFor="email" className="text-sm font-medium text-slate-700">
-                        Work Email
+            <form onSubmit={submit} className="mt-7 space-y-5">
+                <div className="jv-field">
+                    <label htmlFor="email" className="jv-label">
+                        Work email
                     </label>
                     <input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        className="jv-input"
                         autoComplete="username"
                         onChange={(event) => setData('email', event.target.value)}
                         required
                     />
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} />
                 </div>
 
-                <div>
-                    <label htmlFor="password" className="text-sm font-medium text-slate-700">
+                <div className="jv-field">
+                    <label htmlFor="password" className="jv-label">
                         Password
                     </label>
                     <PasswordInput
                         id="password"
                         name="password"
                         value={data.password}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        inputClassName="jv-input"
                         autoComplete="current-password"
                         onChange={(event) => setData('password', event.target.value)}
                         required
                     />
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
                 <HumanVerificationField
@@ -118,14 +116,17 @@ export default function StaffLogin({
                 <button
                     type="submit"
                     disabled={processing}
-                    className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                    className="jv-btn jv-btn--primary w-full"
                 >
                     {processing ? 'Signing in...' : 'Enter Staff Dashboard'}
                 </button>
 
-                <p className="text-sm text-slate-600">
+                <p className="jv-body border-t border-jv-line pt-5">
                     Need user login instead?{' '}
-                    <Link href={route('login')} className="font-semibold text-blue-700 hover:text-blue-800">
+                    <Link
+                        href={route('login')}
+                        className="font-semibold text-jv-accent transition-colors hover:text-white"
+                    >
                         Go to user login
                     </Link>
                 </p>

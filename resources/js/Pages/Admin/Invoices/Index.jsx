@@ -1,3 +1,6 @@
+import { Badge } from '@/Components/ui/badge';
+import { Button } from '@/Components/ui/button';
+import { Card } from '@/Components/ui/card';
 import { MobileCard, MobileCardActions, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import { useDebouncedFilterSync } from '@/hooks/use-debounced-filter-sync';
@@ -8,6 +11,10 @@ import { BadgeDollarSign, CheckCircle2, Clock, FileText, Loader2, RotateCcw, Sea
 import { useEffect, useRef, useState } from 'react';
 
 const currencies = ['NGN', 'USD', 'EUR', 'GBP'];
+
+const fieldClass = 'jv-input';
+const labelClass = 'mb-1 block text-sm font-medium text-white/65';
+const errorClass = 'mt-1 text-xs text-red-300';
 
 export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permissions = {}, occupations = [] }) {
     const { flash } = usePage().props;
@@ -250,21 +257,21 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
         <AuthenticatedLayout
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">Invoices</h2>
+                    <h2 className="jv-display jv-display--sm">Invoices</h2>
                     <div className="flex items-center gap-2">
-                        <button
+                        <Button
                             type="button"
+                            size="sm"
                             onClick={() => {
                                 setShowCreateForm((previous) => !previous);
                                 setDuplicateNotice('');
                             }}
-                            className="rounded-md bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-brand-dark"
                         >
                             {showCreateForm ? 'Close' : 'New Invoice'}
-                        </button>
+                        </Button>
                         <Link
                             href={route('dashboard')}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                            className="jv-btn jv-btn--ghost jv-btn--sm"
                         >
                             Back to Dashboard
                         </Link>
@@ -277,42 +284,42 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
 
                     {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-jv-sm border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {flash.error}
                         </div>
                     )}
 
                     {showCreateForm && (
-                        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">New Invoice</h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                        <Card className="p-5">
+                            <h3 className="text-lg font-semibold text-white">New Invoice</h3>
+                            <p className="mt-1 text-sm text-white/60">
                                 Search for an existing customer or fill in the details for a new one, then set the invoice amount.
                             </p>
 
                             {duplicateNotice && (
-                                <div className="mt-3 rounded-lg border border-brand/30 bg-brand-light px-3 py-2 text-sm text-brand">
+                                <div className="mt-3 rounded-jv-sm border border-jv-accent-line bg-jv-accent/10 px-3 py-2 text-sm text-[#a9c4ff]">
                                     {duplicateNotice}
                                 </div>
                             )}
 
                             <form onSubmit={submitCreateInvoice} className="mt-5 space-y-4">
                                 <div>
-                                    <label htmlFor="customer-search" className="mb-1 block text-sm font-medium text-gray-700">
+                                    <label htmlFor="customer-search" className={labelClass}>
                                         Find customer
                                     </label>
                                     {selectedCustomerLabel ? (
-                                        <div className="flex items-center justify-between rounded-md border border-brand/30 bg-brand-light px-3 py-2 text-sm text-brand">
+                                        <div className="flex items-center justify-between rounded-jv-sm border border-jv-accent-line bg-jv-accent/10 px-3 py-2 text-sm text-[#a9c4ff]">
                                             <span>{selectedCustomerLabel}</span>
                                             <button
                                                 type="button"
                                                 onClick={clearSelectedCustomer}
-                                                className="text-xs font-semibold text-brand hover:text-brand-dark"
+                                                className="text-xs font-semibold text-jv-accent transition hover:text-[#4d8bff]"
                                             >
                                                 Change
                                             </button>
@@ -325,22 +332,22 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                 onChange={(event) => setCustomerQuery(event.target.value)}
                                                 placeholder="Search by name or email"
                                                 autoComplete="off"
-                                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                className={fieldClass}
                                             />
                                             {customerSearchLoading && (
-                                                <p className="mt-1 text-xs text-gray-500">Searching...</p>
+                                                <p className="mt-1 text-xs text-white/45">Searching...</p>
                                             )}
                                             {customerResults.length > 0 && (
-                                                <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg">
+                                                <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-jv-sm border border-jv-line-strong bg-[#12121a] backdrop-blur-xl">
                                                     {customerResults.map((result) => (
                                                         <li key={`${result.source}-${result.customer_id || result.email}`}>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => selectCustomer(result)}
-                                                                className="block w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                                                                className="block w-full px-3 py-2 text-left text-sm transition hover:bg-white/[0.06]"
                                                             >
-                                                                <span className="font-medium text-gray-900">{result.display_name}</span>
-                                                                <span className="ml-2 text-xs text-gray-500">{result.email}</span>
+                                                                <span className="font-medium text-white">{result.display_name}</span>
+                                                                <span className="ml-2 text-xs text-white/45">{result.email}</span>
                                                             </button>
                                                         </li>
                                                     ))}
@@ -348,14 +355,14 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             )}
                                         </div>
                                     )}
-                                    <p className="mt-1 text-xs text-gray-500">
+                                    <p className="mt-1 text-xs text-white/45">
                                         No match? Fill in the customer name and email below to invoice someone new.
                                     </p>
                                 </div>
 
                                 <div className="grid gap-4 sm:grid-cols-2">
                                     <div>
-                                        <label htmlFor="customer-name" className="mb-1 block text-sm font-medium text-gray-700">
+                                        <label htmlFor="customer-name" className={labelClass}>
                                             Customer name
                                         </label>
                                         <input
@@ -363,15 +370,15 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             value={createForm.data.customer_name}
                                             onChange={(event) => createForm.setData('customer_name', event.target.value)}
                                             disabled={Boolean(createForm.data.customer_id)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-gray-100"
+                                            className={`${fieldClass} disabled:bg-white/[0.03]`}
                                         />
                                         {createForm.errors.customer_name && (
-                                            <p className="mt-1 text-xs text-red-600">{createForm.errors.customer_name}</p>
+                                            <p className={errorClass}>{createForm.errors.customer_name}</p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <label htmlFor="customer-email" className="mb-1 block text-sm font-medium text-gray-700">
+                                        <label htmlFor="customer-email" className={labelClass}>
                                             Customer email
                                         </label>
                                         <input
@@ -380,15 +387,15 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             value={createForm.data.customer_email}
                                             onChange={(event) => createForm.setData('customer_email', event.target.value)}
                                             disabled={Boolean(createForm.data.customer_id)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-gray-100"
+                                            className={`${fieldClass} disabled:bg-white/[0.03]`}
                                         />
                                         {createForm.errors.customer_email && (
-                                            <p className="mt-1 text-xs text-red-600">{createForm.errors.customer_email}</p>
+                                            <p className={errorClass}>{createForm.errors.customer_email}</p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <label htmlFor="customer-occupation" className="mb-1 block text-sm font-medium text-gray-700">
+                                        <label htmlFor="customer-occupation" className={labelClass}>
                                             Occupation (optional)
                                         </label>
                                         <select
@@ -396,7 +403,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             value={createForm.data.customer_occupation}
                                             onChange={(event) => createForm.setData('customer_occupation', event.target.value)}
                                             disabled={Boolean(createForm.data.customer_id)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:bg-gray-100"
+                                            className="jv-select disabled:bg-white/[0.03]"
                                         >
                                             <option value="">Not specified</option>
                                             {occupations.map((occupation) => (
@@ -406,12 +413,12 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             ))}
                                         </select>
                                         {createForm.errors.customer_occupation && (
-                                            <p className="mt-1 text-xs text-red-600">{createForm.errors.customer_occupation}</p>
+                                            <p className={errorClass}>{createForm.errors.customer_occupation}</p>
                                         )}
                                     </div>
 
                                     <div>
-                                        <label htmlFor="invoice-due-date" className="mb-1 block text-sm font-medium text-gray-700">
+                                        <label htmlFor="invoice-due-date" className={labelClass}>
                                             Due date (optional)
                                         </label>
                                         <input
@@ -419,16 +426,16 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                             type="date"
                                             value={createForm.data.due_date}
                                             onChange={(event) => createForm.setData('due_date', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className={fieldClass}
                                         />
                                         {createForm.errors.due_date && (
-                                            <p className="mt-1 text-xs text-red-600">{createForm.errors.due_date}</p>
+                                            <p className={errorClass}>{createForm.errors.due_date}</p>
                                         )}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label htmlFor="invoice-title" className="mb-1 block text-sm font-medium text-gray-700">
+                                    <label htmlFor="invoice-title" className={labelClass}>
                                         Invoice title
                                     </label>
                                     <input
@@ -436,15 +443,15 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                         value={createForm.data.title}
                                         onChange={(event) => createForm.setData('title', event.target.value)}
                                         placeholder="e.g. Brand Design Package"
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className={fieldClass}
                                     />
                                     {createForm.errors.title && (
-                                        <p className="mt-1 text-xs text-red-600">{createForm.errors.title}</p>
+                                        <p className={errorClass}>{createForm.errors.title}</p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="invoice-description" className="mb-1 block text-sm font-medium text-gray-700">
+                                    <label htmlFor="invoice-description" className={labelClass}>
                                         Description (optional)
                                     </label>
                                     <textarea
@@ -452,22 +459,22 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                         value={createForm.data.description}
                                         onChange={(event) => createForm.setData('description', event.target.value)}
                                         rows={3}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="jv-textarea"
                                     />
                                     {createForm.errors.description && (
-                                        <p className="mt-1 text-xs text-red-600">{createForm.errors.description}</p>
+                                        <p className={errorClass}>{createForm.errors.description}</p>
                                     )}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="invoice-currency" className="mb-1 block text-sm font-medium text-gray-700">
+                                    <label htmlFor="invoice-currency" className={labelClass}>
                                         Currency
                                     </label>
                                     <select
                                         id="invoice-currency"
                                         value={createForm.data.currency}
                                         onChange={(event) => createForm.setData('currency', event.target.value)}
-                                        className="w-full max-w-[160px] rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="jv-select max-w-[160px]"
                                     >
                                         {currencies.map((currency) => (
                                             <option key={currency} value={currency}>
@@ -476,17 +483,17 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                         ))}
                                     </select>
                                     {createForm.errors.currency && (
-                                        <p className="mt-1 text-xs text-red-600">{createForm.errors.currency}</p>
+                                        <p className={errorClass}>{createForm.errors.currency}</p>
                                     )}
                                 </div>
 
                                 <div>
                                     <div className="mb-2 flex items-center justify-between">
-                                        <label className="block text-sm font-medium text-gray-700">Line items</label>
+                                        <label className="block text-sm font-medium text-white/65">Line items</label>
                                         <button
                                             type="button"
                                             onClick={addItem}
-                                            className="text-xs font-semibold text-brand hover:text-brand-dark"
+                                            className="text-xs font-semibold text-jv-accent transition hover:text-[#4d8bff]"
                                         >
                                             + Add item
                                         </button>
@@ -494,12 +501,12 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
 
                                     <div className="space-y-2">
                                         {createForm.data.items.map((item, index) => (
-                                            <div key={index} className="grid grid-cols-1 gap-2 rounded-md border border-gray-100 p-2 sm:grid-cols-[1fr_70px_110px_auto] sm:items-center sm:border-0 sm:p-0">
+                                            <div key={index} className="grid grid-cols-1 gap-2 rounded-jv-sm border border-jv-line p-2 sm:grid-cols-[1fr_70px_110px_auto] sm:items-center sm:border-0 sm:p-0">
                                                 <input
                                                     value={item.description}
                                                     onChange={(event) => updateItem(index, 'description', event.target.value)}
                                                     placeholder="e.g. Logo design"
-                                                    className="w-full min-w-0 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                    className={`${fieldClass} min-w-0`}
                                                 />
                                                 {/* On mobile this wrapper stacks qty/price/remove as a row below the
                                                     description; from sm: up, `contents` drops it from the layout so
@@ -511,7 +518,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                         value={item.quantity}
                                                         onChange={(event) => updateItem(index, 'quantity', event.target.value)}
                                                         placeholder="Qty"
-                                                        className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className={`${fieldClass} min-w-0`}
                                                     />
                                                     <input
                                                         type="number"
@@ -520,14 +527,14 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                         value={item.unit_price}
                                                         onChange={(event) => updateItem(index, 'unit_price', event.target.value)}
                                                         placeholder="Unit price"
-                                                        className="w-full min-w-0 rounded-md border border-gray-300 px-2 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className={`${fieldClass} min-w-0`}
                                                     />
                                                     <button
                                                         type="button"
                                                         onClick={() => removeItem(index)}
                                                         disabled={createForm.data.items.length === 1}
                                                         title="Remove item"
-                                                        className="rounded-md border border-gray-300 px-2 py-2 text-xs font-semibold text-gray-500 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40"
+                                                        className="rounded-full border border-jv-line-strong px-3 py-2 text-xs font-semibold text-white/60 transition hover:bg-white/[0.06] hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
                                                     >
                                                         ✕
                                                     </button>
@@ -537,35 +544,34 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                     </div>
 
                                     {createForm.errors.items && (
-                                        <p className="mt-2 text-xs text-red-600">{createForm.errors.items}</p>
+                                        <p className="mt-2 text-xs text-red-300">{createForm.errors.items}</p>
                                     )}
 
-                                    <p className="mt-2 text-right text-sm font-semibold text-gray-900">
+                                    <p className="mt-2 text-right text-sm font-semibold text-white">
                                         Total: {formatMoney(invoiceItemsTotal, createForm.data.currency)}
                                     </p>
                                 </div>
 
-                                <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
-                                    <button
+                                <div className="flex justify-end gap-3 border-t border-jv-line pt-4">
+                                    <Button
                                         type="button"
+                                        variant="secondary"
                                         onClick={() => {
                                             setShowCreateForm(false);
                                             setDuplicateNotice('');
                                         }}
-                                        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
                                     >
                                         Cancel
-                                    </button>
-                                    <button
+                                    </Button>
+                                    <Button
                                         type="submit"
                                         disabled={createForm.processing}
-                                        className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {createForm.processing ? 'Creating...' : 'Create & Send Invoice'}
-                                    </button>
+                                    </Button>
                                 </div>
                             </form>
-                        </section>
+                        </Card>
                     )}
 
                     <StatGrid>
@@ -576,19 +582,19 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                         <StatCard icon={BadgeDollarSign} label="Paid Amount" value={formatMoney(stats.paid_total ?? 0, 'NGN')} tone="emerald" />
                     </StatGrid>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                    <Card className="p-4 sm:p-5">
                         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
                             <div className="relative flex-1 lg:min-w-[240px]">
-                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                                 <input
                                     id="invoice-search"
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder="Search invoice number, customer, title…"
-                                    className="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-9 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="jv-input py-2.5 pl-9 pr-9"
                                 />
                                 {isSyncing && (
-                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-brand" />
+                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-jv-accent" />
                                 )}
                             </div>
 
@@ -597,7 +603,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                 value={status}
                                 onChange={(event) => setStatus(event.target.value)}
                                 aria-label="Invoice status"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-select py-2.5 lg:w-auto"
                             >
                                 <option value="">All statuses</option>
                                 <option value="sent">Pending</option>
@@ -608,73 +614,67 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                 type="button"
                                 onClick={resetFilters}
                                 disabled={!hasActiveFilters}
-                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 lg:w-auto"
+                                className="jv-btn jv-btn--ghost jv-btn--sm w-full lg:w-auto"
                             >
                                 <RotateCcw className="h-3.5 w-3.5" />
                                 Reset
                             </button>
                         </div>
-                    </section>
+                    </Card>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <Card className="overflow-hidden">
                         <div className="hidden overflow-x-auto md:block">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full text-sm">
+                                <thead className="border-b border-jv-line">
                                     <tr>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Invoice</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Customer</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Amount</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Status</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Reminders</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Actions</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Invoice</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Customer</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Amount</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Status</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Reminders</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody>
                                     {(invoices?.data || []).length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-4 text-gray-500" colSpan={6}>
+                                        <tr className="border-b border-jv-line/70">
+                                            <td className="px-4 py-4 text-white/45" colSpan={6}>
                                                 No invoices found.
                                             </td>
                                         </tr>
                                     )}
 
                                     {(invoices?.data || []).map((invoice) => (
-                                        <tr key={invoice.id}>
-                                            <td className="px-3 py-3 align-top">
-                                                <p className="font-semibold text-gray-900">{invoice.invoice_number}</p>
-                                                <p className="text-xs text-gray-500">{invoice.title}</p>
+                                        <tr key={invoice.id} className="border-b border-jv-line/70 transition hover:bg-white/[0.04]">
+                                            <td className="px-4 py-3 align-top">
+                                                <p className="font-semibold text-white">{invoice.invoice_number}</p>
+                                                <p className="text-xs text-white/45">{invoice.title}</p>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">
+                                            <td className="px-4 py-3 align-top text-white/70">
                                                 <p>{invoice.customer_name}</p>
-                                                <p className="text-xs text-gray-500">{invoice.customer_email}</p>
+                                                <p className="text-xs text-white/45">{invoice.customer_email}</p>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-700">
+                                            <td className="px-4 py-3 align-top font-semibold text-white">
                                                 {formatMoney(invoice.amount, invoice.currency)}
                                             </td>
-                                            <td className="px-3 py-3 align-top">
-                                                <span
-                                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                                                        invoice.status === 'paid'
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : 'bg-amber-100 text-amber-700'
-                                                    }`}
-                                                >
+                                            <td className="px-4 py-3 align-top">
+                                                <Badge variant={invoice.status === 'paid' ? 'success' : 'warning'}>
                                                     {invoice.status.toUpperCase()}
-                                                </span>
+                                                </Badge>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-xs text-gray-700">
+                                            <td className="px-4 py-3 align-top text-xs text-white/70">
                                                 <p>Auto: {invoice.automatic_reminders_sent}/13</p>
-                                                <p className="text-gray-500">
+                                                <p className="text-white/45">
                                                     Last auto: {invoice.last_automatic_reminder_sent_at || 'N/A'}
                                                 </p>
-                                                <p className="text-gray-500">
+                                                <p className="text-white/45">
                                                     Last manual: {invoice.last_manual_reminder_sent_at || 'N/A'}
                                                 </p>
                                             </td>
-                                            <td className="space-x-2 px-3 py-3 align-top">
+                                            <td className="space-x-2 px-4 py-3 align-top">
                                                 <Link
                                                     href={route('admin.invoices.show', invoice.uuid)}
-                                                    className="rounded-md border border-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                    className="inline-flex items-center rounded-full border border-jv-line-strong px-2.5 py-1 text-xs font-semibold text-white/75 transition hover:border-jv-accent-line hover:bg-jv-accent/10 hover:text-white"
                                                 >
                                                     View
                                                 </Link>
@@ -682,7 +682,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                     <button
                                                         type="button"
                                                         onClick={() => duplicateInvoice(invoice.uuid, invoice.invoice_number)}
-                                                        className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                        className="inline-flex items-center rounded-full border border-jv-accent-line px-2.5 py-1 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/15"
                                                     >
                                                         Duplicate
                                                     </button>
@@ -690,7 +690,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                     <button
                                                         type="button"
                                                         onClick={() => resendInvoice(invoice.uuid)}
-                                                        className="rounded-md border border-brand/30 px-2 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                        className="inline-flex items-center rounded-full border border-jv-accent-line px-2.5 py-1 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/15"
                                                     >
                                                         Resend
                                                     </button>
@@ -699,7 +699,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                     <button
                                                         type="button"
                                                         onClick={() => sendReminder(invoice.uuid)}
-                                                        className="rounded-md border border-amber-200 px-2 py-1 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                                                        className="inline-flex items-center rounded-full border border-amber-500/30 px-2.5 py-1 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/10"
                                                     >
                                                         Remind
                                                     </button>
@@ -708,7 +708,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                     <button
                                                         type="button"
                                                         onClick={() => markInvoicePaid(invoice.uuid)}
-                                                        className="rounded-md border border-emerald-200 px-2 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                                                        className="inline-flex items-center rounded-full border border-emerald-500/30 px-2.5 py-1 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"
                                                     >
                                                         Mark Paid
                                                     </button>
@@ -717,7 +717,7 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                                     <button
                                                         type="button"
                                                         onClick={() => deleteInvoice(invoice.uuid, invoice.invoice_number)}
-                                                        className="rounded-md border border-red-200 px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                        className="inline-flex items-center rounded-full border border-red-500/30 px-2.5 py-1 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
                                                     >
                                                         Delete
                                                     </button>
@@ -730,93 +730,89 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                         </div>
 
                         {(invoices?.data || []).length === 0 ? (
-                            <p className="text-sm text-gray-500 md:hidden">No invoices found.</p>
+                            <p className="p-5 text-sm text-white/45 md:hidden">No invoices found.</p>
                         ) : (
-                            <MobileCardList>
-                                {(invoices?.data || []).map((invoice, index) => (
-                                    <MobileCard key={invoice.id} index={index}>
-                                        <MobileCardHeader
-                                            title={invoice.invoice_number}
-                                            subtitle={invoice.title}
-                                            badge={
-                                                <span
-                                                    className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
-                                                        invoice.status === 'paid'
-                                                            ? 'bg-emerald-100 text-emerald-700'
-                                                            : 'bg-amber-100 text-amber-700'
-                                                    }`}
-                                                >
-                                                    {invoice.status.toUpperCase()}
-                                                </span>
-                                            }
-                                        />
+                            <div className="p-4 md:hidden">
+                                <MobileCardList>
+                                    {(invoices?.data || []).map((invoice, index) => (
+                                        <MobileCard key={invoice.id} index={index}>
+                                            <MobileCardHeader
+                                                title={invoice.invoice_number}
+                                                subtitle={invoice.title}
+                                                badge={
+                                                    <Badge variant={invoice.status === 'paid' ? 'success' : 'warning'}>
+                                                        {invoice.status.toUpperCase()}
+                                                    </Badge>
+                                                }
+                                            />
 
-                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
-                                            <MobileCardRow label="Customer" value={invoice.customer_name} />
-                                            <MobileCardRow label="Email" value={invoice.customer_email} />
-                                            <MobileCardRow label="Amount" value={formatMoney(invoice.amount, invoice.currency)} />
-                                            <MobileCardRow label="Auto reminders" value={`${invoice.automatic_reminders_sent}/13`} />
-                                            <MobileCardRow label="Last reminder" value={invoice.last_automatic_reminder_sent_at || invoice.last_manual_reminder_sent_at || 'N/A'} />
-                                        </div>
+                                            <div className="mt-3 divide-y divide-jv-line">
+                                                <MobileCardRow label="Customer" value={invoice.customer_name} />
+                                                <MobileCardRow label="Email" value={invoice.customer_email} />
+                                                <MobileCardRow label="Amount" value={formatMoney(invoice.amount, invoice.currency)} />
+                                                <MobileCardRow label="Auto reminders" value={`${invoice.automatic_reminders_sent}/13`} />
+                                                <MobileCardRow label="Last reminder" value={invoice.last_automatic_reminder_sent_at || invoice.last_manual_reminder_sent_at || 'N/A'} />
+                                            </div>
 
-                                        <MobileCardActions>
-                                            <Link
-                                                href={route('admin.invoices.show', invoice.uuid)}
-                                                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
-                                            >
-                                                View
-                                            </Link>
-                                            {invoice.status === 'paid' ? (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => duplicateInvoice(invoice.uuid, invoice.invoice_number)}
-                                                    className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                            <MobileCardActions>
+                                                <Link
+                                                    href={route('admin.invoices.show', invoice.uuid)}
+                                                    className="rounded-full border border-jv-line-strong px-3 py-1.5 text-xs font-semibold text-white/75 transition hover:bg-white/[0.06] hover:text-white"
                                                 >
-                                                    Duplicate
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => resendInvoice(invoice.uuid)}
-                                                    className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
-                                                >
-                                                    Resend
-                                                </button>
-                                            )}
-                                            {invoice.status !== 'paid' && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => sendReminder(invoice.uuid)}
-                                                    className="rounded-md border border-amber-200 px-2.5 py-1.5 text-xs font-semibold text-amber-700 hover:bg-amber-50"
-                                                >
-                                                    Remind
-                                                </button>
-                                            )}
-                                            {invoice.status !== 'paid' && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => markInvoicePaid(invoice.uuid)}
-                                                    className="rounded-md border border-emerald-200 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
-                                                >
-                                                    Mark Paid
-                                                </button>
-                                            )}
-                                            {canDeleteInvoice(invoice) && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => deleteInvoice(invoice.uuid, invoice.invoice_number)}
-                                                    className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
-                                                >
-                                                    Delete
-                                                </button>
-                                            )}
-                                        </MobileCardActions>
-                                    </MobileCard>
-                                ))}
-                            </MobileCardList>
+                                                    View
+                                                </Link>
+                                                {invoice.status === 'paid' ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => duplicateInvoice(invoice.uuid, invoice.invoice_number)}
+                                                        className="rounded-full border border-jv-accent-line px-3 py-1.5 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/15"
+                                                    >
+                                                        Duplicate
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => resendInvoice(invoice.uuid)}
+                                                        className="rounded-full border border-jv-accent-line px-3 py-1.5 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/15"
+                                                    >
+                                                        Resend
+                                                    </button>
+                                                )}
+                                                {invoice.status !== 'paid' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => sendReminder(invoice.uuid)}
+                                                        className="rounded-full border border-amber-500/30 px-3 py-1.5 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/10"
+                                                    >
+                                                        Remind
+                                                    </button>
+                                                )}
+                                                {invoice.status !== 'paid' && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => markInvoicePaid(invoice.uuid)}
+                                                        className="rounded-full border border-emerald-500/30 px-3 py-1.5 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"
+                                                    >
+                                                        Mark Paid
+                                                    </button>
+                                                )}
+                                                {canDeleteInvoice(invoice) && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => deleteInvoice(invoice.uuid, invoice.invoice_number)}
+                                                        className="rounded-full border border-red-500/30 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
+                                            </MobileCardActions>
+                                        </MobileCard>
+                                    ))}
+                                </MobileCardList>
+                            </div>
                         )}
 
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-jv-line px-4 py-3 text-sm text-white/60">
                             <p>
                                 Page {invoices?.current_page || 1} of {invoices?.last_page || 1}
                             </p>
@@ -824,32 +820,32 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
                                 {invoices?.prev_page_url ? (
                                     <Link
                                         href={invoices.prev_page_url}
-                                        className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50"
+                                        className="rounded-full border border-jv-line-strong px-3 py-1.5 text-white/70 transition hover:bg-white/[0.06] hover:text-white"
                                         preserveScroll
                                     >
                                         Previous
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">
+                                    <span className="cursor-not-allowed rounded-full border border-jv-line px-3 py-1.5 text-white/30">
                                         Previous
                                     </span>
                                 )}
                                 {invoices?.next_page_url ? (
                                     <Link
                                         href={invoices.next_page_url}
-                                        className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50"
+                                        className="rounded-full border border-jv-line-strong px-3 py-1.5 text-white/70 transition hover:bg-white/[0.06] hover:text-white"
                                         preserveScroll
                                     >
                                         Next
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">
+                                    <span className="cursor-not-allowed rounded-full border border-jv-line px-3 py-1.5 text-white/30">
                                         Next
                                     </span>
                                 )}
                             </div>
                         </div>
-                    </section>
+                    </Card>
                 </div>
             </div>
         </AuthenticatedLayout>

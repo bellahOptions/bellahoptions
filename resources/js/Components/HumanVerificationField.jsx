@@ -11,7 +11,7 @@ export default function HumanVerificationField({
     mathError = "",
     turnstileError = "",
     labelPrefix = "Human Check",
-    inputClassName = "w-full rounded-md border-gray-300 text-sm focus:border-brand focus:ring-brand",
+    inputClassName = "jv-input",
 }) {
     const [turnstileClientError, setTurnstileClientError] = useState("");
     const turnstileContainerRef = useRef(null);
@@ -87,25 +87,25 @@ export default function HumanVerificationField({
 
     if (mode === "turnstile") {
         return (
-            <div>
-                <label className="mb-2 block text-sm font-bold text-gray-700">Security Check</label>
+            <div className="jv-field">
+                <label className="jv-label">Security Check</label>
                 {turnstileSiteKey ? (
                     <div ref={turnstileContainerRef} className="min-h-16" />
                 ) : (
-                    <p className="text-sm text-red-600">
+                    <p className="text-sm text-red-300">
                         Captcha site key is not configured. Please contact support.
                     </p>
                 )}
                 {(turnstileError || turnstileClientError) && (
-                    <p className="mt-1 text-xs text-red-600">{turnstileError || turnstileClientError}</p>
+                    <p className="text-xs text-red-300">{turnstileError || turnstileClientError}</p>
                 )}
             </div>
         );
     }
 
     return (
-        <div>
-            <label className="mb-2 block text-sm font-bold text-gray-700">
+        <div className="jv-field">
+            <label className="jv-label">
                 {labelPrefix}: {question}
             </label>
             <input
@@ -115,7 +115,7 @@ export default function HumanVerificationField({
                 className={inputClassName}
                 placeholder="Enter answer"
             />
-            {mathError && <p className="mt-1 text-xs text-red-600">{mathError}</p>}
+            {mathError && <p className="text-xs text-red-300">{mathError}</p>}
         </div>
     );
 }

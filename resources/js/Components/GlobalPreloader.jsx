@@ -35,8 +35,8 @@ export default function GlobalPreloader({ children }) {
             {children}
 
             {isLoading && (
-                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/95 backdrop-blur-sm">
-                    <HashLoader color="#050a80" />
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#08080c]/95 backdrop-blur-sm">
+                    <HashLoader color="#0055ff" />
                 </div>
             )}
         </>

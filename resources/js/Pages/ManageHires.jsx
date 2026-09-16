@@ -1,9 +1,18 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import { useEffect, useRef } from "react";
 import PageTheme from "@/Layouts/PageTheme";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import {
-    CheckCircleIcon,
+    Button,
+    Card,
+    CheckItem,
+    Display,
+    Eyebrow,
+    Section,
+    SectionHeading,
+    Stagger,
+    StaggerItem,
+} from "@/Components/PublicUI";
+import {
     ChatBubbleLeftRightIcon,
     SparklesIcon,
     UserGroupIcon,
@@ -15,7 +24,7 @@ const formatNaira = (amount) => new Intl.NumberFormat("en-NG", {
     maximumFractionDigits: 0,
 }).format(Number(amount || 0));
 
-function CanvasHero({ eyebrow, title, description, whatsappUrl }) {
+function ParticleCanvas() {
     const canvasRef = useRef(null);
 
     useEffect(() => {
@@ -32,10 +41,10 @@ function CanvasHero({ eyebrow, title, description, whatsappUrl }) {
         const particles = Array.from({ length: 70 }, () => ({
             x: Math.random(),
             y: Math.random(),
-            radius: Math.random() * 2.4 + 0.6,
+            radius: Math.random() * 2.2 + 0.5,
             speed: Math.random() * 0.3 + 0.08,
             drift: (Math.random() - 0.5) * 0.06,
-            alpha: Math.random() * 0.35 + 0.12,
+            alpha: Math.random() * 0.35 + 0.1,
         }));
 
         const resize = () => {
@@ -49,13 +58,6 @@ function CanvasHero({ eyebrow, title, description, whatsappUrl }) {
 
         const draw = () => {
             context.clearRect(0, 0, width, height);
-
-            const gradient = context.createLinearGradient(0, 0, width, height);
-            gradient.addColorStop(0, "#02063f");
-            gradient.addColorStop(0.5, "#050a80");
-            gradient.addColorStop(1, "#0b1a8f");
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, width, height);
 
             for (const particle of particles) {
                 particle.y -= particle.speed / height;
@@ -72,7 +74,7 @@ function CanvasHero({ eyebrow, title, description, whatsappUrl }) {
 
                 context.beginPath();
                 context.arc(particle.x * width, particle.y * height, particle.radius, 0, Math.PI * 2);
-                context.fillStyle = `rgba(186, 210, 255, ${particle.alpha})`;
+                context.fillStyle = `rgba(120, 165, 255, ${particle.alpha})`;
                 context.fill();
             }
 
@@ -90,45 +92,11 @@ function CanvasHero({ eyebrow, title, description, whatsappUrl }) {
     }, []);
 
     return (
-        <div className="relative isolate overflow-hidden">
-            <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(125,211,252,0.16),transparent_38%),linear-gradient(180deg,rgba(2,6,63,0.05),rgba(2,6,63,0.55))]" />
-
-            <div className="relative z-10 mx-auto max-w-5xl px-4 py-24 text-center sm:px-6 sm:py-32 lg:px-8">
-                <RevealSection>
-                    <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-black uppercase tracking-[0.2em] text-cyan-100 backdrop-blur-sm">
-                        <SparklesIcon className="h-4 w-4" />
-                        {eyebrow}
-                    </span>
-                    <h1 className="mt-6 text-4xl font-black leading-[1.05] tracking-tight text-white sm:text-5xl lg:text-6xl">
-                        {title}
-                    </h1>
-                    <p className="mx-auto mt-6 max-w-2xl text-base leading-8 text-blue-100 sm:text-lg">
-                        {description}
-                    </p>
-
-                    <div className="mt-10 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                        <a
-                            href="#plans"
-                            className="inline-flex items-center justify-center gap-2 rounded-md bg-white px-6 py-3 text-sm font-black text-brand transition hover:-translate-y-0.5 hover:bg-cyan-50"
-                        >
-                            View Plans
-                        </a>
-                        {whatsappUrl ? (
-                            <a
-                                href={whatsappUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center gap-2 rounded-md border border-white/30 px-6 py-3 text-sm font-black text-white transition hover:bg-white/10"
-                            >
-                                <ChatBubbleLeftRightIcon className="h-4 w-4" />
-                                Discuss Scope
-                            </a>
-                        ) : null}
-                    </div>
-                </RevealSection>
-            </div>
-        </div>
+        <canvas
+            ref={canvasRef}
+            className="absolute inset-0 h-full w-full opacity-70"
+            aria-hidden="true"
+        />
     );
 }
 
@@ -140,106 +108,177 @@ export default function ManageHires({ whatsappUrl = "", packages = {} }) {
             <Head title="Manage Your Hires" />
 
             <PageTheme>
-                <main className="bg-white text-gray-950">
-                    <CanvasHero
-                        eyebrow="Dedicated Design Retainer"
-                        title="Manage Your Hires"
-                        description="Unlimited design requests managed by a dedicated Bellah Options creative team — no full-time hires, no hiring headaches."
-                        whatsappUrl={whatsappUrl}
-                    />
+                <main className="text-white">
+                    {/* ── HERO ── */}
+                    <section className="jv-glow relative isolate overflow-hidden pt-16 pb-14 sm:pt-20 sm:pb-16 lg:pt-24 lg:pb-20">
+                        <ParticleCanvas />
+                        <div
+                            aria-hidden="true"
+                            className="absolute inset-0 bg-gradient-to-b from-transparent via-[#08080c]/60 to-jv-bg"
+                        />
+                        <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute -top-32 left-1/2 h-72 w-[min(760px,110%)] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,85,255,0.45),transparent_72%)]"
+                        />
 
-                    <RevealSection id="plans" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-                        <div className="mx-auto max-w-2xl text-center">
-                            <p className="text-sm font-black uppercase tracking-[0.22em] text-brand">Monthly Plans</p>
-                            <h2 className="mt-3 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                                Pick the coverage your brand needs.
-                            </h2>
-                            <p className="mt-4 text-sm leading-7 text-gray-600">
-                                Both plans cover design services only and exclude UI/UX. Cancel or change plans anytime.
-                            </p>
+                        <div className="jv-container relative">
+                            <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
+                                <Eyebrow>
+                                    <SparklesIcon className="h-3.5 w-3.5" />
+                                    Dedicated Design Retainer
+                                </Eyebrow>
+                                <h1 className="jv-display jv-display--xl mt-6">
+                                    Manage Your Hires
+                                </h1>
+                                <p className="jv-lead mx-auto mt-6 max-w-2xl">
+                                    Unlimited design requests managed by a dedicated Bellah
+                                    Options creative team — no full-time hires, no hiring
+                                    headaches.
+                                </p>
+
+                                <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                                    <Button href="#plans" variant="primary" size="lg" icon>
+                                        View Plans
+                                    </Button>
+                                    {whatsappUrl ? (
+                                        <Button
+                                            href={whatsappUrl}
+                                            external
+                                            variant="ghost"
+                                            size="lg"
+                                        >
+                                            <ChatBubbleLeftRightIcon className="h-4 w-4" />
+                                            Discuss Scope
+                                        </Button>
+                                    ) : null}
+                                </div>
+                            </div>
                         </div>
+                    </section>
 
-                        <Stagger className="mx-auto mt-12 grid max-w-4xl gap-6 sm:grid-cols-2">
+                    {/* ── PLANS ── */}
+                    <Section id="plans" className="border-t border-jv-line">
+                        <SectionHeading
+                            eyebrow="Monthly plans"
+                            title="Pick the coverage"
+                            muted="your brand needs."
+                            description="Both plans cover design services only and exclude UI/UX. Cancel or change plans anytime."
+                        />
+
+                        <Stagger className="mx-auto mt-14 grid max-w-4xl gap-6 sm:grid-cols-2">
                             {planEntries.map(([code, pack]) => {
                                 const isFeatured = Boolean(pack?.is_recommended);
-                                const features = Array.isArray(pack?.features) ? pack.features : [];
+                                const features = Array.isArray(pack?.features)
+                                    ? pack.features
+                                    : [];
 
                                 return (
                                     <StaggerItem
                                         key={code}
                                         as="article"
-                                        className={`relative flex flex-col rounded-2xl border p-8 shadow-sm ${
-                                            isFeatured
-                                                ? "border-brand bg-brand text-white shadow-lg shadow-brand/20"
-                                                : "border-gray-200 bg-white"
-                                        }`}
+                                        className="relative flex h-full flex-col"
                                     >
-                                        {isFeatured && (
-                                            <span className="absolute -top-3 left-8 rounded-full bg-white px-3 py-1 text-xs font-black uppercase tracking-wide text-brand">
-                                                Most Popular
-                                            </span>
-                                        )}
-
-                                        <div className="flex items-center gap-2">
-                                            <UserGroupIcon className={`h-6 w-6 ${isFeatured ? "text-cyan-200" : "text-brand"}`} />
-                                            <h3 className={`text-xl font-black ${isFeatured ? "text-white" : "text-gray-950"}`}>
-                                                {pack?.name || code}
-                                            </h3>
-                                        </div>
-
-                                        <p className={`mt-4 text-3xl font-black ${isFeatured ? "text-white" : "text-gray-950"}`}>
-                                            {formatNaira(pack?.price)}
-                                            <span className={`text-sm font-semibold ${isFeatured ? "text-blue-100" : "text-gray-500"}`}> / month</span>
-                                        </p>
-
-                                        <p className={`mt-2 text-sm leading-6 ${isFeatured ? "text-blue-100" : "text-gray-600"}`}>
-                                            {pack?.description}
-                                        </p>
-
-                                        <ul className="mt-6 flex-1 space-y-3">
-                                            {features.map((feature) => (
-                                                <li key={feature} className="flex items-start gap-2">
-                                                    <CheckCircleIcon className={`mt-0.5 h-5 w-5 shrink-0 ${isFeatured ? "text-cyan-200" : "text-brand"}`} />
-                                                    <span className={`text-sm font-semibold ${isFeatured ? "text-white" : "text-gray-800"}`}>
-                                                        {feature}
-                                                    </span>
-                                                </li>
-                                            ))}
-                                        </ul>
-
-                                        <Link
-                                            href={`${route("orders.create", "manage-hires")}?package=${code}`}
-                                            className={`mt-8 inline-flex items-center justify-center rounded-md px-5 py-3 text-sm font-black transition ${
-                                                isFeatured
-                                                    ? "bg-white text-brand hover:bg-cyan-50"
-                                                    : "bg-brand text-white hover:bg-brand-dark"
-                                            }`}
+                                        <Card
+                                            hover
+                                            featured={isFeatured}
+                                            className="flex h-full flex-col"
                                         >
-                                            Start This Plan
-                                        </Link>
+                                            {isFeatured && (
+                                                <span className="jv-tag mb-6 self-start border-transparent bg-jv-accent text-white">
+                                                    Most Popular
+                                                </span>
+                                            )}
+
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="inline-flex h-10 w-10 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                    <UserGroupIcon className="h-5 w-5" />
+                                                </span>
+                                                <h3 className="text-xl font-semibold tracking-tight text-white">
+                                                    {pack?.name || code}
+                                                </h3>
+                                            </div>
+
+                                            <div className="mt-7 flex items-end gap-2">
+                                                <p className="jv-display jv-display--md">
+                                                    {formatNaira(pack?.price)}
+                                                </p>
+                                                <p className="jv-small pb-1.5">/ month</p>
+                                            </div>
+
+                                            {pack?.description ? (
+                                                <p className="jv-body mt-4">
+                                                    {pack.description}
+                                                </p>
+                                            ) : null}
+
+                                            {features.length > 0 ? (
+                                                <ul className="mt-7 flex-1 space-y-3 border-t border-jv-line pt-6">
+                                                    {features.map((feature) => (
+                                                        <CheckItem key={feature}>{feature}</CheckItem>
+                                                    ))}
+                                                </ul>
+                                            ) : null}
+
+                                            <Button
+                                                href={`${route("orders.create", "manage-hires")}?package=${code}`}
+                                                variant={isFeatured ? "primary" : "outline"}
+                                                icon
+                                                className="mt-9 w-full"
+                                            >
+                                                Start This Plan
+                                            </Button>
+                                        </Card>
                                     </StaggerItem>
                                 );
                             })}
                         </Stagger>
 
-                        <p className="mx-auto mt-8 max-w-2xl rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-center text-sm font-semibold text-amber-900">
-                            UI/UX design is excluded from both plans.
-                        </p>
+                        <div className="mx-auto mt-8 max-w-2xl">
+                            <div className="jv-card flex items-start gap-3 border-jv-line-strong bg-jv-accent/[0.08] px-5 py-4">
+                                <SparklesIcon className="mt-0.5 h-4 w-4 shrink-0 text-jv-accent" />
+                                <p className="jv-body">
+                                    UI/UX design is excluded from both plans.
+                                </p>
+                            </div>
+                        </div>
 
                         {whatsappUrl ? (
-                            <div className="mt-6 text-center">
-                                <a
-                                    href={whatsappUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center justify-center gap-2 text-sm font-black text-brand hover:text-brand-dark"
-                                >
+                            <div className="mt-8 flex justify-center">
+                                <Button href={whatsappUrl} external variant="ghost" size="lg">
                                     <ChatBubbleLeftRightIcon className="h-4 w-4" />
-                                    Not sure which plan fits? Discuss scope with us on WhatsApp.
-                                </a>
+                                    Not sure which plan fits? Discuss scope on WhatsApp
+                                </Button>
                             </div>
                         ) : null}
-                    </RevealSection>
+                    </Section>
+
+                    {/* ── CLOSING ── */}
+                    <Section tight>
+                        <div className="jv-card jv-grid-bg relative overflow-hidden p-8 text-center sm:p-12">
+                            <div
+                                aria-hidden="true"
+                                className="pointer-events-none absolute -top-28 left-1/2 h-64 w-[min(680px,110%)] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,85,255,0.35),transparent_72%)]"
+                            />
+                            <div className="relative mx-auto flex max-w-2xl flex-col items-center">
+                                <Eyebrow>Why a retainer</Eyebrow>
+                                <Display size="md" className="mt-6">
+                                    Steady design output without the hiring overhead.
+                                </Display>
+                                <p className="jv-lead mt-5">
+                                    Queue requests, keep one consistent visual voice, and scale
+                                    the volume up or down as your calendar changes.
+                                </p>
+                                <div className="mt-8 flex flex-wrap justify-center gap-3">
+                                    <Button href="/contact-us" variant="primary" icon>
+                                        Talk to us
+                                    </Button>
+                                    <Button href="/gallery" variant="ghost">
+                                        See our work
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </Section>
                 </main>
             </PageTheme>
         </>

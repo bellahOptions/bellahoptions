@@ -1,6 +1,8 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
+import { Eyebrow } from '@/Components/PublicUI';
 import RichTextEditor from '@/Components/RichTextEditor';
+import { Badge } from '@/Components/ui/badge';
 import { MobileCard, MobileCardActions, MobileCardList } from '@/Components/ui/mobile-cards';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -134,8 +136,8 @@ const formatGoogleReviewDate = (value) => {
 function TermsEditor({ label, value, onChange, error }) {
     return (
         <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
-            <div className="overflow-hidden rounded-md border border-gray-300 bg-white focus-within:border-brand">
+            <label className="mb-1.5 block text-sm font-medium text-white/65">{label}</label>
+            <div className="overflow-hidden rounded-jv-sm border border-jv-line-strong bg-white/[0.05] focus-within:border-jv-accent">
                 <RichTextEditor
                     value={value}
                     onChange={onChange}
@@ -145,7 +147,7 @@ function TermsEditor({ label, value, onChange, error }) {
                     className="min-h-[280px]"
                 />
             </div>
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+            {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
         </div>
     );
 }
@@ -308,18 +310,18 @@ export default function Settings({
 
     const autoSaveStatusClassName = useMemo(() => {
         if (autoSaveState === 'saving') {
-            return 'border-blue-200 bg-blue-50 text-blue-800';
+            return 'border-jv-accent-line bg-jv-accent/10 text-[#a9c4ff]';
         }
 
         if (autoSaveState === 'saved') {
-            return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+            return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300';
         }
 
         if (autoSaveState === 'error') {
-            return 'border-red-200 bg-red-50 text-red-800';
+            return 'border-red-500/30 bg-red-500/10 text-red-300';
         }
 
-        return 'border-gray-200 bg-white text-gray-700';
+        return 'border-jv-line bg-white/[0.06] text-white/70';
     }, [autoSaveState]);
 
     const updateTermContent = (field, value) => {
@@ -504,71 +506,72 @@ export default function Settings({
     };
 
     return (
-        <AuthenticatedLayout
-            header={
-                <h2 className="text-xl font-semibold leading-tight text-gray-800">
-                    Platform Settings
-                </h2>
-            }
-        >
+        <AuthenticatedLayout>
             <Head title="Platform Settings" />
 
-            <div className="py-10">
-                <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-                    {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                            {flash.success}
-                        </div>
-                    )}
+            <div className="mx-auto max-w-6xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
+                <section className="jv-card jv-card--pad">
+                    <Eyebrow>Configuration</Eyebrow>
+                    <h1 className="jv-display jv-display--md mt-5">Platform Settings</h1>
+                    <p className="jv-lead mt-4 max-w-2xl">
+                        Control access modes, branding, contact details, public SEO metadata, client reviews, and legal content.
+                    </p>
+                </section>
 
-                    {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                            {flash.error}
-                        </div>
-                    )}
+                {flash?.success && (
+                    <div className="rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
+                        {flash.success}
+                    </div>
+                )}
+
+                {flash?.error && (
+                    <div className="rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                        {flash.error}
+                    </div>
+                )}
 
                     <form onSubmit={(event) => event.preventDefault()} className="space-y-6">
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                        <div className="jv-card jv-card--pad">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">
                                 Access Control Modes
                             </h3>
 
                             <div className="mt-5 space-y-4">
-                                <label className="flex items-start gap-3 rounded-lg border border-gray-200 p-4">
+                                <label className="flex items-start gap-3 rounded-jv-sm border border-jv-line bg-white/[0.03] p-4">
                                     <input
                                         type="checkbox"
                                         checked={data.maintenance_mode}
                                         onChange={(event) => setData('maintenance_mode', event.target.checked)}
-                                        className="mt-1 h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                        className="mt-1 h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent focus:ring-jv-accent/30"
                                     />
                                     <span>
-                                        <span className="block text-sm font-semibold text-gray-900">Maintenance Mode</span>
-                                        <span className="mt-1 block text-sm text-gray-600">Blocks all public routes while maintenance is active. Staff can still access the staff portal.</span>
+                                        <span className="block text-sm font-semibold text-white">Maintenance Mode</span>
+                                        <span className="mt-1 block text-sm text-white/55">Blocks all public routes while maintenance is active. Staff can still access the staff portal.</span>
                                     </span>
                                 </label>
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                        <div className="jv-card jv-card--pad">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">
                                 Branding
                             </h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 text-sm text-white/55">
                                 Update the main website logo and favicon.
                             </p>
 
                             <div className="mt-5 grid gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Logo Path</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Logo Path</label>
                                     <input
                                         type="text"
                                         value={data.logo_path}
                                         onChange={(event) => setData('logo_path', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.logo_path && <p className="mt-1 text-xs text-red-600">{errors.logo_path}</p>}
+                                    {errors.logo_path && <p className="mt-1 text-xs text-red-300">{errors.logo_path}</p>}
                                     <div className="mt-2 flex flex-wrap gap-2">
-                                        <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
+                                        <label className="rounded-full border border-jv-accent-line bg-jv-accent/10 px-3 py-1.5 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/20 hover:text-white">
                                             Upload Logo
                                             <input
                                                 type="file"
@@ -586,7 +589,7 @@ export default function Settings({
                                         <button
                                             type="button"
                                             onClick={() => openSelector('logo_path')}
-                                            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                            className="rounded-full border border-jv-line-strong bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/[0.12] hover:text-white"
                                         >
                                             Media Selector
                                         </button>
@@ -595,22 +598,22 @@ export default function Settings({
                                         <img
                                             src={/^https?:\/\//i.test(data.logo_path) ? data.logo_path : data.logo_path.startsWith('/') ? data.logo_path : `/${data.logo_path}`}
                                             alt="Website logo preview"
-                                            className="mt-3 h-12 w-auto rounded border border-gray-200 bg-gray-50 px-2 py-1"
+                                            className="mt-3 h-12 w-auto rounded border border-jv-line bg-white/[0.06] px-2 py-1"
                                         />
                                     )}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Favicon Path</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Favicon Path</label>
                                     <input
                                         type="text"
                                         value={data.favicon_path}
                                         onChange={(event) => setData('favicon_path', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.favicon_path && <p className="mt-1 text-xs text-red-600">{errors.favicon_path}</p>}
+                                    {errors.favicon_path && <p className="mt-1 text-xs text-red-300">{errors.favicon_path}</p>}
                                     <div className="mt-2 flex flex-wrap gap-2">
-                                        <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
+                                        <label className="rounded-full border border-jv-accent-line bg-jv-accent/10 px-3 py-1.5 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/20 hover:text-white">
                                             Upload Favicon
                                             <input
                                                 type="file"
@@ -628,7 +631,7 @@ export default function Settings({
                                         <button
                                             type="button"
                                             onClick={() => openSelector('favicon_path')}
-                                            className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                            className="rounded-full border border-jv-line-strong bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/[0.12] hover:text-white"
                                         >
                                             Media Selector
                                         </button>
@@ -637,177 +640,177 @@ export default function Settings({
                                         <img
                                             src={/^https?:\/\//i.test(data.favicon_path) ? data.favicon_path : data.favicon_path.startsWith('/') ? data.favicon_path : `/${data.favicon_path}`}
                                             alt="Favicon preview"
-                                            className="mt-3 h-10 w-10 rounded border border-gray-200 bg-gray-50 p-1"
+                                            className="mt-3 h-10 w-10 rounded border border-jv-line bg-white/[0.06] p-1"
                                         />
                                     )}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">
+                        <div className="jv-card jv-card--pad">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">
                                 Default Contact Information
                             </h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                            <p className="mt-1 text-sm text-white/55">
                                 This information is used across contact pages and website footer sections.
                             </p>
 
                             <div className="mt-5 grid gap-4 md:grid-cols-2">
                                 <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Main Website URL</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Main Website URL</label>
                                     <input
                                         type="url"
                                         value={data.website_uri}
                                         onChange={(event) => setData('website_uri', event.target.value)}
                                         placeholder="https://bellahoptions.com"
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.website_uri && <p className="mt-1 text-xs text-red-600">{errors.website_uri}</p>}
+                                    {errors.website_uri && <p className="mt-1 text-xs text-red-300">{errors.website_uri}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Phone</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Phone</label>
                                     <input
                                         type="text"
                                         value={data.contact_phone}
                                         onChange={(event) => setData('contact_phone', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.contact_phone && <p className="mt-1 text-xs text-red-600">{errors.contact_phone}</p>}
+                                    {errors.contact_phone && <p className="mt-1 text-xs text-red-300">{errors.contact_phone}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Email</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Email</label>
                                     <input
                                         type="email"
                                         value={data.contact_email}
                                         onChange={(event) => setData('contact_email', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.contact_email && <p className="mt-1 text-xs text-red-600">{errors.contact_email}</p>}
+                                    {errors.contact_email && <p className="mt-1 text-xs text-red-300">{errors.contact_email}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Location</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Location</label>
                                     <input
                                         type="text"
                                         value={data.contact_location}
                                         onChange={(event) => setData('contact_location', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.contact_location && <p className="mt-1 text-xs text-red-600">{errors.contact_location}</p>}
+                                    {errors.contact_location && <p className="mt-1 text-xs text-red-300">{errors.contact_location}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">WhatsApp URL</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">WhatsApp URL</label>
                                     <input
                                         type="url"
                                         value={data.contact_whatsapp_url}
                                         onChange={(event) => setData('contact_whatsapp_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.contact_whatsapp_url && <p className="mt-1 text-xs text-red-600">{errors.contact_whatsapp_url}</p>}
+                                    {errors.contact_whatsapp_url && <p className="mt-1 text-xs text-red-300">{errors.contact_whatsapp_url}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Behance URL</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Behance URL</label>
                                     <input
                                         type="url"
                                         value={data.contact_behance_url}
                                         onChange={(event) => setData('contact_behance_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.contact_behance_url && <p className="mt-1 text-xs text-red-600">{errors.contact_behance_url}</p>}
+                                    {errors.contact_behance_url && <p className="mt-1 text-xs text-red-300">{errors.contact_behance_url}</p>}
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Google Map Embed URL</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Google Map Embed URL</label>
                                     <input
                                         type="url"
                                         value={data.contact_map_embed_url}
                                         onChange={(event) => setData('contact_map_embed_url', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {errors.contact_map_embed_url && <p className="mt-1 text-xs text-red-600">{errors.contact_map_embed_url}</p>}
+                                    {errors.contact_map_embed_url && <p className="mt-1 text-xs text-red-300">{errors.contact_map_embed_url}</p>}
                                 </div>
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Public SEO Meta</h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                        <div className="jv-card jv-card--pad">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">Public SEO Meta</h3>
+                            <p className="mt-1 text-sm text-white/55">
                                 Configure canonical links, meta descriptions, robots directives, social tags, and SEO images for all public routes.
                             </p>
 
-                            <div className="mt-5 rounded-xl border border-gray-200 p-4">
-                                <h4 className="text-sm font-semibold text-gray-900">Global SEO Defaults</h4>
+                            <div className="mt-5 rounded-jv-sm border border-jv-line bg-white/[0.03] p-4">
+                                <h4 className="text-sm font-semibold text-white">Global SEO Defaults</h4>
                                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                                     <div className="md:col-span-2">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Default Meta Title</label>
+                                        <label className="mb-1.5 block text-sm font-medium text-white/65">Default Meta Title</label>
                                         <input
                                             type="text"
                                             value={data.public_seo?.global?.default_title || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_title', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                         />
-                                        {errors['public_seo.global.default_title'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_title']}</p>}
+                                        {errors['public_seo.global.default_title'] && <p className="mt-1 text-xs text-red-300">{errors['public_seo.global.default_title']}</p>}
                                     </div>
 
                                     <div className="md:col-span-2">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Default Meta Description</label>
+                                        <label className="mb-1.5 block text-sm font-medium text-white/65">Default Meta Description</label>
                                         <textarea
                                             rows="3"
                                             value={data.public_seo?.global?.default_description || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_description', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                         />
-                                        {errors['public_seo.global.default_description'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_description']}</p>}
+                                        {errors['public_seo.global.default_description'] && <p className="mt-1 text-xs text-red-300">{errors['public_seo.global.default_description']}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Default Keywords</label>
+                                        <label className="mb-1.5 block text-sm font-medium text-white/65">Default Keywords</label>
                                         <input
                                             type="text"
                                             value={data.public_seo?.global?.default_keywords || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_keywords', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                         />
-                                        {errors['public_seo.global.default_keywords'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_keywords']}</p>}
+                                        {errors['public_seo.global.default_keywords'] && <p className="mt-1 text-xs text-red-300">{errors['public_seo.global.default_keywords']}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Default Robots</label>
+                                        <label className="mb-1.5 block text-sm font-medium text-white/65">Default Robots</label>
                                         <input
                                             type="text"
                                             value={data.public_seo?.global?.default_robots || ''}
                                             onChange={(event) => updatePublicSeoGlobal('default_robots', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                         />
-                                        {errors['public_seo.global.default_robots'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.default_robots']}</p>}
+                                        {errors['public_seo.global.default_robots'] && <p className="mt-1 text-xs text-red-300">{errors['public_seo.global.default_robots']}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Twitter Card Type</label>
+                                        <label className="mb-1.5 block text-sm font-medium text-white/65">Twitter Card Type</label>
                                         <select
                                             value={data.public_seo?.global?.twitter_card || 'summary_large_image'}
                                             onChange={(event) => updatePublicSeoGlobal('twitter_card', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                         >
                                             <option value="summary_large_image">summary_large_image</option>
                                             <option value="summary">summary</option>
                                         </select>
-                                        {errors['public_seo.global.twitter_card'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.twitter_card']}</p>}
+                                        {errors['public_seo.global.twitter_card'] && <p className="mt-1 text-xs text-red-300">{errors['public_seo.global.twitter_card']}</p>}
                                     </div>
 
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Twitter Site Handle</label>
+                                        <label className="mb-1.5 block text-sm font-medium text-white/65">Twitter Site Handle</label>
                                         <input
                                             type="text"
                                             value={data.public_seo?.global?.twitter_site || ''}
                                             onChange={(event) => updatePublicSeoGlobal('twitter_site', event.target.value)}
-                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                            className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                         />
-                                        {errors['public_seo.global.twitter_site'] && <p className="mt-1 text-xs text-red-600">{errors['public_seo.global.twitter_site']}</p>}
+                                        {errors['public_seo.global.twitter_site'] && <p className="mt-1 text-xs text-red-300">{errors['public_seo.global.twitter_site']}</p>}
                                     </div>
 
                                     {[
@@ -826,16 +829,16 @@ export default function Settings({
 
                                         return (
                                             <div key={`seo-global-${fieldMeta.field}`} className="md:col-span-2">
-                                                <label className="mb-1 block text-sm font-medium text-gray-700">{fieldMeta.label}</label>
+                                                <label className="mb-1.5 block text-sm font-medium text-white/65">{fieldMeta.label}</label>
                                                 <input
                                                     type="text"
                                                     value={value}
                                                     onChange={(event) => updatePublicSeoGlobal(fieldMeta.field, event.target.value)}
-                                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                    className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                 />
-                                                {errors[fieldKey] && <p className="mt-1 text-xs text-red-600">{errors[fieldKey]}</p>}
+                                                {errors[fieldKey] && <p className="mt-1 text-xs text-red-300">{errors[fieldKey]}</p>}
                                                 <div className="mt-2 flex flex-wrap gap-2">
-                                                    <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
+                                                    <label className="rounded-full border border-jv-accent-line bg-jv-accent/10 px-3 py-1.5 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/20 hover:text-white">
                                                         Upload Image
                                                         <input
                                                             type="file"
@@ -853,7 +856,7 @@ export default function Settings({
                                                     <button
                                                         type="button"
                                                         onClick={() => openSelector(fieldKey)}
-                                                        className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                                        className="rounded-full border border-jv-line-strong bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/[0.12] hover:text-white"
                                                     >
                                                         Media Selector
                                                     </button>
@@ -862,7 +865,7 @@ export default function Settings({
                                                     <img
                                                         src={preview}
                                                         alt={`${fieldMeta.label} preview`}
-                                                        className="mt-3 h-20 w-full rounded border border-gray-200 object-cover"
+                                                        className="mt-3 h-20 w-full rounded border border-jv-line object-cover"
                                                     />
                                                 )}
                                             </div>
@@ -881,86 +884,86 @@ export default function Settings({
                                     const twitterImagePreview = /^https?:\/\//i.test(twitterImageValue) ? twitterImageValue : twitterImageValue.startsWith('/') ? twitterImageValue : twitterImageValue ? `/${twitterImageValue}` : '';
 
                                     return (
-                                        <div key={`seo-page-${page.key}`} className="rounded-xl border border-gray-200 p-4">
-                                            <h4 className="text-sm font-semibold text-gray-900">{page.label}</h4>
+                                        <div key={`seo-page-${page.key}`} className="rounded-jv-sm border border-jv-line bg-white/[0.03] p-4">
+                                            <h4 className="text-sm font-semibold text-white">{page.label}</h4>
                                             <div className="mt-3 grid gap-3 md:grid-cols-2">
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Path</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Path</label>
                                                     <input
                                                         type="text"
                                                         value={seo.path || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'path', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     />
-                                                    {errors[`${baseError}.path`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.path`]}</p>}
+                                                    {errors[`${baseError}.path`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.path`]}</p>}
                                                 </div>
 
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Canonical URL (optional)</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Canonical URL (optional)</label>
                                                     <input
                                                         type="text"
                                                         value={seo.canonical_url || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'canonical_url', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     />
-                                                    {errors[`${baseError}.canonical_url`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.canonical_url`]}</p>}
+                                                    {errors[`${baseError}.canonical_url`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.canonical_url`]}</p>}
                                                 </div>
 
                                                 <div className="md:col-span-2">
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Meta Title</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Meta Title</label>
                                                     <input
                                                         type="text"
                                                         value={seo.meta_title || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'meta_title', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     />
-                                                    {errors[`${baseError}.meta_title`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.meta_title`]}</p>}
+                                                    {errors[`${baseError}.meta_title`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.meta_title`]}</p>}
                                                 </div>
 
                                                 <div className="md:col-span-2">
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Meta Description</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Meta Description</label>
                                                     <textarea
                                                         rows="3"
                                                         value={seo.meta_description || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'meta_description', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     />
-                                                    {errors[`${baseError}.meta_description`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.meta_description`]}</p>}
+                                                    {errors[`${baseError}.meta_description`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.meta_description`]}</p>}
                                                 </div>
 
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Keywords (optional)</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Keywords (optional)</label>
                                                     <input
                                                         type="text"
                                                         value={seo.keywords || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'keywords', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     />
-                                                    {errors[`${baseError}.keywords`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.keywords`]}</p>}
+                                                    {errors[`${baseError}.keywords`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.keywords`]}</p>}
                                                 </div>
 
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Robots (optional)</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Robots (optional)</label>
                                                     <input
                                                         type="text"
                                                         value={seo.robots || ''}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'robots', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     />
-                                                    {errors[`${baseError}.robots`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.robots`]}</p>}
+                                                    {errors[`${baseError}.robots`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.robots`]}</p>}
                                                 </div>
 
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">OG Type</label>
+                                                    <label className="mb-1.5 block text-sm font-medium text-white/65">OG Type</label>
                                                     <select
                                                         value={seo.og_type || 'website'}
                                                         onChange={(event) => updatePublicSeoPage(page.key, 'og_type', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                     >
                                                         <option value="website">website</option>
                                                         <option value="article">article</option>
                                                     </select>
-                                                    {errors[`${baseError}.og_type`] && <p className="mt-1 text-xs text-red-600">{errors[`${baseError}.og_type`]}</p>}
+                                                    {errors[`${baseError}.og_type`] && <p className="mt-1 text-xs text-red-300">{errors[`${baseError}.og_type`]}</p>}
                                                 </div>
 
                                                 <div />
@@ -974,16 +977,16 @@ export default function Settings({
 
                                                     return (
                                                         <div key={`${page.key}-${imageMeta.field}`} className="md:col-span-2">
-                                                            <label className="mb-1 block text-sm font-medium text-gray-700">{imageMeta.label}</label>
+                                                            <label className="mb-1.5 block text-sm font-medium text-white/65">{imageMeta.label}</label>
                                                             <input
                                                                 type="text"
                                                                 value={fieldValue}
                                                                 onChange={(event) => updatePublicSeoPage(page.key, imageMeta.field, event.target.value)}
-                                                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                                className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                                             />
-                                                            {errors[fieldKey] && <p className="mt-1 text-xs text-red-600">{errors[fieldKey]}</p>}
+                                                            {errors[fieldKey] && <p className="mt-1 text-xs text-red-300">{errors[fieldKey]}</p>}
                                                             <div className="mt-2 flex flex-wrap gap-2">
-                                                                <label className="rounded-md border border-brand/30 px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light">
+                                                                <label className="rounded-full border border-jv-accent-line bg-jv-accent/10 px-3 py-1.5 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/20 hover:text-white">
                                                                     Upload Image
                                                                     <input
                                                                         type="file"
@@ -1001,7 +1004,7 @@ export default function Settings({
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => openSelector(fieldKey)}
-                                                                    className="rounded-md border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                                                    className="rounded-full border border-jv-line-strong bg-white/[0.05] px-3 py-1.5 text-xs font-semibold text-white/70 transition hover:bg-white/[0.12] hover:text-white"
                                                                 >
                                                                     Media Selector
                                                                 </button>
@@ -1010,7 +1013,7 @@ export default function Settings({
                                                                 <img
                                                                     src={imageMeta.preview}
                                                                     alt={`${page.label} ${imageMeta.label} preview`}
-                                                                    className="mt-3 h-20 w-full rounded border border-gray-200 object-cover"
+                                                                    className="mt-3 h-20 w-full rounded border border-jv-line object-cover"
                                                                 />
                                                             )}
                                                         </div>
@@ -1023,37 +1026,37 @@ export default function Settings({
                             </div>
                         </div>
 
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Client Reviews Manager</h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                        <div className="jv-card jv-card--pad">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">Client Reviews Manager</h3>
+                            <p className="mt-1 text-sm text-white/55">
                                 Add internal reviews with star ratings and control which ones appear publicly. Reviews rated below 4.0 stay private automatically.
                             </p>
 
                             <form onSubmit={submitClientReview} className="mt-5 grid gap-4 md:grid-cols-2">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Reviewer Name</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Reviewer Name</label>
                                     <input
                                         type="text"
                                         value={reviewForm.data.reviewer_name}
                                         onChange={(event) => reviewForm.setData('reviewer_name', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {reviewForm.errors.reviewer_name && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.reviewer_name}</p>}
+                                    {reviewForm.errors.reviewer_name && <p className="mt-1 text-xs text-red-300">{reviewForm.errors.reviewer_name}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Reviewer Email (optional)</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Reviewer Email (optional)</label>
                                     <input
                                         type="email"
                                         value={reviewForm.data.reviewer_email}
                                         onChange={(event) => reviewForm.setData('reviewer_email', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {reviewForm.errors.reviewer_email && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.reviewer_email}</p>}
+                                    {reviewForm.errors.reviewer_email && <p className="mt-1 text-xs text-red-300">{reviewForm.errors.reviewer_email}</p>}
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Star Rating</label>
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">Star Rating</label>
                                     <input
                                         type="number"
                                         min="1"
@@ -1061,52 +1064,52 @@ export default function Settings({
                                         step="0.1"
                                         value={reviewForm.data.rating}
                                         onChange={(event) => reviewForm.setData('rating', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {reviewForm.errors.rating && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.rating}</p>}
+                                    {reviewForm.errors.rating && <p className="mt-1 text-xs text-red-300">{reviewForm.errors.rating}</p>}
                                 </div>
 
                                 <div className="flex flex-wrap items-center gap-4">
-                                    <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                    <label className="inline-flex items-center gap-2 text-sm text-white/70">
                                         <input
                                             type="checkbox"
                                             checked={Boolean(reviewForm.data.is_public)}
                                             onChange={(event) => reviewForm.setData('is_public', event.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                            className="h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent focus:ring-jv-accent/30"
                                         />
                                         Public
                                     </label>
-                                    <label className="inline-flex items-center gap-2 text-sm text-gray-700">
+                                    <label className="inline-flex items-center gap-2 text-sm text-white/70">
                                         <input
                                             type="checkbox"
                                             checked={Boolean(reviewForm.data.is_featured)}
                                             onChange={(event) => reviewForm.setData('is_featured', event.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                            className="h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent focus:ring-jv-accent/30"
                                         />
                                         Featured
                                     </label>
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">
                                         Review Comment {reviewForm.data.screenshot_path ? '(optional — a screenshot is attached)' : ''}
                                     </label>
                                     <textarea
                                         rows="4"
                                         value={reviewForm.data.comment}
                                         onChange={(event) => reviewForm.setData('comment', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-jv-sm border border-jv-line-strong bg-white/[0.05] px-3 py-2 text-sm text-white transition placeholder:text-white/30 focus:border-jv-accent focus:outline-none focus:ring-4 focus:ring-jv-accent/15"
                                     />
-                                    {reviewForm.errors.comment && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.comment}</p>}
+                                    {reviewForm.errors.comment && <p className="mt-1 text-xs text-red-300">{reviewForm.errors.comment}</p>}
                                 </div>
 
                                 <div className="md:col-span-2">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">WhatsApp Screenshot (optional)</label>
-                                    <p className="mb-2 text-xs text-gray-500">
+                                    <label className="mb-1.5 block text-sm font-medium text-white/65">WhatsApp Screenshot (optional)</label>
+                                    <p className="mb-2 text-xs text-white/45">
                                         Provide a comment, a screenshot, or both. Upload a screenshot of a WhatsApp testimonial to show it as the review.
                                     </p>
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                                        <label className="jv-btn jv-btn--ghost cursor-pointer">
                                             <input
                                                 type="file"
                                                 accept="image/*"
@@ -1120,26 +1123,26 @@ export default function Settings({
                                                 <img
                                                     src={reviewForm.data.screenshot_path}
                                                     alt="Review screenshot preview"
-                                                    className="h-16 w-16 rounded-md border border-gray-200 object-cover"
+                                                    className="h-16 w-16 rounded-md border border-jv-line object-cover"
                                                 />
                                                 <button
                                                     type="button"
                                                     onClick={() => reviewForm.setData('screenshot_path', '')}
-                                                    className="text-xs font-semibold text-red-600 hover:underline"
+                                                    className="text-xs font-semibold text-red-300 transition hover:text-red-200 hover:underline"
                                                 >
                                                     Remove
                                                 </button>
                                             </div>
                                         )}
                                     </div>
-                                    {reviewForm.errors.screenshot_path && <p className="mt-1 text-xs text-red-600">{reviewForm.errors.screenshot_path}</p>}
+                                    {reviewForm.errors.screenshot_path && <p className="mt-1 text-xs text-red-300">{reviewForm.errors.screenshot_path}</p>}
                                 </div>
 
                                 <div className="md:col-span-2">
                                     <button
                                         type="submit"
                                         disabled={reviewForm.processing || reviewScreenshotUploading}
-                                        className="inline-flex items-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                        className="jv-btn jv-btn--primary disabled:cursor-not-allowed disabled:opacity-60"
                                     >
                                         {reviewForm.processing ? 'Saving...' : 'Add Review'}
                                     </button>
@@ -1147,63 +1150,57 @@ export default function Settings({
                             </form>
 
                             <div className="mt-6 hidden overflow-x-auto md:block">
-                                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                    <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
-                                        <tr>
-                                            <th className="px-3 py-2 text-left">Reviewer</th>
-                                            <th className="px-3 py-2 text-left">Rating</th>
-                                            <th className="px-3 py-2 text-left">Source</th>
-                                            <th className="px-3 py-2 text-left">Status</th>
-                                            <th className="px-3 py-2 text-left">Review</th>
-                                            <th className="px-3 py-2 text-left">Actions</th>
+                                <table className="min-w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b border-jv-line text-left text-xs uppercase tracking-wide text-white/45">
+                                            <th className="px-3 py-3 font-medium">Reviewer</th>
+                                            <th className="px-3 py-3 font-medium">Rating</th>
+                                            <th className="px-3 py-3 font-medium">Source</th>
+                                            <th className="px-3 py-3 font-medium">Status</th>
+                                            <th className="px-3 py-3 font-medium">Review</th>
+                                            <th className="px-3 py-3 font-medium">Actions</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+                                    <tbody>
                                         {clientReviews.length === 0 && (
                                             <tr>
-                                                <td className="px-3 py-4 text-sm text-gray-500" colSpan={6}>
+                                                <td className="px-3 py-4 text-sm text-white/45" colSpan={6}>
                                                     No client reviews yet.
                                                 </td>
                                             </tr>
                                         )}
 
                                         {clientReviews.map((review) => (
-                                            <tr key={`client-review-${review.id}`}>
+                                            <tr key={`client-review-${review.id}`} className="border-b border-jv-line/70 transition hover:bg-white/[0.04]">
                                                 <td className="px-3 py-3">
-                                                    <p className="font-semibold text-gray-900">{review.reviewer_name || 'Anonymous'}</p>
-                                                    <p className="text-xs text-gray-500">{review.reviewer_email || 'No email'}</p>
+                                                    <p className="font-semibold text-white">{review.reviewer_name || 'Anonymous'}</p>
+                                                    <p className="text-xs text-white/45">{review.reviewer_email || 'No email'}</p>
                                                 </td>
                                                 <td className="px-3 py-3">
-                                                    <p className="text-amber-600">{'★'.repeat(Math.max(1, Math.min(5, Math.round(Number(review.rating || 0)))))}</p>
-                                                    <p className="text-xs text-gray-500">{Number(review.rating || 0).toFixed(1)}/5</p>
+                                                    <p className="text-amber-300">{'★'.repeat(Math.max(1, Math.min(5, Math.round(Number(review.rating || 0)))))}</p>
+                                                    <p className="text-xs text-white/45">{Number(review.rating || 0).toFixed(1)}/5</p>
                                                 </td>
                                                 <td className="px-3 py-3">
-                                                    <span className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                                                        review.source === 'admin'
-                                                            ? 'bg-blue-100 text-blue-700'
-                                                            : 'bg-gray-100 text-gray-700'
-                                                    }`}>
+                                                    <Badge variant={review.source === 'admin' ? 'default' : 'secondary'}>
                                                         {review.source === 'admin' ? 'Admin' : 'Client'}
-                                                    </span>
+                                                    </Badge>
                                                 </td>
                                                 <td className="px-3 py-3">
-                                                    <p className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                                        review.is_public ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                                    }`}>
-                                                        {review.is_public ? 'Public' : 'Private'}
-                                                    </p>
-                                                    <p className={`mt-1 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                                        review.is_featured ? 'bg-brand-light text-brand' : 'bg-gray-100 text-gray-600'
-                                                    }`}>
-                                                        {review.is_featured ? 'Featured' : 'Not Featured'}
-                                                    </p>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        <Badge variant={review.is_public ? 'success' : 'warning'}>
+                                                            {review.is_public ? 'Public' : 'Private'}
+                                                        </Badge>
+                                                        <Badge variant={review.is_featured ? 'default' : 'secondary'}>
+                                                            {review.is_featured ? 'Featured' : 'Not Featured'}
+                                                        </Badge>
+                                                    </div>
                                                 </td>
-                                                <td className="px-3 py-3 text-xs leading-6 text-gray-600">
+                                                <td className="px-3 py-3 text-xs leading-6 text-white/55">
                                                     {review.screenshot_path && (
                                                         <img
                                                             src={review.screenshot_path}
                                                             alt="Review screenshot"
-                                                            className="mb-1 h-12 w-12 rounded-md border border-gray-200 object-cover"
+                                                            className="mb-1 h-12 w-12 rounded-jv-sm border border-jv-line object-cover"
                                                         />
                                                     )}
                                                     {String(review.comment || '').slice(0, 140)}
@@ -1214,21 +1211,21 @@ export default function Settings({
                                                         <button
                                                             type="button"
                                                             onClick={() => toggleClientReviewVisibility(review)}
-                                                            className="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                            className="jv-btn jv-btn--ghost jv-btn--sm"
                                                         >
                                                             {review.is_public ? 'Make Private' : 'Make Public'}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => toggleClientReviewFeatured(review)}
-                                                            className="rounded-md border border-brand/30 px-2.5 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                            className="jv-btn jv-btn--sm border border-jv-accent-line bg-jv-accent/10 text-[#a9c4ff] hover:bg-jv-accent/20 hover:text-white"
                                                         >
                                                             {review.is_featured ? 'Unfeature' : 'Feature'}
                                                         </button>
                                                         <button
                                                             type="button"
                                                             onClick={() => deleteClientReview(review)}
-                                                            className="rounded-md border border-red-200 px-2.5 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                            className="jv-btn jv-btn--sm border border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20"
                                                         >
                                                             Delete
                                                         </button>
@@ -1241,53 +1238,45 @@ export default function Settings({
                             </div>
 
                             {clientReviews.length === 0 ? (
-                                <p className="mt-6 text-sm text-gray-500 md:hidden">No client reviews yet.</p>
+                                <p className="mt-6 text-sm text-white/45 md:hidden">No client reviews yet.</p>
                             ) : (
                                 <MobileCardList className="mt-6">
                                     {clientReviews.map((review, index) => (
                                         <MobileCard key={`client-review-mobile-${review.id}`} index={index}>
                                             <div className="flex items-start justify-between gap-3">
                                                 <div className="min-w-0">
-                                                    <p className="truncate text-sm font-semibold text-gray-900">
+                                                    <p className="truncate text-sm font-semibold text-white">
                                                         {review.reviewer_name || 'Anonymous'}
                                                     </p>
-                                                    <p className="truncate text-xs text-gray-500">{review.reviewer_email || 'No email'}</p>
+                                                    <p className="truncate text-xs text-white/45">{review.reviewer_email || 'No email'}</p>
                                                 </div>
-                                                <span className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
-                                                    review.source === 'admin'
-                                                        ? 'bg-blue-100 text-blue-700'
-                                                        : 'bg-gray-100 text-gray-700'
-                                                }`}>
+                                                <Badge variant={review.source === 'admin' ? 'default' : 'secondary'} className="shrink-0">
                                                     {review.source === 'admin' ? 'Admin' : 'Client'}
-                                                </span>
+                                                </Badge>
                                             </div>
 
-                                            <p className="mt-2 text-amber-600">
+                                            <p className="mt-2 text-amber-300">
                                                 {'★'.repeat(Math.max(1, Math.min(5, Math.round(Number(review.rating || 0)))))}
-                                                <span className="ml-1 text-xs text-gray-500">{Number(review.rating || 0).toFixed(1)}/5</span>
+                                                <span className="ml-1 text-xs text-white/45">{Number(review.rating || 0).toFixed(1)}/5</span>
                                             </p>
 
                                             <div className="mt-2 flex flex-wrap gap-1.5">
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                                    review.is_public ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                                                }`}>
+                                                <Badge variant={review.is_public ? 'success' : 'warning'}>
                                                     {review.is_public ? 'Public' : 'Private'}
-                                                </span>
-                                                <span className={`inline-flex rounded-full px-2 py-1 text-xs font-semibold ${
-                                                    review.is_featured ? 'bg-brand-light text-brand' : 'bg-gray-100 text-gray-600'
-                                                }`}>
+                                                </Badge>
+                                                <Badge variant={review.is_featured ? 'default' : 'secondary'}>
                                                     {review.is_featured ? 'Featured' : 'Not Featured'}
-                                                </span>
+                                                </Badge>
                                             </div>
 
                                             {review.screenshot_path && (
                                                 <img
                                                     src={review.screenshot_path}
                                                     alt="Review screenshot"
-                                                    className="mt-3 h-20 w-20 rounded-md border border-gray-200 object-cover"
+                                                    className="mt-3 h-20 w-20 rounded-jv-sm border border-jv-line object-cover"
                                                 />
                                             )}
-                                            <p className="mt-3 text-xs leading-6 text-gray-600">
+                                            <p className="mt-3 text-xs leading-6 text-white/55">
                                                 {String(review.comment || '').slice(0, 140)}
                                                 {String(review.comment || '').length > 140 ? '...' : ''}
                                             </p>
@@ -1296,21 +1285,21 @@ export default function Settings({
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleClientReviewVisibility(review)}
-                                                    className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                    className="jv-btn jv-btn--ghost jv-btn--sm"
                                                 >
                                                     {review.is_public ? 'Make Private' : 'Make Public'}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleClientReviewFeatured(review)}
-                                                    className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                    className="jv-btn jv-btn--sm border border-jv-accent-line bg-jv-accent/10 text-[#a9c4ff] hover:bg-jv-accent/20 hover:text-white"
                                                 >
                                                     {review.is_featured ? 'Unfeature' : 'Feature'}
                                                 </button>
                                                 <button
                                                     type="button"
                                                     onClick={() => deleteClientReview(review)}
-                                                    className="rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                    className="jv-btn jv-btn--sm border border-red-500/40 bg-red-500/10 text-red-300 hover:bg-red-500/20"
                                                 >
                                                     Delete
                                                 </button>
@@ -1321,12 +1310,12 @@ export default function Settings({
                             )}
                         </div>
 
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Legal Terms Manager</h3>
-                            <p className="mt-1 text-sm text-gray-600">
+                        <div className="jv-card jv-card--pad">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">Legal Terms Manager</h3>
+                            <p className="mt-1 text-sm text-white/55">
                                 Admins can update the Terms of Service, Privacy Policy, and Cookie Policy directly from this dashboard.
                             </p>
-                            <p className="mt-1 text-xs text-gray-500">
+                            <p className="mt-1 text-xs text-white/45">
                                 Use the Quill editor to format headings, paragraphs, lists, and links.
                             </p>
 
@@ -1356,11 +1345,9 @@ export default function Settings({
 
                     </form>
 
-                </div>
             </div>
-
             <div className="pointer-events-none fixed right-4 top-20 z-[90]">
-                <div className={`rounded-lg border px-3 py-2 text-xs font-semibold shadow-sm ${autoSaveStatusClassName}`}>
+                <div className={`rounded-full border px-3.5 py-2 text-xs font-semibold backdrop-blur-xl ${autoSaveStatusClassName}`}>
                     {autoSaveStatusText}
                 </div>
             </div>
@@ -1368,30 +1355,30 @@ export default function Settings({
             <Modal show={selectorOpen} maxWidth="2xl" onClose={closeSelector}>
                 <div className="space-y-4 p-5 sm:p-6">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Select Media File</h3>
+                        <h3 className="text-lg font-semibold tracking-tight text-white">Select Media File</h3>
                         <button
                             type="button"
                             onClick={closeSelector}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            className="jv-btn jv-btn--ghost jv-btn--sm"
                         >
                             Close
                         </button>
                     </div>
 
-                    {selectorLoading && <p className="text-sm text-gray-600">Loading media...</p>}
-                    {selectorError && <p className="text-sm text-red-600">{selectorError}</p>}
+                    {selectorLoading && <p className="text-sm text-white/55">Loading media...</p>}
+                    {selectorError && <p className="text-sm text-red-300">{selectorError}</p>}
 
                     {!selectorLoading && !selectorError && (
-                        <div className="max-h-[60vh] overflow-y-auto rounded-md border border-gray-200 p-3">
+                        <div className="max-h-[60vh] overflow-y-auto rounded-jv-sm border border-jv-line p-3">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 {selectorFiles.map((file) => (
                                     <button
                                         key={file.path}
                                         type="button"
                                         onClick={() => chooseMediaFile(file.path)}
-                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-brand hover:shadow-sm"
+                                        className="overflow-hidden rounded-jv-sm border border-jv-line text-left transition hover:border-jv-accent-line"
                                     >
-                                        <div className="h-24 w-full overflow-hidden bg-gray-50">
+                                        <div className="h-24 w-full overflow-hidden bg-white/[0.06]">
                                             <img
                                                 src={/^https?:\/\//i.test(file.preview_url || file.path)
                                                     ? (file.preview_url || file.path)
@@ -1403,8 +1390,8 @@ export default function Settings({
                                             />
                                         </div>
                                         <div className="space-y-1 p-2">
-                                            <p className="truncate text-xs font-semibold text-gray-900">{file.name}</p>
-                                            <p className="truncate text-[11px] text-gray-500">{file.path}</p>
+                                            <p className="truncate text-xs font-semibold text-white">{file.name}</p>
+                                            <p className="truncate text-[11px] text-white/45">{file.path}</p>
                                         </div>
                                     </button>
                                 ))}

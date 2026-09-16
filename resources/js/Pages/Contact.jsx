@@ -1,10 +1,15 @@
 import { Head, useForm, usePage } from "@inertiajs/react";
-import PageTheme from "@/Layouts/PageTheme";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
-import PublicPageHeader from "@/Components/PublicPageHeader";
-import { EnvelopeIcon, MapPinIcon, PhoneIcon } from "@heroicons/react/24/outline";
 import { useEffect } from "react";
+import PageTheme from "@/Layouts/PageTheme";
+import PublicPageHeader from "@/Components/PublicPageHeader";
 import HumanVerificationField from "@/Components/HumanVerificationField";
+import { Button, Card, Display, Eyebrow, Section, Stagger, StaggerItem } from "@/Components/PublicUI";
+import {
+    CheckCircleIcon,
+    EnvelopeIcon,
+    MapPinIcon,
+    PhoneIcon,
+} from "@heroicons/react/24/outline";
 
 const contactCards = [
     {
@@ -26,6 +31,36 @@ const contactCards = [
         icon: MapPinIcon,
     },
 ];
+
+const assurances = [
+    "Replies usually land within one business day",
+    "Scope, timeline, and budget confirmed before work starts",
+    "Your brief stays private and is never shared",
+];
+
+function InputError({ message }) {
+    if (!message) {
+        return null;
+    }
+
+    return <p className="text-xs text-red-300">{message}</p>;
+}
+
+function Field({ label, type = "text", placeholder = "", value = "", onChange, error = "" }) {
+    return (
+        <div className="jv-field">
+            <label className="jv-label">{label}</label>
+            <input
+                type={type}
+                placeholder={placeholder}
+                value={value}
+                onChange={onChange}
+                className="jv-input"
+            />
+            <InputError message={error} />
+        </div>
+    );
+}
 
 export default function Contact({
     humanVerificationMode = "math",
@@ -73,141 +108,177 @@ export default function Contact({
         <>
             <Head title="Contact Bellah Options" />
             <PageTheme>
-                <main className="bg-white text-gray-950">
+                <main className="text-white">
                     <PublicPageHeader
                         pageKey="contact"
                         fallbackTitle="Tell us what you are building."
                         fallbackText="Share the project, launch, campaign, or brand challenge. We will help you pick a clear next step."
+                        eyebrow="Contact"
                     />
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
-                            <Stagger className="grid gap-4">
-                                {contactCards.map((item) => {
-                                    const Icon = item.icon;
-                                    const content = (
-                                        <StaggerItem
-                                            as="article"
-                                            className="flex items-center gap-4 bg-white p-6 shadow-sm ring-1 ring-gray-200"
-                                        >
-                                            <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 text-brand">
-                                                <Icon className="h-6 w-6" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-gray-500">{item.label}</p>
-                                                <p className="mt-1 font-bold text-gray-950">{item.value}</p>
-                                            </div>
-                                        </StaggerItem>
-                                    );
-
-                                    return item.href ? (
-                                        <a key={item.label} href={item.href}>{content}</a>
-                                    ) : (
-                                        <div key={item.label}>{content}</div>
-                                    );
-                                })}
-                            </Stagger>
-
-                            <form onSubmit={submit} className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                                {flash?.success && (
-                                    <div className="mb-4 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                                        {flash.success}
-                                    </div>
-                                )}
-                                {flash?.error && (
-                                    <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                        {flash.error}
-                                    </div>
-                                )}
-
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <Field
-                                        label="Name"
-                                        placeholder="Your name"
-                                        value={data.name}
-                                        onChange={(event) => setData("name", event.target.value)}
-                                        error={errors.name}
-                                    />
-                                    <Field
-                                        label="Email"
-                                        placeholder="you@example.com"
-                                        type="email"
-                                        value={data.email}
-                                        onChange={(event) => setData("email", event.target.value)}
-                                        error={errors.email}
-                                    />
-                                    <Field
-                                        label="Phone"
-                                        placeholder="+234 800 000 0000"
-                                        value={data.phone}
-                                        onChange={(event) => setData("phone", event.target.value)}
-                                        error={errors.phone}
-                                    />
-                                    <div className="sm:col-span-2">
-                                        <Field
-                                            label="Project Type"
-                                            placeholder="Brand design, website, campaign..."
-                                            value={data.project_type}
-                                            onChange={(event) => setData("project_type", event.target.value)}
-                                            error={errors.project_type}
-                                        />
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <label className="mb-2 block text-sm font-bold text-gray-700">Message</label>
-                                        <textarea
-                                            rows={6}
-                                            value={data.message}
-                                            onChange={(event) => setData("message", event.target.value)}
-                                            className="w-full rounded-md border-gray-300 text-sm focus:border-brand focus:ring-brand"
-                                            placeholder="Tell us what you need..."
-                                        />
-                                        {errors.message && <p className="mt-1 text-xs text-red-600">{errors.message}</p>}
-                                    </div>
-                                    <div className="sm:col-span-2">
-                                        <HumanVerificationField
-                                            mode={humanVerificationMode}
-                                            question={humanCheckQuestion}
-                                            turnstileSiteKey={turnstileSiteKey}
-                                            mathValue={data.human_check_answer}
-                                            onMathChange={(value) => setData("human_check_answer", value)}
-                                            onTurnstileChange={(token) => setData("turnstile_token", token)}
-                                            mathError={errors.human_check_answer}
-                                            turnstileError={errors.turnstile_token}
-                                        />
-                                    </div>
-                                </div>
-                                <button
-                                    type="submit"
-                                    disabled={processing}
-                                    className="mt-5 rounded-md bg-brand px-6 py-3 text-sm font-black text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                    {processing ? "Sending..." : "Send Message"}
-                                </button>
-                                <p className="mt-3 text-xs text-gray-500">
-                                    Protected with rate limiting, honeypot checks, and human verification.
+                    <Section className="border-t border-jv-line">
+                        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14">
+                            <div>
+                                <Eyebrow>Direct lines</Eyebrow>
+                                <Display size="md" muted="that reach a human." className="mt-6">
+                                    Talk to Bellah Options
+                                </Display>
+                                <p className="jv-lead mt-5 max-w-md">
+                                    Prefer to start with a conversation? Reach us on any of
+                                    these channels or send the brief form.
                                 </p>
-                            </form>
-                        </div>
-                    </RevealSection>
 
+                                <Stagger className="mt-9 grid gap-4">
+                                    {contactCards.map((item) => {
+                                        const Icon = item.icon;
+                                        const content = (
+                                            <StaggerItem
+                                                as="article"
+                                                className="flex items-center gap-4"
+                                            >
+                                                <Card
+                                                    hover={Boolean(item.href)}
+                                                    className="flex w-full items-center gap-4"
+                                                >
+                                                    <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                                        <Icon className="h-5 w-5" />
+                                                    </span>
+                                                    <div>
+                                                        <p className="jv-mono text-white/40">
+                                                            {item.label}
+                                                        </p>
+                                                        <p className="mt-2 text-sm font-semibold text-white">
+                                                            {item.value}
+                                                        </p>
+                                                    </div>
+                                                </Card>
+                                            </StaggerItem>
+                                        );
+
+                                        return item.href ? (
+                                            <a
+                                                key={item.label}
+                                                href={item.href}
+                                                className="block"
+                                            >
+                                                {content}
+                                            </a>
+                                        ) : (
+                                            <div key={item.label}>{content}</div>
+                                        );
+                                    })}
+                                </Stagger>
+
+                                <ul className="mt-9 space-y-3">
+                                    {assurances.map((item) => (
+                                        <li key={item} className="jv-check">
+                                            <CheckCircleIcon className="h-4 w-4" />
+                                            <span>{item}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+
+                            <Card className="lg:sticky lg:top-28 lg:self-start">
+                                <Eyebrow>Project brief</Eyebrow>
+                                <Display size="sm" className="mt-5">
+                                    Send us the details
+                                </Display>
+
+                                <form onSubmit={submit} className="mt-8">
+                                    {flash?.success && (
+                                        <div className="mb-5 rounded-jv-sm border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+                                            {flash.success}
+                                        </div>
+                                    )}
+                                    {flash?.error && (
+                                        <div className="mb-5 rounded-jv-sm border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                                            {flash.error}
+                                        </div>
+                                    )}
+
+                                    <div className="grid gap-5 sm:grid-cols-2">
+                                        <Field
+                                            label="Name"
+                                            placeholder="Your name"
+                                            value={data.name}
+                                            onChange={(event) => setData("name", event.target.value)}
+                                            error={errors.name}
+                                        />
+                                        <Field
+                                            label="Email"
+                                            placeholder="you@example.com"
+                                            type="email"
+                                            value={data.email}
+                                            onChange={(event) => setData("email", event.target.value)}
+                                            error={errors.email}
+                                        />
+                                        <Field
+                                            label="Phone"
+                                            placeholder="+234 800 000 0000"
+                                            value={data.phone}
+                                            onChange={(event) => setData("phone", event.target.value)}
+                                            error={errors.phone}
+                                        />
+                                        <div className="sm:col-span-2">
+                                            <Field
+                                                label="Project Type"
+                                                placeholder="Brand design, website, campaign..."
+                                                value={data.project_type}
+                                                onChange={(event) => setData("project_type", event.target.value)}
+                                                error={errors.project_type}
+                                            />
+                                        </div>
+                                        <div className="jv-field sm:col-span-2">
+                                            <label className="jv-label" htmlFor="contact-message">
+                                                Message
+                                            </label>
+                                            <textarea
+                                                id="contact-message"
+                                                rows={6}
+                                                value={data.message}
+                                                onChange={(event) => setData("message", event.target.value)}
+                                                className="jv-textarea"
+                                                placeholder="Tell us what you need..."
+                                            />
+                                            <InputError message={errors.message} />
+                                        </div>
+                                        <div className="sm:col-span-2">
+                                            <HumanVerificationField
+                                                mode={humanVerificationMode}
+                                                question={humanCheckQuestion}
+                                                turnstileSiteKey={turnstileSiteKey}
+                                                mathValue={data.human_check_answer}
+                                                onMathChange={(value) => setData("human_check_answer", value)}
+                                                onTurnstileChange={(token) => setData("turnstile_token", token)}
+                                                mathError={errors.human_check_answer}
+                                                turnstileError={errors.turnstile_token}
+                                                inputClassName="jv-input"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <Button
+                                        type="submit"
+                                        variant="primary"
+                                        size="lg"
+                                        icon
+                                        disabled={processing}
+                                        className="mt-7 w-full"
+                                    >
+                                        {processing ? "Sending..." : "Send Message"}
+                                    </Button>
+
+                                    <p className="jv-small mt-4">
+                                        Protected with rate limiting, honeypot checks, and human
+                                        verification.
+                                    </p>
+                                </form>
+                            </Card>
+                        </div>
+                    </Section>
                 </main>
             </PageTheme>
         </>
-    );
-}
-
-function Field({ label, type = "text", placeholder = "", value = "", onChange, error = "" }) {
-    return (
-        <div>
-            <label className="mb-2 block text-sm font-bold text-gray-700">{label}</label>
-            <input
-                type={type}
-                placeholder={placeholder}
-                value={value}
-                onChange={onChange}
-                className="w-full rounded-md border-gray-300 text-sm focus:border-brand focus:ring-brand"
-            />
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-        </div>
     );
 }

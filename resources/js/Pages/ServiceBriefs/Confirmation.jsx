@@ -1,5 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
+import { Button, Eyebrow } from '@/Components/PublicUI';
+import { Card } from '@/Components/ui/card';
 import PageTheme from '@/Layouts/PageTheme';
+import { Head } from '@inertiajs/react';
 
 export default function ServiceBriefConfirmation({ referenceNumber, serviceName, responseDueAt }) {
     return (
@@ -7,39 +9,39 @@ export default function ServiceBriefConfirmation({ referenceNumber, serviceName,
             <Head title="Brief Received" />
 
             <PageTheme>
-                <main className="bg-gray-50 py-16 sm:py-20">
+                <main className="py-12 sm:py-16">
                     <div className="mx-auto max-w-xl px-4 sm:px-6 lg:px-8">
-                        <div className="rounded-2xl border border-gray-200 bg-white p-8 text-center shadow-sm">
-                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100 text-2xl text-emerald-600">
+                        <Card className="p-8 text-center">
+                            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-emerald-500/30 bg-emerald-500/10 text-2xl text-emerald-300">
                                 ✓
                             </div>
-                            <h1 className="mt-4 text-2xl font-black text-gray-950">Brief received!</h1>
-                            <p className="mt-2 text-sm leading-7 text-gray-600">
+                            <div className="mt-4 flex justify-center">
+                                <Eyebrow>Brief Received</Eyebrow>
+                            </div>
+                            <h1 className="jv-display jv-display--md mt-5">Brief received!</h1>
+                            <p className="jv-lead mt-4">
                                 Thanks for telling us about your {serviceName} project. We&apos;ll review it and follow up with a quote.
                             </p>
 
-                            <div className="mt-6 rounded-lg border border-gray-100 bg-gray-50 p-4">
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Reference Number</p>
-                                <p className="mt-1 text-lg font-black text-brand">{referenceNumber}</p>
+                            <div className="mt-6 rounded-jv-sm border border-jv-line bg-white/[0.03] p-4">
+                                <p className="jv-mono text-white/45">Reference Number</p>
+                                <p className="mt-1 text-lg font-semibold text-jv-accent">{referenceNumber}</p>
                             </div>
 
                             {responseDueAt && (
-                                <p className="mt-3 text-sm text-gray-700">
-                                    We&apos;ll be in touch by <span className="font-semibold">{new Date(responseDueAt).toLocaleString()}</span>.
+                                <p className="mt-3 text-sm text-white/70">
+                                    We&apos;ll be in touch by <span className="font-semibold text-white">{new Date(responseDueAt).toLocaleString()}</span>.
                                 </p>
                             )}
 
-                            <p className="mt-4 text-xs text-gray-500">
+                            <p className="mt-4 text-xs text-white/45">
                                 We&apos;ve emailed you a copy of your answers. Keep this reference number for any follow-up.
                             </p>
 
-                            <Link
-                                href={route('home')}
-                                className="mt-6 inline-flex items-center rounded-md bg-brand px-5 py-2.5 text-sm font-black text-white hover:bg-brand-dark"
-                            >
+                            <Button href={route('home')} variant="primary" className="mt-6">
                                 Back to Home
-                            </Link>
-                        </div>
+                            </Button>
+                        </Card>
                     </div>
                 </main>
             </PageTheme>

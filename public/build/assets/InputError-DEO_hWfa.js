@@ -1,0 +1,1 @@
+import{a as e}from"./app-CDbGadD9.js";var t=e();function n({message:e,className:n=``,...r}){return e?(0,t.jsx)(`p`,{...r,role:`alert`,className:`text-sm text-red-300 `+n,children:e}):null}export{n as t};

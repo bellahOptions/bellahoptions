@@ -1,3 +1,4 @@
+import { Card } from '@/Components/ui/card';
 import { MobileCard, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
@@ -49,10 +50,10 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
         <AuthenticatedLayout
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">Transaction Ledger</h2>
+                    <h2 className="jv-display jv-display--sm">Transaction Ledger</h2>
                     <a
                         href={exportUrl}
-                        className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        className="jv-btn jv-btn--ghost jv-btn--sm"
                     >
                         <Download className="h-3.5 w-3.5" />
                         Export CSV
@@ -65,7 +66,7 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
             <div className="py-8">
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
@@ -88,18 +89,18 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
                         />
                     </StatGrid>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+                    <Card className="p-4 sm:p-5">
                         <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
                             <div className="relative flex-1 lg:min-w-[220px]">
-                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/40" />
                                 <input
                                     value={search}
                                     onChange={(event) => setSearch(event.target.value)}
                                     placeholder="Search description or reference…"
-                                    className="w-full rounded-lg border border-gray-300 py-2.5 pl-9 pr-9 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="jv-input py-2.5 pl-9 pr-9"
                                 />
                                 {isSyncing && (
-                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-brand" />
+                                    <Loader2 className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-jv-accent" />
                                 )}
                             </div>
 
@@ -107,7 +108,7 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
                                 value={type}
                                 onChange={(event) => setType(event.target.value)}
                                 aria-label="Transaction type"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-select py-2.5 lg:w-auto"
                             >
                                 {typeOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -121,60 +122,63 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
                                 value={dateFrom}
                                 onChange={(event) => setDateFrom(event.target.value)}
                                 aria-label="From date"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-input py-2.5 lg:w-auto"
                             />
                             <input
                                 type="date"
                                 value={dateTo}
                                 onChange={(event) => setDateTo(event.target.value)}
                                 aria-label="To date"
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 lg:w-auto"
+                                className="jv-input py-2.5 lg:w-auto"
                             />
 
                             <button
                                 type="button"
                                 onClick={resetFilters}
                                 disabled={!hasActiveFilters}
-                                className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 lg:w-auto"
+                                className="jv-btn jv-btn--ghost jv-btn--sm w-full lg:w-auto"
                             >
                                 <RotateCcw className="h-3.5 w-3.5" />
                                 Reset
                             </button>
                         </div>
-                    </section>
+                    </Card>
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+                    <Card className="overflow-hidden">
                         <div className="hidden overflow-x-auto md:block">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50">
+                            <table className="min-w-full text-sm">
+                                <thead className="border-b border-jv-line">
                                     <tr>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Date</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Type</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Description</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Reference</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Amount</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Date</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Type</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Description</th>
+                                        <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Reference</th>
+                                        <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-white/45">Amount</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody>
                                     {(transactions?.data || []).length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-4 text-gray-500" colSpan={5}>
+                                        <tr className="border-b border-jv-line/70">
+                                            <td className="px-4 py-4 text-white/45" colSpan={5}>
                                                 No transactions found.
                                             </td>
                                         </tr>
                                     )}
 
                                     {(transactions?.data || []).map((transaction, index) => (
-                                        <tr key={`${transaction.reference}-${index}`}>
-                                            <td className="px-3 py-3 align-top text-gray-700">{transaction.date}</td>
-                                            <td className="px-3 py-3 align-top">
+                                        <tr
+                                            key={`${transaction.reference}-${index}`}
+                                            className="border-b border-jv-line/70 transition hover:bg-white/[0.04]"
+                                        >
+                                            <td className="px-4 py-3 align-top text-white/80">{transaction.date}</td>
+                                            <td className="px-4 py-3 align-top">
                                                 <TypeBadge type={transaction.type} />
                                             </td>
-                                            <td className="px-3 py-3 align-top text-gray-900">{transaction.description}</td>
-                                            <td className="px-3 py-3 align-top text-xs text-gray-500">{transaction.reference}</td>
+                                            <td className="px-4 py-3 align-top font-medium text-white">{transaction.description}</td>
+                                            <td className="px-4 py-3 align-top text-xs text-white/45">{transaction.reference}</td>
                                             <td
-                                                className={`px-3 py-3 align-top text-right font-semibold ${
-                                                    transaction.amount >= 0 ? 'text-emerald-700' : 'text-red-700'
+                                                className={`px-4 py-3 align-top text-right font-semibold ${
+                                                    transaction.amount >= 0 ? 'text-emerald-300' : 'text-red-300'
                                                 }`}
                                             >
                                                 {transaction.amount >= 0 ? '+' : '-'}
@@ -187,55 +191,65 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
                         </div>
 
                         {(transactions?.data || []).length === 0 ? (
-                            <p className="text-sm text-gray-500 md:hidden">No transactions found.</p>
+                            <p className="p-5 text-sm text-white/45 md:hidden">No transactions found.</p>
                         ) : (
-                            <MobileCardList>
-                                {(transactions?.data || []).map((transaction, index) => (
-                                    <MobileCard key={`${transaction.reference}-mobile-${index}`} index={index}>
-                                        <MobileCardHeader
-                                            title={transaction.description}
-                                            subtitle={transaction.date}
-                                            badge={<TypeBadge type={transaction.type} />}
-                                        />
-                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
-                                            <MobileCardRow label="Reference" value={transaction.reference} />
-                                            <MobileCardRow
-                                                label="Amount"
-                                                value={
-                                                    <span className={transaction.amount >= 0 ? 'text-emerald-700' : 'text-red-700'}>
-                                                        {transaction.amount >= 0 ? '+' : '-'}
-                                                        {formatMoney(Math.abs(transaction.amount), transaction.currency)}
-                                                    </span>
-                                                }
+                            <div className="p-4 md:hidden">
+                                <MobileCardList>
+                                    {(transactions?.data || []).map((transaction, index) => (
+                                        <MobileCard key={`${transaction.reference}-mobile-${index}`} index={index}>
+                                            <MobileCardHeader
+                                                title={transaction.description}
+                                                subtitle={transaction.date}
+                                                badge={<TypeBadge type={transaction.type} />}
                                             />
-                                        </div>
-                                    </MobileCard>
-                                ))}
-                            </MobileCardList>
+                                            <div className="mt-3 divide-y divide-jv-line">
+                                                <MobileCardRow label="Reference" value={transaction.reference} />
+                                                <MobileCardRow
+                                                    label="Amount"
+                                                    value={
+                                                        <span className={transaction.amount >= 0 ? 'text-emerald-300' : 'text-red-300'}>
+                                                            {transaction.amount >= 0 ? '+' : '-'}
+                                                            {formatMoney(Math.abs(transaction.amount), transaction.currency)}
+                                                        </span>
+                                                    }
+                                                />
+                                            </div>
+                                        </MobileCard>
+                                    ))}
+                                </MobileCardList>
+                            </div>
                         )}
 
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-jv-line px-4 py-3 text-sm text-white/60">
                             <p>
                                 Page {transactions?.current_page || 1} of {transactions?.last_page || 1}
                             </p>
                             <div className="flex items-center gap-2">
                                 {transactions?.prev_page_url ? (
-                                    <Link href={transactions.prev_page_url} className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50" preserveScroll>
+                                    <Link
+                                        href={transactions.prev_page_url}
+                                        className="rounded-full border border-jv-line-strong px-3 py-1.5 text-white/70 transition hover:bg-white/[0.06] hover:text-white"
+                                        preserveScroll
+                                    >
                                         Previous
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">Previous</span>
+                                    <span className="cursor-not-allowed rounded-full border border-jv-line px-3 py-1.5 text-white/30">Previous</span>
                                 )}
                                 {transactions?.next_page_url ? (
-                                    <Link href={transactions.next_page_url} className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50" preserveScroll>
+                                    <Link
+                                        href={transactions.next_page_url}
+                                        className="rounded-full border border-jv-line-strong px-3 py-1.5 text-white/70 transition hover:bg-white/[0.06] hover:text-white"
+                                        preserveScroll
+                                    >
                                         Next
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">Next</span>
+                                    <span className="cursor-not-allowed rounded-full border border-jv-line px-3 py-1.5 text-white/30">Next</span>
                                 )}
                             </div>
                         </div>
-                    </section>
+                    </Card>
                 </div>
             </div>
         </AuthenticatedLayout>
@@ -244,9 +258,9 @@ export default function FinanceLedger({ transactions, totals = {}, filters = {} 
 
 function TypeBadge({ type }) {
     const config = {
-        income: { label: 'Income', className: 'bg-emerald-100 text-emerald-700', Icon: ArrowUpRight },
-        expense: { label: 'Expense', className: 'bg-red-100 text-red-700', Icon: ArrowDownRight },
-        payout: { label: 'Payout', className: 'bg-amber-100 text-amber-700', Icon: ArrowDownRight },
+        income: { label: 'Income', className: 'bg-emerald-500/15 text-emerald-300', Icon: ArrowUpRight },
+        expense: { label: 'Expense', className: 'bg-red-500/15 text-red-300', Icon: ArrowDownRight },
+        payout: { label: 'Payout', className: 'bg-amber-500/15 text-amber-300', Icon: ArrowDownRight },
     };
 
     const { label, className, Icon } = config[type] || config.expense;
@@ -258,4 +272,3 @@ function TypeBadge({ type }) {
         </span>
     );
 }
-

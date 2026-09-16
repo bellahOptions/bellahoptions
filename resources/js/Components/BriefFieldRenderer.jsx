@@ -1,3 +1,4 @@
+import Checkbox from '@/Components/Checkbox';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
@@ -10,9 +11,8 @@ export default function BriefFieldRenderer({ field, value, error, onChange, uplo
     if (type === 'checkbox') {
         return (
             <div>
-                <label className="flex items-start gap-2 text-sm text-gray-700">
-                    <input
-                        type="checkbox"
+                <label className="flex items-start gap-2 text-sm text-white/70">
+                    <Checkbox
                         className="mt-0.5"
                         checked={Boolean(value)}
                         disabled={disabled}
@@ -20,8 +20,8 @@ export default function BriefFieldRenderer({ field, value, error, onChange, uplo
                     />
                     <span>{label}</span>
                 </label>
-                {help && <p className="mt-1 text-xs text-gray-500">{help}</p>}
-                {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+                {help && <p className="mt-1 text-xs text-white/45">{help}</p>}
+                {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
             </div>
         );
     }
@@ -29,7 +29,7 @@ export default function BriefFieldRenderer({ field, value, error, onChange, uplo
     return (
         <div>
             <Label>{label}</Label>
-            {help && <p className="mb-1 mt-0.5 text-xs text-gray-500">{help}</p>}
+            {help && <p className="mb-1 mt-0.5 text-xs text-white/45">{help}</p>}
             <div className="mt-1">
                 <FieldInput
                     fieldKey={key}
@@ -46,7 +46,7 @@ export default function BriefFieldRenderer({ field, value, error, onChange, uplo
                     disabled={disabled}
                 />
             </div>
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+            {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
         </div>
     );
 }
@@ -87,8 +87,15 @@ function FieldInput({ fieldKey, type, value, onChange, options, min, max, maxSel
             return (
                 <div className="space-y-2">
                     {options.map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 text-sm text-gray-700">
-                            <input type="radio" name={fieldKey} checked={value === opt} disabled={disabled} onChange={() => onChange(opt)} />
+                        <label key={opt} className="flex items-center gap-2 text-sm text-white/70">
+                            <input
+                                type="radio"
+                                name={fieldKey}
+                                checked={value === opt}
+                                disabled={disabled}
+                                onChange={() => onChange(opt)}
+                                className="h-4 w-4 border-jv-line-strong bg-white/[0.06] text-jv-accent accent-jv-accent focus:ring-2 focus:ring-jv-accent/40 focus:ring-offset-0"
+                            />
                             {opt}
                         </label>
                     ))}
@@ -105,9 +112,8 @@ function FieldInput({ fieldKey, type, value, onChange, options, min, max, maxSel
                         const optionDisabled = disabled || (!checked && atCap);
 
                         return (
-                            <label key={opt} className={`flex items-center gap-2 text-sm ${optionDisabled ? 'text-gray-400' : 'text-gray-700'}`}>
-                                <input
-                                    type="checkbox"
+                            <label key={opt} className={`flex items-center gap-2 text-sm ${optionDisabled ? 'text-white/30' : 'text-white/70'}`}>
+                                <Checkbox
                                     checked={checked}
                                     disabled={optionDisabled}
                                     onChange={() => onChange(checked ? selected.filter((o) => o !== opt) : [...selected, opt])}
@@ -117,7 +123,7 @@ function FieldInput({ fieldKey, type, value, onChange, options, min, max, maxSel
                         );
                     })}
                     {maxSelections ? (
-                        <p className="col-span-full text-xs text-gray-500">{selected.length} of {maxSelections} selected</p>
+                        <p className="col-span-full text-xs text-white/45">{selected.length} of {maxSelections} selected</p>
                     ) : null}
                 </div>
             );
@@ -146,7 +152,7 @@ function ScaleInput({ value, onChange, min, max, disabled }) {
                     disabled={disabled}
                     onClick={() => onChange(n)}
                     className={`h-9 w-9 rounded-full border text-sm font-semibold transition ${
-                        Number(value) === n ? 'border-brand bg-brand text-white' : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                        Number(value) === n ? 'border-jv-accent bg-jv-accent text-white' : 'border-jv-line-strong text-white/70 hover:bg-white/[0.06]'
                     }`}
                 >
                     {n}
@@ -213,16 +219,16 @@ function FileUploadInput({ field, value, onChange, uploadSessionToken, disabled 
                 type="file"
                 onChange={handleFileSelect}
                 disabled={disabled || uploading}
-                className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-brand-dark"
+                className="block w-full text-sm text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-jv-accent file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-[#1a68ff]"
             />
-            {uploading && <p className="mt-1 text-xs text-gray-500">Uploading...</p>}
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+            {uploading && <p className="mt-1 text-xs text-white/45">Uploading...</p>}
+            {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
             {files.length > 0 && (
                 <ul className="mt-2 space-y-1">
                     {files.map((file) => (
-                        <li key={file.id} className="flex items-center justify-between rounded border border-gray-200 px-2 py-1 text-xs text-gray-700">
+                        <li key={file.id} className="flex items-center justify-between rounded-jv-sm border border-jv-line px-2 py-1 text-xs text-white/70">
                             <span>{file.filename}</span>
-                            <button type="button" onClick={() => removeFile(file.id)} className="font-semibold text-red-600 hover:text-red-700">
+                            <button type="button" onClick={() => removeFile(file.id)} className="font-semibold text-red-300 hover:text-red-200">
                                 Remove
                             </button>
                         </li>

@@ -9,16 +9,16 @@ export default function Reviews() {
             <Head title="Client Reviews" />
 
             <PageTheme>
-                <main className="bg-white text-gray-950">
+                <main className="text-white">
                     <PublicPageHeader
                         pageKey="reviews"
                         fallbackTitle="Client Reviews"
                         fallbackText="Read feedback from founders, teams, and businesses that worked with Bellah Options."
-                        className="py-16 text-white sm:py-20 lg:py-24"
+                        eyebrow="Reviews"
+                        className="jv-glow pt-16 pb-10 sm:pt-20 sm:pb-14 lg:pt-24 lg:pb-16"
                     />
 
                     <ClientReviewsSection
-                        className="bg-white py-16 sm:py-20 lg:py-24"
                         title="All Client Reviews"
                         subtitle="Published reviews from completed Bellah Options client projects."
                         maxVisible={0}

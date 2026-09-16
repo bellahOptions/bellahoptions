@@ -174,7 +174,7 @@ export default function ErrorCanvas({
                             />
                         ))}
                         <motion.div
-                            className="relative flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-brand shadow-2xl shadow-cyan-500/25"
+                            className="relative flex h-24 w-24 items-center justify-center rounded-jv-lg border border-jv-line-strong bg-white/[0.06] text-jv-accent shadow-2xl shadow-jv-accent/25 backdrop-blur-xl"
                             animate={{ y: [0, -8, 0], rotate: [-2, 2, -2] }}
                             transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
                         >
@@ -226,7 +226,7 @@ export default function ErrorCanvas({
                     >
                         <Link
                             href="/"
-                            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-black text-brand transition hover:bg-cyan-50"
+                            className="jv-btn jv-btn--primary jv-btn--lg"
                         >
                             <HomeIcon className="h-5 w-5" />
                             Back Home
@@ -235,7 +235,7 @@ export default function ErrorCanvas({
                             <button
                                 type="button"
                                 onClick={() => window.history.back()}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/25 bg-white/10 px-6 py-3 text-sm font-black text-white backdrop-blur transition hover:bg-white/15"
+                                className="jv-btn jv-btn--ghost jv-btn--lg"
                             >
                                 Try Previous Page
                                 <ArrowRightIcon className="h-5 w-5" />

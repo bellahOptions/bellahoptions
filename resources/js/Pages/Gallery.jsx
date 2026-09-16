@@ -1,7 +1,8 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import PublicPageHeader from "@/Components/PublicPageHeader";
+import { Button, Card, Display, Eyebrow, Section, Stagger, StaggerItem } from "@/Components/PublicUI";
+import { ArrowUpRightIcon, PhotoIcon } from "@heroicons/react/24/outline";
 
 export default function Gallery({ projects = [] }) {
     const hasProjects = Array.isArray(projects) && projects.length > 0;
@@ -10,79 +11,129 @@ export default function Gallery({ projects = [] }) {
         <>
             <Head title="Gallery" />
             <PageTheme>
-                <main className="bg-white text-gray-950">
+                <main className="text-white">
                     <PublicPageHeader
                         pageKey="gallery"
                         fallbackTitle="A look at visual systems, campaigns, and brand assets."
                         fallbackText="Every project shown here is published directly by the Bellah Options team."
+                        eyebrow="Portfolio"
                     >
-                        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-                            <a
+                        <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
+                            <Button
                                 href="https://www.behance.net/bellahoptionsNG"
-                                target="_blank"
-                                rel="noreferrer"
-                                className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 text-sm font-black text-brand transition hover:bg-blue-50"
+                                external
+                                variant="primary"
+                                icon
                             >
                                 View Full Behance Portfolio
-                            </a>
-                            <Link
-                                href="/web-design-samples"
-                                className="inline-flex items-center justify-center rounded-lg border border-blue-200 px-5 py-3 text-sm font-black text-white transition hover:bg-blue-900/25"
-                            >
+                            </Button>
+                            <Button href="/web-design-samples" variant="ghost">
                                 See Web Design Samples
-                            </Link>
+                            </Button>
                         </div>
                     </PublicPageHeader>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                                {!hasProjects && (
-                                    <article className="col-span-full border border-blue-100 bg-blue-50 p-6 text-sm font-semibold leading-7 text-blue-900">
-                                        No gallery projects are published yet. New uploads will appear here once available.
-                                    </article>
-                                )}
+                    <Section className="border-t border-jv-line">
+                        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                            <div>
+                                <Eyebrow>Selected work</Eyebrow>
+                                <Display size="md" muted="published by our team." className="mt-6">
+                                    Projects in the gallery
+                                </Display>
+                            </div>
+                            <span className="jv-mono text-white/35">
+                                {hasProjects ? `${projects.length} projects` : "No projects"}
+                            </span>
+                        </div>
+
+                        {!hasProjects ? (
+                            <Card className="mt-12 flex flex-col items-center gap-5 text-center">
+                                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                    <PhotoIcon className="h-6 w-6" />
+                                </span>
+                                <div>
+                                    <Display size="sm">No gallery projects yet</Display>
+                                    <p className="jv-lead mx-auto mt-4 max-w-xl">
+                                        No gallery projects are published yet. New uploads will
+                                        appear here once available.
+                                    </p>
+                                </div>
+                                <Button href="/contact-us" variant="ghost" icon>
+                                    Start a project
+                                </Button>
+                            </Card>
+                        ) : (
+                            <Stagger className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                                 {projects.map((project) => {
-                                    const hasUrl = typeof project.project_url === "string" && project.project_url.length > 0;
+                                    const hasUrl =
+                                        typeof project.project_url === "string" &&
+                                        project.project_url.length > 0;
+
+                                    const body = (
+                                        <Card
+                                            hover
+                                            pad={false}
+                                            className="jv-group flex h-full flex-col overflow-hidden"
+                                        >
+                                            <div className="jv-media jv-media--zoom aspect-[4/3] rounded-b-none border-0 border-b border-jv-line">
+                                                {project.image ? (
+                                                    <img src={project.image} alt={project.title} />
+                                                ) : (
+                                                    <div className="flex h-full w-full items-center justify-center text-white/30">
+                                                        <PhotoIcon className="h-12 w-12" />
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-1 flex-col p-6">
+                                                <span className="jv-mono text-jv-accent">
+                                                    {project.category}
+                                                </span>
+                                                <h2 className="mt-3 text-xl font-semibold tracking-tight text-white">
+                                                    {project.title}
+                                                </h2>
+                                                <p className="jv-body mt-3 line-clamp-3">
+                                                    {project.description}
+                                                </p>
+
+                                                {hasUrl ? (
+                                                    <span className="mt-auto flex items-center justify-between border-t border-jv-line pt-5">
+                                                        <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
+                                                            View project
+                                                        </span>
+                                                        <span className="jv-btn-arrow h-8 w-8">
+                                                            <ArrowUpRightIcon className="h-4 w-4" />
+                                                        </span>
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        </Card>
+                                    );
 
                                     return (
-                                    <StaggerItem
-                                        as="article"
-                                        key={project.id}
-                                        className="group overflow-hidden bg-white shadow-sm ring-1 ring-gray-200"
-                                    >
-                                        <div className="aspect-[4/3] overflow-hidden bg-blue-50">
-                                            <img
-                                                src={project.image}
-                                                alt={project.title}
-                                                className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
-                                            />
-                                        </div>
-                                        <div className="p-6">
-                                            <div className="flex items-center justify-between gap-3">
-                                                <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">
-                                                    {project.category}
-                                                </p>
-                                            </div>
-                                            <h2 className="mt-3 text-2xl font-black text-gray-950">{project.title}</h2>
-                                            <p className="mt-3 text-sm leading-6 text-gray-600">{project.description}</p>
-                                            {hasUrl && (
+                                        <StaggerItem
+                                            as="article"
+                                            key={project.id}
+                                            className="h-full"
+                                        >
+                                            {hasUrl ? (
                                                 <a
                                                     href={project.project_url}
                                                     target="_blank"
                                                     rel="noreferrer"
-                                                    className="mt-5 inline-flex rounded-lg border border-blue-200 px-3 py-2 text-xs font-black uppercase tracking-[0.12em] text-brand transition hover:bg-blue-50"
+                                                    className="block h-full"
                                                 >
-                                                    View Project
+                                                    {body}
                                                 </a>
+                                            ) : (
+                                                body
                                             )}
-                                        </div>
-                                    </StaggerItem>
+                                        </StaggerItem>
                                     );
                                 })}
                             </Stagger>
-                        </div>
-                    </RevealSection>
+                        )}
+                    </Section>
                 </main>
             </PageTheme>
         </>

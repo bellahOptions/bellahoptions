@@ -1,5 +1,6 @@
 import BriefFieldRenderer from '@/Components/BriefFieldRenderer';
 import HumanVerificationField from '@/Components/HumanVerificationField';
+import { Card } from '@/Components/ui/card';
 import PageTheme from '@/Layouts/PageTheme';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -202,40 +203,40 @@ export default function CreateServiceBrief({
             <Head title={`Brief — ${serviceName}`} />
 
             <PageTheme>
-                <main className="bg-gray-50 py-12 sm:py-16">
+                <main className="py-12 sm:py-16">
                     <div className="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8">
                         {previewMode && (
-                            <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm font-semibold text-amber-800">
+                            <div className="mb-4 rounded-jv-sm border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-sm font-semibold text-amber-200">
                                 Preview mode — this will not be submitted.
                             </div>
                         )}
 
-                        <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-                            <h1 className="text-2xl font-black text-gray-950 sm:text-3xl">{serviceName} Brief</h1>
+                        <Card className="p-6 sm:p-8">
+                            <h1 className="jv-display jv-display--md">{serviceName} Brief</h1>
                             {currentStep === 0 && (
                                 <>
-                                    <p className="mt-3 text-sm leading-7 text-gray-600">{intro}</p>
-                                    <p className="mt-2 text-xs font-semibold uppercase tracking-wide text-brand">
+                                    <p className="jv-lead mt-4">{intro}</p>
+                                    <p className="jv-mono mt-2 text-[#a9c4ff]">
                                         About {estimatedMinutes} minutes
                                     </p>
                                 </>
                             )}
 
                             <div className="mt-6">
-                                <div className="flex items-center justify-between text-xs font-semibold text-gray-500">
+                                <div className="flex items-center justify-between text-xs font-semibold text-white/45">
                                     <span>Step {currentStep + 1} of {totalSteps}</span>
                                     <span>{isReviewStep ? 'Review & Submit' : steps[currentStep]?.title}</span>
                                 </div>
-                                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/[0.07]">
                                     <div
-                                        className="h-full rounded-full bg-brand transition-all"
+                                        className="h-full rounded-full bg-jv-accent transition-all"
                                         style={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
                                     />
                                 </div>
                             </div>
 
                             {flash?.error && (
-                                <div className="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                <div className="mt-4 rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                                     {flash.error}
                                 </div>
                             )}
@@ -243,7 +244,7 @@ export default function CreateServiceBrief({
                             <form onSubmit={submit} className="mt-6 space-y-5">
                                 {!isReviewStep ? (
                                     <>
-                                        <h2 className="text-base font-bold text-gray-900">{steps[currentStep]?.title}</h2>
+                                        <h2 className="text-base font-semibold text-white">{steps[currentStep]?.title}</h2>
                                         {visibleFieldsForStep(currentStep).map((field) => (
                                             <BriefFieldRenderer
                                                 key={field.key}
@@ -274,7 +275,7 @@ export default function CreateServiceBrief({
                                                 <button
                                                     type="button"
                                                     onClick={goBack}
-                                                    className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                                    className="jv-btn jv-btn--ghost jv-btn--sm"
                                                 >
                                                     Back
                                                 </button>
@@ -282,7 +283,7 @@ export default function CreateServiceBrief({
                                             <button
                                                 type="button"
                                                 onClick={goNext}
-                                                className="rounded-md bg-brand px-5 py-2 text-sm font-black text-white hover:bg-brand-dark"
+                                                className="jv-btn jv-btn--primary"
                                             >
                                                 Next
                                             </button>
@@ -298,13 +299,13 @@ export default function CreateServiceBrief({
                                             }
 
                                             return (
-                                                <div key={step.title + index} className="rounded-lg border border-gray-200 p-4">
+                                                <div key={step.title + index} className="rounded-jv-sm border border-jv-line bg-white/[0.03] p-4">
                                                     <div className="flex items-center justify-between">
-                                                        <h3 className="text-sm font-bold text-gray-900">{step.title}</h3>
+                                                        <h3 className="text-sm font-semibold text-white">{step.title}</h3>
                                                         <button
                                                             type="button"
                                                             onClick={() => setCurrentStep(index)}
-                                                            className="text-xs font-semibold text-brand hover:underline"
+                                                            className="text-xs font-semibold text-[#a9c4ff] hover:underline"
                                                         >
                                                             Edit
                                                         </button>
@@ -312,8 +313,8 @@ export default function CreateServiceBrief({
                                                     <dl className="mt-2 space-y-1.5">
                                                         {fields.map((field) => (
                                                             <div key={field.key} className="text-xs">
-                                                                <dt className="font-semibold text-gray-500">{field.label}</dt>
-                                                                <dd className="text-gray-800">
+                                                                <dt className="font-semibold text-white/45">{field.label}</dt>
+                                                                <dd className="text-white/80">
                                                                     {field.type === 'file'
                                                                         ? `${(Array.isArray(data.answers[field.key]) ? data.answers[field.key].length : 0)} file(s) attached`
                                                                         : field.type === 'checkbox'
@@ -329,7 +330,7 @@ export default function CreateServiceBrief({
                                             );
                                         })}
 
-                                        <div className="border-t border-gray-100 pt-4">
+                                        <div className="border-t border-jv-line pt-4">
                                             <HumanVerificationField
                                                 mode={humanVerificationMode}
                                                 question={humanCheckQuestion}
@@ -346,14 +347,14 @@ export default function CreateServiceBrief({
                                             <button
                                                 type="button"
                                                 onClick={goBack}
-                                                className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                                className="jv-btn jv-btn--ghost jv-btn--sm"
                                             >
                                                 Back
                                             </button>
                                             <button
                                                 type="submit"
                                                 disabled={processing}
-                                                className="rounded-md bg-brand px-6 py-2.5 text-sm font-black text-white hover:bg-brand-dark disabled:opacity-60"
+                                                className="jv-btn jv-btn--primary disabled:opacity-60"
                                             >
                                                 {processing ? 'Submitting...' : 'Submit Brief'}
                                             </button>
@@ -361,7 +362,7 @@ export default function CreateServiceBrief({
                                     </>
                                 )}
                             </form>
-                        </div>
+                        </Card>
                     </div>
                 </main>
             </PageTheme>

@@ -1,4 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
+import HumanVerificationField from '@/Components/HumanVerificationField';
 import { Button } from '@/Components/ui/button';
 import {
     Card,
@@ -16,11 +17,9 @@ import {
     Clock3,
     Mail,
     ShieldCheck,
-    Sparkles,
     User,
 } from 'lucide-react';
 import { useEffect } from 'react';
-import HumanVerificationField from '@/Components/HumanVerificationField';
 
 export default function ComingSoon({
     occupations = [],
@@ -69,68 +68,81 @@ export default function ComingSoon({
         <>
             <Head title="Coming Soon" />
 
-            <div className="font-body relative min-h-screen overflow-hidden bg-gradient-to-br from-[#edf1ff] via-white to-[#f2f7ff] text-slate-900">
-                <div className="animate-float absolute -left-24 -top-20 h-80 w-80 rounded-full bg-brand/15 blur-3xl" />
-                <div className="animate-float animation-delay-400 absolute -bottom-20 right-0 h-96 w-96 rounded-full bg-[#05a3e8]/20 blur-3xl" />
-                <div className="animate-float animation-delay-200 absolute right-1/3 top-1/3 h-52 w-52 rounded-full bg-brand-dark/10 blur-3xl" />
+            <div className="jv-canvas font-body relative min-h-screen overflow-hidden">
+                <div
+                    aria-hidden="true"
+                    className="jv-grid-bg pointer-events-none absolute inset-0"
+                />
+                <div
+                    aria-hidden="true"
+                    className="animate-float pointer-events-none absolute -left-24 -top-20 h-80 w-80 rounded-full bg-jv-accent/20 blur-3xl"
+                />
+                <div
+                    aria-hidden="true"
+                    className="animate-float animation-delay-200 pointer-events-none absolute -bottom-20 right-0 h-96 w-96 rounded-full bg-jv-accent/15 blur-3xl"
+                />
 
-                <main className="relative mx-auto flex min-h-screen w-full max-w-6xl items-center px-5 py-16 sm:px-8">
-                    <div className="grid w-full items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
-                        <section className="animate-fade-up">
-                            <ApplicationLogo className="h-12 w-auto sm:h-14" />
+                <main className="jv-container relative flex min-h-screen items-center py-16 sm:py-20">
+                    <div className="grid w-full items-center gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
+                        <section className="jv-rise">
+                            <ApplicationLogo className="h-12 w-auto brightness-0 invert sm:h-14" />
 
-                            <h1 className="font-display mt-6 text-4xl font-bold leading-tight tracking-tighter text-brand-dark sm:text-5xl lg:text-6xl">
+                            <span className="jv-kicker jv-kicker--center mt-8">
+                                Coming soon
+                            </span>
+
+                            <h1 className="jv-display jv-display--xl mt-6">
                                 Our new website is almost here.
                             </h1>
 
-                            <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg">
+                            <p className="jv-lead mt-6 max-w-xl">
                                 A better way to book our services and keep track of your bookings. Join the waitlist and be first to access the
                                 platform when we open early access.
                             </p>
 
                             <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
-                                <div className="rounded-lg border border-brand/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                <div className="rounded-jv-sm border border-jv-line bg-white/[0.04] p-4 backdrop-blur-sm">
+                                    <p className="jv-mono text-white/45">
                                         Early Access
                                     </p>
-                                    <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                                        <Clock3 className="h-4 w-4 text-brand" />
+                                    <p className="mt-2 flex items-center gap-2 text-sm font-medium text-white/85">
+                                        <Clock3 className="h-4 w-4 text-jv-accent" />
                                         Priority invite drops first.
                                     </p>
                                 </div>
-                                <div className="rounded-lg border border-brand/15 bg-white/80 p-4 shadow-sm backdrop-blur-sm">
-                                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                <div className="rounded-jv-sm border border-jv-line bg-white/[0.04] p-4 backdrop-blur-sm">
+                                    <p className="jv-mono text-white/45">
                                         Security First
                                     </p>
-                                    <p className="mt-2 flex items-center gap-2 text-sm font-medium text-slate-800">
-                                        <ShieldCheck className="h-4 w-4 text-brand" />
+                                    <p className="mt-2 flex items-center gap-2 text-sm font-medium text-white/85">
+                                        <ShieldCheck className="h-4 w-4 text-jv-accent" />
                                         Human verification enabled.
                                     </p>
                                 </div>
                             </div>
                         </section>
 
-                        <section className="animate-fade-up animation-delay-200">
-                            <Card className="border-brand/15 bg-white/90 shadow-2xl shadow-brand/10 backdrop-blur-xl">
-                                <CardHeader className="pb-5">
-                                    <CardTitle className="font-display text-2xl text-brand-dark">
+                        <section className="jv-rise animation-delay-200">
+                            <Card className="jv-card--featured p-6 sm:p-8">
+                                <CardHeader className="p-0 pb-5">
+                                    <CardTitle className="jv-display jv-display--sm">
                                         Join the Waitlist
                                     </CardTitle>
-                                    <CardDescription className="text-slate-600">
+                                    <CardDescription className="mt-3">
                                         Save your spot and receive a confirmation email instantly.
                                     </CardDescription>
                                 </CardHeader>
 
-                                <CardContent>
+                                <CardContent className="p-0">
                                     {flash?.success && (
-                                        <div className="mb-5 flex items-start gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+                                        <div className="mb-5 flex items-start gap-2 rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
                                             <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
                                             <span>{flash.success}</span>
                                         </div>
                                     )}
 
                                     {flash?.error && (
-                                        <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                                        <div className="mb-5 rounded-jv-sm border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
                                             {flash.error}
                                         </div>
                                     )}
@@ -139,7 +151,7 @@ export default function ComingSoon({
                                         <div className="space-y-2">
                                             <Label htmlFor="name">Full Name</Label>
                                             <div className="relative">
-                                                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                                <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                                                 <Input
                                                     id="name"
                                                     name="name"
@@ -151,14 +163,14 @@ export default function ComingSoon({
                                                 />
                                             </div>
                                             {errors.name && (
-                                                <p className="text-sm text-red-600">{errors.name}</p>
+                                                <p className="text-sm text-red-300">{errors.name}</p>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label htmlFor="email">Email Address</Label>
                                             <div className="relative">
-                                                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                                                <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-white/35" />
                                                 <Input
                                                     id="email"
                                                     type="email"
@@ -171,20 +183,20 @@ export default function ComingSoon({
                                                 />
                                             </div>
                                             {errors.email && (
-                                                <p className="text-sm text-red-600">{errors.email}</p>
+                                                <p className="text-sm text-red-300">{errors.email}</p>
                                             )}
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label htmlFor="occupation">Occupation</Label>
                                             <div className="relative">
-                                                <BriefcaseBusiness className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                                                <BriefcaseBusiness className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-white/35" />
                                                 <select
                                                     id="occupation"
                                                     name="occupation"
                                                     value={data.occupation}
                                                     onChange={(event) => setData('occupation', event.target.value)}
-                                                    className="h-10 w-full rounded-md border border-input bg-background pl-10 pr-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
+                                                    className="jv-select pl-10"
                                                     required
                                                 >
                                                     <option value="">Select your occupation</option>
@@ -196,7 +208,7 @@ export default function ComingSoon({
                                                 </select>
                                             </div>
                                             {errors.occupation && (
-                                                <p className="text-sm text-red-600">{errors.occupation}</p>
+                                                <p className="text-sm text-red-300">{errors.occupation}</p>
                                             )}
                                         </div>
 
@@ -210,7 +222,7 @@ export default function ComingSoon({
                                             mathError={errors.human_check_answer}
                                             turnstileError={errors.turnstile_token}
                                             labelPrefix="Identify yourself"
-                                            inputClassName="h-10 w-full rounded-md border border-input bg-background px-3 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand disabled:cursor-not-allowed disabled:opacity-50"
+                                            inputClassName="jv-input"
                                         />
 
                                         <Button
@@ -222,7 +234,7 @@ export default function ComingSoon({
                                             {processing ? 'Saving your spot...' : 'Join Waitlist'}
                                         </Button>
 
-                                        <p className="text-center text-xs leading-6 text-slate-500">
+                                        <p className="text-center text-xs leading-6 text-white/45">
                                             We only send launch-related updates. No spam, ever.
                                         </p>
                                     </form>

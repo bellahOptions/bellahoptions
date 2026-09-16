@@ -1,3 +1,5 @@
+import { Badge } from '@/Components/ui/badge';
+import { Card } from '@/Components/ui/card';
 import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import { StatCard, StatGrid } from '@/Components/ui/stat-card';
 import FinanceTabs from '@/Components/finance/FinanceTabs';
@@ -11,7 +13,7 @@ export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = 
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Income Splits</h2>}
+            header={<h2 className="jv-display jv-display--sm">Income Splits</h2>}
         >
             <Head title="Income Splits" />
 
@@ -19,22 +21,22 @@ export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = 
                 <div className="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
                     <FinanceTabs active="income-splits" />
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900">How every paid invoice is split</h3>
-                        <p className="mt-1 text-sm text-gray-600">
+                    <Card className="p-5 sm:p-6">
+                        <h3 className="text-lg font-semibold text-white">How every paid invoice is split</h3>
+                        <p className="mt-1 text-sm text-white/60">
                             Applied automatically the moment an invoice is marked paid — the three reserve
                             percentages and the partner percentage are fixed; you (owner) absorb whatever remains,
                             so every split always reconciles to exactly 100% of the invoice.
                         </p>
-                        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold">
-                            <span className="rounded-full bg-sky-100 px-3 py-1.5 text-sky-700">Ads Savings {formatPercent(formula.ads_savings_percent)}%</span>
-                            <span className="rounded-full bg-violet-100 px-3 py-1.5 text-violet-700">Data Savings {formatPercent(formula.data_savings_percent)}%</span>
-                            <span className="rounded-full bg-amber-100 px-3 py-1.5 text-amber-700">AI Savings {formatPercent(formula.ai_savings_percent)}%</span>
-                            <span className="rounded-full bg-emerald-100 px-3 py-1.5 text-emerald-700">Partner {formatPercent(formula.partner_percent)}%</span>
-                            <span className="rounded-full bg-fuchsia-100 px-3 py-1.5 text-fuchsia-700">Staff commissions: per-person %</span>
-                            <span className="rounded-full bg-brand-light px-3 py-1.5 text-brand">You: remainder</span>
+                        <div className="mt-4 flex flex-wrap gap-2">
+                            <Badge className="border-transparent bg-sky-500/15 px-3 py-1.5 text-sky-300">Ads Savings {formatPercent(formula.ads_savings_percent)}%</Badge>
+                            <Badge className="border-transparent bg-violet-500/15 px-3 py-1.5 text-violet-300">Data Savings {formatPercent(formula.data_savings_percent)}%</Badge>
+                            <Badge className="border-transparent bg-amber-500/15 px-3 py-1.5 text-amber-300">AI Savings {formatPercent(formula.ai_savings_percent)}%</Badge>
+                            <Badge className="border-transparent bg-emerald-500/15 px-3 py-1.5 text-emerald-300">Partner {formatPercent(formula.partner_percent)}%</Badge>
+                            <Badge className="border-transparent bg-fuchsia-500/15 px-3 py-1.5 text-fuchsia-300">Staff commissions: per-person %</Badge>
+                            <Badge className="border-transparent bg-jv-accent/20 px-3 py-1.5 text-[#a9c4ff]">You: remainder</Badge>
                         </div>
-                    </section>
+                    </Card>
 
                     <StatGrid>
                         <StatCard icon={Wallet} label="Total Split" value={formatMoney(totals.grand_total)} tone="brand" />
@@ -47,32 +49,34 @@ export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = 
                     </StatGrid>
 
                     {staffRoster.length > 0 && (
-                        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                            <h3 className="text-lg font-semibold text-gray-900">Commission-Eligible Staff</h3>
-                            <p className="mt-1 text-sm text-gray-600">
-                                Lifetime earnings for every staff member currently flagged eligible for commissions.
-                            </p>
+                        <Card className="overflow-hidden">
+                            <div className="border-b border-jv-line px-5 py-4 sm:px-6">
+                                <h3 className="text-lg font-semibold text-white">Commission-Eligible Staff</h3>
+                                <p className="mt-1 text-sm text-white/60">
+                                    Lifetime earnings for every staff member currently flagged eligible for commissions.
+                                </p>
+                            </div>
 
-                            <div className="mt-4 hidden overflow-x-auto md:block">
-                                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                    <thead className="bg-gray-50">
-                                        <tr>
-                                            <th className="px-3 py-2 text-left font-semibold text-gray-600">Staff</th>
-                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Commission %</th>
-                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Invoices</th>
-                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Total Earned</th>
+                            <div className="hidden overflow-x-auto md:block">
+                                <table className="min-w-full text-sm">
+                                    <thead>
+                                        <tr className="border-b border-jv-line text-xs uppercase tracking-wide text-white/45">
+                                            <th className="px-5 py-3 font-medium sm:px-6">Staff</th>
+                                            <th className="px-5 py-3 text-right font-medium sm:px-6">Commission %</th>
+                                            <th className="px-5 py-3 text-right font-medium sm:px-6">Invoices</th>
+                                            <th className="px-5 py-3 text-right font-medium sm:px-6">Total Earned</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100">
+                                    <tbody>
                                         {staffRoster.map((staff) => (
-                                            <tr key={staff.name}>
-                                                <td className="px-3 py-3 align-top">
-                                                    <p className="font-semibold text-gray-900">{staff.name}</p>
-                                                    <p className="text-xs text-gray-500">{staff.position || 'Staff'}</p>
+                                            <tr key={staff.name} className="border-b border-jv-line/70 transition hover:bg-white/[0.04]">
+                                                <td className="px-5 py-3 align-top sm:px-6">
+                                                    <p className="font-semibold text-white">{staff.name}</p>
+                                                    <p className="text-xs text-white/45">{staff.position || 'Staff'}</p>
                                                 </td>
-                                                <td className="px-3 py-3 align-top text-right text-gray-700">{formatPercent(staff.commission_percent)}%</td>
-                                                <td className="px-3 py-3 align-top text-right text-gray-700">{staff.invoice_count}</td>
-                                                <td className="px-3 py-3 align-top text-right font-semibold text-fuchsia-700">
+                                                <td className="px-5 py-3 align-top text-right text-white/80 sm:px-6">{formatPercent(staff.commission_percent)}%</td>
+                                                <td className="px-5 py-3 align-top text-right text-white/80 sm:px-6">{staff.invoice_count}</td>
+                                                <td className="px-5 py-3 align-top text-right font-semibold text-fuchsia-300 sm:px-6">
                                                     {formatMoney(staff.total_earned)}
                                                 </td>
                                             </tr>
@@ -81,85 +85,89 @@ export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = 
                                 </table>
                             </div>
 
-                            <MobileCardList>
-                                {staffRoster.map((staff, index) => (
-                                    <MobileCard key={staff.name} index={index}>
-                                        <p className="font-semibold text-gray-900">{staff.name}</p>
-                                        <p className="text-xs text-gray-500">{staff.position || 'Staff'}</p>
-                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
-                                            <MobileCardRow label="Commission %" value={`${formatPercent(staff.commission_percent)}%`} />
-                                            <MobileCardRow label="Invoices" value={staff.invoice_count} />
-                                            <MobileCardRow label="Total Earned" value={formatMoney(staff.total_earned)} />
-                                        </div>
-                                    </MobileCard>
-                                ))}
-                            </MobileCardList>
-                        </section>
+                            <div className="p-5 md:hidden">
+                                <MobileCardList>
+                                    {staffRoster.map((staff, index) => (
+                                        <MobileCard key={staff.name} index={index}>
+                                            <p className="font-semibold text-white">{staff.name}</p>
+                                            <p className="text-xs text-white/45">{staff.position || 'Staff'}</p>
+                                            <div className="mt-3 space-y-0.5 divide-y divide-jv-line/70">
+                                                <MobileCardRow label="Commission %" value={`${formatPercent(staff.commission_percent)}%`} />
+                                                <MobileCardRow label="Invoices" value={staff.invoice_count} />
+                                                <MobileCardRow label="Total Earned" value={formatMoney(staff.total_earned)} />
+                                            </div>
+                                        </MobileCard>
+                                    ))}
+                                </MobileCardList>
+                            </div>
+                        </Card>
                     )}
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900">Split History</h3>
+                    <Card className="overflow-hidden">
+                        <div className="border-b border-jv-line px-5 py-4 sm:px-6">
+                            <h3 className="text-lg font-semibold text-white">Split History</h3>
+                        </div>
 
-                        <div className="mt-4 hidden overflow-x-auto md:block">
-                            <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Invoice</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Total</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Ads</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Data</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">AI</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Partner</th>
-                                        <th className="px-3 py-2 text-left font-semibold text-gray-600">Staff Commissions</th>
-                                        <th className="px-3 py-2 text-right font-semibold text-gray-600">Owner</th>
+                        <div className="hidden overflow-x-auto md:block">
+                            <table className="min-w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-jv-line text-xs uppercase tracking-wide text-white/45">
+                                        <th className="px-5 py-3 text-left font-medium sm:px-6">Invoice</th>
+                                        <th className="px-5 py-3 text-right font-medium sm:px-6">Total</th>
+                                        <th className="px-5 py-3 text-right font-medium sm:px-6">Ads</th>
+                                        <th className="px-5 py-3 text-right font-medium sm:px-6">Data</th>
+                                        <th className="px-5 py-3 text-right font-medium sm:px-6">AI</th>
+                                        <th className="px-5 py-3 text-right font-medium sm:px-6">Partner</th>
+                                        <th className="px-5 py-3 text-left font-medium sm:px-6">Staff Commissions</th>
+                                        <th className="px-5 py-3 text-right font-medium sm:px-6">Owner</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100">
+                                <tbody>
                                     {rows.length === 0 && (
-                                        <tr>
-                                            <td className="px-3 py-4 text-gray-500" colSpan={8}>
+                                        <tr className="border-b border-jv-line/70">
+                                            <td className="px-5 py-4 text-white/45 sm:px-6" colSpan={8}>
                                                 No paid invoices have been split yet.
                                             </td>
                                         </tr>
                                     )}
 
                                     {rows.map((split) => (
-                                        <tr key={split.id}>
-                                            <td className="px-3 py-3 align-top">
-                                                <p className="font-semibold text-gray-900">{split.invoice_number}</p>
-                                                <p className="text-xs text-gray-500">{split.invoice_title} · {split.paid_at}</p>
+                                        <tr key={split.id} className="border-b border-jv-line/70 transition hover:bg-white/[0.04]">
+                                            <td className="px-5 py-3 align-top sm:px-6">
+                                                <p className="font-semibold text-white">{split.invoice_number}</p>
+                                                <p className="text-xs text-white/45">{split.invoice_title} · {split.paid_at}</p>
                                             </td>
-                                            <td className="px-3 py-3 align-top text-right font-semibold text-gray-900">
+                                            <td className="px-5 py-3 align-top text-right font-semibold text-white sm:px-6">
                                                 {formatMoney(split.total_amount, split.currency)}
                                             </td>
-                                            <td className="px-3 py-3 align-top text-right text-gray-700">{formatMoney(split.ads_savings_amount, split.currency)}</td>
-                                            <td className="px-3 py-3 align-top text-right text-gray-700">{formatMoney(split.data_savings_amount, split.currency)}</td>
-                                            <td className="px-3 py-3 align-top text-right text-gray-700">{formatMoney(split.ai_savings_amount, split.currency)}</td>
-                                            <td className="px-3 py-3 align-top text-right">
-                                                <p className="font-semibold text-emerald-700">{formatMoney(split.partner_amount, split.currency)}</p>
-                                                <p className="text-xs text-gray-500">
+                                            <td className="px-5 py-3 align-top text-right text-white/80 sm:px-6">{formatMoney(split.ads_savings_amount, split.currency)}</td>
+                                            <td className="px-5 py-3 align-top text-right text-white/80 sm:px-6">{formatMoney(split.data_savings_amount, split.currency)}</td>
+                                            <td className="px-5 py-3 align-top text-right text-white/80 sm:px-6">{formatMoney(split.ai_savings_amount, split.currency)}</td>
+                                            <td className="px-5 py-3 align-top text-right sm:px-6">
+                                                <p className="font-semibold text-emerald-300">{formatMoney(split.partner_amount, split.currency)}</p>
+                                                <p className="text-xs text-white/45">
                                                     {split.partner_name || 'Partner'} · {split.partner_notified ? 'Notified' : 'Not notified'}
                                                 </p>
                                             </td>
-                                            <td className="px-3 py-3 align-top">
+                                            <td className="px-5 py-3 align-top sm:px-6">
                                                 {split.staff_commissions?.length ? (
                                                     <ul className="space-y-1">
                                                         {split.staff_commissions.map((commission, index) => (
                                                             <li key={`${split.id}-${index}`} className="text-xs">
-                                                                <span className="font-semibold text-fuchsia-700">
+                                                                <span className="font-semibold text-fuchsia-300">
                                                                     {formatMoney(commission.amount, split.currency)}
                                                                 </span>
-                                                                <span className="text-gray-500"> · {commission.user_name || 'Staff'} ({formatPercent(commission.percent)}%)</span>
+                                                                <span className="text-white/45"> · {commission.user_name || 'Staff'} ({formatPercent(commission.percent)}%)</span>
                                                             </li>
                                                         ))}
                                                     </ul>
                                                 ) : (
-                                                    <span className="text-xs text-gray-400">None</span>
+                                                    <span className="text-xs text-white/40">None</span>
                                                 )}
                                             </td>
-                                            <td className="px-3 py-3 align-top text-right">
-                                                <p className="font-semibold text-brand">{formatMoney(split.owner_amount, split.currency)}</p>
-                                                <p className="text-xs text-gray-500">{split.owner_name || 'Owner'}</p>
+                                            <td className="px-5 py-3 align-top text-right sm:px-6">
+                                                <p className="font-semibold text-[#a9c4ff]">{formatMoney(split.owner_amount, split.currency)}</p>
+                                                <p className="text-xs text-white/45">{split.owner_name || 'Owner'}</p>
                                             </td>
                                         </tr>
                                     ))}
@@ -167,56 +175,58 @@ export default function IncomeSplits({ totals = {}, formula = {}, staffRoster = 
                             </table>
                         </div>
 
-                        {rows.length === 0 ? (
-                            <p className="text-sm text-gray-500 md:hidden">No paid invoices have been split yet.</p>
-                        ) : (
-                            <MobileCardList>
-                                {rows.map((split, index) => (
-                                    <MobileCard key={split.id} index={index}>
-                                        <p className="font-semibold text-gray-900">{split.invoice_number}</p>
-                                        <p className="text-xs text-gray-500">{split.invoice_title} · {split.paid_at}</p>
-                                        <div className="mt-3 space-y-0.5 divide-y divide-gray-50">
-                                            <MobileCardRow label="Total" value={formatMoney(split.total_amount, split.currency)} />
-                                            <MobileCardRow label="Ads Savings" value={formatMoney(split.ads_savings_amount, split.currency)} />
-                                            <MobileCardRow label="Data Savings" value={formatMoney(split.data_savings_amount, split.currency)} />
-                                            <MobileCardRow label="AI Savings" value={formatMoney(split.ai_savings_amount, split.currency)} />
-                                            <MobileCardRow label={split.partner_name || 'Partner'} value={formatMoney(split.partner_amount, split.currency)} />
-                                            {split.staff_commissions?.map((commission, index) => (
-                                                <MobileCardRow
-                                                    key={`${split.id}-${index}`}
-                                                    label={commission.user_name || 'Staff'}
-                                                    value={formatMoney(commission.amount, split.currency)}
-                                                />
-                                            ))}
-                                            <MobileCardRow label={split.owner_name || 'Owner'} value={formatMoney(split.owner_amount, split.currency)} />
-                                        </div>
-                                    </MobileCard>
-                                ))}
-                            </MobileCardList>
-                        )}
+                        <div className="p-5 md:hidden">
+                            {rows.length === 0 ? (
+                                <p className="text-sm text-white/45">No paid invoices have been split yet.</p>
+                            ) : (
+                                <MobileCardList>
+                                    {rows.map((split, index) => (
+                                        <MobileCard key={split.id} index={index}>
+                                            <p className="font-semibold text-white">{split.invoice_number}</p>
+                                            <p className="text-xs text-white/45">{split.invoice_title} · {split.paid_at}</p>
+                                            <div className="mt-3 space-y-0.5 divide-y divide-jv-line/70">
+                                                <MobileCardRow label="Total" value={formatMoney(split.total_amount, split.currency)} />
+                                                <MobileCardRow label="Ads Savings" value={formatMoney(split.ads_savings_amount, split.currency)} />
+                                                <MobileCardRow label="Data Savings" value={formatMoney(split.data_savings_amount, split.currency)} />
+                                                <MobileCardRow label="AI Savings" value={formatMoney(split.ai_savings_amount, split.currency)} />
+                                                <MobileCardRow label={split.partner_name || 'Partner'} value={formatMoney(split.partner_amount, split.currency)} />
+                                                {split.staff_commissions?.map((commission, index) => (
+                                                    <MobileCardRow
+                                                        key={`${split.id}-${index}`}
+                                                        label={commission.user_name || 'Staff'}
+                                                        value={formatMoney(commission.amount, split.currency)}
+                                                    />
+                                                ))}
+                                                <MobileCardRow label={split.owner_name || 'Owner'} value={formatMoney(split.owner_amount, split.currency)} />
+                                            </div>
+                                        </MobileCard>
+                                    ))}
+                                </MobileCardList>
+                            )}
+                        </div>
 
-                        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-600">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-jv-line px-5 py-4 text-sm text-white/55 sm:px-6">
                             <p>
                                 Page {splits?.current_page || 1} of {splits?.last_page || 1}
                             </p>
                             <div className="flex items-center gap-2">
                                 {splits?.prev_page_url ? (
-                                    <Link href={splits.prev_page_url} className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50" preserveScroll>
+                                    <Link href={splits.prev_page_url} className="jv-btn jv-btn--ghost jv-btn--sm" preserveScroll>
                                         Previous
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">Previous</span>
+                                    <span className="cursor-not-allowed rounded-full border border-jv-line px-3.5 py-2 text-xs font-semibold text-white/25">Previous</span>
                                 )}
                                 {splits?.next_page_url ? (
-                                    <Link href={splits.next_page_url} className="rounded-md border border-gray-300 px-3 py-1.5 text-gray-700 hover:bg-gray-50" preserveScroll>
+                                    <Link href={splits.next_page_url} className="jv-btn jv-btn--ghost jv-btn--sm" preserveScroll>
                                         Next
                                     </Link>
                                 ) : (
-                                    <span className="cursor-not-allowed rounded-md border border-gray-200 px-3 py-1.5 text-gray-400">Next</span>
+                                    <span className="cursor-not-allowed rounded-full border border-jv-line px-3.5 py-2 text-xs font-semibold text-white/25">Next</span>
                                 )}
                             </div>
                         </div>
-                    </section>
+                    </Card>
                 </div>
             </div>
         </AuthenticatedLayout>

@@ -1,4 +1,6 @@
+import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
+import { Card } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
@@ -78,12 +80,12 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
         <AuthenticatedLayout
             header={
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                    <h2 className="text-xl font-semibold leading-tight text-gray-800">
+                    <h2 className="jv-display jv-display--sm">
                         Invoice {invoice.invoice_number}
                     </h2>
                     <Link
                         href={route('admin.invoices.index')}
-                        className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                        className="jv-btn jv-btn--ghost jv-btn--sm"
                     >
                         Back to Invoices
                     </Link>
@@ -95,35 +97,29 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
             <div className="py-8">
                 <div className="mx-auto max-w-5xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
 
                     {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-jv-sm border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {flash.error}
                         </div>
                     )}
 
-                    <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                    <Card className="p-5 sm:p-6">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Invoice Title</p>
-                                <h3 className="mt-1 text-2xl font-semibold text-gray-900">{invoice.title}</h3>
-                                <p className="mt-2 text-sm text-gray-600">
+                                <p className="jv-mono text-white/45">Invoice Title</p>
+                                <h3 className="mt-1 text-2xl font-semibold tracking-tight text-white">{invoice.title}</h3>
+                                <p className="mt-2 text-sm text-white/60">
                                     {invoice.description || 'No description provided.'}
                                 </p>
                             </div>
-                            <span
-                                className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                                    invoice.status === 'paid'
-                                        ? 'bg-emerald-100 text-emerald-700'
-                                        : 'bg-amber-100 text-amber-700'
-                                }`}
-                            >
+                            <Badge variant={invoice.status === 'paid' ? 'success' : 'warning'} className="px-3 py-1">
                                 {invoice.status.toUpperCase()}
-                            </span>
+                            </Badge>
                         </div>
 
                         <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -140,9 +136,9 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                         </div>
 
                         {invoice.service_order?.service_name && (
-                            <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-3">
-                                <p className="text-xs uppercase tracking-wide text-gray-500">Service Ordered</p>
-                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                            <div className="mt-4 rounded-jv-sm border border-jv-line bg-white/[0.04] p-3">
+                                <p className="jv-mono text-white/45">Service Ordered</p>
+                                <p className="mt-1 text-sm font-semibold text-white">
                                     {invoice.service_order.service_name}
                                     {invoice.service_order.package_name ? ` — ${invoice.service_order.package_name}` : ''}
                                 </p>
@@ -150,7 +146,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                         )}
 
                         {invoice.latest_questionnaire && (
-                            <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-gray-700">
+                            <div className="mt-4 rounded-jv-sm border border-jv-line bg-white/[0.04] p-3 text-sm text-white/70">
                                 {invoice.latest_questionnaire.status === 'completed'
                                     ? `Questionnaire completed ${invoice.latest_questionnaire.completed_at}.`
                                     : `Questionnaire sent ${invoice.latest_questionnaire.requested_at}, awaiting response.`}
@@ -162,7 +158,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <button
                                     type="button"
                                     onClick={duplicateInvoice}
-                                    className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
+                                    className="rounded-full border border-jv-accent-line px-3 py-2 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/15"
                                 >
                                     Duplicate Invoice
                                 </button>
@@ -170,7 +166,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <button
                                     type="button"
                                     onClick={resendInvoice}
-                                    className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
+                                    className="rounded-full border border-jv-accent-line px-3 py-2 text-xs font-semibold text-[#a9c4ff] transition hover:bg-jv-accent/15"
                                 >
                                     Resend Original Invoice
                                 </button>
@@ -179,7 +175,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <button
                                     type="button"
                                     onClick={sendReminder}
-                                    className="rounded-md border border-amber-200 px-3 py-2 text-xs font-semibold text-amber-700 hover:bg-amber-50"
+                                    className="rounded-full border border-amber-500/30 px-3 py-2 text-xs font-semibold text-amber-300 transition hover:bg-amber-500/10"
                                 >
                                     Send Reminder
                                 </button>
@@ -188,7 +184,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <button
                                     type="button"
                                     onClick={() => setShowMarkPaidModal(true)}
-                                    className="rounded-md border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
+                                    className="rounded-full border border-emerald-500/30 px-3 py-2 text-xs font-semibold text-emerald-300 transition hover:bg-emerald-500/10"
                                 >
                                     Mark as Paid
                                 </button>
@@ -197,7 +193,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <button
                                     type="button"
                                     onClick={sendQuestionnaire}
-                                    className="rounded-md border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-50"
+                                    className="rounded-full border border-sky-500/30 px-3 py-2 text-xs font-semibold text-sky-300 transition hover:bg-sky-500/10"
                                 >
                                     Send Questionnaire
                                 </button>
@@ -206,47 +202,47 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <button
                                     type="button"
                                     onClick={deleteInvoice}
-                                    className="rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                    className="rounded-full border border-red-500/30 px-3 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/10"
                                 >
                                     Delete Invoice
                                 </button>
                             )}
                         </div>
-                    </section>
+                    </Card>
 
                     {invoice.items?.length > 0 && (
-                        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-                            <h4 className="text-base font-semibold text-gray-900">Line Items</h4>
+                        <Card className="p-5 sm:p-6">
+                            <h4 className="text-base font-semibold text-white">Line Items</h4>
                             <div className="mt-4 hidden overflow-x-auto md:block">
-                                <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                    <thead>
+                                <table className="min-w-full text-sm">
+                                    <thead className="border-b border-jv-line">
                                         <tr>
-                                            <th className="px-3 py-2 text-left font-semibold text-gray-600">Description</th>
-                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Qty</th>
-                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Unit Price</th>
-                                            <th className="px-3 py-2 text-right font-semibold text-gray-600">Total</th>
+                                            <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-white/45">Description</th>
+                                            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-white/45">Qty</th>
+                                            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-white/45">Unit Price</th>
+                                            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-wide text-white/45">Total</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-100">
+                                    <tbody>
                                         {invoice.items.map((item) => (
-                                            <tr key={item.id}>
-                                                <td className="px-3 py-2 text-gray-900">{item.description}</td>
-                                                <td className="px-3 py-2 text-right text-gray-700">{item.quantity}</td>
-                                                <td className="px-3 py-2 text-right text-gray-700">
+                                            <tr key={item.id} className="border-b border-jv-line/70 transition hover:bg-white/[0.04]">
+                                                <td className="px-3 py-2 text-white">{item.description}</td>
+                                                <td className="px-3 py-2 text-right text-white/80">{item.quantity}</td>
+                                                <td className="px-3 py-2 text-right text-white/80">
                                                     {formatMoney(item.unit_price, invoice.currency)}
                                                 </td>
-                                                <td className="px-3 py-2 text-right text-gray-900">
+                                                <td className="px-3 py-2 text-right font-semibold text-white">
                                                     {formatMoney(item.amount, invoice.currency)}
                                                 </td>
                                             </tr>
                                         ))}
                                     </tbody>
                                     <tfoot>
-                                        <tr>
-                                            <td colSpan={3} className="px-3 py-2 text-right font-semibold text-gray-900">
+                                        <tr className="border-t border-jv-line-strong">
+                                            <td colSpan={3} className="px-3 py-2 text-right font-semibold text-white">
                                                 Total
                                             </td>
-                                            <td className="px-3 py-2 text-right font-semibold text-gray-900">
+                                            <td className="px-3 py-2 text-right font-semibold text-white">
                                                 {formatMoney(invoice.amount, invoice.currency)}
                                             </td>
                                         </tr>
@@ -258,8 +254,8 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 <MobileCardList>
                                     {invoice.items.map((item, index) => (
                                         <MobileCard key={item.id} index={index}>
-                                            <p className="text-sm font-semibold text-gray-900">{item.description}</p>
-                                            <div className="mt-2 space-y-0.5 divide-y divide-gray-50">
+                                            <p className="text-sm font-semibold text-white">{item.description}</p>
+                                            <div className="mt-2 divide-y divide-jv-line">
                                                 <MobileCardRow label="Quantity" value={item.quantity} />
                                                 <MobileCardRow label="Unit Price" value={formatMoney(item.unit_price, invoice.currency)} />
                                                 <MobileCardRow label="Total" value={formatMoney(item.amount, invoice.currency)} />
@@ -267,62 +263,62 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                         </MobileCard>
                                     ))}
                                 </MobileCardList>
-                                <div className="mt-3 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
-                                    <span className="text-sm font-semibold text-gray-900">Total</span>
-                                    <span className="text-sm font-semibold text-gray-900">
+                                <div className="mt-3 flex items-center justify-between rounded-jv-sm border border-jv-line bg-white/[0.04] px-4 py-3">
+                                    <span className="text-sm font-semibold text-white">Total</span>
+                                    <span className="text-sm font-semibold text-white">
                                         {formatMoney(invoice.amount, invoice.currency)}
                                     </span>
                                 </div>
                             </div>
-                        </section>
+                        </Card>
                     )}
 
                     <section className="grid gap-6 lg:grid-cols-2">
-                        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-                            <h4 className="text-base font-semibold text-gray-900">Customer Details</h4>
-                            <div className="mt-4 space-y-2 text-sm text-gray-700">
-                                <p><span className="font-semibold">Name:</span> {invoice.customer_name}</p>
-                                <p><span className="font-semibold">Email:</span> {invoice.customer_email}</p>
-                                <p><span className="font-semibold">Occupation:</span> {invoice.customer_occupation || 'N/A'}</p>
-                                <p><span className="font-semibold">Phone:</span> {invoice.customer?.phone || 'N/A'}</p>
-                                <p><span className="font-semibold">Company:</span> {invoice.customer?.company || 'N/A'}</p>
-                                <p><span className="font-semibold">Address:</span> {invoice.customer?.address || 'N/A'}</p>
+                        <Card className="p-5 sm:p-6">
+                            <h4 className="text-base font-semibold text-white">Customer Details</h4>
+                            <div className="mt-4 space-y-2 text-sm text-white/70">
+                                <p><span className="font-semibold text-white">Name:</span> {invoice.customer_name}</p>
+                                <p><span className="font-semibold text-white">Email:</span> {invoice.customer_email}</p>
+                                <p><span className="font-semibold text-white">Occupation:</span> {invoice.customer_occupation || 'N/A'}</p>
+                                <p><span className="font-semibold text-white">Phone:</span> {invoice.customer?.phone || 'N/A'}</p>
+                                <p><span className="font-semibold text-white">Company:</span> {invoice.customer?.company || 'N/A'}</p>
+                                <p><span className="font-semibold text-white">Address:</span> {invoice.customer?.address || 'N/A'}</p>
                             </div>
-                        </div>
+                        </Card>
 
-                        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-                            <h4 className="text-base font-semibold text-gray-900">Reminder Tracking</h4>
-                            <div className="mt-4 space-y-2 text-sm text-gray-700">
+                        <Card className="p-5 sm:p-6">
+                            <h4 className="text-base font-semibold text-white">Reminder Tracking</h4>
+                            <div className="mt-4 space-y-2 text-sm text-white/70">
                                 <p>
-                                    <span className="font-semibold">Automatic reminders:</span>{' '}
+                                    <span className="font-semibold text-white">Automatic reminders:</span>{' '}
                                     {invoice.automatic_reminders_sent}/13
                                 </p>
                                 <p>
-                                    <span className="font-semibold">Last automatic reminder:</span>{' '}
+                                    <span className="font-semibold text-white">Last automatic reminder:</span>{' '}
                                     {invoice.last_automatic_reminder_sent_at || 'N/A'}
                                 </p>
                                 <p>
-                                    <span className="font-semibold">Last manual reminder:</span>{' '}
+                                    <span className="font-semibold text-white">Last manual reminder:</span>{' '}
                                     {invoice.last_manual_reminder_sent_at || 'N/A'}
                                 </p>
                                 <p>
-                                    <span className="font-semibold">Created at:</span>{' '}
+                                    <span className="font-semibold text-white">Created at:</span>{' '}
                                     {invoice.created_at || 'N/A'}
                                 </p>
                                 <p>
-                                    <span className="font-semibold">Updated at:</span>{' '}
+                                    <span className="font-semibold text-white">Updated at:</span>{' '}
                                     {invoice.updated_at || 'N/A'}
                                 </p>
                             </div>
-                        </div>
+                        </Card>
                     </section>
                 </div>
             </div>
 
             <Modal show={showMarkPaidModal} onClose={() => setShowMarkPaidModal(false)} maxWidth="md">
                 <form onSubmit={submitMarkPaid} className="p-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Mark Invoice as Paid</h3>
-                    <p className="mt-1 text-sm text-gray-600">
+                    <h3 className="text-lg font-semibold text-white">Mark Invoice as Paid</h3>
+                    <p className="mt-1 text-sm text-white/60">
                         Confirm how {invoice.customer_name} paid for invoice {invoice.invoice_number}.
                     </p>
 
@@ -340,7 +336,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 ))}
                             </Select>
                             {markPaidForm.errors.payment_method && (
-                                <p className="mt-1 text-xs text-red-600">{markPaidForm.errors.payment_method}</p>
+                                <p className="mt-1 text-xs text-red-300">{markPaidForm.errors.payment_method}</p>
                             )}
                         </div>
 
@@ -353,7 +349,7 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                                 onChange={(event) => markPaidForm.setData('payment_reference', event.target.value)}
                             />
                             {markPaidForm.errors.payment_reference && (
-                                <p className="mt-1 text-xs text-red-600">{markPaidForm.errors.payment_reference}</p>
+                                <p className="mt-1 text-xs text-red-300">{markPaidForm.errors.payment_reference}</p>
                             )}
                         </div>
                     </div>
@@ -374,9 +370,9 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
 
 function Info({ label, value }) {
     return (
-        <div className="rounded-lg border border-gray-100 bg-gray-50 p-3">
-            <p className="text-xs uppercase tracking-wide text-gray-500">{label}</p>
-            <p className="mt-1 text-sm font-semibold text-gray-900">{value}</p>
+        <div className="rounded-jv-sm border border-jv-line bg-white/[0.04] p-3">
+            <p className="jv-mono text-white/45">{label}</p>
+            <p className="mt-1 text-sm font-semibold text-white">{value}</p>
         </div>
     );
 }

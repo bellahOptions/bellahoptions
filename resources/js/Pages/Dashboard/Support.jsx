@@ -1,5 +1,7 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Eyebrow } from '@/Components/PublicUI';
 import RichTextEditor from '@/Components/RichTextEditor';
+import { Card } from '@/Components/ui/card';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
 const priorityOptions = {
@@ -16,9 +18,9 @@ const statusLabels = {
 };
 
 const statusClasses = {
-    open: 'bg-amber-100 text-amber-800',
-    awaiting_customer: 'bg-emerald-100 text-emerald-800',
-    closed: 'bg-slate-100 text-slate-700',
+    open: 'bg-amber-500/15 text-amber-300',
+    awaiting_customer: 'bg-emerald-500/15 text-emerald-300',
+    closed: 'bg-white/[0.07] text-white/70',
 };
 
 const editorModules = {
@@ -91,12 +93,13 @@ export default function Support({
             <Head title="Support Tickets" />
 
             <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
-                <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h1 className="text-2xl font-black text-slate-900">Support Tickets</h1>
-                    <p className="mt-2 text-sm text-slate-600">
+                <Card className="p-5 sm:p-6">
+                    <Eyebrow>Support Workspace</Eyebrow>
+                    <h1 className="jv-display jv-display--md mt-5">Support Tickets</h1>
+                    <p className="jv-lead mt-4">
                         Create a ticket for any request, and track replies from the Bellah support team here.
                     </p>
-                </section>
+                </Card>
 
                 <section className="grid gap-4 sm:grid-cols-3">
                     <SupportStat label="Open" value={support.open_tickets ?? 0} />
@@ -106,28 +109,28 @@ export default function Support({
 
                 <section className="grid gap-6 xl:grid-cols-[360px_1fr]">
                     <div className="space-y-6">
-                        <form onSubmit={submitCreate} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <h2 className="text-lg font-bold text-slate-900">New Ticket</h2>
+                        <form onSubmit={submitCreate} className="jv-card p-5">
+                            <h2 className="text-lg font-semibold tracking-tight text-white">New Ticket</h2>
 
                             <div className="mt-4 space-y-4">
                                 <div>
-                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Subject</label>
+                                    <label className="jv-label">Subject</label>
                                     <input
                                         type="text"
                                         value={createForm.data.subject}
                                         onChange={(event) => createForm.setData('subject', event.target.value)}
-                                        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500"
+                                        className="jv-input mt-1"
                                         required
                                     />
-                                    {createForm.errors.subject ? <p className="mt-1 text-xs text-red-600">{createForm.errors.subject}</p> : null}
+                                    {createForm.errors.subject ? <p className="mt-1 text-xs text-red-300">{createForm.errors.subject}</p> : null}
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Priority</label>
+                                    <label className="jv-label">Priority</label>
                                     <select
                                         value={createForm.data.priority}
                                         onChange={(event) => createForm.setData('priority', event.target.value)}
-                                        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500"
+                                        className="jv-select mt-1"
                                     >
                                         {priorities.map((priority) => (
                                             <option key={priority} value={priority}>
@@ -135,12 +138,12 @@ export default function Support({
                                             </option>
                                         ))}
                                     </select>
-                                    {createForm.errors.priority ? <p className="mt-1 text-xs text-red-600">{createForm.errors.priority}</p> : null}
+                                    {createForm.errors.priority ? <p className="mt-1 text-xs text-red-300">{createForm.errors.priority}</p> : null}
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Message</label>
-                                    <div className="mt-1 overflow-hidden rounded-lg border border-slate-300 bg-white">
+                                    <label className="jv-label">Message</label>
+                                    <div className="mt-1 overflow-hidden rounded-jv-sm border border-jv-line-strong bg-white/[0.05]">
                                         <RichTextEditor
                                             value={createForm.data.message}
                                             onChange={(value) => createForm.setData('message', value)}
@@ -150,49 +153,49 @@ export default function Support({
                                             className="min-h-[180px]"
                                         />
                                     </div>
-                                    {createForm.errors.message ? <p className="mt-1 text-xs text-red-600">{createForm.errors.message}</p> : null}
+                                    {createForm.errors.message ? <p className="mt-1 text-xs text-red-300">{createForm.errors.message}</p> : null}
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Image Attachment (Optional)</label>
+                                    <label className="jv-label">Image Attachment (Optional)</label>
                                     <input
                                         type="file"
                                         accept="image/*"
                                         onChange={(event) => createForm.setData('attachment', event.target.files?.[0] || null)}
-                                        className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                                        className="jv-input mt-1 file:mr-4 file:rounded-full file:border-0 file:bg-jv-accent file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
                                     />
-                                    {createForm.errors.attachment ? <p className="mt-1 text-xs text-red-600">{createForm.errors.attachment}</p> : null}
+                                    {createForm.errors.attachment ? <p className="mt-1 text-xs text-red-300">{createForm.errors.attachment}</p> : null}
                                 </div>
                             </div>
 
                             <button
                                 type="submit"
                                 disabled={createForm.processing}
-                                className="mt-4 w-full rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-60"
+                                className="jv-btn jv-btn--primary mt-4 w-full"
                             >
                                 {createForm.processing ? 'Submitting...' : 'Create Ticket'}
                             </button>
                         </form>
 
-                        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <h2 className="text-lg font-bold text-slate-900">Recent Tickets</h2>
+                        <div className="jv-card p-5">
+                            <h2 className="text-lg font-semibold tracking-tight text-white">Recent Tickets</h2>
                             {tickets.length === 0 ? (
-                                <p className="mt-3 text-sm text-slate-500">No support tickets yet.</p>
+                                <p className="mt-3 text-sm text-white/45">No support tickets yet.</p>
                             ) : (
                                 <div className="mt-3 space-y-2">
                                     {tickets.map((ticket) => (
                                         <Link
                                             key={ticket.id}
                                             href={route('dashboard.support', { ticket: ticket.id })}
-                                            className={`block rounded-lg border p-3 text-sm transition ${activeTicket?.id === ticket.id ? 'border-blue-300 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}
+                                            className={`block rounded-jv-sm border p-3 text-sm transition ${activeTicket?.id === ticket.id ? 'border-jv-accent-line bg-jv-accent/10' : 'border-jv-line hover:bg-white/[0.06]'}`}
                                         >
-                                            <p className="font-bold text-slate-900">{ticket.ticket_number}</p>
-                                            <p className="mt-1 text-slate-700">{ticket.subject}</p>
+                                            <p className="font-semibold text-white">{ticket.ticket_number}</p>
+                                            <p className="mt-1 text-white/70">{ticket.subject}</p>
                                             <div className="mt-2 flex items-center gap-2">
                                                 <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${statusClasses[ticket.status] || statusClasses.closed}`}>
                                                     {statusLabels[ticket.status] || ticket.status}
                                                 </span>
-                                                <span className="text-xs text-slate-500">{priorityOptions[ticket.priority] || ticket.priority}</span>
+                                                <span className="text-xs text-white/45">{priorityOptions[ticket.priority] || ticket.priority}</span>
                                             </div>
                                         </Link>
                                     ))}
@@ -202,41 +205,41 @@ export default function Support({
                     </div>
 
                     <div className="space-y-6">
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                        <section className="jv-card p-5">
                             {!activeTicket ? (
-                                <p className="text-sm text-slate-500">Select a ticket to view messages.</p>
+                                <p className="text-sm text-white/45">Select a ticket to view messages.</p>
                             ) : (
                                 <>
-                                    <div className="border-b border-slate-100 pb-3">
-                                        <p className="text-xs uppercase tracking-wide text-slate-500">{activeTicket.ticket_number}</p>
-                                        <h3 className="mt-1 text-lg font-bold text-slate-900">{activeTicket.subject}</h3>
+                                    <div className="border-b border-jv-line pb-3">
+                                        <p className="text-xs uppercase tracking-wide text-white/45">{activeTicket.ticket_number}</p>
+                                        <h3 className="mt-1 text-lg font-semibold tracking-tight text-white">{activeTicket.subject}</h3>
                                     </div>
 
                                     <div className="mt-4 space-y-3">
                                         {activeTicket.messages.map((message) => (
                                             <article
                                                 key={message.id}
-                                                className={`rounded-lg border p-3 ${message.sender_type === 'staff' ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}
+                                                className={`rounded-jv-sm border p-3 ${message.sender_type === 'staff' ? 'border-emerald-500/30 bg-emerald-500/10' : 'border-jv-line bg-white/[0.04]'}`}
                                             >
-                                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{message.sender_name}</p>
+                                                <p className="text-xs font-semibold uppercase tracking-wide text-white/45">{message.sender_name}</p>
                                                 <div
-                                                    className="prose prose-sm mt-1 max-w-none text-slate-700"
+                                                    className="prose prose-sm mt-1 max-w-none text-white/70"
                                                     dangerouslySetInnerHTML={{ __html: message.message }}
                                                 />
                                                 {message.attachment_url ? (
                                                     <a href={message.attachment_url} target="_blank" rel="noreferrer" className="mt-2 block">
-                                                        <img src={message.attachment_url} alt={message.attachment_name || 'Ticket attachment'} className="max-h-52 rounded-md border border-slate-200 object-contain" />
+                                                        <img src={message.attachment_url} alt={message.attachment_name || 'Ticket attachment'} className="max-h-52 rounded-jv-sm border border-jv-line object-contain" />
                                                     </a>
                                                 ) : null}
-                                                <p className="mt-2 text-xs text-slate-500">{message.created_at}</p>
+                                                <p className="mt-2 text-xs text-white/45">{message.created_at}</p>
                                             </article>
                                         ))}
                                     </div>
 
                                     {activeTicket.status !== 'closed' ? (
-                                        <form onSubmit={submitReply} className="mt-4 border-t border-slate-100 pt-4">
-                                            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reply</label>
-                                            <div className="mt-1 overflow-hidden rounded-lg border border-slate-300 bg-white">
+                                        <form onSubmit={submitReply} className="mt-4 border-t border-jv-line pt-4">
+                                            <label className="jv-label">Reply</label>
+                                            <div className="mt-1 overflow-hidden rounded-jv-sm border border-jv-line-strong bg-white/[0.05]">
                                                 <RichTextEditor
                                                     value={replyForm.data.message}
                                                     onChange={(value) => replyForm.setData('message', value)}
@@ -246,24 +249,24 @@ export default function Support({
                                                     className="min-h-[150px]"
                                                 />
                                             </div>
-                                            {replyForm.errors.message ? <p className="mt-1 text-xs text-red-600">{replyForm.errors.message}</p> : null}
+                                            {replyForm.errors.message ? <p className="mt-1 text-xs text-red-300">{replyForm.errors.message}</p> : null}
                                             <input
                                                 type="file"
                                                 accept="image/*"
                                                 onChange={(event) => replyForm.setData('attachment', event.target.files?.[0] || null)}
-                                                className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700"
+                                                className="jv-input mt-2 file:mr-4 file:rounded-full file:border-0 file:bg-jv-accent file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-white"
                                             />
-                                            {replyForm.errors.attachment ? <p className="mt-1 text-xs text-red-600">{replyForm.errors.attachment}</p> : null}
+                                            {replyForm.errors.attachment ? <p className="mt-1 text-xs text-red-300">{replyForm.errors.attachment}</p> : null}
                                             <button
                                                 type="submit"
                                                 disabled={replyForm.processing}
-                                                className="mt-3 rounded-lg bg-brand px-4 py-2 text-sm font-bold text-white hover:bg-brand-dark disabled:opacity-60"
+                                                className="jv-btn jv-btn--primary mt-3"
                                             >
                                                 {replyForm.processing ? 'Sending...' : 'Send Reply'}
                                             </button>
                                         </form>
                                     ) : (
-                                        <p className="mt-4 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
+                                        <p className="mt-4 rounded-jv-sm border border-jv-line bg-white/[0.04] p-3 text-sm text-white/70">
                                             This ticket is closed. Send a new ticket if you still need help.
                                         </p>
                                     )}
@@ -271,17 +274,17 @@ export default function Support({
                             )}
                         </section>
 
-                        <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <h2 className="text-lg font-bold text-slate-900">Recent Project Updates</h2>
+                        <section className="jv-card p-5">
+                            <h2 className="text-lg font-semibold tracking-tight text-white">Recent Project Updates</h2>
                             {updates.length === 0 ? (
-                                <p className="mt-3 text-sm text-slate-500">No updates yet.</p>
+                                <p className="mt-3 text-sm text-white/45">No updates yet.</p>
                             ) : (
                                 <div className="mt-4 space-y-3">
                                     {updates.map((update) => (
-                                        <article key={update.id} className="rounded-lg border border-slate-200 p-4">
-                                            <p className="text-xs uppercase tracking-wide text-slate-500">{update.order_label}</p>
-                                            <p className="mt-2 text-sm text-slate-700">{update.note}</p>
-                                            <p className="mt-2 text-xs text-slate-500">{update.created_at}</p>
+                                        <article key={update.id} className="rounded-jv-sm border border-jv-line bg-white/[0.04] p-4">
+                                            <p className="text-xs uppercase tracking-wide text-white/45">{update.order_label}</p>
+                                            <p className="mt-2 text-sm text-white/70">{update.note}</p>
+                                            <p className="mt-2 text-xs text-white/45">{update.created_at}</p>
                                         </article>
                                     ))}
                                 </div>
@@ -296,9 +299,9 @@ export default function Support({
 
 function SupportStat({ label, value }) {
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-            <p className="mt-2 text-lg font-black text-slate-900">{value}</p>
+        <div className="jv-card rounded-jv border border-jv-line bg-white/[0.04] p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-white/45">{label}</p>
+            <p className="mt-2 text-lg font-black text-white">{value}</p>
         </div>
     );
 }

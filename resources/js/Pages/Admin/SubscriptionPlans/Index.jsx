@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 
 function SubscriptionPlanPaystackStatus({ plan, onSync }) {
     if (plan.is_quantity_priced) {
-        return <p className="text-xs text-gray-500">Recurring billing not available for quantity-priced packages.</p>;
+        return <p className="text-xs text-white/50">Recurring billing not available for quantity-priced packages.</p>;
     }
 
     if (plan.paystack_plan_code) {
@@ -104,7 +104,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Subscription Plans</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight text-white/90">Subscription Plans</h2>}
         >
             <Head title="Subscription Plans" />
 
@@ -122,31 +122,31 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                         </div>
                     )}
 
-                    <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <h3 className="text-lg font-semibold text-gray-900">Subscription Plans</h3>
-                        <p className="mt-1 text-sm text-gray-600">
+                    <div className="rounded-2xl border border-jv-line bg-white/[0.04] p-6 ">
+                        <h3 className="text-lg font-semibold text-white">Subscription Plans</h3>
+                        <p className="mt-1 text-sm text-white/65">
                             Create and market service subscription plans, then control what gets highlighted on the homepage.
                         </p>
 
                         <form onSubmit={submitSubscriptionPlan} className="mt-5 grid gap-4 lg:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Plan Name</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Plan Name</label>
                                 <input
                                     type="text"
                                     value={subscriptionPlanForm.data.name}
                                     onChange={(event) => subscriptionPlanForm.setData('name', event.target.value)}
                                     placeholder="Growth Design Plan"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {subscriptionPlanForm.errors.name && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.name}</p>}
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Billing Cycle</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Billing Cycle</label>
                                 <select
                                     value={subscriptionPlanForm.data.billing_cycle}
                                     onChange={(event) => subscriptionPlanForm.setData('billing_cycle', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 >
                                     <option value="monthly">Monthly</option>
                                     <option value="quarterly">Quarterly</option>
@@ -157,14 +157,14 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Service Type</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Service Type</label>
                                 <select
                                     value={subscriptionPlanForm.data.service_slug}
                                     onChange={(event) => {
                                         subscriptionPlanForm.setData('service_slug', event.target.value);
                                         subscriptionPlanForm.setData('package_code', '');
                                     }}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 >
                                     {serviceEntries.map(([serviceSlug, service]) => (
                                         <option key={`plan-service-${serviceSlug}`} value={serviceSlug}>
@@ -176,11 +176,11 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Package/Plan Name</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Package/Plan Name</label>
                                 <select
                                     value={subscriptionPlanForm.data.package_code}
                                     onChange={(event) => subscriptionPlanForm.setData('package_code', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 >
                                     <option value="">Select package</option>
                                     {Object.entries(selectedPlanPackages).map(([packageCode, packageMeta]) => (
@@ -193,86 +193,86 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                             </div>
 
                             <div className="lg:col-span-2">
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Image (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Image (optional)</label>
                                 <input
                                     type="text"
                                     value={subscriptionPlanForm.data.image_path}
                                     onChange={(event) => subscriptionPlanForm.setData('image_path', event.target.value)}
                                     placeholder="/storage/subscription-plans/plan.webp"
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {subscriptionPlanForm.errors.image_path && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.image_path}</p>}
                             </div>
 
                             <div className="lg:col-span-2">
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Short Description (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Short Description (optional)</label>
                                 <textarea
                                     rows={2}
                                     value={subscriptionPlanForm.data.short_description}
                                     onChange={(event) => subscriptionPlanForm.setData('short_description', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {subscriptionPlanForm.errors.short_description && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.short_description}</p>}
                             </div>
 
                             <div className="lg:col-span-2">
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Long Description (optional)</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Long Description (optional)</label>
                                 <textarea
                                     rows={4}
                                     value={subscriptionPlanForm.data.long_description}
                                     onChange={(event) => subscriptionPlanForm.setData('long_description', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {subscriptionPlanForm.errors.long_description && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.long_description}</p>}
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Display Position</label>
+                                <label className="mb-1 block text-sm font-medium text-white/75">Display Position</label>
                                 <input
                                     type="number"
                                     min="0"
                                     step="1"
                                     value={subscriptionPlanForm.data.position}
                                     onChange={(event) => subscriptionPlanForm.setData('position', event.target.value)}
-                                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                    className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                 />
                                 {subscriptionPlanForm.errors.position && <p className="mt-1 text-xs text-red-600">{subscriptionPlanForm.errors.position}</p>}
                             </div>
 
-                            <div className="grid gap-2 rounded-lg border border-gray-200 p-3">
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                            <div className="grid gap-2 rounded-lg border border-jv-line p-3">
+                                <label className="flex items-center gap-2 text-sm font-medium text-white/75">
                                     <input
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.is_active)}
                                         onChange={(event) => subscriptionPlanForm.setData('is_active', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                        className="h-4 w-4 rounded border-jv-line-strong text-jv-accent focus:ring-jv-accent"
                                     />
                                     Active
                                 </label>
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <label className="flex items-center gap-2 text-sm font-medium text-white/75">
                                     <input
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.show_on_homepage)}
                                         onChange={(event) => subscriptionPlanForm.setData('show_on_homepage', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                        className="h-4 w-4 rounded border-jv-line-strong text-jv-accent focus:ring-jv-accent"
                                     />
                                     Show on homepage
                                 </label>
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <label className="flex items-center gap-2 text-sm font-medium text-white/75">
                                     <input
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.is_homepage_featured)}
                                         onChange={(event) => subscriptionPlanForm.setData('is_homepage_featured', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                        className="h-4 w-4 rounded border-jv-line-strong text-jv-accent focus:ring-jv-accent"
                                     />
                                     Featured on homepage
                                 </label>
-                                <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                                <label className="flex items-center gap-2 text-sm font-medium text-white/75">
                                     <input
                                         type="checkbox"
                                         checked={Boolean(subscriptionPlanForm.data.is_recommended)}
                                         onChange={(event) => subscriptionPlanForm.setData('is_recommended', event.target.checked)}
-                                        className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                        className="h-4 w-4 rounded border-jv-line-strong text-jv-accent focus:ring-jv-accent"
                                     />
                                     Recommended
                                 </label>
@@ -282,7 +282,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                 <button
                                     type="submit"
                                     disabled={subscriptionPlanForm.processing}
-                                    className="inline-flex items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                                    className="inline-flex items-center rounded-lg bg-jv-accent px-4 py-2 text-sm font-semibold text-white hover:bg-jv-accent-dark disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     {subscriptionPlanForm.processing ? 'Creating...' : 'Create Subscription Plan'}
                                 </button>
@@ -291,7 +291,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
 
                         <div className="mt-6 hidden overflow-x-auto md:block">
                             <table className="min-w-full divide-y divide-gray-200 text-sm">
-                                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-600">
+                                <thead className="bg-white/[0.04] text-xs uppercase tracking-wide text-white/65">
                                     <tr>
                                         <th className="px-3 py-2 text-left">Plan</th>
                                         <th className="px-3 py-2 text-left">Scope</th>
@@ -300,10 +300,10 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                         <th className="px-3 py-2 text-left">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-100 bg-white text-gray-700">
+                                <tbody className="divide-y divide-gray-100 bg-white/[0.04] text-white/75">
                                     {subscriptionPlans.length === 0 && (
                                         <tr>
-                                            <td className="px-3 py-4 text-sm text-gray-500" colSpan={5}>
+                                            <td className="px-3 py-4 text-sm text-white/50" colSpan={5}>
                                                 No subscription plans created yet.
                                             </td>
                                         </tr>
@@ -312,19 +312,19 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                     {subscriptionPlans.map((subscriptionPlan) => (
                                         <tr key={`subscription-plan-${subscriptionPlan.id}`}>
                                             <td className="px-3 py-3">
-                                                <p className="font-semibold text-gray-900">{subscriptionPlan.name}</p>
-                                                <p className="text-xs text-gray-500">{subscriptionPlan.billing_cycle}</p>
-                                                <p className="text-xs text-gray-500">Position: {subscriptionPlan.position}</p>
+                                                <p className="font-semibold text-white">{subscriptionPlan.name}</p>
+                                                <p className="text-xs text-white/50">{subscriptionPlan.billing_cycle}</p>
+                                                <p className="text-xs text-white/50">Position: {subscriptionPlan.position}</p>
                                                 <div className="mt-2">
                                                     <SubscriptionPlanPaystackStatus plan={subscriptionPlan} onSync={syncSubscriptionPlanPaystack} />
                                                 </div>
                                             </td>
                                             <td className="px-3 py-3">
                                                 <p>{subscriptionPlan.service_name}</p>
-                                                <p className="text-xs text-gray-500">{subscriptionPlan.package_name}</p>
-                                                <p className="mt-1 text-xs text-gray-500">{subscriptionPlan.short_description || 'No custom description'}</p>
+                                                <p className="text-xs text-white/50">{subscriptionPlan.package_name}</p>
+                                                <p className="mt-1 text-xs text-white/50">{subscriptionPlan.short_description || 'No custom description'}</p>
                                                 {subscriptionPlan.long_description && (
-                                                    <p className="mt-1 text-xs text-gray-500">{subscriptionPlan.long_description}</p>
+                                                    <p className="mt-1 text-xs text-white/50">{subscriptionPlan.long_description}</p>
                                                 )}
                                                 {subscriptionPlan.image_path && (
                                                     <img
@@ -337,14 +337,14 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                                 )}
                                             </td>
                                             <td className="px-3 py-3">
-                                                <p className="text-xs text-gray-700">Paid subscriptions: {subscriptionPlan.paid_subscriptions}</p>
-                                                <p className="text-xs text-gray-700">
+                                                <p className="text-xs text-white/75">Paid subscriptions: {subscriptionPlan.paid_subscriptions}</p>
+                                                <p className="text-xs text-white/75">
                                                     Discount: {subscriptionPlan.active_discount_code ? `${subscriptionPlan.active_discount_code} (${subscriptionPlan.active_discount_summary})` : 'None'}
                                                 </p>
-                                                <p className="text-xs text-gray-700">
+                                                <p className="text-xs text-white/75">
                                                     Status: {subscriptionPlan.is_active ? 'Active' : 'Inactive'} | Homepage: {subscriptionPlan.show_on_homepage ? 'Shown' : 'Hidden'}
                                                 </p>
-                                                <p className="text-xs text-gray-700">
+                                                <p className="text-xs text-white/75">
                                                     Featured: {subscriptionPlan.is_homepage_featured ? 'Yes' : 'No'} | Recommended: {subscriptionPlan.is_recommended ? 'Yes' : 'No'}
                                                 </p>
                                             </td>
@@ -353,7 +353,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                                     href={subscriptionPlan.checkout_link}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="break-all text-xs text-brand hover:text-brand-dark"
+                                                    className="break-all text-xs text-jv-accent hover:text-jv-accent-dark"
                                                 >
                                                     {subscriptionPlan.checkout_link}
                                                 </a>
@@ -363,14 +363,14 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                                     <button
                                                         type="button"
                                                         onClick={() => updateSubscriptionPlan(subscriptionPlan, { is_active: !subscriptionPlan.is_active })}
-                                                        className="rounded-md border border-slate-200 px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                        className="rounded-md border border-jv-line px-2.5 py-1 text-xs font-semibold text-white/75 hover:bg-white/[0.04]"
                                                     >
                                                         {subscriptionPlan.is_active ? 'Deactivate' : 'Activate'}
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => updateSubscriptionPlan(subscriptionPlan, { show_on_homepage: !subscriptionPlan.show_on_homepage })}
-                                                        className="rounded-md border border-brand/30 px-2.5 py-1 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                        className="rounded-md border border-jv-accent/30 px-2.5 py-1 text-xs font-semibold text-jv-accent hover:bg-jv-accent/15"
                                                     >
                                                         {subscriptionPlan.show_on_homepage ? 'Hide Homepage' : 'Show Homepage'}
                                                     </button>
@@ -404,7 +404,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                         </div>
 
                         {subscriptionPlans.length === 0 ? (
-                            <p className="mt-6 text-sm text-gray-500 md:hidden">No subscription plans created yet.</p>
+                            <p className="mt-6 text-sm text-white/50 md:hidden">No subscription plans created yet.</p>
                         ) : (
                             <MobileCardList className="mt-6">
                                 {subscriptionPlans.map((subscriptionPlan, index) => (
@@ -420,8 +420,8 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                                 />
                                             )}
                                             <div className="min-w-0 flex-1">
-                                                <p className="truncate text-sm font-semibold text-gray-900">{subscriptionPlan.name}</p>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="truncate text-sm font-semibold text-white">{subscriptionPlan.name}</p>
+                                                <p className="text-xs text-white/50">
                                                     {subscriptionPlan.billing_cycle} · Position {subscriptionPlan.position}
                                                 </p>
                                                 <div className="mt-1">
@@ -430,10 +430,10 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                             </div>
                                         </div>
 
-                                        <div className="mt-3 space-y-1 text-xs text-gray-600">
-                                            <p className="text-sm text-gray-700">
+                                        <div className="mt-3 space-y-1 text-xs text-white/65">
+                                            <p className="text-sm text-white/75">
                                                 {subscriptionPlan.service_name}
-                                                <span className="text-gray-500"> · {subscriptionPlan.package_name}</span>
+                                                <span className="text-white/50"> · {subscriptionPlan.package_name}</span>
                                             </p>
                                             {subscriptionPlan.short_description && <p>{subscriptionPlan.short_description}</p>}
                                             <p>Paid subscriptions: {subscriptionPlan.paid_subscriptions}</p>
@@ -446,7 +446,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                                 href={subscriptionPlan.checkout_link}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="block break-all text-xs text-brand hover:text-brand-dark"
+                                                className="block break-all text-xs text-jv-accent hover:text-jv-accent-dark"
                                             >
                                                 {subscriptionPlan.checkout_link}
                                             </a>
@@ -454,7 +454,7 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
 
                                         <div className="mt-3 flex flex-wrap gap-2">
                                             {subscriptionPlan.is_homepage_featured && (
-                                                <span className="rounded-full bg-brand-light px-2 py-1 text-xs font-semibold text-brand">
+                                                <span className="rounded-full bg-jv-accent/15 px-2 py-1 text-xs font-semibold text-jv-accent">
                                                     Featured
                                                 </span>
                                             )}
@@ -469,14 +469,14 @@ export default function SubscriptionPlansIndex({ serviceCatalog = {}, subscripti
                                             <button
                                                 type="button"
                                                 onClick={() => updateSubscriptionPlan(subscriptionPlan, { is_active: !subscriptionPlan.is_active })}
-                                                className="rounded-md border border-slate-200 px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                                                className="rounded-md border border-jv-line px-2.5 py-1.5 text-xs font-semibold text-white/75 hover:bg-white/[0.04]"
                                             >
                                                 {subscriptionPlan.is_active ? 'Deactivate' : 'Activate'}
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => updateSubscriptionPlan(subscriptionPlan, { show_on_homepage: !subscriptionPlan.show_on_homepage })}
-                                                className="rounded-md border border-brand/30 px-2.5 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                className="rounded-md border border-jv-accent/30 px-2.5 py-1.5 text-xs font-semibold text-jv-accent hover:bg-jv-accent/15"
                                             >
                                                 {subscriptionPlan.show_on_homepage ? 'Hide Homepage' : 'Show Homepage'}
                                             </button>

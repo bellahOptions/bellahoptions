@@ -25,6 +25,7 @@ export default {
                 // Joyce-style dark canvas + accent scale (Bellah blue/black theme)
                 jv: {
                     accent: '#0055ff',
+                    'accent-line': 'rgba(0,85,255,0.4)',
                     black: '#050508',
                     bg: '#08080c',
                     ink: '#121216',

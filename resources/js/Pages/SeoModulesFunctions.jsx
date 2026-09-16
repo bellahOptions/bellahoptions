@@ -1,8 +1,17 @@
-import { Head, Link } from "@inertiajs/react";
+import { Head } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import PublicPageHeader from "@/Components/PublicPageHeader";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
-import { ArrowRightIcon, CheckCircleIcon } from "@heroicons/react/24/outline";
+import {
+    Button,
+    Card,
+    CheckItem,
+    Display,
+    Eyebrow,
+    Section,
+    Stagger,
+    StaggerItem,
+} from "@/Components/PublicUI";
+import { CheckCircleIcon } from "@heroicons/react/24/outline";
 
 export default function SeoModulesFunctions({ modules = [], functions = [] }) {
     return (
@@ -10,79 +19,112 @@ export default function SeoModulesFunctions({ modules = [], functions = [] }) {
             <Head title="SEO Modules and Functions" />
 
             <PageTheme>
-                <main className="bg-white text-gray-950">
+                <main className="text-white">
                     <PublicPageHeader
                         pageKey="seo_modules_functions"
                         fallbackTitle="SEO modules and functions built for measurable visibility."
                         fallbackText="This page outlines the SEO scope we use to help websites improve crawl quality, relevance, and conversion-oriented search performance."
+                        eyebrow="SEO"
                     />
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <h2 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                                SEO Modules
-                            </h2>
-                            <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-600">
-                                Each module focuses on a core search performance layer and can be deployed independently or as one complete SEO system.
-                            </p>
-
-                            <Stagger className="mt-8 grid gap-5 md:grid-cols-2">
-                                {modules.map((module) => (
-                                    <StaggerItem key={module.title} as="article" className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                                        <h3 className="text-xl font-black text-gray-950">{module.title}</h3>
-                                        <p className="mt-3 text-sm leading-7 text-gray-600">{module.description}</p>
-                                    </StaggerItem>
-                                ))}
-                            </Stagger>
-                        </div>
-                    </RevealSection>
-
-                    <RevealSection className="bg-white py-16 sm:py-20 lg:py-24">
-                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <h2 className="text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                                SEO Functions
-                            </h2>
-                            <p className="mt-3 max-w-3xl text-sm leading-7 text-gray-600">
-                                These functions translate strategy into repeatable implementation, reporting, and continuous optimization.
-                            </p>
-
-                            <Stagger className="mt-8 grid gap-5 md:grid-cols-2">
-                                {functions.map((item) => (
-                                    <StaggerItem key={item.title} as="article" className="bg-gray-50 p-6 shadow-sm ring-1 ring-gray-200">
-                                        <h3 className="text-xl font-black text-gray-950">{item.title}</h3>
-                                        <p className="mt-3 text-sm leading-7 text-gray-600">{item.description}</p>
-                                    </StaggerItem>
-                                ))}
-                            </Stagger>
-                        </div>
-                    </RevealSection>
-
-                    <RevealSection className="bg-brand py-14 sm:py-16">
-                        <div className="mx-auto flex max-w-5xl flex-col items-start gap-5 px-4 text-white sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+                    <Section className="border-t border-jv-line">
+                        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-end">
                             <div>
-                                <h2 className="text-2xl font-black sm:text-3xl">Need this SEO scope for your project?</h2>
-                                <p className="mt-2 max-w-2xl text-sm leading-7 text-blue-100">
-                                    Share your website goals and we can map the right modules and implementation priority.
-                                </p>
+                                <Eyebrow>Foundations</Eyebrow>
+                                <Display size="lg" muted="that compound over time." className="mt-6">
+                                    SEO Modules
+                                </Display>
                             </div>
-                            <div className="flex flex-wrap gap-3">
-                                <Link
-                                    href="/contact-us"
-                                    className="inline-flex items-center gap-2 rounded-md bg-white px-5 py-3 text-sm font-black text-brand transition hover:bg-blue-50"
-                                >
-                                    Talk to us
-                                    <ArrowRightIcon className="h-4 w-4" />
-                                </Link>
-                                <Link
-                                    href="/services"
-                                    className="inline-flex items-center gap-2 rounded-md border border-blue-300 px-5 py-3 text-sm font-black text-white transition hover:bg-brand-dark"
-                                >
-                                    View services
-                                    <CheckCircleIcon className="h-4 w-4" />
-                                </Link>
+                            <p className="jv-lead lg:justify-self-end">
+                                Each module focuses on a core search performance layer and can
+                                be deployed independently or as one complete SEO system.
+                            </p>
+                        </div>
+
+                        <Stagger className="mt-14 grid gap-5 md:grid-cols-2">
+                            {modules.map((module, index) => (
+                                <StaggerItem key={module.title} as="article" className="h-full">
+                                    <Card hover className="flex h-full flex-col">
+                                        <span className="jv-mono text-white/35">
+                                            {String(index + 1).padStart(2, "0")}
+                                        </span>
+                                        <h3 className="mt-4 text-xl font-semibold tracking-tight text-white">
+                                            {module.title}
+                                        </h3>
+                                        <p className="jv-body mt-3">{module.description}</p>
+                                    </Card>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+                    </Section>
+
+                    <Section className="border-y border-jv-line jv-glow overflow-hidden">
+                        <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+                            <div>
+                                <Eyebrow>Execution</Eyebrow>
+                                <Display size="lg" muted="into repeatable work." className="mt-6">
+                                    SEO Functions
+                                </Display>
+                            </div>
+                            <p className="jv-lead">
+                                These functions translate strategy into repeatable
+                                implementation, reporting, and continuous optimization.
+                            </p>
+                        </div>
+
+                        <Stagger className="mt-14 grid gap-5 md:grid-cols-2">
+                            {functions.map((item) => (
+                                <StaggerItem key={item.title} as="article" className="h-full">
+                                    <Card hover className="flex h-full flex-col">
+                                        <span className="inline-flex h-11 w-11 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                                            <CheckCircleIcon className="h-5 w-5" />
+                                        </span>
+                                        <h3 className="mt-6 text-xl font-semibold tracking-tight text-white">
+                                            {item.title}
+                                        </h3>
+                                        <p className="jv-body mt-3">{item.description}</p>
+                                    </Card>
+                                </StaggerItem>
+                            ))}
+                        </Stagger>
+                    </Section>
+
+                    <Section tight>
+                        <div className="jv-card jv-grid-bg relative overflow-hidden p-8 sm:p-12 lg:p-16">
+                            <div
+                                aria-hidden="true"
+                                className="pointer-events-none absolute -top-28 left-1/2 h-64 w-[min(680px,110%)] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,85,255,0.38),transparent_72%)]"
+                            />
+                            <div className="relative grid gap-8 lg:grid-cols-[1.1fr_auto] lg:items-center">
+                                <div>
+                                    <Eyebrow>Next step</Eyebrow>
+                                    <Display size="md" className="mt-6">
+                                        Need this SEO scope for your project?
+                                    </Display>
+                                    <p className="jv-lead mt-5 max-w-2xl">
+                                        Share your website goals and we can map the right
+                                        modules and implementation priority.
+                                    </p>
+
+                                    <ul className="mt-7 grid gap-3 sm:grid-cols-2">
+                                        <CheckItem>Technical crawl and index review</CheckItem>
+                                        <CheckItem>Content and keyword mapping</CheckItem>
+                                        <CheckItem>Reporting tied to real outcomes</CheckItem>
+                                        <CheckItem>Ongoing optimization cycles</CheckItem>
+                                    </ul>
+                                </div>
+
+                                <div className="flex flex-wrap gap-3 lg:flex-col">
+                                    <Button href="/contact-us" variant="primary" size="lg" icon>
+                                        Talk to us
+                                    </Button>
+                                    <Button href="/services" variant="ghost" size="lg">
+                                        View services
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </RevealSection>
+                    </Section>
                 </main>
             </PageTheme>
         </>

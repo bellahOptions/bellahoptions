@@ -1,8 +1,8 @@
 import { Head, Link } from "@inertiajs/react";
 import { motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
-import { RevealSection, Stagger, StaggerItem } from "@/Components/MotionReveal";
 import PublicPageHeader from "@/Components/PublicPageHeader";
+import { Button, Card, Display, Eyebrow, Section, Stagger, StaggerItem } from "@/Components/PublicUI";
 import { ArrowRightIcon, DocumentTextIcon, SparklesIcon } from "@heroicons/react/24/outline";
 
 export default function Blog({ posts = [] }) {
@@ -12,7 +12,7 @@ export default function Blog({ posts = [] }) {
         <>
             <Head title="Blog" />
             <PageTheme>
-                <main className="bg-white text-gray-950">
+                <main className="text-white">
                     <PublicPageHeader
                         pageKey="blog"
                         fallbackTitle="Ideas on branding, content, design, and digital growth."
@@ -21,77 +21,130 @@ export default function Blog({ posts = [] }) {
                     />
 
                     {hasPosts ? (
-                        <RevealSection className="bg-gray-50 py-16 sm:py-20 lg:py-24">
-                            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                                <Stagger className="grid gap-6 lg:grid-cols-3">
-                                    {posts.map((post, index) => (
+                        <Section className="border-t border-jv-line">
+                            <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+                                <div>
+                                    <Eyebrow>Latest writing</Eyebrow>
+                                    <Display size="md" muted="from the studio." className="mt-6">
+                                        Notes and ideas
+                                    </Display>
+                                </div>
+                                <span className="jv-mono text-white/35">
+                                    {posts.length} post{posts.length === 1 ? "" : "s"}
+                                </span>
+                            </div>
+
+                            <Stagger className="mt-12 grid gap-6 lg:grid-cols-3">
+                                {posts.map((post, index) => {
+                                    const isLead = index === 0;
+
+                                    return (
                                         <StaggerItem
                                             as="article"
                                             key={post.id}
-                                            className={index === 0 ? "overflow-hidden bg-white shadow-sm ring-1 ring-gray-200 lg:col-span-2" : "overflow-hidden bg-white shadow-sm ring-1 ring-gray-200"}
+                                            className={isLead ? "h-full lg:col-span-2" : "h-full"}
                                         >
-                                            <Link href={post.url} className={index === 0 ? "grid h-full lg:grid-cols-[1fr_0.9fr]" : "block h-full"}>
-                                                <div className={index === 0 ? "min-h-72 bg-blue-50" : "aspect-[4/3] bg-blue-50"}>
-                                                    {post.cover_image ? (
-                                                        <img
-                                                            src={post.cover_image}
-                                                            alt={post.title}
-                                                            className="h-full w-full object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="flex h-full w-full items-center justify-center bg-blue-50 text-brand">
-                                                            <DocumentTextIcon className="h-20 w-20" />
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="flex flex-col p-6">
-                                                    <p className="text-xs font-black uppercase tracking-[0.18em] text-brand">
-                                                        {post.category}
-                                                    </p>
-                                                    <h2 className="mt-4 text-2xl font-black text-gray-950">
-                                                        {post.title}
-                                                    </h2>
-                                                    <p className="mt-3 text-sm leading-6 text-gray-600">
-                                                        {post.excerpt}
-                                                    </p>
-                                                    <div className="mt-6 flex items-center justify-between gap-4 border-t border-gray-100 pt-5 text-sm">
-                                                        <span className="font-bold text-gray-500">
-                                                            {post.author_name} {post.published_at ? `· ${post.published_at}` : ""}
-                                                        </span>
-                                                        <span className="inline-flex items-center gap-2 font-black text-brand">
-                                                            Read
-                                                            <ArrowRightIcon className="h-4 w-4" />
-                                                        </span>
+                                            <Link
+                                                href={post.url}
+                                                className="jv-group block h-full"
+                                            >
+                                                <Card
+                                                    hover
+                                                    pad={false}
+                                                    className={`h-full overflow-hidden ${
+                                                        isLead
+                                                            ? "grid lg:grid-cols-[1fr_0.9fr]"
+                                                            : "flex flex-col"
+                                                    }`}
+                                                >
+                                                    <div
+                                                        className={`jv-media jv-media--zoom rounded-none border-0 ${
+                                                            isLead
+                                                                ? "min-h-72"
+                                                                : "aspect-[4/3] rounded-t-jv border-b border-jv-line"
+                                                        }`}
+                                                    >
+                                                        {post.cover_image ? (
+                                                            <img
+                                                                src={post.cover_image}
+                                                                alt={post.title}
+                                                            />
+                                                        ) : (
+                                                            <div className="flex h-full w-full items-center justify-center text-white/25">
+                                                                <DocumentTextIcon className="h-16 w-16" />
+                                                            </div>
+                                                        )}
                                                     </div>
-                                                </div>
+
+                                                    <div className="flex flex-1 flex-col p-6 sm:p-7">
+                                                        <span className="jv-mono text-jv-accent">
+                                                            {post.category}
+                                                        </span>
+                                                        <h2
+                                                            className={`mt-4 font-semibold tracking-tight text-white ${
+                                                                isLead ? "text-2xl sm:text-3xl" : "text-xl"
+                                                            }`}
+                                                        >
+                                                            {post.title}
+                                                        </h2>
+                                                        <p className="jv-body mt-3 line-clamp-3">
+                                                            {post.excerpt}
+                                                        </p>
+
+                                                        <div className="mt-auto flex items-center justify-between gap-4 border-t border-jv-line pt-5">
+                                                            <span className="jv-small">
+                                                                {post.author_name}{" "}
+                                                                {post.published_at
+                                                                    ? `· ${post.published_at}`
+                                                                    : ""}
+                                                            </span>
+                                                            <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
+                                                                Read
+                                                                <span className="jv-btn-arrow h-7 w-7">
+                                                                    <ArrowRightIcon className="h-3.5 w-3.5" />
+                                                                </span>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </Card>
                                             </Link>
                                         </StaggerItem>
-                                    ))}
-                                </Stagger>
-                            </div>
-                        </RevealSection>
+                                    );
+                                })}
+                            </Stagger>
+                        </Section>
                     ) : (
-                        <RevealSection className="bg-gray-50 py-20 sm:py-24 lg:py-28">
-                            <div className="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
-                                <motion.div
-                                    className="mx-auto flex h-28 w-28 items-center justify-center rounded-full bg-blue-100 text-brand"
-                                    animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                                >
-                                    <SparklesIcon className="h-14 w-14" />
-                                </motion.div>
-                                <h2 className="mt-8 text-3xl font-black tracking-tight text-gray-950 sm:text-4xl">
-                                    No blog posts published yet.
-                                </h2>
-                                <p className="mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
-                                    The first Bellah Options article is being shaped. When a post is published, it will appear here.
-                                </p>
-                                <Link href="/contact-us" className="mt-8 inline-flex items-center gap-2 rounded-md bg-brand px-6 py-3 text-sm font-black text-white">
-                                    Ask us a question
-                                    <ArrowRightIcon className="h-4 w-4" />
-                                </Link>
-                            </div>
-                        </RevealSection>
+                        <Section className="border-t border-jv-line">
+                            <Card className="jv-grid-bg relative overflow-hidden px-6 py-14 text-center sm:px-12">
+                                <div
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute -top-24 left-1/2 h-56 w-[min(620px,110%)] -translate-x-1/2 bg-[radial-gradient(closest-side,rgba(0,85,255,0.32),transparent_72%)]"
+                                />
+                                <div className="relative mx-auto flex max-w-2xl flex-col items-center">
+                                    <motion.span
+                                        className="flex h-20 w-20 items-center justify-center rounded-full border border-jv-line-strong bg-white/[0.06] text-jv-accent"
+                                        animate={{ y: [0, -8, 0] }}
+                                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                                    >
+                                        <SparklesIcon className="h-9 w-9" />
+                                    </motion.span>
+
+                                    <Display size="md" className="mt-8">
+                                        No blog posts published yet.
+                                    </Display>
+                                    <p className="jv-lead mt-5">
+                                        The first Bellah Options article is being shaped. When a
+                                        post is published, it will appear here.
+                                    </p>
+
+                                    <div className="mt-8">
+                                        <Button href="/contact-us" variant="primary" icon>
+                                            Ask us a question
+                                        </Button>
+                                    </div>
+                                </div>
+                            </Card>
+                        </Section>
                     )}
                 </main>
             </PageTheme>

@@ -222,22 +222,22 @@ export default function ServicePricingShow({
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Service Pricing — {service?.name || serviceSlug}</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight text-white/90">Service Pricing — {service?.name || serviceSlug}</h2>}
         >
             <Head title={`Service Pricing - ${service?.name || serviceSlug}`} />
 
             <div className="py-10">
                 <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-wrap gap-2 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                    <div className="flex flex-wrap gap-2 rounded-2xl border border-jv-line bg-white/[0.04] p-4 ">
                         {services.map((entry) => (
                             <Link
                                 key={entry.slug}
                                 href={route('admin.service-pricing.edit', entry.slug)}
                                 className={`rounded-md px-3 py-1.5 text-xs font-semibold transition ${
-                                    entry.slug === serviceSlug
-                                        ? 'bg-brand text-white'
-                                        : 'border border-gray-200 text-gray-700 hover:bg-gray-50'
-                                }`}
+ entry.slug === serviceSlug
+ ? 'bg-jv-accent text-white'
+ : 'border border-jv-line text-white/75 hover:bg-white/[0.04]'
+ }`}
                             >
                                 {entry.name}
                             </Link>
@@ -258,9 +258,9 @@ export default function ServicePricingShow({
 
                     <form onSubmit={saveAll} className="space-y-6">
                         {!isGraphicDesign && (
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                                <h3 className="text-lg font-semibold text-gray-900">{service?.name} Packages</h3>
-                                <p className="mt-1 text-sm text-gray-600">
+                            <div className="rounded-2xl border border-jv-line bg-white/[0.04] p-6 ">
+                                <h3 className="text-lg font-semibold text-white">{service?.name} Packages</h3>
+                                <p className="mt-1 text-sm text-white/65">
                                     Set plan price, discount price, recommended toggle, description, and feature bullets.
                                 </p>
 
@@ -269,39 +269,39 @@ export default function ServicePricingShow({
                                         const state = form.data.package_overrides?.[pack.code] || {};
 
                                         return (
-                                            <div key={pack.code} className="rounded-lg border border-gray-200 p-4">
-                                                <p className="text-sm font-semibold text-gray-900">{pack.name}</p>
-                                                <p className="text-xs text-gray-500">{pack.code}</p>
+                                            <div key={pack.code} className="rounded-lg border border-jv-line p-4">
+                                                <p className="text-sm font-semibold text-white">{pack.name}</p>
+                                                <p className="text-xs text-white/50">{pack.code}</p>
 
                                                 <div className="mt-3 grid gap-3 md:grid-cols-3">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Price</label>
+                                                        <label className="mb-1 block text-sm font-medium text-white/75">Price</label>
                                                         <input
                                                             type="number"
                                                             step="0.01"
                                                             min="0.01"
                                                             value={state.price ?? ''}
                                                             onChange={(event) => setPackageField(pack.code, 'price', event.target.value)}
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                            className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Discount Price</label>
+                                                        <label className="mb-1 block text-sm font-medium text-white/75">Discount Price</label>
                                                         <input
                                                             type="number"
                                                             step="0.01"
                                                             min="0.01"
                                                             value={state.discount_price ?? ''}
                                                             onChange={(event) => setPackageField(pack.code, 'discount_price', event.target.value)}
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                            className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                         />
                                                     </div>
-                                                    <label className="flex items-center gap-2 rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700">
+                                                    <label className="flex items-center gap-2 rounded-md border border-jv-line px-3 py-2 text-sm font-medium text-white/75">
                                                         <input
                                                             type="checkbox"
                                                             checked={Boolean(state.is_recommended)}
                                                             onChange={(event) => setPackageField(pack.code, 'is_recommended', event.target.checked)}
-                                                            className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                                                            className="h-4 w-4 rounded border-jv-line-strong text-jv-accent focus:ring-jv-accent"
                                                         />
                                                         Recommended plan/pack
                                                     </label>
@@ -309,21 +309,21 @@ export default function ServicePricingShow({
 
                                                 <div className="mt-3 grid gap-3 md:grid-cols-2">
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Short Description</label>
+                                                        <label className="mb-1 block text-sm font-medium text-white/75">Short Description</label>
                                                         <textarea
                                                             rows={2}
                                                             value={state.description ?? ''}
                                                             onChange={(event) => setPackageField(pack.code, 'description', event.target.value)}
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                            className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="mb-1 block text-sm font-medium text-gray-700">Features (one per line)</label>
+                                                        <label className="mb-1 block text-sm font-medium text-white/75">Features (one per line)</label>
                                                         <textarea
                                                             rows={4}
                                                             value={state.features_text ?? ''}
                                                             onChange={(event) => setPackageField(pack.code, 'features_text', event.target.value)}
-                                                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                            className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                         />
                                                     </div>
                                                 </div>
@@ -331,29 +331,29 @@ export default function ServicePricingShow({
                                         );
                                     })}
                                     {packages.length === 0 && (
-                                        <p className="text-sm text-gray-500">This service has no packages configured.</p>
+                                        <p className="text-sm text-white/50">This service has no packages configured.</p>
                                     )}
                                 </div>
                             </div>
                         )}
 
                         {showsTrialFee && (
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                                <h3 className="text-lg font-semibold text-gray-900">Trial Request Fee</h3>
-                                <p className="mt-1 text-sm text-gray-600">
+                            <div className="rounded-2xl border border-jv-line bg-white/[0.04] p-6 ">
+                                <h3 className="text-lg font-semibold text-white">Trial Request Fee</h3>
+                                <p className="mt-1 text-sm text-white/65">
                                     Set the fixed fee used when clients choose the trial request option outside regular plans/packs. This fee is shared between Social Media Design and Graphic Design.
                                 </p>
                                 <div className="mt-4 max-w-sm">
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Trial Fee (NGN)</label>
+                                    <label className="mb-1 block text-sm font-medium text-white/75">Trial Fee (NGN)</label>
                                     <input
                                         type="number"
                                         min="0"
                                         step="0.01"
                                         value={form.data.social_graphic_trial_fee_ngn ?? ''}
                                         onChange={(event) => form.setData('social_graphic_trial_fee_ngn', event.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                        className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                     />
-                                    <p className="mt-2 text-xs text-gray-500">
+                                    <p className="mt-2 text-xs text-white/50">
                                         Set to 0 to disable the trial option on the public order form.
                                     </p>
                                 </div>
@@ -361,17 +361,17 @@ export default function ServicePricingShow({
                         )}
 
                         {isGraphicDesign && (
-                            <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                                <h3 className="text-lg font-semibold text-gray-900">Graphic Design Items</h3>
-                                <p className="mt-1 text-sm text-gray-600">
+                            <div className="rounded-2xl border border-jv-line bg-white/[0.04] p-6 ">
+                                <h3 className="text-lg font-semibold text-white">Graphic Design Items</h3>
+                                <p className="mt-1 text-sm text-white/65">
                                     Add design items with description, image sample, and unit price.
                                 </p>
 
                                 <div className="mt-5 space-y-4">
                                     {(form.data.graphic_design_items || []).map((item, index) => (
-                                        <div key={`graphic-item-${index}`} className="rounded-lg border border-gray-200 p-4">
+                                        <div key={`graphic-item-${index}`} className="rounded-lg border border-jv-line p-4">
                                             <div className="mb-2 flex items-center justify-between">
-                                                <p className="text-sm font-semibold text-gray-900">Item {index + 1}</p>
+                                                <p className="text-sm font-semibold text-white">Item {index + 1}</p>
                                                 <button
                                                     type="button"
                                                     onClick={() => removeGraphicItem(index)}
@@ -383,44 +383,44 @@ export default function ServicePricingShow({
 
                                             <div className="grid gap-3 md:grid-cols-2">
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Design Item</label>
+                                                    <label className="mb-1 block text-sm font-medium text-white/75">Design Item</label>
                                                     <input
                                                         type="text"
                                                         value={item.title || ''}
                                                         onChange={(event) => setGraphicItem(index, 'title', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Unit Price</label>
+                                                    <label className="mb-1 block text-sm font-medium text-white/75">Unit Price</label>
                                                     <input
                                                         type="number"
                                                         min="0.01"
                                                         step="0.01"
                                                         value={item.unit_price || ''}
                                                         onChange={(event) => setGraphicItem(index, 'unit_price', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                     />
                                                 </div>
                                                 <div className="md:col-span-2">
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+                                                    <label className="mb-1 block text-sm font-medium text-white/75">Description</label>
                                                     <textarea
                                                         rows={3}
                                                         value={item.description || ''}
                                                         onChange={(event) => setGraphicItem(index, 'description', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                     />
                                                 </div>
                                                 <div className="md:col-span-2">
-                                                    <label className="mb-1 block text-sm font-medium text-gray-700">Image Sample Path</label>
+                                                    <label className="mb-1 block text-sm font-medium text-white/75">Image Sample Path</label>
                                                     <input
                                                         type="text"
                                                         value={item.image_path || ''}
                                                         onChange={(event) => setGraphicItem(index, 'image_path', event.target.value)}
-                                                        className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                                        className="w-full rounded-md border border-jv-line-strong px-3 py-2 text-sm focus:border-jv-accent focus:outline-none focus:ring-2 focus:ring-jv-accent/20"
                                                     />
                                                     <div className="mt-2 flex flex-wrap gap-2">
-                                                        <label className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light">
+                                                        <label className="rounded-md border border-jv-accent/30 px-3 py-2 text-xs font-semibold text-jv-accent hover:bg-jv-accent/15">
                                                             Upload Image
                                                             <input
                                                                 type="file"
@@ -438,7 +438,7 @@ export default function ServicePricingShow({
                                                         <button
                                                             type="button"
                                                             onClick={() => openMediaSelector(index)}
-                                                            className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                                            className="rounded-md border border-jv-line-strong px-3 py-2 text-xs font-semibold text-white/75 hover:bg-white/[0.04]"
                                                         >
                                                             Media Selector
                                                         </button>
@@ -447,7 +447,7 @@ export default function ServicePricingShow({
                                                         <img
                                                             src={imageSrc(item.image_path)}
                                                             alt={item.title || 'Sample'}
-                                                            className="mt-3 h-24 w-24 rounded-md border border-gray-200 object-cover"
+                                                            className="mt-3 h-24 w-24 rounded-md border border-jv-line object-cover"
                                                         />
                                                     )}
                                                 </div>
@@ -459,7 +459,7 @@ export default function ServicePricingShow({
                                 <button
                                     type="button"
                                     onClick={addGraphicItem}
-                                    className="mt-3 rounded-md border border-brand/30 bg-brand-light px-3 py-1.5 text-xs font-semibold text-brand hover:bg-brand-light"
+                                    className="mt-3 rounded-md border border-jv-accent/30 bg-jv-accent/15 px-3 py-1.5 text-xs font-semibold text-jv-accent hover:bg-jv-accent/15"
                                 >
                                     Add Graphic Design Item
                                 </button>
@@ -470,7 +470,7 @@ export default function ServicePricingShow({
                             <button
                                 type="submit"
                                 disabled={form.processing}
-                                className="inline-flex items-center rounded-lg bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                                className="inline-flex items-center rounded-lg bg-jv-accent px-4 py-2 text-sm font-semibold text-white hover:bg-jv-accent-dark disabled:cursor-not-allowed disabled:opacity-60"
                             >
                                 {form.processing ? 'Saving...' : 'Save Service Pricing'}
                             </button>
@@ -482,30 +482,30 @@ export default function ServicePricingShow({
             <Modal show={selectorOpen} maxWidth="2xl" onClose={closeSelector}>
                 <div className="space-y-4 p-5 sm:p-6">
                     <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-gray-900">Select Media File</h3>
+                        <h3 className="text-lg font-semibold text-white">Select Media File</h3>
                         <button
                             type="button"
                             onClick={closeSelector}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            className="rounded-md border border-jv-line-strong px-3 py-2 text-sm font-semibold text-white/75 hover:bg-white/[0.04]"
                         >
                             Close
                         </button>
                     </div>
 
-                    {selectorLoading && <p className="text-sm text-gray-600">Loading media...</p>}
+                    {selectorLoading && <p className="text-sm text-white/65">Loading media...</p>}
                     {selectorError && <p className="text-sm text-red-600">{selectorError}</p>}
 
                     {!selectorLoading && !selectorError && (
-                        <div className="max-h-[60vh] overflow-y-auto rounded-md border border-gray-200 p-3">
+                        <div className="max-h-[60vh] overflow-y-auto rounded-md border border-jv-line p-3">
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 {selectorFiles.map((file) => (
                                     <button
                                         key={file.path}
                                         type="button"
                                         onClick={() => selectGraphicImage(file.path)}
-                                        className="overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-brand hover:shadow-sm"
+                                        className="overflow-hidden rounded-md border border-jv-line text-left transition hover:border-jv-accent hover:"
                                     >
-                                        <div className="h-24 w-full overflow-hidden bg-gray-50">
+                                        <div className="h-24 w-full overflow-hidden bg-white/[0.04]">
                                             <img
                                                 src={imageSrc(file.preview_url || file.path)}
                                                 alt={file.name || file.path}
@@ -513,8 +513,8 @@ export default function ServicePricingShow({
                                             />
                                         </div>
                                         <div className="space-y-1 p-2">
-                                            <p className="truncate text-xs font-semibold text-gray-900">{file.name}</p>
-                                            <p className="truncate text-[11px] text-gray-500">{file.path}</p>
+                                            <p className="truncate text-xs font-semibold text-white">{file.name}</p>
+                                            <p className="truncate text-[11px] text-white/50">{file.path}</p>
                                         </div>
                                     </button>
                                 ))}

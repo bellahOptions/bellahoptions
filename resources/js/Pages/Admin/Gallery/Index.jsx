@@ -1,5 +1,9 @@
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import Modal from '@/Components/Modal';
+import { Card } from '@/Components/ui/card';
+import { Input } from '@/Components/ui/input';
+import { Select } from '@/Components/ui/select';
+import { Textarea } from '@/Components/ui/textarea';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useRef, useState } from 'react';
 
@@ -274,61 +278,63 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Manage Gallery</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight tracking-tight text-white">Manage Gallery</h2>}
         >
             <Head title="Manage Gallery" />
 
             <div className="py-10">
                 <div className="mx-auto max-w-6xl space-y-6 px-4 sm:px-6 lg:px-8">
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
 
                     {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {flash.error}
                         </div>
                     )}
 
-                    <form onSubmit={submitCreate} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-                            <div>
-                                <h3 className="text-lg font-semibold text-gray-900">Add Project</h3>
-                                <p className="text-sm text-gray-600">
-                                    Use drag-and-drop upload or choose an existing public image from media selector.
-                                </p>
+                    <form onSubmit={submitCreate}>
+                        <Card>
+                            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <h3 className="text-lg font-semibold tracking-tight text-white">Add Project</h3>
+                                    <p className="text-sm text-white/55">
+                                        Use drag-and-drop upload or choose an existing public image from media selector.
+                                    </p>
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={createForm.processing}
+                                    className="jv-btn jv-btn--primary mt-3 disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
+                                >
+                                    {createForm.processing ? 'Saving...' : 'Add Project'}
+                                </button>
                             </div>
-                            <button
-                                type="submit"
-                                disabled={createForm.processing}
-                                className="mt-3 inline-flex items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60 sm:mt-0"
-                            >
-                                {createForm.processing ? 'Saving...' : 'Add Project'}
-                            </button>
-                        </div>
 
-                        <GalleryFields
-                            form={createForm}
-                            className="mt-5"
-                            uploadStatus={uploadState.create}
-                            cropAspect={cropAspectByTarget.create}
-                            onChangeCropAspect={(value) => setCropAspectByTarget((current) => ({ ...current, create: value }))}
-                            onUpload={(file) => uploadImage('create', file)}
-                            onOpenMediaSelector={() => openMediaSelector('create')}
-                        />
+                            <GalleryFields
+                                form={createForm}
+                                className="mt-5"
+                                uploadStatus={uploadState.create}
+                                cropAspect={cropAspectByTarget.create}
+                                onChangeCropAspect={(value) => setCropAspectByTarget((current) => ({ ...current, create: value }))}
+                                onUpload={(file) => uploadImage('create', file)}
+                                onOpenMediaSelector={() => openMediaSelector('create')}
+                            />
+                        </Card>
                     </form>
 
-                    <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                        <div className="border-b border-gray-200 px-6 py-4">
-                            <h3 className="text-lg font-semibold text-gray-900">Current Items</h3>
-                            <p className="text-sm text-gray-600">Published projects are visible on the public gallery.</p>
+                    <Card className="overflow-hidden p-0">
+                        <div className="border-b border-jv-line px-6 py-4">
+                            <h3 className="text-lg font-semibold tracking-tight text-white">Current Items</h3>
+                            <p className="text-sm text-white/55">Published projects are visible on the public gallery.</p>
                         </div>
 
-                        <div className="divide-y divide-gray-100">
+                        <div className="divide-y divide-jv-line/70">
                             {items.length === 0 && (
-                                <div className="px-6 py-10 text-sm text-gray-500">No projects yet.</div>
+                                <div className="px-6 py-10 text-sm text-white/45">No projects yet.</div>
                             )}
 
                             {items.map((item) => {
@@ -350,14 +356,14 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                                     <button
                                                         type="submit"
                                                         disabled={editForm.processing}
-                                                        className="rounded-md bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                                                        className="jv-btn jv-btn--primary disabled:cursor-not-allowed disabled:opacity-60"
                                                     >
                                                         {editForm.processing ? 'Updating...' : 'Save Changes'}
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={cancelEditing}
-                                                        className="rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                                                        className="jv-btn jv-btn--ghost"
                                                     >
                                                         Cancel
                                                     </button>
@@ -368,29 +374,29 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                                 <PreviewImage path={item.image_path} title={item.title} />
                                                 <div>
                                                     <div className="flex flex-wrap items-center gap-2">
-                                                        <h4 className="text-base font-semibold text-gray-900">{item.title}</h4>
-                                                        <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${item.is_published ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                                                        <h4 className="text-base font-semibold text-white">{item.title}</h4>
+                                                        <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.is_published ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.07] text-white/60'}`}>
                                                             {item.is_published ? 'Published' : 'Draft'}
                                                         </span>
                                                     </div>
-                                                    <p className="mt-2 text-sm leading-6 text-gray-600">
+                                                    <p className="mt-2 text-sm leading-6 text-white/55">
                                                         {item.description || 'No description yet.'}
                                                     </p>
-                                                    <dl className="mt-3 grid gap-1 text-xs text-gray-500 sm:grid-cols-2">
+                                                    <dl className="mt-3 grid gap-1 text-xs text-white/45 sm:grid-cols-2">
                                                         <div>
-                                                            <dt className="inline font-semibold">Category: </dt>
+                                                            <dt className="inline font-semibold text-white/60">Category: </dt>
                                                             <dd className="inline break-all">{item.category || 'None'}</dd>
                                                         </div>
                                                         <div>
-                                                            <dt className="inline font-semibold">Position: </dt>
+                                                            <dt className="inline font-semibold text-white/60">Position: </dt>
                                                             <dd className="inline break-all">{String(item.position ?? 0)}</dd>
                                                         </div>
                                                         <div>
-                                                            <dt className="inline font-semibold">Image: </dt>
+                                                            <dt className="inline font-semibold text-white/60">Image: </dt>
                                                             <dd className="inline break-all">{item.image_path || 'None'}</dd>
                                                         </div>
                                                         <div>
-                                                            <dt className="inline font-semibold">Project URL: </dt>
+                                                            <dt className="inline font-semibold text-white/60">Project URL: </dt>
                                                             <dd className="inline break-all">{item.project_url || 'None'}</dd>
                                                         </div>
                                                     </dl>
@@ -399,14 +405,14 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => startEditing(item)}
-                                                        className="rounded-md border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50"
+                                                        className="jv-btn jv-btn--outline jv-btn--sm"
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
                                                         type="button"
                                                         onClick={() => deleteItem(item)}
-                                                        className="rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+                                                        className="rounded-full border border-red-500/40 px-4 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
                                                     >
                                                         Delete
                                                     </button>
@@ -417,21 +423,21 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                 );
                             })}
                         </div>
-                    </div>
+                    </Card>
                 </div>
             </div>
 
             <Modal show={selectorOpen} maxWidth="2xl" onClose={closeMediaSelector}>
                 <div className="space-y-4 p-5 sm:p-6">
-                    <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex flex-col gap-3 border-b border-jv-line pb-4 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-900">Media Selector</h3>
-                            <p className="text-sm text-gray-600">Pick any image from the public directory.</p>
+                            <h3 className="text-lg font-semibold tracking-tight text-white">Media Selector</h3>
+                            <p className="text-sm text-white/55">Pick any image from the public directory.</p>
                         </div>
                         <button
                             type="button"
                             onClick={closeMediaSelector}
-                            className="inline-flex items-center justify-center rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            className="jv-btn jv-btn--ghost jv-btn--sm"
                         >
                             Close
                         </button>
@@ -443,12 +449,12 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                             value={selectorSearch}
                             onChange={(event) => setSelectorSearch(event.target.value)}
                             placeholder="Search media by file name or path"
-                            className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none sm:w-auto sm:flex-1"
+                            className="jv-input w-full sm:w-auto sm:flex-1"
                         />
                         <select
                             value={cropAspectByTarget.selector}
                             onChange={(event) => setCropAspectByTarget((current) => ({ ...current, selector: event.target.value }))}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                            className="jv-select w-auto"
                         >
                             {cropAspectOptions.filter((option) => option.value !== 'free').map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -460,25 +466,25 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                             type="button"
                             onClick={refreshMediaLibrary}
                             disabled={mediaLoading}
-                            className="rounded-md border border-blue-200 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                            className="jv-btn jv-btn--outline jv-btn--sm disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {mediaLoading ? 'Refreshing...' : 'Refresh'}
                         </button>
                     </div>
 
-                    {mediaError && <p className="text-xs text-red-600">{mediaError}</p>}
+                    {mediaError && <p className="text-xs text-red-300">{mediaError}</p>}
 
-                    <div className="max-h-[60vh] overflow-y-auto rounded-md border border-gray-200 p-3">
+                    <div className="max-h-[60vh] overflow-y-auto rounded-jv-sm border border-jv-line p-3">
                         {filteredFiles.length === 0 ? (
-                            <p className="text-sm text-gray-500">No matching files found.</p>
+                            <p className="text-sm text-white/45">No matching files found.</p>
                         ) : (
                             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                                 {filteredFiles.map((file) => (
                                     <div
                                         key={file.path}
-                                        className="group overflow-hidden rounded-md border border-gray-200 text-left transition hover:border-blue-400 hover:shadow-sm"
+                                        className="group overflow-hidden rounded-jv-sm border border-jv-line bg-white/[0.03] text-left transition hover:border-jv-accent-line hover:bg-white/[0.06]"
                                     >
-                                        <div className="h-28 w-full overflow-hidden bg-gray-50">
+                                        <div className="h-28 w-full overflow-hidden bg-black/40">
                                             <img
                                                 src={imageSrc(file.preview_url || file.path)}
                                                 alt={file.name || file.path}
@@ -486,14 +492,14 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                             />
                                         </div>
                                         <div className="space-y-1 p-2">
-                                            <p className="truncate text-xs font-semibold text-gray-900">{file.name}</p>
-                                            <p className="truncate text-[11px] text-gray-500">{file.path}</p>
-                                            <p className="text-[11px] text-gray-500">{formatFileSize(Number(file.size || 0))}</p>
+                                            <p className="truncate text-xs font-semibold text-white">{file.name}</p>
+                                            <p className="truncate text-[11px] text-white/45">{file.path}</p>
+                                            <p className="text-[11px] text-white/45">{formatFileSize(Number(file.size || 0))}</p>
                                             <div className="mt-2 flex flex-wrap gap-1">
                                                 <button
                                                     type="button"
                                                     onClick={() => selectFile(file.path)}
-                                                    className="rounded border border-blue-200 px-2 py-1 text-[11px] font-semibold text-blue-700 hover:bg-blue-50"
+                                                    className="rounded-full border border-jv-accent-line px-2.5 py-1 text-[11px] font-semibold text-[#dbe7ff] transition hover:bg-jv-accent/15 hover:text-white"
                                                 >
                                                     Use
                                                 </button>
@@ -501,9 +507,9 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
                                                     <button
                                                         type="button"
                                                         onClick={() => cropAndSelectFile(file)}
-                                                        className="rounded border border-slate-300 px-2 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+                                                        className="rounded-full border border-jv-line-strong px-2.5 py-1 text-[11px] font-semibold text-white/60 transition hover:bg-white/[0.08] hover:text-white"
                                                     >
-                                                        Crop & Use
+                                                        Crop &amp; Use
                                                     </button>
                                                 )}
                                             </div>
@@ -531,40 +537,36 @@ function GalleryFields({
     return (
         <div className={`grid gap-4 md:grid-cols-2 ${className}`}>
             <Field label="Title" error={form.errors.title} className="md:col-span-2">
-                <input
+                <Input
                     type="text"
                     value={form.data.title}
                     onChange={(event) => form.setData('title', event.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                     required
                 />
             </Field>
 
             <Field label="Category" error={form.errors.category}>
-                <input
+                <Input
                     type="text"
                     value={form.data.category}
                     onChange={(event) => form.setData('category', event.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                 />
             </Field>
 
             <Field label="Position" error={form.errors.position}>
-                <input
+                <Input
                     type="number"
                     min={0}
                     value={form.data.position}
                     onChange={(event) => form.setData('position', event.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                 />
             </Field>
 
             <Field label="Description" error={form.errors.description} className="md:col-span-2">
-                <textarea
+                <Textarea
                     rows={3}
                     value={form.data.description}
                     onChange={(event) => form.setData('description', event.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                 />
             </Field>
 
@@ -581,33 +583,31 @@ function GalleryFields({
             </Field>
 
             <Field label="Image URL or Public Path" error={form.errors.image_path}>
-                <input
+                <Input
                     type="text"
                     value={form.data.image_path}
                     onChange={(event) => form.setData('image_path', event.target.value)}
                     placeholder="/images/sample.jpg"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                     required
                 />
             </Field>
 
             <Field label="Project URL" error={form.errors.project_url}>
-                <input
+                <Input
                     type="text"
                     value={form.data.project_url}
                     onChange={(event) => form.setData('project_url', event.target.value)}
                     placeholder="https://example.com"
-                    className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                 />
             </Field>
 
             <Field label="Published" error={form.errors.is_published} className="md:col-span-2">
-                <label className="inline-flex items-center gap-2 text-sm font-semibold text-gray-700">
+                <label className="inline-flex items-center gap-2 text-sm font-medium text-white/70">
                     <input
                         type="checkbox"
                         checked={Boolean(form.data.is_published)}
                         onChange={(event) => form.setData('is_published', event.target.checked)}
-                        className="rounded border-gray-300 text-blue-700 focus:ring-blue-500"
+                        className="h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent accent-jv-accent focus:ring-jv-accent/40"
                     />
                     Visible on public website
                 </label>
@@ -651,18 +651,18 @@ function ImageUploadField({
     return (
         <div className="space-y-3">
             <div
-                className={`rounded-md border-2 border-dashed p-4 transition ${dragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50'}`}
+                className={`rounded-jv-sm border-2 border-dashed p-4 transition ${dragging ? 'border-jv-accent-line bg-jv-accent/10' : 'border-jv-line-strong bg-white/[0.03]'}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <p className="text-sm text-gray-700">Drag and drop an image here, or upload/select one.</p>
+                    <p className="text-sm text-white/70">Drag and drop an image here, or upload/select one.</p>
                     <div className="flex flex-wrap gap-2">
                         <select
                             value={cropAspect}
                             onChange={(event) => onChangeCropAspect?.(event.target.value)}
-                            className="rounded-md border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-gray-700"
+                            className="jv-select w-auto text-xs font-semibold"
                         >
                             {cropAspectOptions.map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -674,21 +674,21 @@ function ImageUploadField({
                             type="button"
                             onClick={() => inputRef.current?.click()}
                             disabled={uploadStatus?.uploading}
-                            className="rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                            className="jv-btn jv-btn--primary jv-btn--sm disabled:cursor-not-allowed disabled:opacity-60"
                         >
                             {uploadStatus?.uploading ? 'Uploading...' : 'Upload Image'}
                         </button>
                         <button
                             type="button"
                             onClick={onOpenMediaSelector}
-                            className="rounded-md border border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                            className="jv-btn jv-btn--ghost jv-btn--sm"
                         >
                             Open Media Selector
                         </button>
                         <button
                             type="button"
                             onClick={onClear}
-                            className="rounded-md border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+                            className="rounded-full border border-red-500/40 px-4 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
                         >
                             Clear
                         </button>
@@ -709,15 +709,15 @@ function ImageUploadField({
                 />
             </div>
 
-            {uploadStatus?.error && <p className="text-xs text-red-600">{uploadStatus.error}</p>}
+            {uploadStatus?.error && <p className="text-xs text-red-300">{uploadStatus.error}</p>}
 
-            <div className="rounded-md border border-gray-200 bg-white p-3">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">Current selection</p>
+            <div className="rounded-jv-sm border border-jv-line bg-white/[0.03] p-3">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/45">Current selection</p>
                 <PreviewImage path={imagePath} title="Selected project image" compact />
                 {imagePath ? (
-                    <p className="mt-2 break-all text-xs text-gray-500">Image path: {imagePath}</p>
+                    <p className="mt-2 break-all text-xs text-white/45">Image path: {imagePath}</p>
                 ) : (
-                    <p className="mt-2 text-xs text-gray-500">No image selected.</p>
+                    <p className="mt-2 text-xs text-white/45">No image selected.</p>
                 )}
             </div>
         </div>
@@ -727,9 +727,9 @@ function ImageUploadField({
 function Field({ label, error, className = '', children }) {
     return (
         <div className={className}>
-            <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+            <label className="mb-1.5 block text-sm font-medium text-white/65">{label}</label>
             {children}
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+            {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
         </div>
     );
 }
@@ -739,7 +739,7 @@ function PreviewImage({ path, title, compact = false }) {
 
     if (!src) {
         return (
-            <div className={`flex ${compact ? 'h-36 w-full' : 'h-32 w-full lg:w-44'} items-center justify-center rounded-md border border-gray-200 bg-gray-50 text-xs font-semibold text-gray-400`}>
+            <div className={`flex ${compact ? 'h-36 w-full' : 'h-32 w-full lg:w-44'} items-center justify-center rounded-jv-sm border border-jv-line bg-white/[0.03] text-xs font-semibold text-white/30`}>
                 No Image
             </div>
         );
@@ -749,7 +749,7 @@ function PreviewImage({ path, title, compact = false }) {
         <img
             src={src}
             alt={title}
-            className={`${compact ? 'h-36 w-full' : 'h-32 w-full lg:w-44'} rounded-md border border-gray-200 object-cover`}
+            className={`${compact ? 'h-36 w-full' : 'h-32 w-full lg:w-44'} rounded-jv-sm border border-jv-line object-cover`}
         />
     );
 }

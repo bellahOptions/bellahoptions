@@ -11,7 +11,7 @@ const tabs = [
 
 export default function FinanceTabs({ active }) {
     return (
-        <div className="flex gap-1 overflow-x-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-sm">
+        <div className="jv-card flex gap-1 overflow-x-auto rounded-full p-1.5">
             {tabs.map((tab) => {
                 const isActive = tab.key === active;
 
@@ -19,8 +19,10 @@ export default function FinanceTabs({ active }) {
                     <Link
                         key={tab.key}
                         href={route(tab.routeName)}
-                        className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                            isActive ? 'bg-brand text-white shadow-sm' : 'text-gray-600 hover:bg-gray-50 hover:text-brand'
+                        className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            isActive
+                                ? 'bg-jv-accent text-white'
+                                : 'text-white/60 hover:bg-white/[0.07] hover:text-white'
                         }`}
                     >
                         {tab.label}

@@ -3,6 +3,7 @@ import HumanVerificationField from "@/Components/HumanVerificationField";
 import InputError from "@/Components/InputError";
 import PasswordInput from "@/Components/PasswordInput";
 import GuestLayout from "@/Layouts/GuestLayout";
+import { Display, Eyebrow } from "@/Components/PublicUI";
 import { Head, Link, useForm } from "@inertiajs/react";
 import { useEffect } from "react";
 
@@ -47,75 +48,68 @@ export default function Login({
         <GuestLayout>
             <Head title="Sign In" />
 
-            <div className="leading-tight">
-                <h2 className="mt-2 text-3xl font-semibold text-gray-900">
-                    Welcome Back
-                </h2>
-                <p className="text-sm leading-6 text-gray-600">
-                    Access your account.
-                </p>
-            </div>
+            <Eyebrow>Account access</Eyebrow>
+
+            <Display as="h2" size="sm" className="mt-5">
+                Welcome back
+            </Display>
+            <p className="jv-body mt-3">
+                Sign in to pick up where your projects left off.
+            </p>
 
             {status && (
-                <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                <div className="mt-6 rounded-jv-sm border border-jv-accent/30 bg-jv-accent/10 px-4 py-3 text-sm text-white/80">
                     {status}
                 </div>
             )}
 
-            <form onSubmit={submit} className="mt-6 space-y-4">
-                <div>
-                    <label
-                        htmlFor="email"
-                        className="text-sm font-medium text-slate-700"
-                    >
-                        Email Address
+            <form onSubmit={submit} className="mt-7 space-y-5">
+                <div className="jv-field">
+                    <label htmlFor="email" className="jv-label">
+                        Email address
                     </label>
                     <input
                         id="email"
                         type="email"
                         name="email"
                         value={data.email}
-                        className="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        className="jv-input"
                         autoComplete="username"
                         onChange={(event) =>
                             setData("email", event.target.value)
                         }
                         required
                     />
-                    <InputError message={errors.email} className="mt-2" />
+                    <InputError message={errors.email} />
                 </div>
 
-                <div>
-                    <label
-                        htmlFor="password"
-                        className="text-sm font-medium text-slate-700"
-                    >
+                <div className="jv-field">
+                    <label htmlFor="password" className="jv-label">
                         Password
                     </label>
                     <PasswordInput
                         id="password"
                         name="password"
                         value={data.password}
-                        inputClassName="mt-1 w-full rounded-xl border border-blue-200 bg-white px-3 py-2.5 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        inputClassName="jv-input"
                         autoComplete="current-password"
                         onChange={(event) =>
                             setData("password", event.target.value)
                         }
                         required
                     />
-                    <InputError message={errors.password} className="mt-2" />
+                    <InputError message={errors.password} />
                 </div>
 
-                <label className="inline-flex items-center gap-2">
+                <label className="flex items-center gap-2.5">
                     <Checkbox
                         name="remember"
                         checked={data.remember}
                         onChange={(event) =>
                             setData("remember", event.target.checked)
                         }
-                        className="text-blue-600 focus:ring-blue-500"
                     />
-                    <span className="text-sm text-slate-600">Remember me</span>
+                    <span className="text-sm text-white/60">Remember me</span>
                 </label>
 
                 <HumanVerificationField
@@ -132,27 +126,27 @@ export default function Login({
                 <button
                     type="submit"
                     disabled={processing}
-                    className="w-full rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-60"
+                    className="jv-btn jv-btn--primary w-full"
                 >
                     {processing ? "Signing in..." : "Sign In"}
                 </button>
 
-                <div className="flex flex-wrap items-center justify-end gap-3 pt-1 text-sm">
+                <div className="flex flex-wrap items-center justify-end gap-3 text-sm">
                     {canResetPassword && (
                         <Link
                             href={route("password.request")}
-                            className="font-medium text-slate-600 hover:text-slate-900"
+                            className="text-white/60 transition-colors hover:text-white"
                         >
                             Forgot password?
                         </Link>
                     )}
                 </div>
 
-                <p className="text-sm text-slate-600">
+                <p className="jv-body border-t border-jv-line pt-5">
                     Don&apos;t have an account?{" "}
                     <Link
                         href={route("register")}
-                        className="font-semibold text-blue-700 hover:text-blue-800"
+                        className="font-semibold text-jv-accent transition-colors hover:text-white"
                     >
                         Create one
                     </Link>

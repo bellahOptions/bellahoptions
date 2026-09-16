@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
+import { Eyebrow } from "@/Components/PublicUI";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Select } from "@/Components/ui/select";
@@ -878,41 +879,41 @@ export default function OrderCreate({
             <Head title="Start Order" />
 
             <PageTheme>
-                <main className="bg-white text-gray-950">
-                    <RevealSection className="bg-brand py-16 text-white sm:py-20 lg:py-24">
+                <main className="text-white">
+                    <RevealSection className="jv-glow jv-grid-bg relative overflow-hidden py-16 sm:py-20 lg:py-24">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
                                 <div>
-                                    <p className="text-sm font-black uppercase tracking-[0.22em] text-cyan-300">Secure Order Intake</p>
-                                    <h1 className="mt-4 text-4xl font-black tracking-tight sm:text-5xl">
+                                    <Eyebrow>Secure order intake</Eyebrow>
+                                    <h1 className="jv-display jv-display--lg mt-6">
                                         Start your Bellah Options project.
                                     </h1>
-                                    <p className="mt-5 max-w-2xl text-base leading-8 text-blue-100">
+                                    <p className="jv-lead mt-5 max-w-2xl">
                                         A quick 4-step form: your details, service and package, project brief, then review and submit.
                                     </p>
                                 </div>
 
                                 <div className="grid gap-3 sm:grid-cols-2">
-                                    <div className="bg-white/10 p-5">
-                                        <ShieldCheckIcon className="h-7 w-7 text-cyan-200" />
-                                        <p className="mt-3 font-black">Protected checkout</p>
-                                        <p className="mt-2 text-sm leading-6 text-blue-100">Timed guard, honeypot checks, and server-side validation are active.</p>
+                                    <div className="rounded-jv border border-jv-line bg-white/[0.05] p-5 backdrop-blur-sm">
+                                        <ShieldCheckIcon className="h-7 w-7 text-jv-accent" />
+                                        <p className="mt-3 font-semibold text-white">Protected checkout</p>
+                                        <p className="jv-small mt-2">Timed guard, honeypot checks, and server-side validation are active.</p>
                                     </div>
-                                    <div className="bg-white/10 p-5">
-                                        <LockClosedIcon className="h-7 w-7 text-cyan-200" />
-                                        <p className="mt-3 font-black">Invoice-ready flow</p>
-                                        <p className="mt-2 text-sm leading-6 text-blue-100">Every successful submission creates an order and prepares the next payment step.</p>
+                                    <div className="rounded-jv border border-jv-line bg-white/[0.05] p-5 backdrop-blur-sm">
+                                        <LockClosedIcon className="h-7 w-7 text-jv-accent" />
+                                        <p className="mt-3 font-semibold text-white">Invoice-ready flow</p>
+                                        <p className="jv-small mt-2">Every successful submission creates an order and prepares the next payment step.</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </RevealSection>
 
-                    <RevealSection className="bg-gray-50 py-16 sm:py-20">
+                    <RevealSection className="py-16 sm:py-20">
                         <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[280px_1fr] lg:px-8">
                             <aside className="space-y-4">
-                                <div className="bg-white p-6 shadow-sm ring-1 ring-gray-200">
-                                    <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Order Steps</p>
+                                <div className="jv-card p-6">
+                                    <p className="jv-mono text-jv-accent">Order Steps</p>
                                     <div className="mt-5 space-y-3">
                                         {steps.map((step, index) => {
                                             const stepNumber = index + 1;
@@ -920,11 +921,11 @@ export default function OrderCreate({
                                             const complete = currentStep > stepNumber;
 
                                             return (
-                                                <div key={step} className={`flex items-center gap-3 ${active ? "text-gray-950" : "text-gray-500"}`}>
-                                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-black ${complete ? "bg-brand text-white" : active ? "border border-brand text-brand" : "bg-gray-100"}`}>
+                                                <div key={step} className={`flex items-center gap-3 ${active ? "text-white" : "text-white/45"}`}>
+                                                    <div className={`flex h-9 w-9 items-center justify-center rounded-full text-sm font-semibold ${complete ? "bg-jv-accent/20 text-white" : active ? "bg-jv-accent text-white" : "bg-white/[0.07] text-white/50"}`}>
                                                         {complete ? <CheckCircleIcon className="h-5 w-5" /> : stepNumber}
                                                     </div>
-                                                    <span className="font-bold">{step}</span>
+                                                    <span className="font-semibold">{step}</span>
                                                 </div>
                                             );
                                         })}
@@ -932,25 +933,25 @@ export default function OrderCreate({
                                 </div>
 
                                 {(discountCode || data.discount_code) && data.service_package !== trialPackageCode && (
-                                    <div className="border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-700">
+                                    <div className="rounded-jv border border-emerald-500/30 bg-emerald-500/10 p-5 text-sm text-emerald-300">
                                         Discount <strong>{data.discount_code || discountCode}</strong> is attached.
                                         {discountSummary ? ` (${discountSummary})` : ""}
                                     </div>
                                 )}
                                 {draftRestored && (
-                                    <div className="border border-cyan-200 bg-cyan-50 p-5 text-sm text-cyan-800">
+                                    <div className="rounded-jv border border-jv-accent-line bg-jv-accent/10 p-5 text-sm text-white/80">
                                         We restored your last in-progress draft automatically.
                                     </div>
                                 )}
                                 {!paystackAvailable && (
-                                    <div className="border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
-                                        <p className="font-black uppercase tracking-[0.14em] text-amber-700">Payment Update</p>
+                                    <div className="rounded-jv border border-amber-500/30 bg-amber-500/10 p-5 text-sm text-amber-100">
+                                        <p className="jv-mono text-amber-300">Payment Update</p>
                                         <p className="mt-2">
                                             Online Paystack checkout is not available right now.
                                             {paystackIssue ? ` ${paystackIssue}` : ""}
                                         </p>
                                         {fallbackAccount ? (
-                                            <div className="mt-3 space-y-1 text-xs leading-5 text-amber-900">
+                                            <div className="mt-3 space-y-1 text-xs leading-5 text-amber-100/80">
                                                 <p><strong>Bank:</strong> {fallbackAccount.bank_name}</p>
                                                 <p><strong>Account Name:</strong> {fallbackAccount.account_name}</p>
                                                 <p><strong>Account Number:</strong> {fallbackAccount.account_number}</p>
@@ -960,7 +961,7 @@ export default function OrderCreate({
                                                 <p><strong>Support:</strong> {fallbackAccount.support_email}</p>
                                             </div>
                                         ) : (
-                                            <p className="mt-3 text-xs text-amber-800">
+                                            <p className="mt-3 text-xs text-amber-200/80">
                                                 Please continue with your order and our team will share manual payment details.
                                             </p>
                                         )}
@@ -968,16 +969,16 @@ export default function OrderCreate({
                                 )}
                             </aside>
 
-                            <form onSubmit={submit} className="bg-white p-6 shadow-sm ring-1 ring-gray-200 sm:p-8">
+                            <form onSubmit={submit} className="jv-card p-6 sm:p-8">
                                 {flash?.error && (
-                                    <div className="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                                    <div className="mb-5 rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
                                         {flash.error}
                                     </div>
                                 )}
 
                                 {visibleErrorMessages.length > 0 && (
-                                    <div className="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                                        <p className="font-bold">We could not submit the order yet.</p>
+                                    <div className="mb-5 rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+                                        <p className="font-semibold">We could not submit the order yet.</p>
                                         <p className="mt-1">
                                             Please review the highlighted fields. We have taken you to the first step that needs attention.
                                         </p>
@@ -989,7 +990,7 @@ export default function OrderCreate({
                                     </div>
                                 )}
                                 {showPositiveStatus && (
-                                    <div className="mb-5 border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                                    <div className="mb-5 rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-300">
                                         You are doing everything right.
                                     </div>
                                 )}
@@ -1054,17 +1055,17 @@ export default function OrderCreate({
                                                     key={slug}
                                                     type="button"
                                                     onClick={() => setActiveServiceSlug(slug)}
-                                                    className={`border p-5 text-left transition ${activeServiceSlug === slug ? "border-brand bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
+                                                    className={`rounded-jv border p-5 text-left transition ${activeServiceSlug === slug ? "border-jv-accent bg-jv-accent/10" : "border-jv-line bg-white/[0.03] hover:border-jv-accent-line hover:bg-white/[0.06]"}`}
                                                 >
-                                                    <p className="text-lg font-black text-gray-950">{service.name}</p>
-                                                    <p className="mt-2 text-sm leading-6 text-gray-600">{service.description}</p>
+                                                    <p className="text-lg font-semibold text-white">{service.name}</p>
+                                                    <p className="jv-body mt-2">{service.description}</p>
                                                 </button>
                                             ))}
                                         </div>
 
-                                        <div className="mt-8 border-t border-gray-100 pt-8">
-                                            <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Choose a Package</p>
-                                            <p className="mt-2 text-sm leading-6 text-gray-600">
+                                        <div className="mt-8 border-t border-jv-line pt-8">
+                                            <p className="jv-mono text-jv-accent">Choose a Package</p>
+                                            <p className="jv-body mt-2">
                                                 Pick a regular plan/pack, or choose the trial request option for one-off work outside plans and packs.
                                             </p>
                                             <div className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -1076,32 +1077,32 @@ export default function OrderCreate({
                                                             key={code}
                                                             type="button"
                                                             onClick={() => updateField("service_package", code)}
-                                                            className={`border p-5 text-left transition ${selected ? "border-brand bg-blue-50" : "border-gray-200 bg-white hover:border-blue-200"}`}
+                                                            className={`rounded-jv border p-5 text-left transition ${selected ? "border-jv-accent bg-jv-accent/10" : "border-jv-line bg-white/[0.03] hover:border-jv-accent-line hover:bg-white/[0.06]"}`}
                                                         >
                                                             <div className="flex items-start justify-between gap-2">
-                                                                <p className="text-lg font-black text-gray-950">{pack.name}</p>
+                                                                <p className="text-lg font-semibold text-white">{pack.name}</p>
                                                                 {pack.is_recommended && (
-                                                                    <span className="rounded-full bg-brand-light px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-brand">
+                                                                    <span className="rounded-full border border-jv-accent-line bg-jv-accent/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#a9c4ff]">
                                                                         Recommended
                                                                     </span>
                                                                 )}
                                                             </div>
                                                             {pack.discount_price && Number(pack.base_price_ngn || 0) > Number(pack.discount_price || 0) ? (
                                                                 <div className="mt-2 flex items-center gap-2">
-                                                                    <p className="text-sm font-bold text-brand">{formatMoney(pack.discount_price, currency, locale)}</p>
-                                                                    <p className="text-xs font-semibold text-gray-500 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
+                                                                    <p className="text-sm font-semibold text-white">{formatMoney(pack.discount_price, currency, locale)}</p>
+                                                                    <p className="text-xs font-semibold text-white/45 line-through">{formatMoney(pack.base_price_ngn, currency, locale)}</p>
                                                                 </div>
                                                             ) : (
-                                                                <p className="mt-2 text-sm font-bold text-brand">
+                                                                <p className="mt-2 text-sm font-semibold text-white">
                                                                     {formatMoney(pack.price, currency, locale)}
-                                                                    {pack.is_quantity_priced && <span className="font-semibold text-gray-500"> / unit</span>}
+                                                                    {pack.is_quantity_priced && <span className="font-semibold text-white/45"> / unit</span>}
                                                                 </p>
                                                             )}
-                                                            <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
+                                                            <p className="jv-body mt-3">{pack.description}</p>
                                                             {Array.isArray(pack.features) && pack.features.length > 0 && (
                                                                 <ul className="mt-3 space-y-1">
                                                                     {pack.features.slice(0, 4).map((feature) => (
-                                                                        <li key={`${code}-${feature}`} className="text-xs text-gray-600">
+                                                                        <li key={`${code}-${feature}`} className="text-xs text-white/55">
                                                                             - {feature}
                                                                         </li>
                                                                     ))}
@@ -1113,7 +1114,7 @@ export default function OrderCreate({
                                                                         ? String(pack.sample_image)
                                                                         : `/${String(pack.sample_image)}`}
                                                                     alt={pack.name}
-                                                                    className="mt-3 h-16 w-full rounded object-cover"
+                                                                    className="mt-3 h-16 w-full rounded-jv-sm border border-jv-line object-cover"
                                                                 />
                                                             )}
                                                         </button>
@@ -1121,7 +1122,7 @@ export default function OrderCreate({
                                                 })}
                                             </div>
                                             {activePackages[data.service_package]?.is_quantity_priced && (
-                                                <div className="mt-6 max-w-xs border border-gray-200 bg-white p-5">
+                                                <div className="mt-6 max-w-xs rounded-jv border border-jv-line bg-white/[0.03] p-5">
                                                     <Field label="Quantity" error={errors.package_quantity}>
                                                         <Input
                                                             type="number"
@@ -1132,14 +1133,14 @@ export default function OrderCreate({
                                                             onChange={(event) => updateField("package_quantity", event.target.value === "" ? "" : Number(event.target.value))}
                                                         />
                                                     </Field>
-                                                    <p className="mt-3 text-sm font-bold text-brand">
-                                                        Total: {formatMoney(Number(activePackages[data.service_package]?.price || 0) * Math.max(1, Number(data.package_quantity) || 1), currency, locale)}
+                                                    <p className="jv-display jv-display--sm mt-3">
+                                                        {formatMoney(Number(activePackages[data.service_package]?.price || 0) * Math.max(1, Number(data.package_quantity) || 1), currency, locale)}
                                                     </p>
                                                 </div>
                                             )}
                                             {trialPackageEntry && (
-                                                <div className="mt-6 rounded-lg border border-dashed border-brand bg-blue-50 p-5">
-                                                    <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Outside Plans / Packs</p>
+                                                <div className="mt-6 rounded-jv border border-dashed border-jv-accent-line bg-jv-accent/[0.06] p-5">
+                                                    <p className="jv-mono text-jv-accent">Outside Plans / Packs</p>
                                                     <div className="mt-4">
                                                         {(() => {
                                                             const [code, pack] = trialPackageEntry;
@@ -1149,12 +1150,12 @@ export default function OrderCreate({
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => updateField("service_package", code)}
-                                                                    className={`w-full border p-5 text-left transition ${selected ? "border-brand bg-white" : "border-blue-200 bg-blue-50/30 hover:border-blue-300"}`}
+                                                                    className={`w-full rounded-jv border p-5 text-left transition ${selected ? "border-jv-accent bg-jv-accent/12" : "border-jv-line bg-white/[0.03] hover:border-jv-accent-line hover:bg-white/[0.06]"}`}
                                                                 >
-                                                                    <p className="text-lg font-black text-gray-950">{pack.name}</p>
-                                                                    <p className="mt-2 text-sm font-bold text-brand">{formatMoney(pack.price, currency, locale)}</p>
-                                                                    <p className="mt-3 text-sm leading-6 text-gray-600">{pack.description}</p>
-                                                                    <p className="mt-3 text-xs font-semibold text-gray-500">
+                                                                    <p className="text-lg font-semibold text-white">{pack.name}</p>
+                                                                    <p className="mt-2 text-sm font-semibold text-[#a9c4ff]">{formatMoney(pack.price, currency, locale)}</p>
+                                                                    <p className="jv-body mt-3">{pack.description}</p>
+                                                                    <p className="mt-3 text-xs font-semibold text-white/45">
                                                                         This trial option uses a fixed fee and does not accept discount codes.
                                                                     </p>
                                                                 </button>
@@ -1163,11 +1164,11 @@ export default function OrderCreate({
                                                     </div>
                                                 </div>
                                             )}
-                                            {errors.service_package && <p className="mt-3 text-sm text-red-600">{errors.service_package}</p>}
+                                            {errors.service_package && <p className="mt-3 text-sm text-red-300">{errors.service_package}</p>}
                                         </div>
 
                                         {data.service_package !== trialPackageCode && !data.subscription_plan_id && (
-                                            <div className="mt-8 max-w-sm border-t border-gray-100 pt-8">
+                                            <div className="mt-8 max-w-sm border-t border-jv-line pt-8">
                                                 <Field label="Discount Code" error={errors.discount_code} hint="Optional — apply a promo code if you have one.">
                                                     <Input
                                                         value={data.discount_code}
@@ -1178,7 +1179,7 @@ export default function OrderCreate({
                                             </div>
                                         )}
                                         {data.subscription_plan_id && (
-                                            <p className="mt-8 max-w-sm text-xs text-gray-500">
+                                            <p className="mt-8 max-w-sm text-xs text-white/45">
                                                 Discount codes aren't available for recurring subscriptions — this plan is charged at its listed price every cycle.
                                             </p>
                                         )}
@@ -1255,7 +1256,7 @@ export default function OrderCreate({
                                             {autoTimelinePreference ? (
                                                 <div className="sm:col-span-2">
                                                     <Label>Timeline</Label>
-                                                    <p className="mt-2 border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+                                                    <p className="mt-2 rounded-jv-sm border border-jv-line bg-white/[0.04] px-3 py-2 text-sm text-white/70">
                                                         {autoTimelinePreference}
                                                     </p>
                                                 </div>
@@ -1272,9 +1273,9 @@ export default function OrderCreate({
                                         </div>
 
                                         {data.has_logo === "no" && data.logo_design_interest === "yes" && (
-                                            <div className="mt-8 border border-blue-200 bg-blue-50 p-5">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">Logo / Brand Design Add-on</p>
-                                                <p className="mt-2 text-sm leading-6 text-gray-600">
+                                            <div className="mt-8 rounded-jv border border-jv-accent-line bg-jv-accent/10 p-5">
+                                                <p className="jv-mono text-jv-accent">Logo / Brand Design Add-on</p>
+                                                <p className="jv-body mt-2">
                                                     Choose the add-on package you want us to include with this order.
                                                 </p>
                                                 <div className="mt-4 grid gap-4 lg:grid-cols-3">
@@ -1286,22 +1287,22 @@ export default function OrderCreate({
                                                                 key={code}
                                                                 type="button"
                                                                 onClick={() => updateField("logo_addon_package", code)}
-                                                                className={`border p-5 text-left transition ${selected ? "border-brand bg-white" : "border-blue-200 bg-blue-50/40 hover:border-blue-300"}`}
+                                                                className={`rounded-jv border p-5 text-left transition ${selected ? "border-jv-accent bg-jv-accent/12" : "border-jv-line bg-white/[0.03] hover:border-jv-accent-line hover:bg-white/[0.06]"}`}
                                                             >
-                                                                <p className="text-lg font-black text-gray-950">{addon.name}</p>
-                                                                <p className="mt-2 text-sm font-bold text-brand">{formatMoney(addon.price, currency, locale)}</p>
-                                                                <p className="mt-3 text-sm leading-6 text-gray-600">{addon.description}</p>
+                                                                <p className="text-lg font-semibold text-white">{addon.name}</p>
+                                                                <p className="mt-2 text-sm font-semibold text-[#a9c4ff]">{formatMoney(addon.price, currency, locale)}</p>
+                                                                <p className="jv-body mt-3">{addon.description}</p>
                                                             </button>
                                                         );
                                                     })}
                                                 </div>
-                                                {errors.logo_addon_package && <p className="mt-3 text-sm text-red-600">{errors.logo_addon_package}</p>}
+                                                {errors.logo_addon_package && <p className="mt-3 text-sm text-red-300">{errors.logo_addon_package}</p>}
                                             </div>
                                         )}
 
                                         {(activeService?.intake || []).length > 0 && (
-                                            <div className="mt-8 border border-gray-200 bg-gray-50 p-5">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-brand">{activeService?.name} Brief</p>
+                                            <div className="mt-8 rounded-jv border border-jv-line bg-white/[0.03] p-5">
+                                                <p className="jv-mono text-jv-accent">{activeService?.name} Brief</p>
                                                 <div className="mt-4 grid gap-4 sm:grid-cols-2">
                                                     {activeService.intake.map((field) => (
                                                         <DynamicField
@@ -1326,8 +1327,8 @@ export default function OrderCreate({
                                         />
 
                                         {data.subscription_plan_id && (
-                                            <div className="mt-6 border border-cyan-200 bg-cyan-50 p-5 text-sm leading-6 text-cyan-900">
-                                                <p className="font-black uppercase tracking-[0.14em] text-cyan-700">Recurring Subscription</p>
+                                            <div className="mt-6 rounded-jv border border-jv-accent-line bg-jv-accent/10 p-5 text-sm leading-6 text-white/80">
+                                                <p className="jv-mono text-[#a9c4ff]">Recurring Subscription</p>
                                                 <p className="mt-2">
                                                     This is a recurring {subscriptionBillingCycle || "recurring"} subscription. Once you complete payment, your card will be charged{" "}
                                                     {formatMoney(Number(activePackages[data.service_package]?.price || 0), currency, locale)} automatically every {subscriptionBillingCycle || "cycle"} until you cancel.
@@ -1336,21 +1337,21 @@ export default function OrderCreate({
                                         )}
 
                                         {isAuthenticated ? (
-                                            <div className="mt-6 border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-700">
+                                            <div className="mt-6 rounded-jv border border-emerald-500/30 bg-emerald-500/10 p-5 text-sm text-emerald-300">
                                                 You are already logged in. This order will be linked to your account automatically.
                                             </div>
                                         ) : (
                                             <div className="mt-6 space-y-4">
-                                                <label className="flex items-start gap-3 border border-gray-200 p-5">
+                                                <label className="flex items-start gap-3 rounded-jv border border-jv-line bg-white/[0.03] p-5">
                                                     <input
                                                         type="checkbox"
                                                         checked={Boolean(data.create_account)}
                                                         onChange={(event) => updateField("create_account", event.target.checked, ["password", "password_confirmation"])}
-                                                        className="mt-1 rounded border-gray-300 text-brand focus:ring-brand"
+                                                        className="mt-1 h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent accent-jv-accent focus:ring-2 focus:ring-jv-accent/40"
                                                     />
                                                     <span>
-                                                        <span className="block font-black text-gray-950">Create an account</span>
-                                                        <span className="mt-1 block text-sm leading-6 text-gray-600">Track progress, review invoices, and keep future orders in one place.</span>
+                                                        <span className="block font-semibold text-white">Create an account</span>
+                                                        <span className="jv-body mt-1 block">Track progress, review invoices, and keep future orders in one place.</span>
                                                     </span>
                                                 </label>
                                                 {data.create_account && (
@@ -1367,18 +1368,18 @@ export default function OrderCreate({
                                         )}
 
                                         <div className="mt-8 grid gap-4 lg:grid-cols-[1fr_320px]">
-                                            <div className="border border-gray-200">
+                                            <div className="overflow-hidden rounded-jv border border-jv-line">
                                                 {summaryItems.map(([label, value]) => (
-                                                    <div key={label} className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 last:border-b-0">
-                                                        <p className="text-sm font-bold text-gray-500">{label}</p>
-                                                        <p className="text-right text-sm font-black text-gray-950">{value}</p>
+                                                    <div key={label} className="flex items-start justify-between gap-4 border-b border-jv-line px-5 py-4 last:border-b-0">
+                                                        <p className="text-sm font-medium text-white/45">{label}</p>
+                                                        <p className="text-right text-sm font-semibold text-white">{value}</p>
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="bg-brand p-6 text-white">
-                                                <p className="text-sm font-black uppercase tracking-[0.18em] text-gray-300">Summary</p>
-                                                <p className="mt-3 text-2xl font-black">Submit the order</p>
-                                                <p className="mt-3 text-sm leading-6 text-blue-100">We'll create the order record first. If payment is required, you'll be taken straight to the payment screen.</p>
+                                            <div className="rounded-jv border border-jv-accent-line bg-jv-accent p-6 text-white">
+                                                <p className="jv-mono text-white/70">Summary</p>
+                                                <p className="jv-display jv-display--sm mt-3">Submit the order</p>
+                                                <p className="mt-3 text-sm leading-6 text-white/80">We'll create the order record first. If payment is required, you'll be taken straight to the payment screen.</p>
                                             </div>
                                         </div>
                                         <div className="mt-6 max-w-sm">
@@ -1387,7 +1388,7 @@ export default function OrderCreate({
                                                     {turnstileSiteKey ? (
                                                         <div ref={turnstileContainerRef} className="min-h-16" />
                                                     ) : (
-                                                        <p className="text-sm text-red-600">
+                                                        <p className="text-sm text-red-300">
                                                             Captcha is not configured. Please contact support.
                                                         </p>
                                                     )}
@@ -1413,25 +1414,25 @@ export default function OrderCreate({
                                 <input type="hidden" value={data.discount_code} readOnly />
                                 <input type="hidden" value={data.subscription_plan_id} readOnly />
 
-                                <div className="mt-8 flex flex-col gap-3 border-t border-gray-100 pt-6 sm:flex-row sm:items-center sm:justify-between">
+                                <div className="mt-8 flex flex-col gap-3 border-t border-jv-line pt-6 sm:flex-row sm:items-center sm:justify-between">
                                     <div className="flex gap-3">
-                                        <Button type="button" variant="outline" onClick={previousStep} disabled={currentStep === 1} className="rounded-md px-5 py-3">
+                                        <Button type="button" variant="outline" onClick={previousStep} disabled={currentStep === 1} className="px-5 py-3">
                                             <ArrowLeftIcon className="h-4 w-4" />
                                             Back
                                         </Button>
                                         {currentStep < steps.length ? (
-                                            <Button type="button" onClick={nextStep} className="rounded-md px-5 py-3">
+                                            <Button type="button" onClick={nextStep} className="px-5 py-3">
                                                 Continue
                                                 <ArrowRightIcon className="h-4 w-4" />
                                             </Button>
                                         ) : (
-                                            <Button type="submit" disabled={processing} className="rounded-md px-5 py-3">
+                                            <Button type="submit" disabled={processing} className="px-5 py-3">
                                                 {processing ? "Submitting..." : "Submit Order"}
                                                 <ArrowRightIcon className="h-4 w-4" />
                                             </Button>
                                         )}
                                     </div>
-                                    <Link href="/services" className="text-sm font-black text-brand">
+                                    <Link href="/services" className="text-sm font-semibold text-[#a9c4ff] transition hover:text-white">
                                         Back to services
                                     </Link>
                                 </div>
@@ -1462,8 +1463,8 @@ function resolveErrorStep(formErrors, activeService) {
 function SectionTitle({ title, text }) {
     return (
         <div>
-            <h2 className="text-2xl font-black text-gray-950">{title}</h2>
-            <p className="mt-2 text-sm leading-6 text-gray-600">{text}</p>
+            <h2 className="jv-display jv-display--sm">{title}</h2>
+            <p className="jv-body mt-2">{text}</p>
         </div>
     );
 }
@@ -1471,10 +1472,10 @@ function SectionTitle({ title, text }) {
 function Field({ label, error, hint, className = "", children }) {
     return (
         <div className={className}>
-            <Label className="mb-2 block font-bold text-gray-700">{label}</Label>
+            <Label className="mb-2 block font-medium text-white/70">{label}</Label>
             {children}
-            {hint && !error && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
-            {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+            {hint && !error && <p className="mt-1 text-xs text-white/45">{hint}</p>}
+            {error && <p className="mt-1 text-xs text-red-300">{error}</p>}
         </div>
     );
 }

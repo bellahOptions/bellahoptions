@@ -187,11 +187,11 @@ export default function AuthenticatedLayout({ header, children }) {
         ].filter((item) => item.show);
 
     return (
-        <div className="min-h-screen bg-gray-100">
-            <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 border-r border-gray-200 bg-white lg:flex lg:flex-col">
-                <div className="flex h-20 shrink-0 items-center border-b border-gray-100 px-6">
+        <div className="jv-canvas min-h-screen">
+            <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-jv-line bg-black/40 backdrop-blur-xl lg:flex">
+                <div className="flex h-20 shrink-0 items-center border-b border-jv-line px-6">
                     <Link href="/" className="inline-flex items-center gap-3">
-                        <ApplicationLogo className="block h-10 w-auto" />
+                        <ApplicationLogo className="block h-8 w-auto brightness-0 invert" />
                     </Link>
                 </div>
 
@@ -211,8 +211,8 @@ export default function AuthenticatedLayout({ header, children }) {
                     ))}
                 </nav>
 
-                <div className="border-t border-gray-100 p-4">
-                    <div className="rounded-xl bg-gray-50 p-4">
+                <div className="border-t border-jv-line p-4">
+                    <div className="rounded-jv border border-jv-line bg-white/[0.04] p-4">
                         <div className="mb-3 flex items-center gap-3">
                             <Avatar
                                 photoUrl={user?.profile_photo_url}
@@ -220,14 +220,14 @@ export default function AuthenticatedLayout({ header, children }) {
                                 sizeClassName="h-11 w-11"
                             />
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-bold text-gray-900">{user.name}</p>
-                                <p className="mt-0.5 truncate text-xs text-gray-500">{user.email}</p>
+                                <p className="truncate text-sm font-semibold text-white">{user.name}</p>
+                                <p className="mt-0.5 truncate text-xs text-white/45">{user.email}</p>
                             </div>
                         </div>
                         <div className="mt-4 grid grid-cols-2 gap-2">
                             <Link
                                 href={route('profile.edit')}
-                                className="rounded-md border border-gray-200 bg-white px-3 py-2 text-center text-xs font-bold text-gray-700 hover:bg-gray-50"
+                                className="jv-btn jv-btn--ghost jv-btn--sm w-full"
                             >
                                 Profile
                             </Link>
@@ -235,7 +235,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                 method="post"
                                 href={route('logout')}
                                 as="button"
-                                className="rounded-md bg-brand px-3 py-2 text-center text-xs font-bold text-white hover:bg-brand-dark"
+                                className="jv-btn jv-btn--primary jv-btn--sm w-full"
                             >
                                 Log Out
                             </Link>
@@ -247,7 +247,7 @@ export default function AuthenticatedLayout({ header, children }) {
             <div className="lg:pl-72">
                 <TemplatrPromoBanner />
 
-                <nav className="sticky top-0 z-30 border-b border-gray-200 bg-white/95 backdrop-blur">
+                <nav className="sticky top-0 z-30 border-b border-jv-line bg-black/55 backdrop-blur-xl">
                     <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
                         <div className="flex items-center gap-3">
                             <button
@@ -256,7 +256,7 @@ export default function AuthenticatedLayout({ header, children }) {
                                         (previousState) => !previousState,
                                     )
                                 }
-                                className="inline-flex items-center justify-center rounded-md p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 focus:bg-gray-100 focus:text-gray-700 focus:outline-none lg:hidden"
+                                className="inline-flex items-center justify-center rounded-full p-2 text-white/60 transition hover:bg-white/[0.08] hover:text-white focus:outline-none lg:hidden"
                                 aria-label="Toggle admin menu"
                             >
                                 <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
@@ -278,17 +278,17 @@ export default function AuthenticatedLayout({ header, children }) {
                             </button>
 
                             <Link href="/" className="lg:hidden">
-                                <ApplicationLogo className="block h-9 w-auto" />
+                                <ApplicationLogo className="block h-7 w-auto brightness-0 invert" />
                             </Link>
                         </div>
 
                         <div className="relative">
                             <Dropdown>
                                 <Dropdown.Trigger>
-                                    <span className="inline-flex rounded-md">
+                                    <span className="inline-flex rounded-full">
                                         <button
                                             type="button"
-                                            className="inline-flex items-center gap-2 rounded-md border border-transparent bg-white px-3 py-2 text-sm font-medium leading-4 text-gray-500 transition hover:text-gray-700 focus:outline-none"
+                                            className="inline-flex items-center gap-2 rounded-full border border-jv-line bg-white/[0.05] px-3 py-2 text-sm font-medium leading-4 text-white/70 transition hover:bg-white/[0.09] hover:text-white focus:outline-none"
                                         >
                                             <Avatar
                                                 photoUrl={user?.profile_photo_url}
@@ -330,7 +330,7 @@ export default function AuthenticatedLayout({ header, children }) {
                     </div>
 
                     {showingNavigationDropdown && (
-                        <div className="border-t border-gray-100 bg-white px-4 py-4 shadow-sm lg:hidden">
+                        <div className="border-t border-jv-line bg-black/70 px-4 py-4 backdrop-blur-xl lg:hidden">
                             <div className="space-y-1">
                                 {navItems.map((item) => (
                                     item.type === 'group' ? (
@@ -358,7 +358,7 @@ export default function AuthenticatedLayout({ header, children }) {
                 </nav>
 
                 {header && (
-                    <header className="bg-white shadow-sm">
+                    <header className="border-b border-jv-line bg-white/[0.02]">
                         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                             {header}
                         </div>
@@ -382,10 +382,10 @@ function SidebarGroup({ label, active, items = [], onNavigate }) {
             <button
                 type="button"
                 onClick={() => setOpen((previous) => !previous)}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+                className={`flex w-full items-center justify-between rounded-jv-sm px-3 py-2.5 text-sm font-medium transition ${
                     active
-                        ? 'bg-brand-light text-brand'
-                        : 'text-gray-600 hover:bg-gray-50 hover:text-brand'
+                        ? 'bg-jv-accent/15 text-white'
+                        : 'text-white/55 hover:bg-white/[0.06] hover:text-white'
                 }`}
                 aria-expanded={open}
             >
@@ -405,7 +405,7 @@ function SidebarGroup({ label, active, items = [], onNavigate }) {
             </button>
 
             {open && (
-                <div className="mt-1 space-y-1 border-l border-gray-100 pl-3">
+                <div className="mt-1 space-y-1 border-l border-jv-line pl-3">
                     {items.map((child) => (
                         <SidebarLink
                             key={child.label}
@@ -427,10 +427,10 @@ function SidebarLink({ href, active, onClick, children }) {
         <Link
             href={href}
             onClick={onClick}
-            className={`block rounded-lg px-3 py-2.5 text-sm font-bold transition ${
+            className={`block rounded-jv-sm px-3 py-2.5 text-sm font-medium transition ${
                 active
-                    ? 'bg-brand text-white shadow-sm'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-brand'
+                    ? 'bg-jv-accent/15 text-white shadow-[inset_2px_0_0_0_var(--jv-accent)]'
+                    : 'text-white/55 hover:bg-white/[0.06] hover:text-white'
             }`}
         >
             {children}
@@ -444,14 +444,14 @@ function Avatar({ photoUrl, initials, sizeClassName = 'h-9 w-9' }) {
             <img
                 src={photoUrl}
                 alt="Profile avatar"
-                className={`${sizeClassName} rounded-full border border-gray-200 object-cover`}
+                className={`${sizeClassName} rounded-full border border-jv-line-strong object-cover`}
             />
         );
     }
 
     return (
         <div
-            className={`${sizeClassName} flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-xs font-bold text-blue-700`}
+            className={`${sizeClassName} flex items-center justify-center rounded-full border border-jv-line-strong bg-jv-accent/15 text-xs font-semibold text-white`}
         >
             {initials}
         </div>

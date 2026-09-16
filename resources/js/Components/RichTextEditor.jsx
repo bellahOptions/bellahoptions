@@ -62,7 +62,7 @@ export default function RichTextEditor({
 
     return (
         <div className={className}>
-            <div ref={quillRef} />
+            <div ref={quillRef} className="jv-quill" />
         </div>
     );
 }

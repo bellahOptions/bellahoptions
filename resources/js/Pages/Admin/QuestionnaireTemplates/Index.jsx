@@ -1,4 +1,5 @@
 import { Button } from '@/Components/ui/button';
+import { Card } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select } from '@/Components/ui/select';
@@ -159,24 +160,24 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="text-xl font-semibold leading-tight text-gray-800">Questionnaire Templates</h2>}
+            header={<h2 className="text-xl font-semibold leading-tight tracking-tight text-white">Questionnaire Templates</h2>}
         >
             <Head title="Questionnaire Templates" />
 
             <div className="py-8">
                 <div className="mx-auto max-w-4xl space-y-6 px-4 sm:px-6 lg:px-8">
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-white/55">
                         Define the post-service questionnaire sent to clients per service. A questionnaire can only be
                         sent from an invoice once its service has an active template here.
                     </p>
 
                     {flash?.success && (
-                        <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+                        <div className="rounded-jv-sm border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
                             {flash.success}
                         </div>
                     )}
                     {flash?.error && (
-                        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        <div className="rounded-jv-sm border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
                             {flash.error}
                         </div>
                     )}
@@ -187,17 +188,17 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                             const isEditing = editingSlug === slug;
 
                             return (
-                                <section key={slug} className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+                                <Card key={slug} className="p-5 sm:p-6">
                                     <div className="flex flex-wrap items-center justify-between gap-3">
                                         <div>
-                                            <h3 className="text-base font-semibold text-gray-900">{SERVICE_LABELS[slug] || slug}</h3>
+                                            <h3 className="text-base font-semibold text-white">{SERVICE_LABELS[slug] || slug}</h3>
                                             {template ? (
-                                                <p className="mt-1 text-sm text-gray-600">
+                                                <p className="mt-1 text-sm text-white/55">
                                                     {template.name} — {template.questions.length} question(s) —{' '}
                                                     {template.is_active ? 'Active' : 'Inactive'}
                                                 </p>
                                             ) : (
-                                                <p className="mt-1 text-sm text-gray-500">No template configured yet.</p>
+                                                <p className="mt-1 text-sm text-white/45">No template configured yet.</p>
                                             )}
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -205,7 +206,7 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                                 <button
                                                     type="button"
                                                     onClick={() => startEditing(slug)}
-                                                    className="rounded-md border border-brand/30 px-3 py-2 text-xs font-semibold text-brand hover:bg-brand-light"
+                                                    className="jv-btn jv-btn--outline jv-btn--sm"
                                                 >
                                                     {template ? 'Edit' : 'Create'}
                                                 </button>
@@ -214,7 +215,7 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                                 <button
                                                     type="button"
                                                     onClick={() => deleteTemplate(template)}
-                                                    className="rounded-md border border-red-200 px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50"
+                                                    className="rounded-full border border-red-500/40 px-4 py-2 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 hover:text-red-200"
                                                 >
                                                     Delete
                                                 </button>
@@ -223,7 +224,7 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                     </div>
 
                                     {isEditing && (
-                                        <form onSubmit={submitTemplate} className="mt-4 space-y-4 border-t border-gray-100 pt-4">
+                                        <form onSubmit={submitTemplate} className="mt-4 space-y-4 border-t border-jv-line pt-4">
                                             <div>
                                                 <Label htmlFor={`name-${slug}`}>Template Name</Label>
                                                 <Input
@@ -235,10 +236,10 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                                 />
                                             </div>
 
-                                            <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-3">
+                                            <div className="rounded-jv-sm border border-dashed border-jv-line-strong bg-white/[0.03] p-3">
                                                 <Label htmlFor={`import-${slug}`}>Import Questions from CSV or PDF</Label>
-                                                <p className="mt-1 text-xs text-gray-500">
-                                                    CSV: columns <code>question</code>, <code>type</code> (rating/text/choice), <code>options</code> (separated by | or ;).
+                                                <p className="mt-1 text-xs text-white/45">
+                                                    CSV: columns <code className="rounded border border-jv-line bg-white/[0.06] px-1 py-0.5 text-[11px] text-white/80">question</code>, <code className="rounded border border-jv-line bg-white/[0.06] px-1 py-0.5 text-[11px] text-white/80">type</code> (rating/text/choice), <code className="rounded border border-jv-line bg-white/[0.06] px-1 py-0.5 text-[11px] text-white/80">options</code> (separated by | or ;).
                                                     PDF: lines ending in "?" are detected as questions (best-effort — review the results below).
                                                     Imported questions are added to the list below, which you can still edit before saving.
                                                 </p>
@@ -248,23 +249,23 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                                     accept=".csv,.txt,.pdf"
                                                     onChange={importQuestions}
                                                     disabled={importing}
-                                                    className="mt-2 block w-full text-sm text-gray-700 file:mr-3 file:rounded-md file:border-0 file:bg-brand file:px-3 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-brand-dark"
+                                                    className="mt-2 block w-full text-sm text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-jv-accent file:px-4 file:py-2 file:text-xs file:font-semibold file:text-white hover:file:bg-[#1a68ff] disabled:cursor-not-allowed disabled:opacity-60"
                                                 />
-                                                {importing && <p className="mt-1 text-xs text-gray-500">Importing...</p>}
-                                                {importError && <p className="mt-1 text-xs text-red-600">{importError}</p>}
+                                                {importing && <p className="mt-1 text-xs text-white/45">Importing...</p>}
+                                                {importError && <p className="mt-1 text-xs text-red-300">{importError}</p>}
                                             </div>
 
                                             <div className="space-y-3">
                                                 {form.questions.map((question, index) => (
-                                                    <div key={question.id} className="rounded-lg border border-gray-200 p-3">
+                                                    <div key={question.id} className="rounded-jv-sm border border-jv-line bg-white/[0.03] p-3">
                                                         <div className="flex items-center justify-between gap-2">
-                                                            <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                                                            <p className="text-xs font-semibold uppercase tracking-wide text-white/45">
                                                                 Question {index + 1}
                                                             </p>
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeQuestion(question.id)}
-                                                                className="text-xs font-semibold text-red-600 hover:text-red-700"
+                                                                className="text-xs font-semibold text-red-300 transition hover:text-red-200"
                                                             >
                                                                 Remove
                                                             </button>
@@ -312,17 +313,18 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                                 <button
                                                     type="button"
                                                     onClick={addQuestion}
-                                                    className="rounded-md border border-gray-300 px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50"
+                                                    className="jv-btn jv-btn--ghost jv-btn--sm"
                                                 >
                                                     + Add Question
                                                 </button>
                                             </div>
 
-                                            <label className="flex items-center gap-2 text-sm text-gray-700">
+                                            <label className="flex items-center gap-2 text-sm text-white/70">
                                                 <input
                                                     type="checkbox"
                                                     checked={form.is_active}
                                                     onChange={(event) => setForm((prev) => ({ ...prev, is_active: event.target.checked }))}
+                                                    className="h-4 w-4 rounded border-jv-line-strong bg-white/[0.06] text-jv-accent accent-jv-accent focus:ring-jv-accent/40"
                                                 />
                                                 Active (available to send from invoices)
                                             </label>
@@ -337,7 +339,7 @@ export default function QuestionnaireTemplatesIndex({ serviceSlugs = [], templat
                                             </div>
                                         </form>
                                     )}
-                                </section>
+                                </Card>
                             );
                         })}
                     </div>

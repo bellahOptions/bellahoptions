@@ -30,6 +30,22 @@ const defaultTransition = {
     ease: [0.22, 1, 0.36, 1],
 };
 
+/**
+ * Query for the in-view options used by every reveal wrapper.
+ *
+ * We use `amount: "some"` rather than a numeric threshold. A numeric threshold
+ * is relative to the ELEMENT's height, so any section taller than
+ * `threshold x viewportHeight` can never report enough of itself as visible and
+ * stays stuck at opacity 0 permanently — which is what happened to the long
+ * services page. "some" fires as soon as any part of the element intersects the
+ * viewport, so it behaves identically for a small card and a 14,000px section.
+ *
+ * The bottom margin is intentionally 0: a negative margin shrinks the root
+ * bounds and can stop elements near the very bottom of the page from ever
+ * intersecting.
+ */
+const inViewOptions = { once: true, amount: "some" };
+
 export function RevealSection({ children, className = "", variants = fadeUp, ...props }) {
     return (
         <motion.section
@@ -37,7 +53,7 @@ export function RevealSection({ children, className = "", variants = fadeUp, ...
             variants={variants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.18 }}
+            viewport={inViewOptions}
             transition={defaultTransition}
             {...props}
         >
@@ -53,7 +69,7 @@ export function Reveal({ children, className = "", variants = fadeUp, ...props }
             variants={variants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            viewport={inViewOptions}
             transition={defaultTransition}
             {...props}
         >
@@ -69,7 +85,7 @@ export function Stagger({ children, className = "", ...props }) {
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.14 }}
+            viewport={inViewOptions}
             {...props}
         >
             {children}
