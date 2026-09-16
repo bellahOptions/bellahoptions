@@ -11,6 +11,9 @@ use App\Http\Controllers\Admin\EmailCenterController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MyEarningsController;
+use App\Http\Controllers\Admin\QuestionnaireTemplateController;
+use App\Http\Controllers\Admin\ServiceBriefController as AdminServiceBriefController;
+use App\Http\Controllers\Admin\ServiceBriefTemplateController;
 use App\Http\Controllers\Admin\ServiceOrderController as AdminServiceOrderController;
 use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\Admin\SupportTicketController as AdminSupportTicketController;
@@ -82,7 +85,13 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
     Route::get('/admin/invoices/{invoice}/duplicate', [InvoiceController::class, 'duplicate'])->name('admin.invoices.duplicate');
     Route::post('/admin/invoices/{invoice}/remind', [InvoiceController::class, 'sendReminder'])->name('admin.invoices.remind');
     Route::patch('/admin/invoices/{invoice}/mark-paid', [InvoiceController::class, 'markPaid'])->name('admin.invoices.mark-paid');
+    Route::post('/admin/invoices/{invoice}/send-questionnaire', [InvoiceController::class, 'sendQuestionnaire'])->name('admin.invoices.send-questionnaire');
     Route::delete('/admin/invoices/{invoice}', [InvoiceController::class, 'destroy'])->name('admin.invoices.destroy');
+    Route::get('/admin/service-briefs', [AdminServiceBriefController::class, 'index'])->name('admin.service-briefs.index');
+    Route::get('/admin/service-briefs/{serviceBrief}', [AdminServiceBriefController::class, 'show'])->name('admin.service-briefs.show');
+    Route::patch('/admin/service-briefs/{serviceBrief}/status', [AdminServiceBriefController::class, 'updateStatus'])->name('admin.service-briefs.status');
+    Route::get('/admin/service-briefs/{serviceBrief}/quote-template', [AdminServiceBriefController::class, 'quoteTemplate'])->name('admin.service-briefs.quote-template');
+    Route::get('/admin/service-briefs/{serviceBrief}/files/{serviceBriefFile}/download', [AdminServiceBriefController::class, 'downloadFile'])->name('admin.service-briefs.files.download');
     Route::post('/admin/service-orders/{serviceOrder}/updates', [ServiceOrderController::class, 'storeUpdate'])
         ->name('admin.service-orders.updates.store');
     Route::get('/admin/my-earnings', [MyEarningsController::class, 'index'])->name('admin.my-earnings');
@@ -104,6 +113,14 @@ Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function 
     Route::post('/admin/client-reviews', [AdminClientReviewController::class, 'store'])->name('admin.client-reviews.store');
     Route::patch('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'update'])->name('admin.client-reviews.update');
     Route::delete('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'destroy'])->name('admin.client-reviews.destroy');
+    Route::get('/admin/service-brief-templates', [ServiceBriefTemplateController::class, 'index'])->name('admin.service-brief-templates.index');
+    Route::post('/admin/service-brief-templates', [ServiceBriefTemplateController::class, 'store'])->name('admin.service-brief-templates.store');
+    Route::get('/admin/service-brief-templates/{serviceSlug}/preview', [ServiceBriefTemplateController::class, 'preview'])->name('admin.service-brief-templates.preview');
+    Route::get('/admin/questionnaire-templates', [QuestionnaireTemplateController::class, 'index'])->name('admin.questionnaire-templates.index');
+    Route::post('/admin/questionnaire-templates/import', [QuestionnaireTemplateController::class, 'import'])->name('admin.questionnaire-templates.import');
+    Route::post('/admin/questionnaire-templates', [QuestionnaireTemplateController::class, 'store'])->name('admin.questionnaire-templates.store');
+    Route::patch('/admin/questionnaire-templates/{questionnaireTemplate}', [QuestionnaireTemplateController::class, 'update'])->name('admin.questionnaire-templates.update');
+    Route::delete('/admin/questionnaire-templates/{questionnaireTemplate}', [QuestionnaireTemplateController::class, 'destroy'])->name('admin.questionnaire-templates.destroy');
     Route::get('/admin/subscription-plans', [SubscriptionPlanController::class, 'index'])->name('admin.subscription-plans.index');
     Route::post('/admin/subscription-plans', [SubscriptionPlanController::class, 'store'])->name('admin.subscription-plans.store');
     Route::patch('/admin/subscription-plans/{subscriptionPlan}', [SubscriptionPlanController::class, 'update'])->name('admin.subscription-plans.update');

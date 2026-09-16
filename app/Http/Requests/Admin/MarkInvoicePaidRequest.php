@@ -23,6 +23,7 @@ class MarkInvoicePaidRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'payment_method' => ['required', 'in:paystack,flutterwave,bank_transfer,whatsapp,cash,other'],
             'payment_reference' => ['nullable', 'string', 'max:120', 'regex:/^[a-zA-Z0-9\-_\/\s]+$/'],
         ];
     }

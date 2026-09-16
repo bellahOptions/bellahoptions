@@ -172,16 +172,36 @@ export default function InvoiceIndex({ invoices, stats = {}, filters = {}, permi
             });
     };
 
+    const prefillFromBrief = (briefUuid, referenceNumber) => {
+        window.axios
+            .get(route('admin.service-briefs.quote-template', briefUuid))
+            .then((response) => {
+                prefillFromInvoiceTemplate(response?.data?.invoice || {}, `brief ${referenceNumber}`);
+            })
+            .catch((error) => {
+                window.alert(error?.response?.data?.message || 'Unable to load this brief for quoting.');
+            });
+    };
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const duplicateId = params.get('duplicate');
         const duplicateNumber = params.get('duplicate_number');
+        const fromBrief = params.get('from_brief');
+        const fromBriefRef = params.get('from_brief_ref');
 
         if (duplicateId) {
             duplicateInvoice(duplicateId, duplicateNumber || `#${duplicateId}`);
 
             params.delete('duplicate');
             params.delete('duplicate_number');
+            const query = params.toString();
+            window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+        } else if (fromBrief) {
+            prefillFromBrief(fromBrief, fromBriefRef || fromBrief);
+
+            params.delete('from_brief');
+            params.delete('from_brief_ref');
             const query = params.toString();
             window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
         }

@@ -16,6 +16,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\ServiceOrderUpdate;
 use App\Support\ClientReviewService;
+use App\Support\QuestionnaireService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -87,12 +88,19 @@ class InvoiceController extends Controller
     {
         abort_unless((bool) $request->user()?->canManageInvoices(), 403);
 
-        $invoice->load('creator:id,name', 'items', 'customer:id,name,first_name,last_name,email,occupation,phone,company,address,notes');
+        $invoice->load([
+            'creator:id,name',
+            'items',
+            'customer:id,name,first_name,last_name,email,occupation,phone,company,address,notes',
+            'serviceOrder:id,invoice_id,service_name,package_name',
+            'questionnaires' => fn ($query) => $query->latest('id')->limit(1),
+        ]);
 
         return Inertia::render('Admin/Invoices/Show', [
             'permissions' => [
                 'can_delete_invoices' => (bool) $request->user()?->canManageInvoices(),
                 'can_delete_paid_invoices' => (bool) $request->user()?->isSuperAdmin(),
+                'can_send_questionnaire' => (bool) $request->user()?->canManageInvoices(),
             ],
             'invoice' => $this->mapInvoice($invoice, true),
         ]);
@@ -331,12 +339,14 @@ class InvoiceController extends Controller
         }
 
         $paymentReference = $request->validated('payment_reference');
+        $paymentMethod = $request->validated('payment_method');
 
-        DB::transaction(function () use ($invoice, $paymentReference): void {
+        DB::transaction(function () use ($invoice, $paymentReference, $paymentMethod): void {
             $invoice->update([
                 'status' => 'paid',
                 'paid_at' => now(),
                 'payment_reference' => $paymentReference,
+                'payment_method' => $paymentMethod,
             ]);
 
             $serviceOrder = $invoice->serviceOrder;
@@ -382,6 +392,25 @@ class InvoiceController extends Controller
         }
 
         return back()->with('success', "Invoice {$invoice->invoice_number} marked as paid and receipt emailed.");
+    }
+
+    public function sendQuestionnaire(Request $request, Invoice $invoice, QuestionnaireService $questionnaireService): RedirectResponse
+    {
+        abort_unless((bool) $request->user()?->canManageInvoices(), 403);
+
+        if ($invoice->status !== 'paid' || $invoice->payment_method !== 'whatsapp') {
+            return back()->with('error', 'Questionnaires can only be sent for invoices paid via WhatsApp.');
+        }
+
+        $result = $questionnaireService->sendForInvoice($invoice, $request->user());
+
+        return match ($result['status']) {
+            'sent' => back()->with('success', "Questionnaire sent to {$invoice->customer_email}."),
+            'no_template' => back()->with('error', 'No questionnaire template is configured for this service yet. Add one under Questionnaire Templates.'),
+            'no_service_order' => back()->with('error', 'This invoice is not linked to a service order, so a questionnaire cannot be sent.'),
+            'no_email' => back()->with('error', 'This invoice has no customer email on file.'),
+            default => back()->with('error', 'Failed to send the questionnaire. Check mail configuration and try again.'),
+        };
     }
 
     public function destroy(Request $request, Invoice $invoice): RedirectResponse
@@ -588,6 +617,7 @@ class InvoiceController extends Controller
             'issued_at' => $invoice->issued_at?->toDateTimeString(),
             'paid_at' => $invoice->paid_at?->toDateTimeString(),
             'payment_reference' => $invoice->payment_reference,
+            'payment_method' => $invoice->payment_method,
             'automatic_reminders_sent' => (int) $invoice->automatic_reminders_sent,
             'last_automatic_reminder_sent_at' => $invoice->last_automatic_reminder_sent_at?->toDateTimeString(),
             'last_manual_reminder_sent_at' => $invoice->last_manual_reminder_sent_at?->toDateTimeString(),
@@ -614,6 +644,15 @@ class InvoiceController extends Controller
                 'company' => $invoice->customer->company,
                 'address' => $invoice->customer->address,
                 'notes' => $invoice->customer->notes,
+            ] : null,
+            'service_order' => $withRelations && $invoice->relationLoaded('serviceOrder') && $invoice->serviceOrder ? [
+                'service_name' => $invoice->serviceOrder->service_name,
+                'package_name' => $invoice->serviceOrder->package_name,
+            ] : null,
+            'latest_questionnaire' => $withRelations && $invoice->relationLoaded('questionnaires') && $invoice->questionnaires->isNotEmpty() ? [
+                'status' => $invoice->questionnaires->first()->status,
+                'requested_at' => $invoice->questionnaires->first()->requested_at?->toDateTimeString(),
+                'completed_at' => $invoice->questionnaires->first()->completed_at?->toDateTimeString(),
             ] : null,
         ];
     }

@@ -29,6 +29,7 @@ use Illuminate\Support\Str;
     'issued_at',
     'paid_at',
     'payment_reference',
+    'payment_method',
     'automatic_reminders_sent',
     'last_automatic_reminder_sent_at',
     'last_manual_reminder_sent_at',
@@ -99,5 +100,10 @@ class Invoice extends Model
     public function staffCommissions(): HasMany
     {
         return $this->hasMany(InvoiceStaffCommission::class);
+    }
+
+    public function questionnaires(): HasMany
+    {
+        return $this->hasMany(Questionnaire::class);
     }
 }

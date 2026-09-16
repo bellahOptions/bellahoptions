@@ -56,6 +56,12 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: canManageInvoices,
             },
             {
+                label: 'Service Briefs',
+                href: route('admin.service-briefs.index'),
+                active: route().current('admin.service-briefs.*'),
+                show: canManageInvoices,
+            },
+            {
                 label: 'Finance',
                 href: route('admin.finance.index'),
                 active: route().current('admin.finance.*'),
@@ -83,6 +89,18 @@ export default function AuthenticatedLayout({ header, children }) {
                 label: 'Email Center',
                 href: route('admin.email-center.index'),
                 active: route().current('admin.email-center.*'),
+                show: canManageSettings,
+            },
+            {
+                label: 'Questionnaires',
+                href: route('admin.questionnaire-templates.index'),
+                active: route().current('admin.questionnaire-templates.*'),
+                show: canManageSettings,
+            },
+            {
+                label: 'Brief Templates',
+                href: route('admin.service-brief-templates.index'),
+                active: route().current('admin.service-brief-templates.*'),
                 show: canManageSettings,
             },
             {

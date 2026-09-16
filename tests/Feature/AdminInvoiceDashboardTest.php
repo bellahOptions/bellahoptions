@@ -165,6 +165,7 @@ class AdminInvoiceDashboardTest extends TestCase
         ]);
 
         $response = $this->actingAs($staff)->from(route('dashboard'))->patch(route('admin.invoices.mark-paid', $invoice), [
+            'payment_method' => 'bank_transfer',
             'payment_reference' => 'PAY-REF-001',
         ]);
 

@@ -41,5 +41,7 @@ class DatabaseSeeder extends Seeder
                 'address' => null,
             ],
         );
+
+        $this->call(ServiceBriefTemplateSeeder::class);
     }
 }

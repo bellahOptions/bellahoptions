@@ -996,6 +996,27 @@ class PlatformSettings
                 'html_template' => '',
                 'builder_layout' => [],
             ],
+            'questionnaire_request' => [
+                'name' => 'Questionnaire Request',
+                'subject_template' => 'Tell us about your {{service_name}} experience',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'service_brief_received' => [
+                'name' => 'Service Brief Received',
+                'subject_template' => "We've received your brief — {{reference_number}}",
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
+            'service_brief_admin_alert' => [
+                'name' => 'Service Brief Admin Alert',
+                'subject_template' => 'New brief: {{reference_number}} ({{service_name}})',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
         ];
     }
 

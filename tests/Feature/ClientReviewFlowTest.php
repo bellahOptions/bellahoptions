@@ -83,6 +83,7 @@ class ClientReviewFlowTest extends TestCase
 
         $this->actingAs($staff)
             ->patch(route('admin.invoices.mark-paid', $invoice), [
+                'payment_method' => 'bank_transfer',
                 'payment_reference' => 'PAY-REVIEW-001',
             ])
             ->assertSessionHas('success');

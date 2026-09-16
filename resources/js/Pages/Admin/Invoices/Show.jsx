@@ -1,13 +1,35 @@
+import { Button } from '@/Components/ui/button';
+import { Input } from '@/Components/ui/input';
+import { Label } from '@/Components/ui/label';
 import { MobileCard, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
+import { Select } from '@/Components/ui/select';
+import Modal from '@/Components/Modal';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { formatMoney } from '@/lib/utils';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useState } from 'react';
+
+const PAYMENT_METHODS = [
+    { value: 'whatsapp', label: 'WhatsApp' },
+    { value: 'bank_transfer', label: 'Bank Transfer' },
+    { value: 'cash', label: 'Cash' },
+    { value: 'paystack', label: 'Paystack' },
+    { value: 'flutterwave', label: 'Flutterwave' },
+    { value: 'other', label: 'Other' },
+];
 
 export default function InvoiceShow({ invoice, permissions = {} }) {
     const { flash } = usePage().props;
     const canDeleteInvoices = Boolean(permissions?.can_delete_invoices);
     const canDeletePaidInvoices = Boolean(permissions?.can_delete_paid_invoices);
     const canDeleteThisInvoice = invoice.status === 'paid' ? canDeletePaidInvoices : canDeleteInvoices;
+    const canSendQuestionnaire = Boolean(permissions?.can_send_questionnaire);
+    const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
+
+    const markPaidForm = useForm({
+        payment_method: invoice.payment_method || 'whatsapp',
+        payment_reference: invoice.payment_reference || '',
+    });
 
     const resendInvoice = () => {
         router.post(route('admin.invoices.resend', invoice.uuid), {}, { preserveScroll: true });
@@ -24,18 +46,17 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
         router.post(route('admin.invoices.remind', invoice.uuid), {}, { preserveScroll: true });
     };
 
-    const markInvoicePaid = () => {
-        const paymentReference = window.prompt('Payment reference (optional):', invoice.payment_reference || '');
+    const submitMarkPaid = (event) => {
+        event.preventDefault();
 
-        if (paymentReference === null) {
-            return;
-        }
+        markPaidForm.patch(route('admin.invoices.mark-paid', invoice.uuid), {
+            preserveScroll: true,
+            onSuccess: () => setShowMarkPaidModal(false),
+        });
+    };
 
-        router.patch(
-            route('admin.invoices.mark-paid', invoice.uuid),
-            { payment_reference: paymentReference },
-            { preserveScroll: true },
-        );
+    const sendQuestionnaire = () => {
+        router.post(route('admin.invoices.send-questionnaire', invoice.uuid), {}, { preserveScroll: true });
     };
 
     const deleteInvoice = () => {
@@ -111,8 +132,30 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                             <Info label="Issued At" value={invoice.issued_at || 'N/A'} />
                             <Info label="Paid At" value={invoice.paid_at || 'N/A'} />
                             <Info label="Payment Reference" value={invoice.payment_reference || 'N/A'} />
+                            <Info
+                                label="Payment Method"
+                                value={PAYMENT_METHODS.find((method) => method.value === invoice.payment_method)?.label || 'N/A'}
+                            />
                             <Info label="Created By" value={invoice.creator || 'N/A'} />
                         </div>
+
+                        {invoice.service_order?.service_name && (
+                            <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-3">
+                                <p className="text-xs uppercase tracking-wide text-gray-500">Service Ordered</p>
+                                <p className="mt-1 text-sm font-semibold text-gray-900">
+                                    {invoice.service_order.service_name}
+                                    {invoice.service_order.package_name ? ` — ${invoice.service_order.package_name}` : ''}
+                                </p>
+                            </div>
+                        )}
+
+                        {invoice.latest_questionnaire && (
+                            <div className="mt-4 rounded-lg border border-gray-100 bg-gray-50 p-3 text-sm text-gray-700">
+                                {invoice.latest_questionnaire.status === 'completed'
+                                    ? `Questionnaire completed ${invoice.latest_questionnaire.completed_at}.`
+                                    : `Questionnaire sent ${invoice.latest_questionnaire.requested_at}, awaiting response.`}
+                            </div>
+                        )}
 
                         <div className="mt-6 flex flex-wrap items-center gap-2">
                             {invoice.status === 'paid' ? (
@@ -144,10 +187,19 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                             {invoice.status !== 'paid' && (
                                 <button
                                     type="button"
-                                    onClick={markInvoicePaid}
+                                    onClick={() => setShowMarkPaidModal(true)}
                                     className="rounded-md border border-emerald-200 px-3 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50"
                                 >
                                     Mark as Paid
+                                </button>
+                            )}
+                            {canSendQuestionnaire && invoice.status === 'paid' && invoice.payment_method === 'whatsapp' && (
+                                <button
+                                    type="button"
+                                    onClick={sendQuestionnaire}
+                                    className="rounded-md border border-sky-200 px-3 py-2 text-xs font-semibold text-sky-700 hover:bg-sky-50"
+                                >
+                                    Send Questionnaire
                                 </button>
                             )}
                             {canDeleteThisInvoice && (
@@ -266,6 +318,56 @@ export default function InvoiceShow({ invoice, permissions = {} }) {
                     </section>
                 </div>
             </div>
+
+            <Modal show={showMarkPaidModal} onClose={() => setShowMarkPaidModal(false)} maxWidth="md">
+                <form onSubmit={submitMarkPaid} className="p-6">
+                    <h3 className="text-lg font-semibold text-gray-900">Mark Invoice as Paid</h3>
+                    <p className="mt-1 text-sm text-gray-600">
+                        Confirm how {invoice.customer_name} paid for invoice {invoice.invoice_number}.
+                    </p>
+
+                    <div className="mt-4 space-y-4">
+                        <div>
+                            <Label htmlFor="payment_method">Payment Method</Label>
+                            <Select
+                                id="payment_method"
+                                className="mt-1"
+                                value={markPaidForm.data.payment_method}
+                                onChange={(event) => markPaidForm.setData('payment_method', event.target.value)}
+                            >
+                                {PAYMENT_METHODS.map((method) => (
+                                    <option key={method.value} value={method.value}>{method.label}</option>
+                                ))}
+                            </Select>
+                            {markPaidForm.errors.payment_method && (
+                                <p className="mt-1 text-xs text-red-600">{markPaidForm.errors.payment_method}</p>
+                            )}
+                        </div>
+
+                        <div>
+                            <Label htmlFor="payment_reference">Payment Reference (optional)</Label>
+                            <Input
+                                id="payment_reference"
+                                className="mt-1"
+                                value={markPaidForm.data.payment_reference}
+                                onChange={(event) => markPaidForm.setData('payment_reference', event.target.value)}
+                            />
+                            {markPaidForm.errors.payment_reference && (
+                                <p className="mt-1 text-xs text-red-600">{markPaidForm.errors.payment_reference}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end gap-2">
+                        <Button type="button" variant="outline" onClick={() => setShowMarkPaidModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button type="submit" disabled={markPaidForm.processing}>
+                            {markPaidForm.processing ? 'Saving...' : 'Confirm Payment'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </AuthenticatedLayout>
     );
 }

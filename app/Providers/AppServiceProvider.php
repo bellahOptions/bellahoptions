@@ -62,5 +62,19 @@ class AppServiceProvider extends ServiceProvider
                 Limit::perDay(10)->by($fingerprint),
             ];
         });
+
+        RateLimiter::for('brief-form', function (Request $request): array {
+            $email = Str::lower(trim((string) data_get($request->input('answers'), 'email', 'guest')));
+            $serviceSlug = Str::lower(trim((string) $request->route('serviceSlug')));
+            $fingerprint = implode('|', [
+                (string) $request->ip(),
+                $email !== '' ? $email : 'guest',
+                $serviceSlug !== '' ? $serviceSlug : 'service',
+            ]);
+
+            return [
+                Limit::perHour(5)->by($fingerprint),
+            ];
+        });
     }
 }

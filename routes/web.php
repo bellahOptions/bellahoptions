@@ -3,7 +3,10 @@
 use App\Http\Controllers\ClientReviewController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\PagesController;
+use App\Http\Controllers\QuestionnaireController;
 use App\Http\Controllers\SeoController;
+use App\Http\Controllers\ServiceBriefController;
+use App\Http\Controllers\ServiceBriefFileController;
 use App\Http\Controllers\ServiceOrderController;
 use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
@@ -33,7 +36,30 @@ Route::get('/reviews/submit/{token}', [ClientReviewController::class, 'show'])->
 Route::post('/reviews/submit/{token}', [ClientReviewController::class, 'store'])
     ->middleware('throttle:20,1')
     ->name('reviews.submit.store');
+Route::get('/questionnaires/submit/{token}', [QuestionnaireController::class, 'show'])->name('questionnaires.submit.show');
+Route::post('/questionnaires/submit/{token}', [QuestionnaireController::class, 'store'])
+    ->middleware('throttle:20,1')
+    ->name('questionnaires.submit.store');
 Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
+
+// SERVICE BRIEF ROUTES (pre-order quote-request questionnaire)
+Route::get('/brief', [ServiceBriefController::class, 'choose'])->name('brief.choose');
+Route::get('/brief/{serviceSlug}', [ServiceBriefController::class, 'create'])
+    ->whereIn('serviceSlug', ServiceBriefController::SERVICE_SLUGS)
+    ->name('brief.create');
+Route::post('/brief/{serviceSlug}', [ServiceBriefController::class, 'store'])
+    ->whereIn('serviceSlug', ServiceBriefController::SERVICE_SLUGS)
+    ->middleware('throttle:brief-form')
+    ->name('brief.store');
+Route::get('/brief/{serviceSlug}/confirmation/{referenceNumber}', [ServiceBriefController::class, 'confirmation'])
+    ->whereIn('serviceSlug', ServiceBriefController::SERVICE_SLUGS)
+    ->name('brief.confirmation');
+Route::post('/brief-files', [ServiceBriefFileController::class, 'store'])
+    ->middleware('throttle:30,1')
+    ->name('brief-files.store');
+Route::delete('/brief-files/{serviceBriefFile}', [ServiceBriefFileController::class, 'destroy'])
+    ->middleware('throttle:30,1')
+    ->name('brief-files.destroy');
 
 // ORDER ROUTES
 Route::get('/order', fn () => redirect()->route('services'))->name('orders.index');

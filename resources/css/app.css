@@ -898,3 +898,574 @@ body.marketing-ui .footer-bottom {
     font-family: var(--font-main);
     }
 }
+
+/* ==========================================================================
+   JOYCE-STYLE DESIGN SYSTEM  (Bellah blue/black adaptation)
+   Dark premium canvas · glass surfaces · pill eyebrows · oversized display
+   type · rounded-full CTAs. Prefixed .jv- so it never collides with existing
+   utility markup.
+   ========================================================================== */
+
+:root {
+    --jv-accent: #0055ff;
+    --jv-accent-soft: rgba(0, 85, 255, 0.14);
+    --jv-accent-line: rgba(0, 85, 255, 0.4);
+
+    --jv-black: #050508;
+    --jv-bg: #08080c;
+    --jv-ink: #121216;
+
+    --jv-white: #ffffff;
+    --jv-fog: rgba(255, 255, 255, 0.6);
+    --jv-fog-soft: rgba(255, 255, 255, 0.45);
+    --jv-fog-dim: rgba(255, 255, 255, 0.32);
+
+    --jv-line: rgba(255, 255, 255, 0.08);
+    --jv-line-strong: rgba(255, 255, 255, 0.15);
+    --jv-glass: rgba(255, 255, 255, 0.05);
+    --jv-glass-2: rgba(255, 255, 255, 0.07);
+    --jv-glass-3: rgba(255, 255, 255, 0.12);
+
+    --jv-radius-xs: 10px;
+    --jv-radius-sm: 14px;
+    --jv-radius: 20px;
+    --jv-radius-lg: 28px;
+    --jv-radius-xl: 36px;
+
+    /* legacy light-surface aliases retuned for the dark canvas so any markup
+       not yet migrated still reads correctly */
+    --ink: #ffffff;
+    --ink-soft: rgba(255, 255, 255, 0.62);
+    --line: rgba(255, 255, 255, 0.08);
+    --panel: rgba(255, 255, 255, 0.05);
+    --panel-soft: rgba(255, 255, 255, 0.03);
+    --navy: #ffffff;
+    --blue: #0055ff;
+    --cyan: #4d8bff;
+    --amber: #79a6ff;
+    --mint: #6d9bff;
+    --shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Canvas ─────────────────────────────────────────────────────────────── */
+
+.jv-canvas {
+    background-color: var(--jv-bg);
+    color: var(--jv-white);
+    position: relative;
+    isolation: isolate;
+    -webkit-font-smoothing: antialiased;
+}
+
+.jv-canvas::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(1100px 620px at 50% -14%, rgba(0, 85, 255, 0.3), transparent 62%),
+        radial-gradient(880px 520px at 88% 6%, rgba(0, 85, 255, 0.16), transparent 60%),
+        radial-gradient(760px 520px at 8% 32%, rgba(0, 85, 255, 0.1), transparent 62%),
+        linear-gradient(180deg, #0b0b12 0%, #08080c 34%, #050508 100%);
+}
+
+.jv-canvas--flat::before {
+    background: linear-gradient(180deg, #0b0b12 0%, #08080c 46%, #050508 100%);
+}
+
+/* soft accent light bleeding from the top of a section */
+.jv-glow::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    width: min(1200px, 120%);
+    height: 380px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: radial-gradient(closest-side, rgba(0, 85, 255, 0.22), transparent 72%);
+}
+
+/* faint blueprint grid behind hero / CTA bands */
+.jv-grid-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000 20%, transparent 78%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, #000 20%, transparent 78%);
+}
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+
+.jv-container {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .jv-container { padding-inline: 2rem; }
+}
+
+.jv-section {
+    padding-block: 4.5rem;
+    position: relative;
+}
+
+@media (min-width: 768px) {
+    .jv-section { padding-block: 6rem; }
+}
+
+@media (min-width: 1024px) {
+    .jv-section { padding-block: 7.5rem; }
+}
+
+.jv-section--tight { padding-block: 3rem; }
+@media (min-width: 1024px) {
+    .jv-section--tight { padding-block: 4.5rem; }
+}
+
+/* ── Typography ─────────────────────────────────────────────────────────── */
+
+.jv-display {
+    font-weight: 700;
+    letter-spacing: -0.035em;
+    line-height: 1.03;
+    color: var(--jv-white);
+    text-wrap: balance;
+}
+
+.jv-display--xl { font-size: clamp(2.5rem, 6.2vw, 4.75rem); }
+.jv-display--lg { font-size: clamp(2rem, 4.6vw, 3.5rem); }
+.jv-display--md { font-size: clamp(1.6rem, 3.2vw, 2.5rem); }
+.jv-display--sm { font-size: clamp(1.3rem, 2.2vw, 1.75rem); }
+
+/* the reference pairs a bright line with a muted second line */
+.jv-display .jv-muted,
+.jv-muted {
+    color: var(--jv-fog-soft);
+}
+
+.jv-lead {
+    color: var(--jv-fog);
+    font-size: clamp(0.95rem, 1.25vw, 1.075rem);
+    line-height: 1.75;
+    font-weight: 400;
+}
+
+.jv-body {
+    color: var(--jv-fog);
+    font-size: 0.9375rem;
+    line-height: 1.75;
+}
+
+.jv-small {
+    color: var(--jv-fog-dim);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+}
+
+.jv-mono {
+    font-family: ui-monospace, 'SFMono-Regular', 'Fragment Mono', Menlo, monospace;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+/* ── Eyebrow / pill badge ───────────────────────────────────────────────── */
+
+.jv-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid var(--jv-line-strong);
+    background: var(--jv-glass);
+    padding: 0.4rem 0.9rem;
+    color: var(--jv-fog);
+    backdrop-filter: blur(10px);
+    white-space: nowrap;
+}
+
+.jv-eyebrow::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--jv-accent);
+    box-shadow: 0 0 10px rgba(0, 85, 255, 0.9);
+    flex-shrink: 0;
+}
+
+.jv-eyebrow--solid {
+    border-color: transparent;
+    background: var(--jv-accent);
+    color: #fff;
+}
+
+.jv-eyebrow--solid::before {
+    background: #fff;
+    box-shadow: none;
+}
+
+.jv-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    border-radius: 999px;
+    border: 1px solid var(--jv-line);
+    background: var(--jv-glass);
+    padding: 0.25rem 0.65rem;
+    color: var(--jv-fog-soft);
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+/* ── Surfaces ───────────────────────────────────────────────────────────── */
+
+.jv-card {
+    position: relative;
+    border-radius: var(--jv-radius);
+    border: 1px solid var(--jv-line);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
+    backdrop-filter: blur(14px);
+    transition: border-color 260ms ease, transform 260ms ease, background 260ms ease;
+}
+
+.jv-card--pad { padding: 1.5rem; }
+@media (min-width: 768px) {
+    .jv-card--pad { padding: 1.85rem; }
+}
+
+.jv-card--hover:hover {
+    border-color: var(--jv-accent-line);
+    background: linear-gradient(165deg, rgba(0, 85, 255, 0.12), rgba(255, 255, 255, 0.03));
+    transform: translateY(-4px);
+}
+
+.jv-card--flat {
+    background: var(--jv-glass);
+    backdrop-filter: none;
+}
+
+.jv-card--solid {
+    background: var(--jv-ink);
+    border-color: var(--jv-line-strong);
+    backdrop-filter: none;
+}
+
+.jv-card--featured {
+    border-color: rgba(0, 85, 255, 0.45);
+    box-shadow: 0 0 0 1px rgba(0, 85, 255, 0.12), 0 30px 80px -30px rgba(0, 85, 255, 0.6);
+}
+
+/* ── Buttons ────────────────────────────────────────────────────────────── */
+
+.jv-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    padding: 0.8rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: transform 200ms ease, background 200ms ease, border-color 200ms ease, color 200ms ease, box-shadow 200ms ease;
+}
+
+.jv-btn:focus-visible {
+    outline: 2px solid var(--jv-accent);
+    outline-offset: 2px;
+}
+
+.jv-btn:disabled,
+.jv-btn[disabled] {
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.jv-btn--primary {
+    background: var(--jv-accent);
+    color: #fff;
+    box-shadow: 0 14px 34px -12px rgba(0, 85, 255, 0.85);
+}
+
+.jv-btn--primary:hover {
+    background: #1a68ff;
+    transform: translateY(-2px);
+    box-shadow: 0 20px 44px -14px rgba(0, 85, 255, 0.95);
+}
+
+.jv-btn--ghost {
+    background: var(--jv-glass);
+    border-color: var(--jv-line-strong);
+    color: var(--jv-white);
+    backdrop-filter: blur(10px);
+}
+
+.jv-btn--ghost:hover {
+    background: var(--jv-glass-3);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.jv-btn--outline {
+    background: transparent;
+    border-color: var(--jv-accent-line);
+    color: #dbe7ff;
+}
+
+.jv-btn--outline:hover {
+    background: var(--jv-accent-soft);
+    border-color: var(--jv-accent);
+    color: #fff;
+}
+
+.jv-btn--white {
+    background: #fff;
+    color: #050508;
+}
+
+.jv-btn--white:hover {
+    background: #e8efff;
+    transform: translateY(-2px);
+}
+
+.jv-btn--lg {
+    padding: 1rem 1.85rem;
+    font-size: 0.9375rem;
+}
+
+.jv-btn--sm {
+    padding: 0.55rem 1.05rem;
+    font-size: 0.8125rem;
+}
+
+.jv-btn-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.1);
+    flex-shrink: 0;
+    transition: transform 240ms ease, background 240ms ease;
+}
+
+.jv-group:hover .jv-btn-arrow,
+.jv-btn-arrow--hover:hover {
+    transform: translateX(4px);
+    background: var(--jv-accent);
+}
+
+/* ── Media ──────────────────────────────────────────────────────────────── */
+
+.jv-media {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--jv-radius);
+    border: 1px solid var(--jv-line);
+    background: var(--jv-ink);
+}
+
+.jv-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 700ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.jv-media--zoom:hover img {
+    transform: scale(1.05);
+}
+
+/* ── Form controls ──────────────────────────────────────────────────────── */
+
+.jv-field {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.jv-label {
+    color: var(--jv-fog);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+}
+
+.jv-input,
+.jv-select,
+.jv-textarea {
+    width: 100%;
+    border-radius: var(--jv-radius-xs);
+    border: 1px solid var(--jv-line-strong);
+    background: var(--jv-glass);
+    padding: 0.8rem 1rem;
+    color: var(--jv-white);
+    font-size: 0.875rem;
+    font-family: inherit;
+    transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.jv-input::placeholder,
+.jv-textarea::placeholder {
+    color: rgba(255, 255, 255, 0.34);
+}
+
+.jv-input:focus,
+.jv-select:focus,
+.jv-textarea:focus {
+    outline: none;
+    border-color: var(--jv-accent);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 4px rgba(0, 85, 255, 0.16);
+}
+
+.jv-select option {
+    background: #14141a;
+    color: #fff;
+}
+
+/* ── Nav ────────────────────────────────────────────────────────────────── */
+
+.jv-nav-shell {
+    border-radius: 999px;
+    border: 1px solid var(--jv-line);
+    background: rgba(10, 10, 14, 0.6);
+    backdrop-filter: blur(18px) saturate(160%);
+}
+
+.jv-nav-link {
+    border-radius: 999px;
+    padding: 0.5rem 0.95rem;
+    color: var(--jv-fog);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    transition: color 180ms ease, background 180ms ease;
+    white-space: nowrap;
+}
+
+.jv-nav-link:hover {
+    color: #fff;
+    background: var(--jv-glass-2);
+}
+
+.jv-nav-link.is-active {
+    color: #fff;
+    background: var(--jv-glass-3);
+}
+
+/* ── Misc ───────────────────────────────────────────────────────────────── */
+
+.jv-divider {
+    height: 1px;
+    width: 100%;
+    background: linear-gradient(90deg, transparent, var(--jv-line-strong) 18%, var(--jv-line-strong) 82%, transparent);
+    border: 0;
+}
+
+.jv-check {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    color: var(--jv-fog);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.jv-check svg {
+    color: var(--jv-accent);
+    flex-shrink: 0;
+}
+
+.jv-marquee {
+    display: flex;
+    width: max-content;
+    animation: jv-scroll 34s linear infinite;
+}
+
+.jv-marquee:hover {
+    animation-play-state: paused;
+}
+
+@keyframes jv-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+}
+
+.jv-noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    background-size: 4px 4px;
+}
+
+@keyframes jv-rise {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.jv-rise {
+    animation: jv-rise 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .jv-marquee,
+    .jv-rise,
+    .animate-fade-up,
+    .animate-float {
+        animation: none !important;
+    }
+
+    .jv-card--hover:hover,
+    .jv-btn:hover {
+        transform: none;
+    }
+}
+
+/* native controls should render dark-appropriate chrome */
+.jv-canvas select,
+.jv-canvas input,
+.jv-canvas textarea {
+    color-scheme: dark;
+}
+
+.jv-scroll-x {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.75rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.jv-scroll-x > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}
+
+.jv-scroll-x::-webkit-scrollbar {
+    height: 6px;
+}
+
+.jv-scroll-x::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.16);
+    border-radius: 999px;
+}
