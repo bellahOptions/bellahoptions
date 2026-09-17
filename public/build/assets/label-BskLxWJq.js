@@ -1,0 +1,1 @@
+import{a as e,t}from"./app-WQzGzx7g.js";var n=e();function r({className:e,...r}){return(0,n.jsx)(`label`,{className:t(`text-sm font-medium leading-none text-white/65 peer-disabled:cursor-not-allowed peer-disabled:opacity-70`,e),...r})}export{r as t};

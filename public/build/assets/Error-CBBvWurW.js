@@ -1,0 +1,1 @@
+import{a as e,o as t}from"./app-WQzGzx7g.js";import n from"./ErrorCanvas-CrEGS2tV.js";var r=e();function i({status:e=500,title:i=null,message:a=null}){return(0,r.jsxs)(r.Fragment,{children:[(0,r.jsx)(t,{title:`${e} Error`}),(0,r.jsx)(n,{status:e,title:i,message:a})]})}export{i as default};
