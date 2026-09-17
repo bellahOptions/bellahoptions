@@ -3,7 +3,7 @@ import { motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import PublicPageHeader from "@/Components/PublicPageHeader";
 import { Button, Card, Display, Eyebrow, Section, Stagger, StaggerItem } from "@/Components/PublicUI";
-import { ArrowRightIcon, DocumentTextIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { ArrowRightIcon, DocumentTextIcon } from "@heroicons/react/24/outline";
 
 export default function Blog({ posts = [] }) {
     const hasPosts = Array.isArray(posts) && posts.length > 0;
@@ -126,7 +126,7 @@ export default function Blog({ posts = [] }) {
                                         animate={{ y: [0, -8, 0] }}
                                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <SparklesIcon className="h-9 w-9" />
+                                        <DocumentTextIcon className="h-9 w-9" />
                                     </motion.span>
 
                                     <Display size="md" className="mt-8">

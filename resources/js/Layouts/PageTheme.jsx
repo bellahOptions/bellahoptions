@@ -143,87 +143,85 @@ export default function PageTheme({ children }) {
 
             {/* ── HEADER ── */}
             <header
-                className={`z-50 w-full transition-all duration-300 md:sticky md:top-0 ${
-                    scrolled ? "md:pt-3" : "md:pt-5"
+                className={`sticky top-0 z-50 w-full border-b transition-all duration-300 ${
+                    scrolled
+                        ? "border-jv-line-strong bg-[#08080cf2] shadow-lg shadow-black/50 backdrop-blur-xl"
+                        : "border-jv-line bg-[#08080ccc] backdrop-blur-md"
                 }`}
             >
-                <div className="relative mx-auto w-full max-w-jv px-4 sm:px-6">
-                    <nav
-                        className={`jv-nav-shell flex items-center justify-between gap-3 px-2.5 py-2.5 transition-all duration-300 ${
-                            scrolled ? "md:bg-black/70 md:shadow-2xl md:shadow-black/60" : ""
-                        }`}
-                    >
-                        <Link href="/" className="shrink-0 pl-1.5" aria-label="Bellah Options home">
-                            <ApplicationLogo className="h-7 w-auto brightness-0 invert" />
-                        </Link>
+                <div className="jv-container flex items-center justify-between gap-4 py-4">
+                    <Link href="/" className="shrink-0" aria-label="Bellah Options home">
+                        <ApplicationLogo className="h-7 w-auto brightness-0 invert" />
+                    </Link>
 
-                        {/* Desktop nav */}
-                        <div className="hidden items-center gap-0.5 lg:flex">
-                            {navLinks.map((link) => (
-                                <Link
-                                    key={link.label}
-                                    href={link.href}
-                                    className="jv-nav-link"
-                                >
-                                    {link.label}
-                                </Link>
-                            ))}
-                        </div>
-
-                        <div className="hidden items-center gap-2 lg:flex">
-                            {isLoggedIn ? (
-                                <Link
-                                    href={route("dashboard")}
-                                    className="flex items-center gap-2 rounded-full px-2 py-1.5 pr-3 text-sm font-medium text-white/70 transition hover:bg-white/[0.07] hover:text-white"
-                                >
-                                    <span className="h-7 w-7 overflow-hidden rounded-full border border-white/15 bg-white/10">
-                                        {user?.profile_photo_url ? (
-                                            <img
-                                                src={user.profile_photo_url}
-                                                alt={user?.name || "User"}
-                                                className="h-full w-full object-cover"
-                                            />
-                                        ) : (
-                                            <span className="flex h-full w-full items-center justify-center text-[11px] font-semibold text-white/70">
-                                                {(user?.name || "U").slice(0, 1).toUpperCase()}
-                                            </span>
-                                        )}
-                                    </span>
-                                    Dashboard
-                                </Link>
-                            ) : null}
-
-                            <Button href="/contact-us" variant="primary" size="sm">
-                                Get In Touch
-                            </Button>
-                        </div>
-
-                        {/* Mobile toggle */}
-                        <button
-                            type="button"
-                            onClick={() => setIsMenuOpen((open) => !open)}
-                            className="rounded-full p-2 text-white/80 transition hover:bg-white/[0.08] hover:text-white lg:hidden"
-                            aria-label="Toggle menu"
-                            aria-expanded={isMenuOpen}
-                        >
-                            {isMenuOpen ? (
-                                <XMarkIcon className="h-5 w-5" />
-                            ) : (
-                                <Bars3Icon className="h-5 w-5" />
-                            )}
-                        </button>
-                    </nav>
-
-                    {/* Mobile menu */}
-                    <AnimatePresence>
-                        {isMenuOpen && (
-                            <motion.div
-                                className="jv-card jv-card--pad absolute inset-x-4 top-full mt-2 lg:hidden"
-                                initial={{ opacity: 0, y: -8, height: 0 }}
-                                animate={{ opacity: 1, y: 0, height: "auto" }}
-                                exit={{ opacity: 0, y: -8, height: 0 }}
-                                transition={{ duration: 0.22, ease: "easeOut" }}
+                    {/* Desktop nav */}
+                    <div className="hidden items-center gap-1 lg:flex">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.label}
+                                href={link.href}
+                                className="jv-nav-link"
                             >
+                                {link.label}
+                            </Link>
+                        ))}
+                    </div>
+
+                    <div className="hidden items-center gap-3 lg:flex">
+                        {isLoggedIn ? (
+                            <Link
+                                href={route("dashboard")}
+                                className="flex items-center gap-2 rounded-full px-2 py-1.5 pr-3 text-sm font-medium text-white/70 transition hover:bg-white/[0.07] hover:text-white"
+                            >
+                                <span className="h-7 w-7 overflow-hidden rounded-full border border-white/15 bg-white/10">
+                                    {user?.profile_photo_url ? (
+                                        <img
+                                            src={user.profile_photo_url}
+                                            alt={user?.name || "User"}
+                                            className="h-full w-full object-cover"
+                                        />
+                                    ) : (
+                                        <span className="flex h-full w-full items-center justify-center text-[11px] font-semibold text-white/70">
+                                            {(user?.name || "U").slice(0, 1).toUpperCase()}
+                                        </span>
+                                    )}
+                                </span>
+                                Dashboard
+                            </Link>
+                        ) : null}
+
+                        <Button href="/contact-us" variant="primary" size="sm">
+                            Get In Touch
+                        </Button>
+                    </div>
+
+                    {/* Mobile toggle */}
+                    <button
+                        type="button"
+                        onClick={() => setIsMenuOpen((open) => !open)}
+                        className="rounded-full p-2 text-white/80 transition hover:bg-white/[0.08] hover:text-white lg:hidden"
+                        aria-label="Toggle menu"
+                        aria-expanded={isMenuOpen}
+                    >
+                        {isMenuOpen ? (
+                            <XMarkIcon className="h-5 w-5" />
+                        ) : (
+                            <Bars3Icon className="h-5 w-5" />
+                        )}
+                    </button>
+                </div>
+
+                {/* Mobile menu */}
+                <AnimatePresence>
+                    {isMenuOpen && (
+                        <motion.div
+                            className="overflow-hidden border-t border-jv-line bg-[#08080cf2] backdrop-blur-xl lg:hidden"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.22, ease: "easeOut" }}
+                        >
+                            <div className="jv-container py-4">
                                 <div className="space-y-1">
                                     {navLinks.map((link) => (
                                         <Link
@@ -254,10 +252,10 @@ export default function PageTheme({ children }) {
                                         {isLoggedIn ? "Dashboard" : "Log In"}
                                     </Button>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </header>
 
             <main className="min-h-screen">{children}</main>

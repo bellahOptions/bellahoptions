@@ -2,6 +2,8 @@ import { Head, Link } from "@inertiajs/react";
 import { Suspense, lazy } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import ClientReviewsSection from "@/Components/ClientReviewsSection";
+import GoogleReviewsWidget from "@/Components/GoogleReviewsWidget";
+import TrustedByLogos from "@/Components/TrustedByLogos";
 import {
     Button,
     Card,
@@ -27,7 +29,7 @@ import {
     PresentationChartLineIcon,
     RectangleGroupIcon,
     RocketLaunchIcon,
-    SparklesIcon,
+    Square3Stack3DIcon,
     SwatchIcon,
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
@@ -36,30 +38,6 @@ const Slider = lazy(() => import("@/Components/Slider"));
 
 const sliderFallbackClassName =
     "h-[min(760px,calc(100svh-84px))] min-h-[520px] w-full animate-pulse bg-[#0b0b12] sm:h-[min(800px,calc(100svh-96px))] sm:min-h-[600px]";
-
-const brandLogos = [
-    {
-        name: "Wingram",
-        src: "https://bellahoptions.com/images/Wingram-07.svg",
-    },
-    {
-        name: "Lexis Group",
-        src: "https://bellahoptions.com/images/lexis.svg", 
-    },
-    {
-        name: "Velit",
-        src: "https://bellahoptions.com/images/velit.svg",
-    },
-    {
-        name: "Ziego Furnitures",
-        src: "https://bellahoptions.com/images/ziego.svg",
-    },
-    {
-        name: "Neddstech",
-        src: "https://bellahoptions.com/images/neddstech.svg",
-    },
-    
-];
 
 const services = [
     {
@@ -110,7 +88,7 @@ const strengths = [
     {
         title: "Built for consistency",
         text: "Your brand should feel recognizable across social media, web pages, pitch decks, and printed touchpoints.",
-        icon: SparklesIcon,
+        icon: Square3Stack3DIcon,
     },
 ];
 
@@ -161,7 +139,6 @@ const cycleLabel = (cycle) => {
 };
 
 export default function Welcome({ slideShows = [], featuredPlans = [], gallerySamples = [] }) {
-    const scrollingLogos = [...brandLogos, ...brandLogos, ...brandLogos];
     const hasFeaturedPlans = Array.isArray(featuredPlans) && featuredPlans.length > 0;
     const hasGallerySamples = Array.isArray(gallerySamples) && gallerySamples.length > 0;
 
@@ -174,38 +151,16 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                     <Slider slides={slideShows} />
                 </Suspense>
 
-                {/* ── TRUSTED BY ── */}
-                <Section tight reveal={false} className="border-y border-jv-line">
-                    <div className="grid items-center gap-8 lg:grid-cols-[240px_1fr]">
-                        <div className="text-center lg:text-left">
-                            <p className="jv-mono text-white/40">Trusted By</p>
-                            <p className="jv-small mt-2 max-w-xs">
-                                Growing brands, teams, and founders building stronger digital presence.
-                            </p>
-                        </div>
-                        <div className="overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-                            <div className="jv-marquee items-center gap-14 sm:gap-20">
-                                {scrollingLogos.map((logo, index) => (
-                                    <img
-                                        key={`${logo.name}-${index}`}
-                                        src={logo.src}
-                                        className="h-8 w-auto shrink-0 opacity-45 grayscale transition hover:opacity-100 hover:grayscale-0 sm:h-10 lg:h-11"
-                                        alt={logo.name}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </Section>
+                <TrustedByLogos />
 
                 {/* ── ABOUT ── */}
                 <Section>
                     <div className="grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
                         <div className="jv-media jv-glow relative aspect-[4/5] w-full overflow-hidden sm:aspect-[5/4] lg:aspect-[4/5]">
                             <img
-                                src="https://bellahoptions.com/images/Wingram-07.svg"
+                                src="/bo.png"
                                 alt="Bellah Options creative work"
-                                className="h-full w-full scale-[0.45] object-contain opacity-90"
+                                className="h-full w-full object-cover opacity-90"
                             />
                             <div
                                 aria-hidden="true"
@@ -609,7 +564,9 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                 <ClientReviewsSection
                     title="Verified Client Reviews"
                     subtitle="Recent client feedback with star ratings from completed Bellah Options projects."
-                />
+                >
+                    <GoogleReviewsWidget />
+                </ClientReviewsSection>
 
                 {/* ── FINAL CTA ── */}
                 <Section className="jv-section--tight">

@@ -2,6 +2,8 @@ import { Head } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import PublicPageHeader from "@/Components/PublicPageHeader";
 import ClientReviewsSection from "@/Components/ClientReviewsSection";
+import GoogleReviewsWidget from "@/Components/GoogleReviewsWidget";
+import TrustedByLogos from "@/Components/TrustedByLogos";
 
 export default function Reviews() {
     return (
@@ -18,12 +20,16 @@ export default function Reviews() {
                         className="jv-glow pt-16 pb-10 sm:pt-20 sm:pb-14 lg:pt-24 lg:pb-16"
                     />
 
+                    <TrustedByLogos />
+
                     <ClientReviewsSection
                         title="All Client Reviews"
                         subtitle="Published reviews from completed Bellah Options client projects."
                         maxVisible={0}
                         showEmptyState
-                    />
+                    >
+                        <GoogleReviewsWidget />
+                    </ClientReviewsSection>
                 </main>
             </PageTheme>
         </>

@@ -1,5 +1,7 @@
 import { Head, usePage } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
+import GoogleReviewsWidget from "@/Components/GoogleReviewsWidget";
+import TrustedByLogos from "@/Components/TrustedByLogos";
 import { resolvePublicAssetUrl } from "@/lib/publicPageHeaders";
 import {
     Button,
@@ -226,8 +228,10 @@ export default function About() {
                         </div>
                     </section>
 
+                    <TrustedByLogos />
+
                     {/* ── WHY WE EXIST ── */}
-                    <Section className="border-y border-jv-line jv-glow overflow-hidden text-center">
+                    <Section className="border-b border-jv-line jv-glow overflow-hidden text-center">
                         <SectionHeading
                             eyebrow="Why we exist"
                             title="Because great brands do not"
@@ -404,6 +408,18 @@ export default function About() {
                                     </StaggerItem>
                                 ))}
                             </Stagger>
+                        </div>
+                    </Section>
+
+                    {/* ── GOOGLE REVIEWS ── */}
+                    <Section className="border-t border-jv-line">
+                        <SectionHeading
+                            eyebrow="Reviews"
+                            title="What clients say about"
+                            muted="working with us."
+                        />
+                        <div className="mt-12">
+                            <GoogleReviewsWidget />
                         </div>
                     </Section>
 

@@ -96,6 +96,7 @@ export default function ClientReviewsSection({
     className = '',
     maxVisible = 9,
     showEmptyState = false,
+    children,
 }) {
     const { publicClientReviews = [] } = usePage().props;
 
@@ -103,20 +104,8 @@ export default function ClientReviewsSection({
         ? publicClientReviews.slice(0, Number(maxVisible))
         : publicClientReviews;
 
-    if (visible.length === 0) {
-        if (!showEmptyState) {
-            return null;
-        }
-
-        return (
-            <Section className={className}>
-                <Card className="text-center">
-                    <p className="jv-body">
-                        Public client reviews will appear here as new feedback is submitted.
-                    </p>
-                </Card>
-            </Section>
-        );
+    if (visible.length === 0 && !showEmptyState && !children) {
+        return null;
     }
 
     const mobileSlides = chunkReviews(visible, 1);
@@ -130,37 +119,51 @@ export default function ClientReviewsSection({
                 description={subtitle}
             />
 
-            <div className="mt-12 md:hidden">
-                <div className="jv-scroll-x">
-                    {mobileSlides.map((slide, slideIndex) => (
-                        <div key={`client-mobile-${slideIndex}`} className="w-[85vw] max-w-sm">
-                            {slide.map((review) => (
-                                <ReviewCard key={`client-review-mobile-${review.id}`} review={review} />
+            {visible.length > 0 ? (
+                <>
+                    <div className="mt-12 md:hidden">
+                        <div className="jv-scroll-x">
+                            {mobileSlides.map((slide, slideIndex) => (
+                                <div key={`client-mobile-${slideIndex}`} className="w-[85vw] max-w-sm">
+                                    {slide.map((review) => (
+                                        <ReviewCard key={`client-review-mobile-${review.id}`} review={review} />
+                                    ))}
+                                </div>
                             ))}
                         </div>
-                    ))}
-                </div>
-            </div>
+                    </div>
 
-            <div className="mt-12 hidden md:block">
-                <div className="jv-scroll-x">
-                    {desktopSlides.map((slide, slideIndex) => (
-                        <div key={`client-desktop-${slideIndex}`} className="w-full">
-                            <div className="grid grid-cols-3 gap-5">
-                                {slide.map((review) => (
-                                    <ReviewCard key={`client-review-desktop-${review.id}`} review={review} />
-                                ))}
-                            </div>
+                    <div className="mt-12 hidden md:block">
+                        <div className="jv-scroll-x">
+                            {desktopSlides.map((slide, slideIndex) => (
+                                <div key={`client-desktop-${slideIndex}`} className="w-full">
+                                    <div className="grid grid-cols-3 gap-5">
+                                        {slide.map((review) => (
+                                            <ReviewCard key={`client-review-desktop-${review.id}`} review={review} />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-            </div>
+                    </div>
+                </>
+            ) : showEmptyState ? (
+                <Card className="mt-12 text-center">
+                    <p className="jv-body">
+                        Public client reviews will appear here as new feedback is submitted.
+                    </p>
+                </Card>
+            ) : null}
 
-            <div className="mt-10 flex justify-center">
-                <Button href="/reviews" variant="ghost">
-                    View All Reviews
-                </Button>
-            </div>
+            {children ? <div className="mt-12">{children}</div> : null}
+
+            {visible.length > 0 ? (
+                <div className="mt-10 flex justify-center">
+                    <Button href="/reviews" variant="ghost">
+                        View All Reviews
+                    </Button>
+                </div>
+            ) : null}
         </Section>
     );
 }

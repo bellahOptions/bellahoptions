@@ -1,6 +1,7 @@
 import { Head } from "@inertiajs/react";
 import PageTheme from "@/Layouts/PageTheme";
 import PublicPageHeader from "@/Components/PublicPageHeader";
+import TrustedByLogos from "@/Components/TrustedByLogos";
 import { Button, Card, Display, Eyebrow, Section, Stagger, StaggerItem } from "@/Components/PublicUI";
 import { ArrowUpRightIcon, PhotoIcon } from "@heroicons/react/24/outline";
 
@@ -33,7 +34,9 @@ export default function Gallery({ projects = [] }) {
                         </div>
                     </PublicPageHeader>
 
-                    <Section className="border-t border-jv-line">
+                    <TrustedByLogos />
+
+                    <Section>
                         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                             <div>
                                 <Eyebrow>Selected work</Eyebrow>

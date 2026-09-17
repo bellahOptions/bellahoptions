@@ -1617,13 +1617,6 @@ textarea.jv-textarea:focus,
 
 /* ── Nav ────────────────────────────────────────────────────────────────── */
 
-.jv-nav-shell {
-    border-radius: 999px;
-    border: 1px solid var(--jv-line);
-    background: rgba(10, 10, 14, 0.6);
-    backdrop-filter: blur(18px) saturate(160%);
-}
-
 .jv-nav-link {
     border-radius: 999px;
     padding: 0.5rem 0.95rem;
@@ -1838,7 +1831,6 @@ textarea.jv-textarea:focus,
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .jv-marquee,
     .jv-rise,
     .animate-fade-up,
     .animate-float {

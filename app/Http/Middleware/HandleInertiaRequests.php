@@ -38,6 +38,11 @@ class HandleInertiaRequests extends Middleware
 
         return [
             ...parent::share($request),
+            // Source of truth for the client-side document title. Read from
+            // config rather than a build-time VITE_ variable, so the name lives
+            // in one place (APP_NAME), can change without rebuilding assets, and
+            // cannot be broken by .env variable-expansion quirks.
+            'appName' => (string) config('app.name', 'Bellah Options'),
             'localization' => [
                 'country_code' => (string) ($visitorLocalization['country_code'] ?? 'NG'),
                 'country' => (string) ($visitorLocalization['country'] ?? 'Nigeria'),

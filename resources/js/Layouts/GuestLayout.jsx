@@ -3,7 +3,7 @@ import AuthCanvas from '@/Components/AuthCanvas';
 import TemplatrPromoBanner from '@/Components/TemplatrPromoBanner';
 import { CheckItem, Display, Eyebrow } from '@/Components/PublicUI';
 import { Link } from '@inertiajs/react';
-import { CheckBadgeIcon, LockClosedIcon, SparklesIcon } from '@heroicons/react/24/outline';
+import { CheckBadgeIcon, ClipboardDocumentCheckIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 
 const brandHighlights = [
     {
@@ -11,7 +11,7 @@ const brandHighlights = [
         text: 'Design, campaigns, and delivery tracked in one place.',
     },
     {
-        icon: SparklesIcon,
+        icon: ClipboardDocumentCheckIcon,
         text: 'Briefs, revisions, and approvals without the email thread.',
     },
     {

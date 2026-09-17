@@ -13,8 +13,9 @@ import {
     StaggerItem,
 } from "@/Components/PublicUI";
 import {
+    ArrowPathIcon,
     ChatBubbleLeftRightIcon,
-    SparklesIcon,
+    InformationCircleIcon,
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
 
@@ -124,7 +125,7 @@ export default function ManageHires({ whatsappUrl = "", packages = {} }) {
                         <div className="jv-container relative">
                             <div className="mx-auto flex max-w-4xl flex-col items-center text-center">
                                 <Eyebrow>
-                                    <SparklesIcon className="h-3.5 w-3.5" />
+                                    <ArrowPathIcon className="h-3.5 w-3.5" />
                                     Dedicated Design Retainer
                                 </Eyebrow>
                                 <h1 className="jv-display jv-display--xl mt-6">
@@ -235,7 +236,7 @@ export default function ManageHires({ whatsappUrl = "", packages = {} }) {
 
                         <div className="mx-auto mt-8 max-w-2xl">
                             <div className="jv-card flex items-start gap-3 border-jv-line-strong bg-jv-accent/[0.08] px-5 py-4">
-                                <SparklesIcon className="mt-0.5 h-4 w-4 shrink-0 text-jv-accent" />
+                                <InformationCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-jv-accent" />
                                 <p className="jv-body">
                                     UI/UX design is excluded from both plans.
                                 </p>

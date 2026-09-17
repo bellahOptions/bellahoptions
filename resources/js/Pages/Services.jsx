@@ -1,6 +1,7 @@
 import { Head, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import PageTheme from "@/Layouts/PageTheme";
+import GoogleReviewsWidget from "@/Components/GoogleReviewsWidget";
 import { resolvePublicAssetUrl } from "@/lib/publicPageHeaders";
 import {
     Button,
@@ -30,7 +31,7 @@ import {
     PlusIcon,
     RectangleGroupIcon,
     ShieldCheckIcon,
-    SparklesIcon,
+    Squares2X2Icon,
     SwatchIcon,
     UserGroupIcon,
 } from "@heroicons/react/24/outline";
@@ -250,7 +251,7 @@ const SERVICE_META = {
 };
 
 const FALLBACK_META = {
-    icon: SparklesIcon,
+    icon: Squares2X2Icon,
     category: "Service",
     period: "Project",
     image: "/bellah.jpg",
@@ -386,7 +387,7 @@ function PackageCard({ service, plan, meta }) {
                 </span>
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-                        <h3 className="text-xl font-semibold tracking-tight text-white">
+                        <h3 className="min-w-0 break-words text-xl font-semibold tracking-tight text-white">
                             {plan.name}
                         </h3>
                         {plan.is_recommended ? (
@@ -612,7 +613,7 @@ export default function Services({ services = [] }) {
                             <div className="lg:sticky lg:top-28 lg:self-start">
                                 <div className="jv-media jv-glow relative aspect-[4/5] w-full">
                                     <img
-                                        src="/bellah.jpg"
+                                        src="/bo.png"
                                         alt="Bellah Options design work"
                                         loading="lazy"
                                     />
@@ -867,6 +868,18 @@ export default function Services({ services = [] }) {
                                     />
                                 ))}
                             </div>
+                        </div>
+                    </Section>
+
+                    {/* ── GOOGLE REVIEWS ── */}
+                    <Section className="border-t border-jv-line">
+                        <SectionHeading
+                            eyebrow="Reviews"
+                            title="What clients say about"
+                            muted="working with us."
+                        />
+                        <div className="mt-12">
+                            <GoogleReviewsWidget />
                         </div>
                     </Section>
 

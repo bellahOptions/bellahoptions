@@ -6,7 +6,6 @@ import { Button, Card, Display, Eyebrow, Section, Stagger, StaggerItem } from "@
 import {
     CalendarDaysIcon,
     MapPinIcon,
-    SparklesIcon,
 } from "@heroicons/react/24/outline";
 
 export default function Events({ events = [] }) {
@@ -110,7 +109,7 @@ export default function Events({ events = [] }) {
                                         animate={{ y: [0, -8, 0] }}
                                         transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <SparklesIcon className="h-9 w-9" />
+                                        <CalendarDaysIcon className="h-9 w-9" />
                                     </motion.span>
 
                                     <Display size="md" className="mt-8">
