@@ -25,6 +25,7 @@ use App\Services\PaystackService;
 use App\Support\ClientReviewService;
 use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
+use App\Support\ServiceBriefRequestService;
 use App\Support\ServiceOrderRenewal;
 use App\Support\VisitorLocalization;
 use App\Support\ServiceOrderCatalog;
@@ -227,7 +228,7 @@ class ServiceOrderController extends Controller
     /**
      * @throws ValidationException
      */
-    public function store(StoreServiceOrderRequest $request, string $serviceSlug, ServiceOrderCatalog $catalog): RedirectResponse
+    public function store(StoreServiceOrderRequest $request, string $serviceSlug, ServiceOrderCatalog $catalog, ServiceBriefRequestService $briefRequestService): RedirectResponse
     {
         $service = $catalog->service($serviceSlug);
         abort_unless(is_array($service), 404);
@@ -445,6 +446,10 @@ class ServiceOrderController extends Controller
                 'email' => $payload['email'] ?? null,
                 'error' => $exception->getMessage(),
             ]);
+        }
+
+        if ($serviceSlug === 'web-design') {
+            $briefRequestService->sendForOrder($order->fresh());
         }
 
         $this->markProspectAsConverted((string) ($payload['prospect_draft_token'] ?? ''), $order);

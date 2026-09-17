@@ -7,6 +7,7 @@ use App\Mail\ServiceBriefAdminAlertMail;
 use App\Mail\ServiceBriefReceivedMail;
 use App\Models\ServiceBrief;
 use App\Models\ServiceBriefFile;
+use App\Models\ServiceOrder;
 use App\Support\HumanVerification;
 use App\Support\ServiceBriefSchema;
 use Illuminate\Http\RedirectResponse;
@@ -60,6 +61,23 @@ class ServiceBriefController extends Controller
         $steps = $schema->steps($serviceSlug, $template);
         $meta = (array) config("service_briefs.service_meta.{$serviceSlug}", []);
         $user = $request->user();
+        $linkedOrder = $this->resolveLinkedOrder($request, $serviceSlug);
+
+        $profileDefaults = [];
+
+        if ($user) {
+            $profileDefaults = [
+                'client_name' => $user->name,
+                'email' => $user->email,
+            ];
+        } elseif ($linkedOrder) {
+            $profileDefaults = array_filter([
+                'client_name' => $linkedOrder->full_name,
+                'brand_name' => $linkedOrder->business_name,
+                'email' => $linkedOrder->email,
+                'phone' => $linkedOrder->phone,
+            ]);
+        }
 
         return Inertia::render('ServiceBriefs/Create', [
             'serviceSlug' => $serviceSlug,
@@ -68,12 +86,42 @@ class ServiceBriefController extends Controller
             'estimatedMinutes' => (int) ($meta['estimated_minutes'] ?? 5),
             'steps' => $steps,
             'uploadSessionToken' => (string) Str::uuid(),
-            'profileDefaults' => $user ? [
-                'client_name' => $user->name,
-                'email' => $user->email,
-            ] : [],
+            'profileDefaults' => $profileDefaults,
+            'linkedOrderCode' => $linkedOrder?->order_code,
             ...HumanVerification::createChallenge($request, 'brief_human_check'),
         ]);
+    }
+
+    /**
+     * When this brief was requested via the automatic post-order follow-up
+     * email, its link carries a signed `service_order_id`. Validate the
+     * signature (so the order/service pairing can't be forged), remember
+     * the order for the duration of this brief-filling session, and use it
+     * to prefill the form.
+     */
+    private function resolveLinkedOrder(Request $request, string $serviceSlug): ?ServiceOrder
+    {
+        $sessionKey = 'service_brief_link.'.$serviceSlug;
+        $serviceOrderId = (int) $request->query('service_order_id', 0);
+
+        if ($serviceOrderId > 0 && $request->hasValidSignature()) {
+            $order = ServiceOrder::query()
+                ->where('id', $serviceOrderId)
+                ->where('service_slug', $serviceSlug)
+                ->first();
+
+            if ($order) {
+                $request->session()->put($sessionKey, $order->id);
+
+                return $order;
+            }
+        }
+
+        $rememberedId = (int) $request->session()->get($sessionKey, 0);
+
+        return $rememberedId > 0
+            ? ServiceOrder::query()->where('id', $rememberedId)->where('service_slug', $serviceSlug)->first()
+            : null;
     }
 
     public function store(StoreServiceBriefRequest $request, string $serviceSlug, ServiceBriefSchema $schema): RedirectResponse
@@ -110,11 +158,18 @@ class ServiceBriefController extends Controller
 
         $responseSlaHours = (int) config("service_briefs.response_sla_hours.{$serviceSlug}", config('service_briefs.response_sla_hours.default', 24));
 
+        $sessionKey = 'service_brief_link.'.$serviceSlug;
+        $linkedOrderId = (int) $request->session()->pull($sessionKey, 0);
+        $linkedOrder = $linkedOrderId > 0
+            ? ServiceOrder::query()->where('id', $linkedOrderId)->where('service_slug', $serviceSlug)->first()
+            : null;
+
         $brief = ServiceBrief::create([
             'reference_number' => $this->generateReferenceNumber($serviceSlug),
             'service_brief_template_id' => $template?->id,
             'service_slug' => $serviceSlug,
             'customer_id' => null,
+            'service_order_id' => $linkedOrder?->id,
             'status' => ServiceBrief::STATUS_NEW,
             'answers' => $answers,
             'is_rush' => $isRush,

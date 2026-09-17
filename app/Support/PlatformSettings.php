@@ -1017,6 +1017,13 @@ class PlatformSettings
                 'html_template' => '',
                 'builder_layout' => [],
             ],
+            'service_brief_request' => [
+                'name' => 'Service Brief Request',
+                'subject_template' => 'Tell us more about your {{service_name}} project',
+                'from_email' => '',
+                'html_template' => '',
+                'builder_layout' => [],
+            ],
         ];
     }
 

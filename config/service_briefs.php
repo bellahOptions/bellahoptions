@@ -82,7 +82,7 @@ return [
         'social-media-design' => ['name' => 'Social Media Design', 'intro' => "Tell us what you're posting and who you're posting to. The more detail here, the fewer rounds of revision later.", 'estimated_minutes' => 4],
         'graphic-design' => ['name' => 'Graphic Design', 'intro' => 'This covers print and one-off design pieces – flyers, cards, packaging, banners and more.', 'estimated_minutes' => 4],
         'brand-design' => ['name' => 'Brand Design', 'intro' => 'Brand design goes deeper than a logo. These questions help us build something that actually fits your business – please take your time.', 'estimated_minutes' => 10],
-        'web-design' => ['name' => 'Web Design', 'intro' => "Whether it's a one-page site or a full store, this helps us scope it properly and give you a real number.", 'estimated_minutes' => 7],
+        'web-design' => ['name' => 'Web Design', 'intro' => "Whether it's a one-page site or a full store, this helps us scope it properly and give you a real number.", 'estimated_minutes' => 10],
         'special-service' => ['name' => 'Special Service', 'intro' => "This is for work that doesn't fit neatly into the other categories. Tell us what you have in mind and we'll come back with a custom quote.", 'estimated_minutes' => 5],
         'mobile-app-development' => ['name' => 'Mobile App Development', 'intro' => "App projects live or die on scope. Answer as honestly as you can – 'not sure' is a perfectly good answer and we'll advise.", 'estimated_minutes' => 8],
         'ui-ux' => ['name' => 'UI/UX', 'intro' => "UI/UX is about how your product feels to use. Tell us what you're building and where it's currently falling short.", 'estimated_minutes' => 8],

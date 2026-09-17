@@ -68,6 +68,7 @@ export default function CreateServiceBrief({
     steps = [],
     uploadSessionToken = '',
     profileDefaults = {},
+    linkedOrderCode = null,
     previewMode = false,
     humanVerificationMode = 'math',
     humanCheckQuestion = '',
@@ -213,6 +214,11 @@ export default function CreateServiceBrief({
 
                         <Card className="p-6 sm:p-8">
                             <h1 className="jv-display jv-display--md">{serviceName} Brief</h1>
+                            {currentStep === 0 && linkedOrderCode && (
+                                <div className="mt-4 rounded-jv-sm border border-jv-accent/30 bg-jv-accent/10 px-4 py-2 text-sm text-white/80">
+                                    Linked to your order <strong>{linkedOrderCode}</strong> — we'll match this brief to it automatically.
+                                </div>
+                            )}
                             {currentStep === 0 && (
                                 <>
                                     <p className="jv-lead mt-4">{intro}</p>

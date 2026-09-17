@@ -28,6 +28,7 @@ use Illuminate\Support\Str;
     'customer_phone',
     'response_due_at',
     'quoted_invoice_id',
+    'service_order_id',
 ])]
 class ServiceBrief extends Model
 {
@@ -103,6 +104,16 @@ class ServiceBrief extends Model
     public function quotedInvoice(): BelongsTo
     {
         return $this->belongsTo(Invoice::class, 'quoted_invoice_id');
+    }
+
+    /**
+     * The order this brief was requested for, when it was auto-generated
+     * as a follow-up to a paid/placed order rather than submitted
+     * standalone via the pre-order /brief flow.
+     */
+    public function sourceServiceOrder(): BelongsTo
+    {
+        return $this->belongsTo(ServiceOrder::class, 'service_order_id');
     }
 
     public function files(): HasMany
