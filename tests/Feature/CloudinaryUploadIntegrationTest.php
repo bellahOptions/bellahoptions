@@ -10,6 +10,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
 use Tests\Support\FakeImageUploader;
 use Tests\TestCase;
 
@@ -52,19 +53,37 @@ class CloudinaryUploadIntegrationTest extends TestCase
         $this->assertDatabaseHas('media_uploads', ['secure_url' => $url, 'folder' => 'gallery-projects']);
     }
 
-    public function test_gallery_upload_fails_gracefully_when_cloudinary_is_not_configured(): void
+    public function test_gallery_upload_falls_back_to_the_local_engine_without_cloudinary(): void
     {
-        // No fake bound: the real CloudinaryUploader runs and finds no CLOUDINARY_URL configured.
+        // Previously this asserted a failure. Upload now degrades to the local
+        // image engine instead: a missing third-party credential must not make
+        // image upload unusable, which was the real complaint.
         config(['services.cloudinary.url' => null]);
+        Storage::fake(\App\Support\ImageEngine::DISK);
         $admin = $this->superAdmin();
 
         $response = $this->actingAs($admin)->postJson(route('admin.gallery.media.upload'), [
-            'file' => UploadedFile::fake()->image('cover.jpg'),
+            'file' => UploadedFile::fake()->image('cover.jpg', 800, 600),
         ]);
 
-        $response->assertUnprocessable();
-        $response->assertJsonValidationErrors(['file']);
-        $this->assertStringContainsString('not configured', (string) $response->json('errors.file.0'));
+        $response->assertCreated();
+        $this->assertStringStartsWith('/media/gallery-projects/', (string) $response->json('path'));
+    }
+
+    public function test_the_cloudinary_driver_still_reports_a_missing_credential(): void
+    {
+        // The Cloudinary driver itself keeps failing loudly; only the default
+        // binding falls back. This is what a misconfigured Cloudinary install
+        // sees if it is explicitly selected.
+        config(['services.cloudinary.url' => null]);
+
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('not configured');
+
+        app(\App\Support\CloudinaryUploader::class)->uploadImage(
+            UploadedFile::fake()->image('cover.jpg'),
+            'gallery-projects',
+        );
     }
 
     public function test_gallery_crop_re_uploads_via_cloudinary_and_records_a_media_upload(): void

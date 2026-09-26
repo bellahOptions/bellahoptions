@@ -95,7 +95,7 @@ class AdminClientReviewScreenshotTest extends TestCase
             );
     }
 
-    public function test_admin_settings_page_exposes_screenshot_path_for_every_review(): void
+    public function test_client_reviews_screen_exposes_screenshot_path_for_every_review(): void
     {
         $superAdmin = User::factory()->create(['role' => 'super_admin']);
 
@@ -108,9 +108,12 @@ class AdminClientReviewScreenshotTest extends TestCase
             'is_public' => false,
         ]);
 
-        $this->actingAs($superAdmin)->get(route('admin.settings.edit'))
+        // The reviews manager moved off the Platform Settings page onto its own
+        // screen (admin.client-reviews.index).
+        $this->actingAs($superAdmin)->get(route('admin.client-reviews.index'))
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
+                ->component('Admin/ClientReviews')
                 ->where('clientReviews.0.screenshot_path', '/storage/client-reviews/private.webp')
             );
     }

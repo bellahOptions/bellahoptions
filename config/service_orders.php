@@ -606,5 +606,28 @@ return [
                 ],
             ],
         ],
+        'social-media-management' => [
+            'name' => 'Social Media Management',
+            'description' => 'End-to-end management of your social presence: strategy, content, publishing, community replies and monthly reporting.',
+            // Quoted per account after a short scoping call, so the order form
+            // runs through the consultation lane rather than taking payment up
+            // front. The landing page and SEO still use this service's own slug.
+            'order_slug' => 'special-service',
+            'intake' => [],
+            'packages' => [
+                'consultation' => [
+                    'name' => 'Strategy & Scoping Call',
+                    'price' => 0,
+                    'description' => 'A 30-minute call where we review your channels, competitors and goals, then send a written management plan and quote.',
+                    'is_recommended' => true,
+                    'features' => [
+                        'Channel and competitor review',
+                        'Content pillars and posting cadence',
+                        'Written management plan and fixed quote',
+                        'No payment required to book',
+                    ],
+                ],
+            ],
+        ],
     ],
 ];

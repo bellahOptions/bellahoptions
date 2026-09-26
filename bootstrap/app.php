@@ -7,6 +7,7 @@ use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ResolveVisitorLocalization;
 use App\Http\Middleware\RestrictPublicAuthWhenLocked;
 use App\Http\Middleware\RestrictPublicRoutesWhenLocked;
+use App\Support\CrawlerPolicy;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -43,6 +44,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (Response $response, Throwable $exception, Request $request): Response {
+            // Redirects and error pages produced outside the middleware pipeline
+            // (authentication redirects, unmatched routes) never reach
+            // AddSecurityHeaders, so the noindex signal is applied here too.
+            if (CrawlerPolicy::shouldNoIndex($request) && ! $response->headers->has('X-Robots-Tag')) {
+                $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
+            }
+
             if ($request->expectsJson()) {
                 return $response;
             }
@@ -53,8 +61,16 @@ return Application::configure(basePath: dirname(__DIR__))
                 return $response;
             }
 
-            return Inertia::render('Error', [
+            // Error responses are never useful search results, and an indexed
+            // error URL can outlive the problem that produced it. The header has
+            // to be set on the final response because the error view is rendered
+            // lazily when this response is prepared.
+            $rendered = Inertia::render('Error', [
                 'status' => $status,
             ])->toResponse($request)->setStatusCode($status);
+
+            $rendered->headers->set('X-Robots-Tag', 'noindex, nofollow');
+
+            return $rendered;
         });
     })->create();

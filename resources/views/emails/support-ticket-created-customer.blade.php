@@ -1,29 +1,60 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Support Ticket Received</title>
-</head>
-<body style="margin:0; padding:24px 12px; background:#f8fafc; font-family:Arial, Helvetica, sans-serif; color:#1f2937;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-        <tr>
-            <td align="center">
-                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:620px; background:#ffffff; border:1px solid #e5e7eb; border-radius:12px;">
-                    @include('emails.partials.logo-header')
-                    <tr>
-                        <td style="padding:24px;">
-                            <h2 style="margin:0 0 12px; font-size:20px; color:#0f172a;">Ticket Received</h2>
-                            <p style="margin:0 0 12px; font-size:14px; line-height:1.7;">Hi {{ $ticket->user?->name ?: 'there' }}, your support ticket has been created and our team has been notified.</p>
-                            <p style="margin:0 0 8px; font-size:14px;"><strong>Ticket:</strong> {{ $ticket->ticket_number }}</p>
-                            <p style="margin:0 0 8px; font-size:14px;"><strong>Subject:</strong> {{ $ticket->subject }}</p>
-                            <p style="margin:0 0 16px; font-size:14px;"><strong>Priority:</strong> {{ ucfirst((string) $ticket->priority) }}</p>
-                            <a href="{{ route('dashboard.support') }}" style="display:inline-block; background:#050a80; color:#ffffff; text-decoration:none; padding:10px 14px; border-radius:8px; font-size:14px; font-weight:700;">Open Support Tickets</a>
-                        </td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-</body>
-</html>
+@extends('emails.layouts.base')
+
+@php
+    $ticketRows = [
+        'Ticket' => e((string) $ticket->ticket_number),
+        'Subject' => e((string) $ticket->subject),
+        'Priority' => e(ucfirst((string) $ticket->priority)),
+    ];
+
+    if ($ticket->created_at) {
+        $ticketRows['Opened'] = e($ticket->created_at->format('j M Y, g:ia'));
+    }
+@endphp
+
+@section('title', 'Support ticket '.$ticket->ticket_number)
+
+@section('preheader', 'We have received ticket '.$ticket->ticket_number.' and our team will respond shortly.')
+
+@section('hero')
+    <p style="margin:0; font-size:12px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:#9fb0e8;">
+        Support
+    </p>
+    <h1 class="jv-h1" style="margin:8px 0 0; font-size:24px; line-height:1.3; font-weight:700; color:#ffffff;">
+        We have your request
+    </h1>
+    <p style="margin:10px 0 0; font-size:14px; line-height:1.6; color:#c7d2f5;">
+        Ticket {{ $ticket->ticket_number }} is open and our team has been notified.
+    </p>
+@endsection
+
+@section('content')
+    <p style="margin:0 0 18px; font-size:15px;">
+        Hi {{ $ticket->user?->name ?: 'there' }},
+    </p>
+    <p style="margin:0 0 20px; font-size:15px;">
+        Thanks for getting in touch. Your support ticket has been created and logged against your
+        account. You can follow the conversation and add more detail at any time from your dashboard.
+    </p>
+
+    @include('emails.partials.panel', [
+        'tone' => 'accent',
+        'title' => 'Ticket details',
+        'rows' => $ticketRows,
+    ])
+
+    <p style="margin:20px 0 18px; font-size:15px;">
+        We aim to reply within one working day. Replying to this email adds your message to the same
+        ticket, so nothing gets lost.
+    </p>
+
+    @include('emails.partials.button', [
+        'url' => route('dashboard.support'),
+        'label' => 'Open your support tickets',
+    ])
+@endsection
+
+@section('footer-links')
+    <a href="{{ route('dashboard.support') }}" style="color:#64748b; text-decoration:underline;">Support</a>
+    &nbsp;·&nbsp;
+@endsection

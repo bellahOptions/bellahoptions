@@ -7,15 +7,21 @@ use App\Models\BlogPost;
 use App\Models\Faq;
 use App\Models\GalleryProject;
 use App\Models\Term;
+use App\Services\PaymentReadinessService;
 use App\Support\PublicContentSecurity;
 use App\Support\HumanVerification;
+use App\Support\Media;
 use App\Support\PlatformSettings;
+use App\Support\PolicyContent;
 use App\Support\PolicyContentParser;
+use App\Support\ServiceLandingContent;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
+use App\Support\VisitorLocalization;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Inertia\Response;
 use Throwable;
 
 class PagesController extends Controller
@@ -64,29 +70,95 @@ class PagesController extends Controller
     public function servicesPage(ServiceOrderCatalog $catalog)
     {
         return Inertia::render('Services', [
-            'services' => collect($catalog->all())
-                ->map(fn (array $service, string $slug): array => [
-                    'slug' => $slug,
-                    'name' => (string) ($service['name'] ?? ucfirst($slug)),
-                    'description' => (string) ($service['description'] ?? ''),
-                    'packages' => collect((array) ($service['packages'] ?? []))
-                        ->map(fn (array $package, string $packageCode): array => [
-                            'code' => $packageCode,
-                            'name' => (string) ($package['name'] ?? ucfirst($packageCode)),
-                            'description' => (string) ($package['description'] ?? ''),
-                            'price' => round((float) ($package['price'] ?? 0), 2),
-                            'original_price' => round((float) ($package['original_price'] ?? $package['price'] ?? 0), 2),
-                            'discount_price' => isset($package['discount_price']) && is_numeric($package['discount_price'])
-                                ? round((float) $package['discount_price'], 2)
-                                : null,
-                            'is_recommended' => (bool) ($package['is_recommended'] ?? false),
-                            'features' => is_array($package['features'] ?? null) ? array_values($package['features']) : [],
-                            'sample_image' => $package['sample_image'] ?? null,
-                        ])
-                        ->values(),
-                ])
-                ->values(),
+            'services' => $this->servicesPayload($catalog),
         ]);
+    }
+
+    public function serviceShowPage(
+        string $serviceSlug,
+        ServiceOrderCatalog $catalog,
+    ) {
+        $service = $catalog->service($serviceSlug);
+        abort_unless(is_array($service), 404);
+
+        $localization = app(VisitorLocalization::class)->resolve(request());
+        $orderSlug = $catalog->orderSlug($serviceSlug);
+        $content = ServiceLandingContent::for($serviceSlug, $service);
+
+        // A super-admin override wins over the artwork shipped with the service.
+        $imageOverride = PlatformSettings::serviceImages()[$serviceSlug] ?? null;
+
+        if (is_string($imageOverride) && $imageOverride !== '') {
+            $content['image'] = $imageOverride;
+        }
+
+        // Width variants travel with the page so the hero can emit a srcset and
+        // the browser downloads a file sized for the viewport.
+        $content['image_variants'] = Media::variants($content['image'] ?? null);
+
+        // Related services come from the catalogue so a new service appears here
+        // automatically instead of needing a template edit.
+        $related = collect($this->servicesPayload($catalog))
+            ->reject(fn (array $candidate): bool => in_array($candidate['slug'], [$serviceSlug, $orderSlug], true))
+            ->take(4)
+            ->values()
+            ->all();
+
+        return Inertia::render('ServiceDetail', [
+            'service' => [
+                'slug' => $serviceSlug,
+                'order_slug' => $orderSlug,
+                'name' => (string) ($service['name'] ?? ucfirst($serviceSlug)),
+                'description' => (string) ($service['description'] ?? ''),
+                'packages' => $this->packagePayload($service),
+            ],
+            'content' => $content,
+            'relatedServices' => $related,
+            'orderUrl' => route('orders.create', $orderSlug, absolute: false),
+            'paymentReadiness' => app(PaymentReadinessService::class)->forVisitor($localization),
+        ]);
+    }
+
+    /**
+     * Public service cards used by both /services and the landing pages.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function servicesPayload(ServiceOrderCatalog $catalog): array
+    {
+        return collect($catalog->all())
+            ->map(fn (array $service, string $slug): array => [
+                'slug' => $slug,
+                'name' => (string) ($service['name'] ?? ucfirst($slug)),
+                'description' => (string) ($service['description'] ?? ''),
+                'packages' => $this->packagePayload($service),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<string, mixed>  $service
+     * @return array<int, array<string, mixed>>
+     */
+    private function packagePayload(array $service): array
+    {
+        return collect((array) ($service['packages'] ?? []))
+            ->map(fn (array $package, string $packageCode): array => [
+                'code' => $packageCode,
+                'name' => (string) ($package['name'] ?? ucfirst($packageCode)),
+                'description' => (string) ($package['description'] ?? ''),
+                'price' => round((float) ($package['price'] ?? 0), 2),
+                'original_price' => round((float) ($package['original_price'] ?? $package['price'] ?? 0), 2),
+                'discount_price' => isset($package['discount_price']) && is_numeric($package['discount_price'])
+                    ? round((float) $package['discount_price'], 2)
+                    : null,
+                'is_recommended' => (bool) ($package['is_recommended'] ?? false),
+                'features' => is_array($package['features'] ?? null) ? array_values($package['features']) : [],
+                'sample_image' => $package['sample_image'] ?? null,
+            ])
+            ->values()
+            ->all();
     }
 
     public function galleryPage()
@@ -308,74 +380,73 @@ class PagesController extends Controller
 
     public function showTerms()
     {
-        return $this->renderPolicyPage('terms', 'terms-of-service', [
-            'title' => 'Terms of Service',
-            'badge' => 'Legal Agreement',
-            'heroDescription' => 'These Terms govern all services provided by Bellah Options and form a legally binding agreement between Bellah Options and every Client who engages our services.',
-            'metaItems' => [
-                ['label' => 'Registered Name', 'value' => 'Bellah Options'],
-                ['label' => 'Business Number', 'value' => 'BN3668420'],
-                ['label' => 'Jurisdiction', 'value' => 'Federal Republic of Nigeria'],
-                ['label' => 'Governing Law', 'value' => 'Nigerian Law and applicable international standards'],
-                ['label' => 'Contact Email', 'value' => 'bellahoptions@gmail.com'],
-                ['label' => 'Contact Phone', 'value' => '+234 810 867 1804 | +234 903 141 2354'],
-            ],
-            'notice' => 'Important Notice: By engaging Bellah Options through signed proposal, purchase order, verbal agreement, email confirmation, or payment, you acknowledge that you have read, understood, and agreed to these Terms. If you do not agree, do not proceed with engagement.',
-        ]);
+        return $this->renderPolicyPage('terms');
     }
 
     public function showPrivacyPolicy()
     {
-        return $this->renderPolicyPage('privacy', 'privacy-policy', [
-            'title' => 'Privacy Policy',
-            'badge' => 'Data & Privacy',
-            'heroDescription' => 'This policy explains how Bellah Options collects, uses, stores, shares, protects, and retains information shared through the website, forms, payments, and project workflows.',
-            'metaItems' => [
-                ['label' => 'Policy Scope', 'value' => 'Website visitors, clients, leads, and form submissions'],
-                ['label' => 'Primary Use', 'value' => 'Service delivery, billing, communication, and security'],
-                ['label' => 'Legal Basis', 'value' => 'NDPA 2023 and applicable GDPR requirements'],
-                ['label' => 'Contact', 'value' => 'hello@bellahoptions.com'],
-            ],
-            'notice' => 'We only collect the information reasonably needed to communicate, secure our forms, process orders, issue invoices, meet record-keeping duties, and deliver services effectively.',
-        ]);
+        return $this->renderPolicyPage('privacy');
     }
 
     public function showCookiePolicy()
     {
-        return $this->renderPolicyPage('cookie', 'cookie-policy', [
-            'title' => 'Cookie Policy',
-            'badge' => 'Cookies & Tracking',
-            'heroDescription' => 'This page explains what cookies are, how Bellah Options uses them, and what choices you have when it comes to managing browser-based tracking technologies.',
-            'metaItems' => [
-                ['label' => 'Purpose', 'value' => 'Security, session support, performance, and analytics'],
-                ['label' => 'Control', 'value' => 'You can manage cookies through your browser settings'],
-                ['label' => 'Impact', 'value' => 'Disabling some cookies may affect forms and secure flows'],
-                ['label' => 'Applies To', 'value' => 'Bellah Options public website and related form experiences'],
-            ],
-            'notice' => 'Essential and security-related cookies may be necessary for some parts of the website, especially protected forms and order workflows.',
-        ]);
+        return $this->renderPolicyPage('cookie');
     }
 
     /**
-     * Render a legal policy page: admin-edited database content first (parsed into
-     * sections for the shared dynamic template), falling back to the built-in
-     * static Blade page when no usable database content exists.
+     * Render a legal policy page.
      *
-     * @param  array<string, mixed>  $meta
+     * Content precedence: an admin-edited record (parsed into sections) wins;
+     * otherwise the built-in copy from PolicyContent is used. Before this, only
+     * terms had built-in copy — privacy and cookie rendered an empty body on a
+     * fresh install because their only content lived in admin-editable records.
+     *
+     * The page is rendered through Inertia so it shares the site's dark theme,
+     * navigation and footer. It previously used a separate light Blade layout.
+     *
+     * Title, badge, hero copy, notice and "at a glance" facts all come from
+     * PolicyContent::metaFor(), which is the single source of truth for these
+     * pages. They used to be duplicated here as well, and the two copies had
+     * already drifted apart (the terms phone number differed), so the inline
+     * arrays were removed rather than kept in sync by hand.
+     *
+     * @param  array<string, mixed>  $meta  Optional per-page overrides; anything omitted falls back to PolicyContent::metaFor().
      */
-    private function renderPolicyPage(string $policyKey, string $staticView, array $meta): \Illuminate\Contracts\View\View
+    private function renderPolicyPage(string $policyKey, array $meta = []): Response
     {
         $termPayload = $this->resolvePolicyTermPayload($policyKey);
         $sections = $termPayload !== null ? PolicyContentParser::resolveSections($termPayload['content']) : [];
 
         if ($sections === []) {
-            return view($staticView);
+            // No admin content at all: use the built-in copy. This is the case
+            // that used to render privacy and cookie with an empty body.
+            $sections = PolicyContent::sectionsFor($policyKey);
+        } else {
+            // Admin content exists and parsed. It wins even when the parser could
+            // only produce a single generic section — that is still the wording
+            // the operator wrote, and overriding it with built-in copy would
+            // silently discard their edit.
+            $sections = PolicyContent::normalize($sections);
         }
 
-        return view('legal.dynamic-policy', array_merge($meta, [
-            'sections' => $sections,
-            'updatedAt' => $termPayload['updated_at'] ?? null,
-        ]));
+        // Admin-configured metadata wins over the built-in copy for the fields it
+        // actually provides.
+        $defaults = PolicyContent::metaFor($policyKey);
+
+        return Inertia::render('Policy', [
+            'policy' => [
+                'key' => $policyKey,
+                'title' => (string) ($meta['title'] ?? $defaults['title']),
+                'badge' => (string) ($meta['badge'] ?? $defaults['badge']),
+                'heroDescription' => (string) ($meta['heroDescription'] ?? $defaults['heroDescription']),
+                'notice' => (string) ($meta['notice'] ?? $defaults['notice']),
+            ],
+            'sections' => array_values($sections),
+            'metaItems' => array_values((array) ($meta['metaItems'] ?? $defaults['metaItems'])),
+            'updatedAt' => $termPayload !== null && ! empty($termPayload['updated_at'])
+                ? \Illuminate\Support\Carbon::parse((string) $termPayload['updated_at'])->format('F j, Y')
+                : null,
+        ]);
     }
 
     /**

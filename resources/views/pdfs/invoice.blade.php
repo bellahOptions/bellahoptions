@@ -210,6 +210,17 @@
             font-size: 10px;
         }
 
+        /* Separates the account blocks when more than one is configured. */
+        .transfer-divider {
+            margin: 8px 0 4px;
+            border-top: 1px solid #d9e0e7;
+            padding-top: 6px;
+            color: #5f6d7c;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
         .transactions th,
         .transactions td {
             border-top: 1px solid #d9e0e7;
@@ -331,12 +342,17 @@
             </tr>
         </table>
 
-        @if($transferPayment['enabled'])
+        @if($transferPayment['available'] && $transferPayment['accounts'] !== [])
             <div class="transfer-card">
                 <p class="transfer-title">Bank Transfer Details</p>
-                <p class="transfer-line"><strong>Bank Name:</strong> {{ $transferPayment['bank_name'] }}</p>
-                <p class="transfer-line"><strong>Account Name:</strong> {{ $transferPayment['account_name'] }}</p>
-                <p class="transfer-line"><strong>Account Number:</strong> {{ $transferPayment['account_number'] }}</p>
+                @foreach($transferPayment['accounts'] as $account)
+                    @if(! $loop->first)
+                        <p class="transfer-divider">Or transfer to</p>
+                    @endif
+                    <p class="transfer-line"><strong>Bank Name:</strong> {{ $account['bank_name'] }}</p>
+                    <p class="transfer-line"><strong>Account Name:</strong> {{ $account['account_name'] }}</p>
+                    <p class="transfer-line"><strong>Account Number:</strong> {{ $account['account_number'] }}</p>
+                @endforeach
                 <p class="transfer-help">{{ $transferPayment['instructions'] ?: 'Include your invoice number as payment reference.' }}</p>
             </div>
         @endif

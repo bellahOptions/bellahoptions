@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdatePlatformSettingsRequest;
 use App\Models\AppSetting;
-use App\Models\ClientReview;
 use App\Models\Term;
 use App\Support\PlatformSettings;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +17,15 @@ use Throwable;
 
 class SettingController extends Controller
 {
+    /**
+     * Platform settings: access modes, branding, contact details and the payment
+     * fallback account.
+     *
+     * Everything else that used to render here now has its own screen (see
+     * announcements(), seoMeta() and legalTerms(), plus the client reviews page on
+     * ClientReviewController and the service image manager on the dashboard), so
+     * those props are no longer sent to this page.
+     */
     public function edit(): Response
     {
         $contactInfo = PlatformSettings::contactInfo();
@@ -34,10 +42,44 @@ class SettingController extends Controller
                 'contact_map_embed_url' => $contactInfo['map_embed_url'],
                 'logo_path' => PlatformSettings::brandAssets()['logo_path'],
                 'favicon_path' => PlatformSettings::brandAssets()['favicon_path'],
+                'payment_fallback' => PlatformSettings::paymentFallback(),
+            ],
+        ]);
+    }
+
+    /**
+     * Service announcement modal. Previously a section inside Platform Settings.
+     */
+    public function announcements(): Response
+    {
+        return Inertia::render('Admin/Announcements', [
+            'settings' => [
+                'service_announcement' => PlatformSettings::serviceAnnouncement(),
+            ],
+        ]);
+    }
+
+    /**
+     * Public SEO metadata. Previously a section inside Platform Settings.
+     */
+    public function seoMeta(): Response
+    {
+        return Inertia::render('Admin/SeoMeta', [
+            'settings' => [
                 'public_seo' => PlatformSettings::publicSeoSettings(),
+            ],
+        ]);
+    }
+
+    /**
+     * Legal terms manager. Previously a section inside Platform Settings.
+     */
+    public function legalTerms(): Response
+    {
+        return Inertia::render('Admin/LegalTerms', [
+            'settings' => [
                 'terms' => $this->policyTermsPayload(),
             ],
-            'clientReviews' => $this->clientReviewsPayload(),
         ]);
     }
 
@@ -93,6 +135,21 @@ class SettingController extends Controller
             PlatformSettings::setPublicSeoSettings($payload['public_seo']);
         }
 
+        if (array_key_exists('payment_fallback', $payload) && is_array($payload['payment_fallback'])) {
+            // partial update: setPaymentFallback() only writes the keys it is
+            // given, so an auto-save of one field cannot wipe the rest.
+            PlatformSettings::setPaymentFallback($payload['payment_fallback']);
+        }
+
+        if (array_key_exists('service_announcement', $payload) && is_array($payload['service_announcement'])) {
+            PlatformSettings::setServiceAnnouncement($payload['service_announcement']);
+        }
+
+        if (array_key_exists('service_images', $payload) && is_array($payload['service_images'])) {
+            // Partial update, keyed by service slug (or `announcement`).
+            PlatformSettings::setServiceImages($payload['service_images']);
+        }
+
         if (is_array($payload['terms'] ?? null)) {
             $this->savePolicyTerms((array) $payload['terms']);
         }
@@ -105,44 +162,6 @@ class SettingController extends Controller
         }
 
         return back()->with('success', 'Platform settings updated successfully.');
-    }
-
-    /**
-     * @return array<int, array<string, mixed>>
-     */
-    private function clientReviewsPayload(): array
-    {
-        if (! Schema::hasTable('client_reviews')) {
-            return [];
-        }
-
-        return ClientReview::query()
-            ->with(['serviceOrder:id,order_code', 'invoice:id,invoice_number'])
-            ->latest('id')
-            ->limit(120)
-            ->get()
-            ->map(fn (ClientReview $review): array => [
-                'id' => $review->id,
-                'source' => $review->source,
-                'reviewer_name' => $review->reviewer_name,
-                'reviewer_email' => $review->reviewer_email,
-                'rating' => $review->rating !== null ? (float) $review->rating : null,
-                'comment' => $review->comment,
-                'screenshot_path' => $review->screenshot_path,
-                'is_public' => (bool) $review->is_public,
-                'is_featured' => (bool) $review->is_featured,
-                'review_requested_at' => $review->review_requested_at?->toDateTimeString(),
-                'review_submitted_at' => $review->review_submitted_at?->toDateTimeString(),
-                'published_at' => $review->published_at?->toDateTimeString(),
-                'service_order' => $review->serviceOrder ? [
-                    'order_code' => $review->serviceOrder->order_code,
-                ] : null,
-                'invoice' => $review->invoice ? [
-                    'invoice_number' => $review->invoice->invoice_number,
-                ] : null,
-            ])
-            ->values()
-            ->all();
     }
 
     /**

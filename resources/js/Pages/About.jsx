@@ -53,25 +53,25 @@ const offers = [
         title: "Branding & Design",
         text: "Logos, visual identity, and marketing assets that make your brand easier to trust.",
         icon: PaintBrushIcon,
-        href: "/order/brand-design",
+        href: "/services/brand-design",
     },
     {
         title: "Social Media Design",
         text: "Scroll-stopping visuals for campaigns, launches, content calendars, and promotions.",
         icon: WrenchScrewdriverIcon,
-        href: "/order/social-media-design",
+        href: "/services/social-media-design",
     },
     {
         title: "UI/UX Design",
         text: "Product flows and interfaces that help users move with less friction and more confidence.",
         icon: ComputerDesktopIcon,
-        href: "/order/ui-ux",
+        href: "/services/ui-ux",
     },
     {
         title: "Website Design (BOSS)",
         text: "Responsive websites built for business growth, clear messaging, and conversion.",
         icon: DevicePhoneMobileIcon,
-        href: "/order/web-design",
+        href: "/services/web-design",
     },
 ];
 

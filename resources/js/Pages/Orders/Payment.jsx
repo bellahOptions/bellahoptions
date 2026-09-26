@@ -10,7 +10,6 @@ import { Label } from "@/Components/ui/label";
 import { cn } from "@/lib/utils";
 import { ArrowRightIcon, CreditCardIcon, LifebuoyIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatMoney, statusLabel } from "./orderUtils";
-import { termsSections } from "@/Pages/Legal/policyData";
 import { resolvePolicySections } from "@/Pages/Legal/policyParser";
 
 export default function OrderPayment({
@@ -20,6 +19,7 @@ export default function OrderPayment({
     paymentGatewayIssue = null,
     transferPayment = null,
     term = null,
+    termsFallback = [],
 }) {
     const { flash, localization } = usePage().props;
     const locale = localization?.locale?.replace("_", "-") || "en-NG";
@@ -28,15 +28,13 @@ export default function OrderPayment({
     const [pendingAction, setPendingAction] = useState(null);
     const [transferReference, setTransferReference] = useState("");
     const termsPreview = useMemo(
-        () => resolvePolicySections(term?.content, termsSections).slice(0, 6),
-        [term?.content],
+        () => resolvePolicySections(term?.content, termsFallback).slice(0, 6),
+        [term?.content, termsFallback],
     );
-    const transferEnabled = Boolean(
-        transferPayment?.enabled
-        && transferPayment?.account_number
-        && transferPayment?.account_name
-        && transferPayment?.bank_name,
-    );
+    // The fallback is a list of accounts, so the transfer panel is offered when
+    // at least one complete account was configured.
+    const transferAccounts = transferPayment?.available ? (transferPayment.accounts || []) : [];
+    const transferEnabled = transferAccounts.length > 0;
 
     const startPayment = () => {
         router.post(route("orders.payment.initialize", order.order_code), {}, { preserveScroll: true });
@@ -169,13 +167,41 @@ export default function OrderPayment({
                                 {transferEnabled && (
                                     <div className="mt-5 rounded-jv-sm border border-jv-line bg-white/[0.04] p-5">
                                         <p className="text-xs font-black uppercase tracking-[0.18em] text-white/45">Pay By Transfer</p>
-                                        <div className="mt-3 space-y-2 text-sm text-white/80">
-                                            <SummaryRow label="Bank Name" value={transferPayment.bank_name} />
-                                            <SummaryRow label="Account Name" value={transferPayment.account_name} />
-                                            <SummaryRow label="Account Number" value={transferPayment.account_number} />
+                                        <div className="mt-3 space-y-4 text-sm text-white/80">
+                                            {transferAccounts.map((account, index) => (
+                                                <div key={`transfer-account-${index}`} className="space-y-2">
+                                                    {transferAccounts.length > 1 && (
+                                                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">
+                                                            Account {index + 1}
+                                                        </p>
+                                                    )}
+                                                    <SummaryRow label="Bank Name" value={account.bank_name} />
+                                                    <SummaryRow label="Account Name" value={account.account_name} />
+                                                    <SummaryRow label="Account Number" value={account.account_number} />
+                                                </div>
+                                            ))}
                                         </div>
                                         {transferPayment.instructions && (
                                             <p className="mt-3 text-sm leading-7 text-white/70">{transferPayment.instructions}</p>
+                                        )}
+
+                                        {transferPayment.reference_hint && (
+                                            <p className="mt-2 text-xs leading-6 text-white/55">
+                                                {transferPayment.reference_hint}
+                                            </p>
+                                        )}
+
+                                        {transferPayment.support_email && (
+                                            <p className="mt-2 text-xs text-white/55">
+                                                Send proof of payment to{" "}
+                                                <a
+                                                    href={`mailto:${transferPayment.support_email}`}
+                                                    className="font-semibold text-[#a9c4ff] underline underline-offset-2"
+                                                >
+                                                    {transferPayment.support_email}
+                                                </a>
+                                                .
+                                            </p>
                                         )}
 
                                         {canPay && (

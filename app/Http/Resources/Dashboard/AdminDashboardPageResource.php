@@ -67,6 +67,15 @@ class AdminDashboardPageResource extends JsonResource
                 'win_rate' => (float) ($client['win_rate'] ?? 0),
                 'total_profit' => (float) ($client['total_profit'] ?? 0),
             ], is_array($data['leaderboard'] ?? null) ? $data['leaderboard'] : [])),
+            'service_images' => (object) array_map(
+                static fn ($path): string => (string) $path,
+                is_array($data['service_images'] ?? null) ? $data['service_images'] : [],
+            ),
+            'service_image_defaults' => (object) array_map(
+                static fn ($path): string => (string) $path,
+                is_array($data['service_image_defaults'] ?? null) ? $data['service_image_defaults'] : [],
+            ),
+            'can_manage_settings' => (bool) ($data['can_manage_settings'] ?? false),
         ];
     }
 }

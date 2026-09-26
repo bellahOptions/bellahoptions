@@ -44,7 +44,7 @@ const services = [
         title: "Brand Design",
         description:
             "Logos, identity systems, brand guides, and launch assets that make your business easier to recognize and trust.",
-        href: "/order/brand-design",
+        href: "/services/brand-design",
         icon: CheckBadgeIcon,
         lane: "Identity",
     },
@@ -52,7 +52,7 @@ const services = [
         title: "Graphic Design",
         description:
             "Social media creatives, campaign visuals, flyers, and print-ready designs for everyday business growth.",
-        href: "/order/graphic-design",
+        href: "/services/graphic-design",
         icon: PaintBrushIcon,
         lane: "Campaigns",
     },
@@ -60,7 +60,7 @@ const services = [
         title: "Web Design",
         description:
             "Responsive websites and landing pages shaped around clear messaging, strong visuals, and simple conversion paths.",
-        href: "/order/web-design",
+        href: "/services/web-design",
         icon: CodeBracketIcon,
         lane: "Websites",
     },
@@ -68,7 +68,7 @@ const services = [
         title: "UI/UX Design",
         description:
             "Product flows, wireframes, and interface design that help your users move with less friction and more confidence.",
-        href: "/order/ui-ux",
+        href: "/services/ui-ux",
         icon: RectangleGroupIcon,
         lane: "Products",
     },
@@ -441,7 +441,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                                             </div>
                                             <div className="mt-8 flex items-center justify-between border-t border-jv-line pt-5">
                                                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
-                                                    Start a project
+                                                    View service
                                                 </span>
                                                 <span className="jv-btn-arrow h-8 w-8">
                                                     <ArrowRightIcon className="h-4 w-4" />
@@ -585,7 +585,7 @@ export default function Welcome({ slideShows = [], featuredPlans = [], gallerySa
                                 creative direction, service, and next step.
                             </p>
                             <div className="mt-9 flex flex-wrap justify-center gap-3">
-                                <Button href="/order/special-service" variant="primary" size="lg" icon>
+                                <Button href="/services" variant="primary" size="lg" icon>
                                     Start Your Project
                                 </Button>
                                 <Button href="/about-bellah-options" variant="ghost" size="lg">

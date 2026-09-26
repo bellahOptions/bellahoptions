@@ -50,28 +50,45 @@ export default function AuthenticatedLayout({ header, children }) {
                 show: canManageInvoices,
             },
             {
+                // Invoices, Finance and My Earnings are all money surfaces, so they
+                // now live behind one menu entry instead of three separate ones.
+                type: 'group',
                 label: 'Invoices',
-                href: route('admin.invoices.index'),
-                active: route().current('admin.invoices.*'),
-                show: canManageInvoices,
+                show: true,
+                active: route().current('admin.invoices.*')
+                    || route().current('admin.finance.*')
+                    || route().current('admin.my-earnings'),
+                children: [
+                    ...(canManageInvoices
+                        ? [
+                            {
+                                label: 'All Invoices',
+                                href: route('admin.invoices.index'),
+                                active: route().current('admin.invoices.*'),
+                            },
+                        ]
+                        : []),
+                    ...(isSuperAdmin
+                        ? [
+                            {
+                                label: 'Finance',
+                                href: route('admin.finance.index'),
+                                active: route().current('admin.finance.*'),
+                            },
+                        ]
+                        : []),
+                    {
+                        label: 'My Earnings',
+                        href: route('admin.my-earnings'),
+                        active: route().current('admin.my-earnings'),
+                    },
+                ],
             },
             {
                 label: 'Service Briefs',
                 href: route('admin.service-briefs.index'),
                 active: route().current('admin.service-briefs.*'),
                 show: canManageInvoices,
-            },
-            {
-                label: 'Finance',
-                href: route('admin.finance.index'),
-                active: route().current('admin.finance.*'),
-                show: isSuperAdmin,
-            },
-            {
-                label: 'My Earnings',
-                href: route('admin.my-earnings'),
-                active: route().current('admin.my-earnings'),
-                show: true,
             },
             {
                 label: 'Users',
@@ -82,19 +99,31 @@ export default function AuthenticatedLayout({ header, children }) {
             {
                 label: 'Settings',
                 href: route('admin.settings.edit'),
-                active: route().current('admin.settings.*'),
+                active: route().current('admin.settings.edit'),
                 show: canManageSettings,
             },
             {
-                label: 'Email Center',
-                href: route('admin.email-center.index'),
-                active: route().current('admin.email-center.*'),
+                label: 'Announcements',
+                href: route('admin.announcements'),
+                active: route().current('admin.announcements'),
                 show: canManageSettings,
             },
             {
-                label: 'Questionnaires',
-                href: route('admin.questionnaire-templates.index'),
-                active: route().current('admin.questionnaire-templates.*'),
+                label: 'Client Reviews',
+                href: route('admin.client-reviews.index'),
+                active: route().current('admin.client-reviews.*'),
+                show: canManageSettings,
+            },
+            {
+                label: 'Legal Terms',
+                href: route('admin.legal-terms'),
+                active: route().current('admin.legal-terms'),
+                show: canManageSettings,
+            },
+            {
+                label: 'SEO Meta',
+                href: route('admin.seo-meta'),
+                active: route().current('admin.seo-meta'),
                 show: canManageSettings,
             },
             {

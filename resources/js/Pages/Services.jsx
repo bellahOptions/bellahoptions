@@ -1,4 +1,4 @@
-import { Head, usePage } from "@inertiajs/react";
+import { Head, Link, usePage } from "@inertiajs/react";
 import { useState } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import GoogleReviewsWidget from "@/Components/GoogleReviewsWidget";
@@ -442,8 +442,8 @@ function PackageCard({ service, plan, meta }) {
                 >
                     {isQuote ? "Request a quote" : "Subscribe now"}
                 </Button>
-                <Button href="/gallery" variant="ghost">
-                    See samples
+                <Button href={`/services/${service.slug}`} variant="ghost">
+                    Service details
                 </Button>
             </div>
         </Card>
@@ -464,11 +464,23 @@ function ServiceBlock({ service, index }) {
                     </span>
                     <div>
                         <h3 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
-                            {service.name}
+                            <Link
+                                href={`/services/${service.slug}`}
+                                className="transition-colors hover:text-jv-accent"
+                            >
+                                {service.name}
+                            </Link>
                         </h3>
                         <p className="jv-body mt-2 max-w-2xl">
                             {service.description}
                         </p>
+                        <Link
+                            href={`/services/${service.slug}`}
+                            className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-jv-accent transition-colors hover:text-white"
+                        >
+                            Full service details
+                            <ArrowRightIcon className="h-3.5 w-3.5" />
+                        </Link>
                     </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
@@ -700,8 +712,8 @@ export default function Services({ services = [] }) {
                                             key={service.slug}
                                             className="h-full"
                                         >
-                                            <a
-                                                href={`#${service.slug}`}
+                                            <Link
+                                                href={`/services/${service.slug}`}
                                                 className="jv-group block h-full"
                                             >
                                                 <Card
@@ -731,14 +743,14 @@ export default function Services({ services = [] }) {
                                                             ] || service.description}
                                                         </p>
                                                         <span className="mt-5 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/70">
-                                                            View packages
+                                                            View service
                                                             <span className="jv-btn-arrow h-7 w-7">
                                                                 <ArrowRightIcon className="h-3.5 w-3.5" />
                                                             </span>
                                                         </span>
                                                     </div>
                                                 </Card>
-                                            </a>
+                                            </Link>
                                         </StaggerItem>
                                     );
                                 })}
@@ -902,19 +914,19 @@ export default function Services({ services = [] }) {
                                 </p>
                                 <div className="mt-9 flex flex-wrap justify-center gap-3">
                                     <Button
-                                        href="/order/special-service"
+                                        href="/order/social-media-design"
                                         variant="primary"
                                         size="lg"
                                         icon
                                     >
-                                        Book a call
+                                        Start Social Media Design
                                     </Button>
                                     <Button
-                                        href="/gallery"
+                                        href="/contact-us"
                                         variant="ghost"
                                         size="lg"
                                     >
-                                        See our work
+                                        Book a call
                                     </Button>
                                 </div>
                                 <div className="mt-7 flex flex-wrap items-center justify-center gap-x-7 gap-y-3">

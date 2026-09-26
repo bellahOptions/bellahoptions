@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Illuminate\Http\Client\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -152,6 +153,158 @@ class PaystackService
             'available' => true,
             'message' => '',
         ];
+    }
+
+    /**
+     * The bank list Paystack will resolve account numbers against.
+     *
+     * Resolving an account name needs a *bank code*, not a bank name, so the
+     * settings screen needs this to turn the operator's choice into a code. The
+     * list changes rarely, so it is cached for a day to keep the admin UI snappy
+     * and to avoid spending API calls on every page load.
+     *
+     * @return array<int, array{name: string, code: string}>
+     */
+    public function banks(string $currency = 'NGN'): array
+    {
+        $currency = strtoupper(trim($currency));
+        $currency = $currency !== '' ? $currency : 'NGN';
+
+        return Cache::remember(
+            'paystack:banks:'.strtolower($currency).':v1',
+            now()->addDay(),
+            fn (): array => $this->fetchBanks($currency),
+        );
+    }
+
+    /**
+     * Resolve the account name registered to an account number at a bank.
+     *
+     * Paystack verifies the number against the bank's records and returns the
+     * registered name, which is what stops a typo in the settings screen from
+     * sending customers to an account that does not exist.
+     *
+     * @return array{account_name: string, account_number: string}
+     */
+    public function resolveAccountNumber(string $accountNumber, string $bankCode): array
+    {
+        $accountNumber = trim($accountNumber);
+        $bankCode = trim($bankCode);
+
+        if ($accountNumber === '' || $bankCode === '') {
+            throw new RuntimeException('An account number and bank are both required to resolve an account name.');
+        }
+
+        $response = Http::timeout(15)
+            ->withToken($this->secretKey())
+            ->acceptJson()
+            ->get('https://api.paystack.co/bank/resolve', [
+                'account_number' => $accountNumber,
+                'bank_code' => $bankCode,
+            ]);
+
+        // Resolution is an operator-facing diagnostic, not a customer payment
+        // call, so Paystack's own explanation ("Could not resolve account name.
+        // Check parameters") is surfaced here: it is what tells an admin whether
+        // the bank or the number is wrong. validatedPayload() deliberately keeps
+        // a generic message for the customer-facing paths, so this branch cannot
+        // be folded into it. The text is only ever returned to a super admin.
+        if (! $response->successful()) {
+            $errorPayload = (array) $response->json();
+            $apiMessage = trim((string) ($errorPayload['message'] ?? ''));
+
+            Log::warning('Paystack account name resolution failed.', [
+                'status' => $response->status(),
+                'message' => $apiMessage,
+            ]);
+
+            throw new RuntimeException(
+                $apiMessage !== ''
+                    ? $apiMessage
+                    : 'Unable to reach Paystack right now. Please try again shortly.',
+            );
+        }
+
+        $payload = $this->validatedPayload($response);
+        $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
+
+        $accountName = trim((string) ($data['account_name'] ?? ''));
+        $resolvedNumber = trim((string) ($data['account_number'] ?? ''));
+
+        if ($accountName === '') {
+            throw new RuntimeException('Paystack did not return an account name for that account number.');
+        }
+
+        return [
+            'account_name' => $accountName,
+            'account_number' => $resolvedNumber !== '' ? $resolvedNumber : $accountNumber,
+        ];
+    }
+
+    /**
+     * Walk every page of the Paystack bank list.
+     *
+     * Paystack caps a page at 100 entries and Nigeria alone has more than that,
+     * so stopping at the first page would silently hide most banks.
+     *
+     * @return array<int, array{name: string, code: string}>
+     */
+    private function fetchBanks(string $currency): array
+    {
+        // A hard page cap keeps a malformed meta.pageCount from looping forever.
+        $maxPages = 10;
+        $banks = [];
+
+        for ($page = 1; $page <= $maxPages; $page++) {
+            $response = Http::timeout(20)
+                ->withToken($this->secretKey())
+                ->acceptJson()
+                ->get('https://api.paystack.co/bank', [
+                    'currency' => $currency,
+                    'perPage' => 100,
+                    'page' => $page,
+                ]);
+
+            $payload = $this->validatedPayload($response);
+            $data = is_array($payload['data'] ?? null) ? $payload['data'] : [];
+
+            if ($data === []) {
+                break;
+            }
+
+            foreach ($data as $bank) {
+                if (! is_array($bank)) {
+                    continue;
+                }
+
+                // Inactive entries cannot resolve an account number, so offering
+                // them in the picker would only produce confusing failures.
+                if (array_key_exists('active', $bank) && ! $bank['active']) {
+                    continue;
+                }
+
+                $code = trim((string) ($bank['code'] ?? ''));
+                $name = trim((string) ($bank['name'] ?? ''));
+
+                if ($code === '' || $name === '') {
+                    continue;
+                }
+
+                $banks[$code] = ['name' => $name, 'code' => $code];
+            }
+
+            $meta = is_array($payload['meta'] ?? null) ? $payload['meta'] : [];
+            $pageCount = (int) ($meta['pageCount'] ?? 1);
+
+            if ($page >= $pageCount) {
+                break;
+            }
+        }
+
+        // Sorted so the picker has a stable, scannable order.
+        usort($banks, static fn (array $a, array $b): int => strcasecmp($a['name'], $b['name']));
+
+        return array_values($banks);
     }
 
     /**

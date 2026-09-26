@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import PageTheme from "@/Layouts/PageTheme";
 import { RevealSection } from "@/Components/MotionReveal";
 import { Eyebrow } from "@/Components/PublicUI";
+import HumanVerificationField from "@/Components/HumanVerificationField";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Select } from "@/Components/ui/select";
@@ -17,7 +18,7 @@ import {
     ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 import { buildOrderFormSeed, formatMoney } from "./orderUtils";
-import { loadTurnstileScript } from "@/lib/turnstile";
+import useHumanVerificationState from "@/hooks/use-human-verification-state";
 
 const steps = [
     "Your Details",
@@ -100,6 +101,7 @@ export default function OrderCreate({
     humanCheckQuestion = "",
     humanCheckNonce = "",
     turnstileSiteKey = "",
+    humanVerificationFallback = {},
     formRenderedAt = 0,
     isAuthenticated = false,
     discountCode = "",
@@ -124,7 +126,12 @@ export default function OrderCreate({
     const draftStorageKey = `${orderDraftStoragePrefix}:${serviceSlug}`;
     const paystackAvailable = Boolean(paymentReadiness?.paystack?.available);
     const paystackIssue = String(paymentReadiness?.paystack?.message || "").trim();
-    const fallbackAccount = paymentReadiness?.fallback_account || null;
+    const bankTransfer = paymentReadiness?.bank_transfer || null;
+    const fallbackAccounts = bankTransfer?.available ? (bankTransfer.accounts || []) : [];
+    const onlineProcessorLabel =
+        String(paymentReadiness?.preferred_provider || "paystack").toLowerCase() === "flutterwave"
+            ? "Flutterwave"
+            : "Paystack";
 
     const { data, setData, setError, clearErrors, post, processing, errors } = useForm(
         buildOrderFormSeed(checkoutServices, {
@@ -143,10 +150,15 @@ export default function OrderCreate({
     const [currentStep, setCurrentStep] = useState(1);
     const [activeServiceSlug, setActiveServiceSlug] = useState(initialServiceSlug);
     const [draftRestored, setDraftRestored] = useState(false);
-    const [turnstileClientError, setTurnstileClientError] = useState("");
-    const turnstileContainerRef = useRef(null);
-    const turnstileWidgetIdRef = useRef(null);
     const hasAttemptedDraftRestoreRef = useRef(false);
+
+    const verification = useHumanVerificationState({
+        humanVerificationMode,
+        humanCheckQuestion,
+        humanCheckNonce,
+        humanVerificationFallback,
+        setData,
+    });
     const prospectDraftSaveRef = useRef({
         lastFingerprint: "",
         inFlight: false,
@@ -446,7 +458,8 @@ export default function OrderCreate({
     }, [clearErrors, data.logo_addon_package, data.logo_design_interest, setData]);
 
     useEffect(() => {
-        if ((humanCheckNonce || "") !== data.human_check_nonce) {
+        // While a server-issued fallback challenge is active it owns the nonce.
+        if (!verification.fallbackActive && (humanCheckNonce || "") !== data.human_check_nonce) {
             setData("human_check_nonce", humanCheckNonce || "");
         }
 
@@ -454,10 +467,10 @@ export default function OrderCreate({
             setData("form_rendered_at", formRenderedAt || 0);
         }
 
-        if (humanVerificationMode === "math" && data.turnstile_token !== "") {
+        if (humanVerificationMode !== "turnstile" && data.turnstile_token !== "") {
             setData("turnstile_token", "");
         }
-    }, [data.form_rendered_at, data.human_check_nonce, data.turnstile_token, formRenderedAt, humanCheckNonce, humanVerificationMode, setData]);
+    }, [data.form_rendered_at, data.human_check_nonce, data.turnstile_token, formRenderedAt, humanCheckNonce, humanVerificationMode, setData, verification.fallbackActive]);
 
     useEffect(() => {
         if (typeof window === "undefined" || hasAttemptedDraftRestoreRef.current) {
@@ -621,64 +634,8 @@ export default function OrderCreate({
     }, [autoTimelinePreference, data, data.timeline_preference, setData]);
 
     useEffect(() => {
-        if (humanVerificationMode !== "turnstile") {
-            return;
-        }
-
-        if (!turnstileSiteKey) {
-            return;
-        }
-
-        let cancelled = false;
-
-        loadTurnstileScript()
-            .then((turnstile) => {
-                if (cancelled || !turnstileContainerRef.current || turnstileWidgetIdRef.current !== null) {
-                    return;
-                }
-
-                turnstileWidgetIdRef.current = turnstile.render(turnstileContainerRef.current, {
-                    sitekey: turnstileSiteKey,
-                    appearance: "always",
-                    execution: "render",
-                    callback: (token) => {
-                        updateField("turnstile_token", token);
-                        setTurnstileClientError("");
-                    },
-                    "expired-callback": () => {
-                        updateField("turnstile_token", "");
-                        setTurnstileClientError("Verification expired. Please complete the captcha again.");
-                    },
-                    "error-callback": () => {
-                        updateField("turnstile_token", "");
-                        setTurnstileClientError("Captcha failed to load correctly. Please refresh and try again.");
-                        return true;
-                    },
-                });
-                setTurnstileClientError("");
-            })
-            .catch(() => {
-                if (!cancelled) {
-                    setTurnstileClientError("Captcha failed to load correctly. Please refresh and try again.");
-                }
-            });
-
-        return () => {
-            cancelled = true;
-            if (window.turnstile && turnstileWidgetIdRef.current !== null) {
-                window.turnstile.remove(turnstileWidgetIdRef.current);
-                turnstileWidgetIdRef.current = null;
-            }
-        };
-    }, [humanVerificationMode, turnstileSiteKey]);
-
-    useEffect(() => {
         if (humanVerificationMode !== "turnstile" || !errors.turnstile_token) {
             return;
-        }
-
-        if (window.turnstile && turnstileWidgetIdRef.current !== null) {
-            window.turnstile.reset(turnstileWidgetIdRef.current);
         }
 
         if (data.turnstile_token !== "") {
@@ -947,18 +904,32 @@ export default function OrderCreate({
                                     <div className="rounded-jv border border-amber-500/30 bg-amber-500/10 p-5 text-sm text-amber-100">
                                         <p className="jv-mono text-amber-300">Payment Update</p>
                                         <p className="mt-2">
-                                            Online Paystack checkout is not available right now.
+                                            Online {onlineProcessorLabel} checkout is not available right now.
                                             {paystackIssue ? ` ${paystackIssue}` : ""}
                                         </p>
-                                        {fallbackAccount ? (
-                                            <div className="mt-3 space-y-1 text-xs leading-5 text-amber-100/80">
-                                                <p><strong>Bank:</strong> {fallbackAccount.bank_name}</p>
-                                                <p><strong>Account Name:</strong> {fallbackAccount.account_name}</p>
-                                                <p><strong>Account Number:</strong> {fallbackAccount.account_number}</p>
-                                                {fallbackAccount.instructions && (
-                                                    <p><strong>Instructions:</strong> {fallbackAccount.instructions}</p>
+                                        {fallbackAccounts.length > 0 ? (
+                                            <div className="mt-3 space-y-3 text-xs leading-5 text-amber-100/80">
+                                                {fallbackAccounts.map((account, index) => (
+                                                    <div key={`fallback-account-${index}`} className="space-y-1">
+                                                        {fallbackAccounts.length > 1 && (
+                                                            <p className="font-semibold text-amber-100">
+                                                                Account {index + 1}
+                                                            </p>
+                                                        )}
+                                                        <p><strong>Bank:</strong> {account.bank_name}</p>
+                                                        <p><strong>Account Name:</strong> {account.account_name}</p>
+                                                        <p><strong>Account Number:</strong> {account.account_number}</p>
+                                                    </div>
+                                                ))}
+                                                {bankTransfer?.reference_hint && (
+                                                    <p><strong>Reference:</strong> {bankTransfer.reference_hint}</p>
                                                 )}
-                                                <p><strong>Support:</strong> {fallbackAccount.support_email}</p>
+                                                {bankTransfer?.instructions && (
+                                                    <p><strong>Instructions:</strong> {bankTransfer.instructions}</p>
+                                                )}
+                                                {bankTransfer?.support_email && (
+                                                    <p><strong>Support:</strong> {bankTransfer.support_email}</p>
+                                                )}
                                             </div>
                                         ) : (
                                             <p className="mt-3 text-xs text-amber-200/80">
@@ -1383,26 +1354,21 @@ export default function OrderCreate({
                                             </div>
                                         </div>
                                         <div className="mt-6 max-w-sm">
-                                            {humanVerificationMode === "turnstile" ? (
-                                                <Field label="Security Check (Cloudflare Captcha)" error={errors.turnstile_token || turnstileClientError}>
-                                                    {turnstileSiteKey ? (
-                                                        <div ref={turnstileContainerRef} className="min-h-16" />
-                                                    ) : (
-                                                        <p className="text-sm text-red-300">
-                                                            Captcha is not configured. Please contact support.
-                                                        </p>
-                                                    )}
-                                                </Field>
-                                            ) : (
-                                                <Field label={`Human Check: ${humanCheckQuestion}`} error={errors.human_check_answer} hint="A quick spam check — solve the sum above.">
-                                                    <Input
-                                                        type="text"
-                                                        value={data.human_check_answer}
-                                                        onChange={(event) => updateField("human_check_answer", event.target.value)}
-                                                        autoComplete="off"
-                                                    />
-                                                </Field>
-                                            )}
+                                            <HumanVerificationField
+                                                mode={verification.verificationMode}
+                                                question={verification.question}
+                                                turnstileSiteKey={turnstileSiteKey}
+                                                fallbackAvailable={verification.fallbackAvailable}
+                                                fallbackIssueUrl={verification.fallbackIssueUrl}
+                                                onFallbackChange={verification.handleFallbackChallenge}
+                                                mathValue={data.human_check_answer}
+                                                onMathChange={(value) => updateField("human_check_answer", value)}
+                                                onTurnstileChange={(token) => updateField("turnstile_token", token)}
+                                                mathError={errors.human_check_answer}
+                                                turnstileError={errors.turnstile_token}
+                                                labelPrefix="Human Check"
+                                                inputClassName="w-full rounded-jv-sm border border-jv-line bg-white/5 px-3 py-2 text-sm text-white outline-none transition focus:border-jv-accent"
+                                            />
                                         </div>
                                     </section>
                                 )}

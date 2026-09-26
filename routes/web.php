@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ClientReviewController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\HumanVerificationController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PagesController;
 use App\Http\Controllers\QuestionnaireController;
 use App\Http\Controllers\SeoController;
@@ -15,6 +17,22 @@ use Illuminate\Support\Facades\Route;
 Route::get('/sitemap.xml', [SeoController::class, 'sitemap'])->name('seo.sitemap');
 Route::get('/robots.txt', [SeoController::class, 'robots'])->name('seo.robots');
 Route::get('/llms.txt', [SeoController::class, 'llms'])->name('seo.llms');
+
+// HUMAN VERIFICATION ROUTES
+// Degraded-mode fallback challenge used only when the primary Cloudflare
+// Turnstile challenge cannot be delivered. Rate limited and heavily audited.
+Route::get('/human-verification/fallback', [HumanVerificationController::class, 'fallback'])
+    ->middleware('throttle:human-verification-fallback')
+    ->name('human-verification.fallback');
+
+// IMAGE ENGINE
+// Immutable, long-cached delivery for locally stored image originals and their
+// generated width variants. Names are content digests, so the response can be
+// cached for a year.
+Route::get('/media/{folder}/{name}', [MediaController::class, 'show'])
+    ->where('folder', '[a-z0-9][a-z0-9-]*')
+    ->where('name', '[A-Za-z0-9@.\-]+')
+    ->name('media.show');
 
 // PAGES ROUTES
 Route::get('/maintenance', [PagesController::class, 'maintenancePage'])->name('maintenance');
@@ -40,7 +58,12 @@ Route::get('/questionnaires/submit/{token}', [QuestionnaireController::class, 's
 Route::post('/questionnaires/submit/{token}', [QuestionnaireController::class, 'store'])
     ->middleware('throttle:20,1')
     ->name('questionnaires.submit.store');
-Route::get('/services/{serviceSlug}', fn () => redirect()->route('home'))->name('services.show');
+// SERVICE LANDING PAGES
+// One detailed, SEO-indexable page per catalogued service. The slug list is
+// derived from the catalogue so a newly added service is routable immediately.
+Route::get('/services/{serviceSlug}', [PagesController::class, 'serviceShowPage'])
+    ->whereIn('serviceSlug', array_keys(config('service_orders.services', [])))
+    ->name('services.show');
 
 // SERVICE BRIEF ROUTES (pre-order quote-request questionnaire)
 Route::get('/brief', [ServiceBriefController::class, 'choose'])->name('brief.choose');

@@ -1,2 +1,26 @@
+# Bellah Options - crawler policy
+#
+# The canonical, always-current version of this file is served by
+# App\Http\Controllers\SeoController::robots() at /robots.txt, because the
+# framework front controller handles the request. This static copy exists so the
+# same policy is served if the file is ever requested directly by a web server
+# that bypasses the application (for example a CDN origin fetch).
+
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /admin
+Disallow: /staff
+Disallow: /dashboard
+Disallow: /profile
+Disallow: /orders/
+Disallow: /webhooks/
+Disallow: /checkout/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-password
+Disallow: /human-verification/
+
+Sitemap: https://bellahoptions.com/sitemap.xml

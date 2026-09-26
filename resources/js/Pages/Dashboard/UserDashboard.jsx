@@ -1,8 +1,10 @@
 import { Eyebrow } from '@/Components/PublicUI';
+import { ProjectActivityChart, ReferralChart } from '@/Components/Charts';
 import { Card } from '@/Components/ui/card';
 import { MobileCard, MobileCardHeader, MobileCardList, MobileCardRow } from '@/Components/ui/mobile-cards';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { Activity, Briefcase, LifeBuoy, MessageSquare, UploadCloud } from 'lucide-react';
 import { useEffect } from 'react';
 
 const compactMoney = new Intl.NumberFormat('en-NG', {
@@ -22,8 +24,10 @@ function statusClasses(status) {
 export default function UserDashboard({
     user = {},
     stats = {},
+    projects_chart: projectsChart = [],
     recent_projects: recentProjects = [],
     quick_actions: quickActions = {},
+    referral = {},
     notifications = {},
 }) {
     useEffect(() => {
@@ -61,23 +65,29 @@ export default function UserDashboard({
                             href={quickActions?.order_service_url || route('orders.create', 'social-media-design')}
                             className="jv-btn jv-btn--primary"
                         >
+                            <Briefcase className="h-4 w-4" />
                             Order New Service
                         </Link>
                         <Link
                             href={route('dashboard.support')}
                             className="jv-btn jv-btn--ghost"
                         >
+                            <LifeBuoy className="h-4 w-4" />
                             Open Support Workspace
                         </Link>
                     </div>
                 </Card>
 
                 <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                    <MetricCard label="Total Jobs" value={stats?.total_jobs ?? 0} />
-                    <MetricCard label="Active Projects" value={stats?.active_projects ?? 0} />
-                    <MetricCard label="Uploads Today" value={stats?.uploaded_today ?? 0} />
-                    <MetricCard label="Unread Messages" value={notifications?.unread_count ?? 0} />
+                    <MetricCard label="Total Jobs" value={stats?.total_jobs ?? 0} icon={Briefcase} />
+                    <MetricCard label="Active Projects" value={stats?.active_projects ?? 0} icon={Activity} />
+                    <MetricCard label="Uploads Today" value={stats?.uploaded_today ?? 0} icon={UploadCloud} />
+                    <MetricCard label="Unread Messages" value={notifications?.unread_count ?? 0} icon={MessageSquare} />
                 </section>
+
+                <ProjectActivityChart data={projectsChart} />
+
+                <ReferralChart data={referral?.monthly || []} />
 
                 <Card className="p-5">
                     <div className="flex items-center justify-between gap-3">
@@ -147,11 +157,18 @@ export default function UserDashboard({
     );
 }
 
-function MetricCard({ label, value }) {
+function MetricCard({ label, value, icon: Icon = null }) {
     return (
-        <div className="jv-card rounded-jv border border-jv-line bg-white/[0.04] p-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-white/45">{label}</p>
-            <p className="mt-2 text-2xl font-black text-white">{value}</p>
+        <div className="jv-card flex items-start gap-3 rounded-jv border border-jv-line bg-white/[0.04] p-4">
+            {Icon ? (
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-jv-sm border border-jv-line-strong bg-white/[0.06] text-jv-accent">
+                    <Icon className="h-4 w-4" />
+                </span>
+            ) : null}
+            <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-white/45">{label}</p>
+                <p className="mt-1.5 text-2xl font-black text-white">{value}</p>
+            </div>
         </div>
     );
 }

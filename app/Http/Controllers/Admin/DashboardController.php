@@ -11,6 +11,7 @@ use App\Models\ServiceOrderUpdate;
 use App\Models\SupportTicket;
 use App\Models\User;
 use App\Support\PlatformSettings;
+use App\Support\ServiceImageDefaults;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -243,6 +244,13 @@ class DashboardController extends Controller
                 'loss_rate' => round(100 - $winRate, 2),
             ],
             'leaderboard' => $leaderboard,
+            // Service Page & Modal Images moved here from Platform Settings.
+            // Only super admins can save them (admin.settings.update is gated),
+            // so the manager is hidden for everyone else rather than shown
+            // against an endpoint that would reject the write.
+            'service_images' => PlatformSettings::serviceImages(),
+            'service_image_defaults' => ServiceImageDefaults::all(),
+            'can_manage_settings' => (bool) $user->canManageSettings(),
         ];
     }
 

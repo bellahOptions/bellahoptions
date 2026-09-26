@@ -1,7 +1,9 @@
 import ApplicationLogo from "@/Components/ApplicationLogo";
+import ServiceAnnouncementModal from "@/Components/ServiceAnnouncementModal";
 import TemplatrPromoBanner from "@/Components/TemplatrPromoBanner";
 import WhatsAppButton from "@/Components/WhatsAppButton";
 import { Button, Eyebrow } from "@/Components/PublicUI";
+import useStartProjectUrl from "@/hooks/use-start-project-url";
 import { Link, usePage } from "@inertiajs/react";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
@@ -113,9 +115,10 @@ function FooterColumn({ title, links }) {
     );
 }
 
-export default function PageTheme({ children }) {
+export default function PageTheme({ children, startProjectUrl = "" }) {
     const user = usePage().props?.auth?.user;
     const isLoggedIn = Boolean(user?.id);
+    const resolvedStartProjectUrl = useStartProjectUrl(startProjectUrl);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
 
@@ -301,7 +304,7 @@ export default function PageTheme({ children }) {
                             </p>
                         </div>
                         <div className="flex flex-wrap gap-3">
-                            <Button href="/order/special-service" variant="primary" icon>
+                            <Button href={resolvedStartProjectUrl} variant="primary" icon>
                                 Start a Project
                             </Button>
                             <Button href="/contact-us" variant="ghost">
@@ -396,6 +399,7 @@ export default function PageTheme({ children }) {
             </footer>
 
             <WhatsAppButton />
+            <ServiceAnnouncementModal />
         </>
     );
 }

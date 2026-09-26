@@ -2,9 +2,13 @@
     $isNaira = strtoupper((string) $invoice->currency) === 'NGN';
     $currencyPrefix = $isNaira ? '&#8358;' : strtoupper((string) $invoice->currency).' ';
     $formattedAmount = number_format((float) $invoice->amount, 2);
-    $transferAccountNumber = trim((string) config('bellah.payment.transfer.account_number', '4210082961'));
-    $transferAccountName = trim((string) config('bellah.payment.transfer.account_name', 'Bellah Options'));
-    $transferBankName = trim((string) config('bellah.payment.transfer.bank_name', 'Fidelity Bank'));
+
+    // The admin-managed fallback is the source of truth here too. This template
+    // used to read only the environment config (with a hard-coded bank as its
+    // fallback), so an account changed on the settings screen never reached a
+    // reminder email. The fallback is a list, so every account is shown.
+    $transfer = app(\App\Services\PaymentReadinessService::class)->transferPayload();
+    $transferAccounts = $transfer['available'] ? $transfer['accounts'] : [];
 @endphp
 <!DOCTYPE html>
 <html lang="en">
@@ -19,9 +23,7 @@
             <td align="center">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px; border:1px solid #d9e2ec; border-radius:14px; overflow:hidden; background:#ffffff;">
                     <tr>
-                        <td style="background:#fdfdfd; color:#ffffff; padding:20px 24px;">
-                            <img src="{{ asset('logo-06.svg') }}" alt="Bellah Options Logo" height="30px" style="display:flex; justify-content: center; flex-direction: row; max-width:120px; margin:12px auto;">
-                        </td>
+                        @include('emails.partials.logo-mark')
                     </tr>
 
                     <tr>
@@ -41,10 +43,27 @@
                                 </tr>
                             </table>
 
-                            <p style="margin:16px 0 8px;"><strong>Payment method:</strong> Bank Transfer</p>
-                            <p style="margin:0 0 4px;"><strong>Account Number:</strong> {{ $transferAccountNumber }}</p>
-                            <p style="margin:0 0 4px;"><strong>Account Name:</strong> {{ $transferAccountName }}</p>
-                            <p style="margin:0 0 14px;"><strong>Bank Name:</strong> {{ $transferBankName }}</p>
+                            @if ($transferAccounts !== [])
+                                <p style="margin:16px 0 8px;"><strong>Payment method:</strong> Bank Transfer</p>
+
+                                @foreach ($transferAccounts as $account)
+                                    @if (! $loop->first)
+                                        <p style="margin:12px 0 0; font-size:13px; color:#627d98;">Or transfer to:</p>
+                                    @endif
+                                    <p style="margin:0 0 4px;"><strong>Account Number:</strong> {{ $account['account_number'] }}</p>
+                                    <p style="margin:0 0 4px;"><strong>Account Name:</strong> {{ $account['account_name'] }}</p>
+                                    <p style="margin:0 0 14px;"><strong>Bank Name:</strong> {{ $account['bank_name'] }}</p>
+                                @endforeach
+
+                                @if ($transfer['reference_hint'] !== '')
+                                    <p style="margin:0 0 8px; font-size:13px; color:#627d98;">{{ $transfer['reference_hint'] }}</p>
+                                @endif
+                            @else
+                                <p style="margin:16px 0 14px;">
+                                    Payment method: <strong>Bank Transfer</strong>. Reply to this email and our
+                                    team will send the current bank transfer details.
+                                </p>
+                            @endif
 
                             <p style="margin:0 0 8px;">Please reply with your receipt once payment is completed.</p>
                             <p style="margin:0;">The invoice PDF is attached for easy reference.</p>

@@ -9,9 +9,74 @@ use App\Models\ClientReview;
 use App\Support\ClientReviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+use Inertia\Inertia;
+use Inertia\Response;
+use Throwable;
 
 class ClientReviewController extends Controller
 {
+    /**
+     * Reviews manager screen.
+     *
+     * This used to be a section inside the single Platform Settings page. Since
+     * reviews are their own model with their own endpoints, the page that manages
+     * them belongs here rather than on the settings controller.
+     */
+    public function index(): Response
+    {
+        return Inertia::render('Admin/ClientReviews', [
+            'clientReviews' => $this->reviewsPayload(),
+        ]);
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function reviewsPayload(): array
+    {
+        if (! Schema::hasTable('client_reviews')) {
+            return [];
+        }
+
+        try {
+            return ClientReview::query()
+                ->with(['serviceOrder:id,order_code', 'invoice:id,invoice_number'])
+                ->latest('id')
+                ->limit(120)
+                ->get()
+                ->map(fn (ClientReview $review): array => [
+                    'id' => $review->id,
+                    'source' => $review->source,
+                    'reviewer_name' => $review->reviewer_name,
+                    'reviewer_email' => $review->reviewer_email,
+                    'rating' => $review->rating !== null ? (float) $review->rating : null,
+                    'comment' => $review->comment,
+                    'screenshot_path' => $review->screenshot_path,
+                    'is_public' => (bool) $review->is_public,
+                    'is_featured' => (bool) $review->is_featured,
+                    'review_requested_at' => $review->review_requested_at?->toDateTimeString(),
+                    'review_submitted_at' => $review->review_submitted_at?->toDateTimeString(),
+                    'published_at' => $review->published_at?->toDateTimeString(),
+                    'service_order' => $review->serviceOrder ? [
+                        'order_code' => $review->serviceOrder->order_code,
+                    ] : null,
+                    'invoice' => $review->invoice ? [
+                        'invoice_number' => $review->invoice->invoice_number,
+                    ] : null,
+                ])
+                ->values()
+                ->all();
+        } catch (Throwable $exception) {
+            Log::warning('Unable to load client reviews for the admin screen.', [
+                'message' => $exception->getMessage(),
+            ]);
+
+            return [];
+        }
+    }
+
     public function store(StoreClientReviewRequest $request, ClientReviewService $clientReviewService): RedirectResponse
     {
         $data = $request->validated();

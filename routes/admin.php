@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\EmailCenterController;
 use App\Http\Controllers\Admin\FinanceController;
 use App\Http\Controllers\Admin\InvoiceController;
 use App\Http\Controllers\Admin\MyEarningsController;
+use App\Http\Controllers\Admin\PaystackAccountController;
 use App\Http\Controllers\Admin\QuestionnaireTemplateController;
 use App\Http\Controllers\Admin\ServiceBriefController as AdminServiceBriefController;
 use App\Http\Controllers\Admin\ServiceBriefTemplateController;
@@ -104,12 +105,38 @@ Route::middleware(['auth', 'verified', 'staff'])->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified', 'staff', 'super-admin'])->group(function (): void {
+    // Shared media engine endpoints used by the settings screen, the
+    // announcement modal and any other super-admin image field.
+    Route::get('/admin/media/library', [GalleryProjectController::class, 'mediaIndex'])
+        ->name('admin.media.library');
+    Route::post('/admin/media/upload', [GalleryProjectController::class, 'mediaUpload'])
+        ->middleware('throttle:30,1')
+        ->name('admin.media.upload');
+
+    // Paystack-backed helpers for the bank-transfer fallback accounts. Throttled
+    // because both spend upstream API calls, and the resolve endpoint takes an
+    // operator-supplied account number.
+    Route::get('/admin/paystack/banks', [PaystackAccountController::class, 'banks'])
+        ->middleware('throttle:30,1')
+        ->name('admin.paystack.banks');
+    Route::post('/admin/paystack/resolve-account', [PaystackAccountController::class, 'resolve'])
+        ->middleware('throttle:30,1')
+        ->name('admin.paystack.resolve-account');
+
     Route::get('/admin/settings', [SettingController::class, 'edit'])->name('admin.settings.edit');
     Route::patch('/admin/settings', [SettingController::class, 'update'])->name('admin.settings.update');
+
+    // Screens split out of the old single Platform Settings page. Each owns one
+    // slice of the settings payload but still saves through admin.settings.update.
+    Route::get('/admin/announcements', [SettingController::class, 'announcements'])->name('admin.announcements');
+    Route::get('/admin/seo-meta', [SettingController::class, 'seoMeta'])->name('admin.seo-meta');
+    Route::get('/admin/legal-terms', [SettingController::class, 'legalTerms'])->name('admin.legal-terms');
+
     Route::get('/admin/discount-codes', [DiscountCodeController::class, 'index'])->name('admin.discount-codes.index');
     Route::post('/admin/discount-codes', [DiscountCodeController::class, 'store'])->name('admin.discount-codes.store');
     Route::patch('/admin/discount-codes/{discountCode}/status', [DiscountCodeController::class, 'updateStatus'])->name('admin.discount-codes.status');
     Route::delete('/admin/discount-codes/{discountCode}', [DiscountCodeController::class, 'destroy'])->name('admin.discount-codes.destroy');
+    Route::get('/admin/client-reviews', [AdminClientReviewController::class, 'index'])->name('admin.client-reviews.index');
     Route::post('/admin/client-reviews', [AdminClientReviewController::class, 'store'])->name('admin.client-reviews.store');
     Route::patch('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'update'])->name('admin.client-reviews.update');
     Route::delete('/admin/client-reviews/{clientReview}', [AdminClientReviewController::class, 'destroy'])->name('admin.client-reviews.destroy');

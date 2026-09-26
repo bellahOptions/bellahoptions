@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Contracts\ImageUploader;
+use App\Support\ImageEngine;
+use App\Support\MediaPath;
 use App\Http\Controllers\Controller;
 use App\Models\GalleryProject;
 use App\Models\MediaUpload;
@@ -83,6 +85,59 @@ class GalleryProjectController extends Controller
         return response()->json($this->mediaLibraryPayload());
     }
 
+    /**
+     * General-purpose media upload for any admin screen that needs an image.
+     *
+     * The gallery endpoint is gallery-specific (it also crops and records a
+     * gallery folder); this one takes a validated folder so the settings screen,
+     * the announcement modal and future surfaces can share one engine without
+     * routing every upload through the gallery.
+     */
+    public function mediaUpload(Request $request, ImageUploader $uploader): JsonResponse
+    {
+        $validated = $request->validate([
+            'file' => [
+                'required',
+                'file',
+                'mimetypes:image/jpeg,image/png,image/gif,image/webp,image/bmp,image/x-ms-bmp,image/avif',
+                'max:12288',
+            ],
+            'folder' => ['nullable', 'string', 'max:60', 'regex:/^[a-z0-9][a-z0-9-]*$/'],
+        ]);
+
+        $file = $validated['file'] ?? null;
+
+        if (! $file instanceof UploadedFile) {
+            throw ValidationException::withMessages([
+                'file' => 'Please upload a valid image file.',
+            ]);
+        }
+
+        $folder = (string) ($validated['folder'] ?? 'general');
+
+        try {
+            $result = $uploader->uploadImage($file, $folder);
+        } catch (RuntimeException $exception) {
+            throw ValidationException::withMessages([
+                'file' => $exception->getMessage(),
+            ]);
+        }
+
+        $this->recordUpload($result, $folder, $request->user()?->id);
+
+        return response()->json([
+            'path' => $result['secure_url'],
+            'url' => $result['secure_url'],
+            'width' => $result['width'],
+            'height' => $result['height'],
+            'bytes' => $result['bytes'],
+            'message' => 'Image uploaded successfully.',
+        ], 201);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
     public function upload(Request $request, ImageUploader $uploader): JsonResponse
     {
         $validated = $request->validate([
@@ -115,6 +170,9 @@ class GalleryProjectController extends Controller
         return response()->json([
             'path' => $result['secure_url'],
             'url' => $result['secure_url'],
+            'width' => $result['width'],
+            'height' => $result['height'],
+            'bytes' => $result['bytes'],
             'message' => 'Image uploaded successfully.',
         ], 201);
     }
@@ -235,13 +293,94 @@ class GalleryProjectController extends Controller
      */
     private function mediaLibraryPayload(): array
     {
-        $files = [...$this->listCloudinaryMediaFiles(), ...$this->listPublicMediaFiles()];
+        $files = [
+            ...$this->listCloudinaryMediaFiles(),
+            ...$this->listEngineMediaFiles(),
+            ...$this->listPublicMediaFiles(),
+        ];
 
         usort($files, static fn (array $a, array $b): int => strcmp((string) $b['updated_at'], (string) $a['updated_at']));
 
         return [
             'files' => array_values($files),
         ];
+    }
+
+    /**
+     * Originals uploaded through the local image engine.
+     *
+     * Generated width variants are skipped: the library is a picker for assets an
+     * admin chose, and offering `abc-640.webp` alongside `abc.webp` would just be
+     * noise. Folders are read from the disk rather than the database so an asset
+     * that was uploaded but somehow not recorded still appears.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function listEngineMediaFiles(): array
+    {
+        $disk = Storage::disk(ImageEngine::DISK);
+        $allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'bmp'];
+        $files = [];
+
+        foreach ($disk->directories() as $directory) {
+            foreach ($disk->files($directory) as $storagePath) {
+                $name = basename($storagePath);
+
+                if (! MediaPath::isValidFileName($name)) {
+                    continue;
+                }
+
+                $extension = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+
+                if (! in_array($extension, $allowedExtensions, true)) {
+                    continue;
+                }
+
+                // Skip generated variants: `<sha1>-<width>.webp`.
+                if (preg_match('/-[0-9]{3,4}(?:@2x)?\./', $name) === 1) {
+                    continue;
+                }
+
+                $url = MediaPath::url($directory, $name);
+                $size = (int) $disk->size($storagePath);
+
+                $files[] = [
+                    'name' => $name,
+                    'path' => $url,
+                    'directory' => 'media/'.$directory,
+                    'extension' => $extension,
+                    'size' => $size,
+                    'updated_at' => date(DATE_ATOM, (int) $disk->lastModified($storagePath)),
+                    'preview_url' => $url,
+                    'width' => $this->engineImageWidth($url),
+                ];
+            }
+        }
+
+        return $files;
+    }
+
+    /**
+     * Intrinsic width of a stored asset, read from the file rather than the
+     * database so the picker can show real dimensions.
+     */
+    private function engineImageWidth(string $url): int
+    {
+        $parsed = MediaPath::parse($url);
+
+        if ($parsed === null) {
+            return 0;
+        }
+
+        $absolute = Storage::disk(ImageEngine::DISK)->path(MediaPath::storagePath($parsed['folder'], $parsed['name']));
+
+        if (! is_file($absolute)) {
+            return 0;
+        }
+
+        $size = @getimagesize($absolute);
+
+        return is_array($size) ? (int) $size[0] : 0;
     }
 
     /**

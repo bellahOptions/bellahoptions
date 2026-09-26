@@ -29,6 +29,18 @@ return [
     ],
 
     'payment' => [
+        /*
+        |--------------------------------------------------------------------------
+        | Bank-transfer fallback
+        |--------------------------------------------------------------------------
+        |
+        | These values are the bootstrap defaults for the super-admin managed
+        | fallback account (Admin -> Settings -> Payment Fallback). Once a super
+        | admin saves that screen the database values win; until then these
+        | environment values are used, and the fallback is only offered to a
+        | customer when every required field below is present.
+        |
+        */
         'transfer' => [
             'enabled' => (bool) env('BELLAH_TRANSFER_PAYMENT_ENABLED', true),
             'account_number' => trim((string) env('BELLAH_TRANSFER_ACCOUNT_NUMBER', '4210082961')),
@@ -37,6 +49,10 @@ return [
             'instructions' => trim((string) env(
                 'BELLAH_TRANSFER_INSTRUCTIONS',
                 'Use your invoice number or order code as the transfer reference and send proof of payment to support.',
+            )),
+            'reference_hint' => trim((string) env(
+                'BELLAH_TRANSFER_REFERENCE_HINT',
+                'Use your order code or invoice number as the transfer reference.',
             )),
         ],
     ],

@@ -3,6 +3,13 @@ const turnstileScriptSrc = "https://challenges.cloudflare.com/turnstile/v0/api.j
 
 let turnstileLoadPromise = null;
 
+/**
+ * Load the Cloudflare Turnstile API script.
+ *
+ * Rejects when the script cannot be delivered (offline visitor, blocked CDN,
+ * CSP/proxy interference). Callers treat rejection as "primary challenge
+ * unavailable" and may request the server-issued degraded-mode challenge.
+ */
 export function loadTurnstileScript() {
     if (typeof window === "undefined" || typeof document === "undefined") {
         return Promise.reject(new Error("Turnstile can only be loaded in the browser."));
@@ -103,4 +110,70 @@ export function loadTurnstileScript() {
     });
 
     return turnstileLoadPromise;
+}
+
+/**
+ * Read the Laravel XSRF-TOKEN cookie so the degraded-mode request passes CSRF.
+ *
+ * @returns {string}
+ */
+function readXsrfToken() {
+    if (typeof document === "undefined") {
+        return "";
+    }
+
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/);
+
+    return match ? decodeURIComponent(match[1]) : "";
+}
+
+/**
+ * Request a server-issued degraded-mode human-verification challenge.
+ *
+ * The server decides whether a fallback may be issued at all: it must have
+ * already served a Turnstile challenge for this session, the per-visitor and
+ * platform-wide quotas must have room, and the fallback must be enabled. This
+ * function only asks; it can never grant itself a bypass.
+ *
+ * @param {string} issueUrl
+ * @returns {Promise<{question: string, nonce: string, issuedAt: number}>}
+ */
+export function requestFallbackChallenge(issueUrl) {
+    if (!issueUrl) {
+        return Promise.reject(new Error("No fallback endpoint is configured."));
+    }
+
+    const headers = {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+    };
+    const xsrfToken = readXsrfToken();
+
+    if (xsrfToken) {
+        headers["X-XSRF-TOKEN"] = xsrfToken;
+    }
+
+    return fetch(issueUrl, {
+        method: "GET",
+        credentials: "same-origin",
+        headers,
+    }).then(async (response) => {
+        let payload = null;
+
+        try {
+            payload = await response.json();
+        } catch {
+            payload = null;
+        }
+
+        if (!response.ok || !payload?.available || !payload?.nonce || !payload?.question) {
+            throw new Error(payload?.message || "The backup security check is not available right now.");
+        }
+
+        return {
+            question: String(payload.question),
+            nonce: String(payload.nonce),
+            issuedAt: Number(payload.issuedAt) || 0,
+        };
+    });
 }

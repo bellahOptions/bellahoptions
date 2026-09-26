@@ -227,9 +227,10 @@ class ServiceOrderFlowTest extends TestCase
             ->assertInertia(fn (Assert $page) => $page
                 ->component('Orders/Create')
                 ->where('paymentReadiness.paystack.available', false)
-                ->where('paymentReadiness.fallback_account.account_number', '4210082961')
-                ->where('paymentReadiness.fallback_account.account_name', 'Bellah Options')
-                ->where('paymentReadiness.fallback_account.bank_name', 'Fidelity Bank')
+                ->where('paymentReadiness.bank_transfer.available', true)
+                ->where('paymentReadiness.bank_transfer.accounts.0.account_number', '4210082961')
+                ->where('paymentReadiness.bank_transfer.accounts.0.account_name', 'Bellah Options')
+                ->where('paymentReadiness.bank_transfer.accounts.0.bank_name', 'Fidelity Bank')
             );
     }
 

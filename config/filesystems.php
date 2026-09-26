@@ -47,6 +47,29 @@ return [
             'report' => false,
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Image engine disk
+        |--------------------------------------------------------------------------
+        |
+        | Stored image originals and their generated width variants. Files are
+        | written with a content-addressed name and served through the
+        | `media.show` route (see MediaController), so no `public/storage`
+        | symlink is involved — that symlink is unavailable on most shared
+        | hosting, which is why uploads used to save successfully but never
+        | render.
+        |
+        */
+
+        'media' => [
+            'driver' => 'local',
+            'root' => storage_path('app/media'),
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/media',
+            'visibility' => 'public',
+            'throw' => false,
+            'report' => false,
+        ],
+
         's3' => [
             'driver' => 's3',
             'key' => env('AWS_ACCESS_KEY_ID'),

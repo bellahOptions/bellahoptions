@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\CrawlerPolicy;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -39,6 +40,12 @@ class AddSecurityHeaders
             && ! $response->headers->has('Strict-Transport-Security')
         ) {
             $response->headers->set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+        }
+
+        if (CrawlerPolicy::shouldNoIndex($request) && ! $response->headers->has('X-Robots-Tag')) {
+            // Header-level noindex cannot be lost by a client-side render, so
+            // account, checkout and staff screens stay out of the index.
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow');
         }
 
         return $response;

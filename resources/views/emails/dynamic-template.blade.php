@@ -1,13 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bellah Options</title>
-</head>
-<body style="margin:0;padding:24px;background:#f5f7fb;">
-    <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #e2e8f0;border-radius:12px;padding:24px;">
-        {!! $htmlBody !!}
-    </div>
-</body>
-</html>
+@extends('emails.layouts.base')
+
+@section('title', $emailTemplateName ?? 'Bellah Options')
+
+@section('preheader', $emailTemplatePreheader ?? 'A message from Bellah Options')
+
+@section('brand-tagline', $emailTemplateTagline ?? 'Creative &amp; digital delivery')
+
+@section('content')
+    {{--
+        Admin-authored body from the Email Center.
+
+        This arrives as a trusted HTML fragment: the builder produces inline-styled
+        markup and `EmailTemplateComposer` escapes every substituted field. It is
+        therefore emitted verbatim, but now inside the shared layout rather than
+        the previous bare white box — so a custom template inherits the brand
+        header, the rasterised logo and the legal footer instead of looking like a
+        different company's mail.
+    --}}
+    {!! $htmlBody !!}
+@endsection

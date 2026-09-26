@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\ClientReview;
+use App\Support\CrawlerPolicy;
+use App\Support\Media;
 use App\Support\PlatformSettings;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
@@ -84,6 +86,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'branding' => PlatformSettings::brandAssets(),
             'contact' => PlatformSettings::contactInfo(),
+            'serviceAnnouncement' => fn (): ?array => $this->serviceAnnouncement($request),
             'publicClientReviews' => fn (): array => ! Schema::hasTable('client_reviews')
                 ? []
                 : ClientReview::query()
@@ -118,5 +121,42 @@ class HandleInertiaRequests extends Middleware
         return str_starts_with($path, 'http://') || str_starts_with($path, 'https://')
             ? $path
             : Storage::disk('public')->url($path);
+    }
+
+    /**
+     * Public announcement modal payload, or null where it must never appear.
+     *
+     * The modal is a marketing surface: it is suppressed on account, checkout,
+     * staff and authenticated screens so it can never interrupt a task the
+     * visitor is already committed to.
+     *
+     * @return array<string, mixed>|null
+     */
+    private function serviceAnnouncement(Request $request): ?array
+    {
+        if ($request->user() !== null) {
+            return null;
+        }
+
+        if (CrawlerPolicy::shouldNoIndex($request)) {
+            return null;
+        }
+
+        $announcement = PlatformSettings::serviceAnnouncement();
+
+        if (! $announcement['enabled'] || $announcement['title'] === '') {
+            return null;
+        }
+
+        // A modal whose call to action points at nothing is worse than no modal.
+        if ($announcement['cta_url'] === '' && $announcement['body'] === '') {
+            return null;
+        }
+
+        // Width variants travel with the payload so the modal image can emit a
+        // srcset like every other public image.
+        $announcement['image_variants'] = Media::variants($announcement['image'] ?? null);
+
+        return $announcement;
     }
 }

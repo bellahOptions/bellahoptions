@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Contracts\ImageUploader;
 use App\Support\CloudinaryUploader;
+use App\Support\LocalImageUploader;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -19,7 +20,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(ImageUploader::class, CloudinaryUploader::class);
+        // Cloudinary stays available, but image upload must not depend on a
+        // third-party credential being present. When CLOUDINARY_URL is empty the
+        // local image engine handles the upload, the width variants and delivery,
+        // which is what makes upload work out of the box.
+        $this->app->bind(ImageUploader::class, function (): ImageUploader {
+            $cloudinaryUrl = trim((string) config('services.cloudinary.url', ''));
+
+            return $cloudinaryUrl !== ''
+                ? new CloudinaryUploader()
+                : app(LocalImageUploader::class);
+        });
     }
 
     /**
@@ -74,6 +85,18 @@ class AppServiceProvider extends ServiceProvider
 
             return [
                 Limit::perHour(5)->by($fingerprint),
+            ];
+        });
+
+        // Degraded-mode human-verification challenge issuing. Kept tight because
+        // each grant temporarily relaxes the primary Cloudflare Turnstile check.
+        RateLimiter::for('human-verification-fallback', function (Request $request): array {
+            $perMinute = max(1, (int) config('services.turnstile.fallback.endpoint_per_minute', 3));
+            $perHour = max($perMinute, (int) config('services.turnstile.fallback.issues_per_ip_hourly', 6));
+
+            return [
+                Limit::perMinute($perMinute)->by((string) $request->ip()),
+                Limit::perHour($perHour)->by((string) $request->ip()),
             ];
         });
     }

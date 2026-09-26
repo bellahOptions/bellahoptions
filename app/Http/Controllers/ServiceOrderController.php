@@ -21,10 +21,12 @@ use App\Models\SubscriptionPlan;
 use App\Models\Term;
 use App\Services\FlutterwaveService;
 use App\Models\User;
+use App\Services\PaymentReadinessService;
 use App\Services\PaystackService;
 use App\Support\ClientReviewService;
 use App\Support\HumanVerification;
 use App\Support\PlatformSettings;
+use App\Support\PolicyContent;
 use App\Support\ServiceBriefRequestService;
 use App\Support\ServiceOrderRenewal;
 use App\Support\VisitorLocalization;
@@ -120,7 +122,7 @@ class ServiceOrderController extends Controller
             'subscriptionPlanId' => $subscriptionPlan?->id,
             'subscriptionBillingCycle' => $subscriptionPlan?->billing_cycle,
             'visitorLocalization' => $localization,
-            'paymentReadiness' => $this->orderFormPaymentReadiness($localization, $paystackService),
+            'paymentReadiness' => app(PaymentReadinessService::class)->forVisitor($localization),
             'profileDefaults' => [
                 'name' => $request->user()?->name,
                 'email' => $request->user()?->email,
@@ -483,6 +485,10 @@ class ServiceOrderController extends Controller
             'paymentGatewayIssue' => $gatewayIssue,
             'transferPayment' => $this->resolveTransferPaymentPayload(),
             'term' => $this->resolveTermsPayload(),
+            // Built-in terms copy, server-side. The payment modal used to keep its
+            // own duplicated JS copy, which could silently drift from the wording
+            // published on /terms-of-service. Admin edits still win via `term`.
+            'termsFallback' => PolicyContent::sectionsFor('terms'),
         ]);
     }
 
@@ -593,7 +599,7 @@ class ServiceOrderController extends Controller
 
         $transfer = $this->resolveTransferPaymentPayload();
 
-        if (! (bool) ($transfer['enabled'] ?? false)) {
+        if (! (bool) ($transfer['available'] ?? false)) {
             return back()->with('error', 'Bank transfer is currently unavailable. Please use online checkout.');
         }
 
@@ -627,32 +633,21 @@ class ServiceOrderController extends Controller
 
     private function paymentGatewayIssue(string $provider): ?string
     {
-        $provider = strtolower(trim($provider));
-        $appUrl = strtolower(trim((string) config('app.url', '')));
+        return app(PaymentReadinessService::class)->gatewayIssue($provider);
+    }
 
-        if (app()->isProduction() && ! str_starts_with($appUrl, 'https://')) {
-            return 'Secure HTTPS must be enabled before online payments can start.';
-        }
-
-        if ($provider === 'flutterwave') {
-            $publicKey = trim((string) config('services.flutterwave.public_key', ''));
-            $secretKey = trim((string) config('services.flutterwave.secret_key', ''));
-
-            if ($publicKey === '' || $secretKey === '') {
-                return 'Flutterwave is not configured yet. Please contact support.';
-            }
-
-            return null;
-        }
-
-        $publicKey = trim((string) config('services.paystack.public_key', ''));
-        $secretKey = trim((string) config('services.paystack.secret_key', ''));
-
-        if ($publicKey === '' || $secretKey === '') {
-            return 'Paystack is not configured yet. Please contact support.';
-        }
-
-        return null;
+    /**
+     * Bank-transfer fallback offered when the online gateway is unavailable.
+     *
+     * The accounts are configured by a super admin (Admin -> Settings -> Payment
+     * Fallback) and only reach a customer when the fallback is switched on and at
+     * least one account is complete.
+     *
+     * @return array{available:bool,accounts:array<int, array{bank_name:string,account_name:string,account_number:string}>,instructions:string,support_email:string,reference_hint:string}
+     */
+    private function resolveTransferPaymentPayload(): array
+    {
+        return app(PaymentReadinessService::class)->transferPayload();
     }
 
     /**
@@ -701,122 +696,6 @@ class ServiceOrderController extends Controller
         }
 
         return $message;
-    }
-
-    /**
-     * @return array{enabled:bool,account_number:string,account_name:string,bank_name:string,instructions:string}
-     */
-    private function resolveTransferPaymentPayload(): array
-    {
-        $accountNumber = trim((string) config('bellah.payment.transfer.account_number', ''));
-        $accountName = trim((string) config('bellah.payment.transfer.account_name', ''));
-        $bankName = trim((string) config('bellah.payment.transfer.bank_name', ''));
-        $instructions = trim((string) config('bellah.payment.transfer.instructions', ''));
-        $enabled = (bool) config('bellah.payment.transfer.enabled', true)
-            && $accountNumber !== ''
-            && $accountName !== ''
-            && $bankName !== '';
-
-        return [
-            'enabled' => $enabled,
-            'account_number' => $accountNumber,
-            'account_name' => $accountName,
-            'bank_name' => $bankName,
-            'instructions' => $instructions,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $localization
-     * @return array{
-     *   preferred_provider:string,
-     *   paystack:array{available:bool,message:string},
-     *   fallback_account:?array{
-     *     account_number:string,
-     *     account_name:string,
-     *     bank_name:string,
-     *     instructions:string,
-     *     support_email:string
-     *   }
-     * }
-     */
-    private function orderFormPaymentReadiness(array $localization, PaystackService $paystackService): array
-    {
-        $preferredProvider = strtolower(trim((string) ($localization['payment_processor'] ?? 'paystack')));
-        $paystack = $this->resolvePaystackReadiness($paystackService);
-        $fallbackAccount = ! $paystack['available']
-            ? $this->resolveTransferFallbackDetails()
-            : null;
-
-        return [
-            'preferred_provider' => $preferredProvider,
-            'paystack' => $paystack,
-            'fallback_account' => $fallbackAccount,
-        ];
-    }
-
-    /**
-     * @return array{available:bool,message:string}
-     */
-    private function resolvePaystackReadiness(PaystackService $paystackService): array
-    {
-        $gatewayIssue = $this->paymentGatewayIssue('paystack');
-        if ($gatewayIssue !== null) {
-            return [
-                'available' => false,
-                'message' => $gatewayIssue,
-            ];
-        }
-
-        if (app()->environment('testing')) {
-            return [
-                'available' => true,
-                'message' => '',
-            ];
-        }
-
-        if (! app()->isProduction()) {
-            return [
-                'available' => true,
-                'message' => '',
-            ];
-        }
-
-        $cacheKey = 'paystack:health-check:v1';
-
-        return Cache::remember($cacheKey, now()->addMinutes(5), function () use ($paystackService): array {
-            return $paystackService->healthCheck();
-        });
-    }
-
-    /**
-     * @return array{
-     *   account_number:string,
-     *   account_name:string,
-     *   bank_name:string,
-     *   instructions:string,
-     *   support_email:string
-     * }|null
-     */
-    private function resolveTransferFallbackDetails(): ?array
-    {
-        $accountNumber = trim((string) config('bellah.payment.transfer.account_number', ''));
-        $accountName = trim((string) config('bellah.payment.transfer.account_name', ''));
-        $bankName = trim((string) config('bellah.payment.transfer.bank_name', ''));
-        $instructions = trim((string) config('bellah.payment.transfer.instructions', ''));
-        $supportEmail = trim((string) config('bellah.invoice.company_email', 'support@bellahoptions.com'));
-
-        if ($accountNumber === '' || $accountName === '' || $bankName === '') {
-            return null;
-        }
-
-        return [
-            'account_number' => $accountNumber,
-            'account_name' => $accountName,
-            'bank_name' => $bankName,
-            'instructions' => $instructions,
-            'support_email' => $supportEmail,
-        ];
     }
 
     /**

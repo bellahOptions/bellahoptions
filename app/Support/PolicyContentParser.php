@@ -98,26 +98,94 @@ class PolicyContentParser
     }
 
     /**
+     * Parse plain text into sections.
+     *
+     * Legal copy pasted from a document numbers its headings ("1. Introduction",
+     * "Section 4: Payment"). Treating the whole thing as one blob threw that
+     * structure away, so the page lost its contents list and the wording arrived
+     * under a generic "Policy Content" heading. Heading lines are therefore
+     * promoted to sections; anything else keeps the previous paragraph handling.
+     *
      * @return array<int, array{id:string, title:string, body:array<int,string>, bullets:array<int,string>}>
      */
     private static function parsePlainText(string $content): array
     {
         $normalized = (string) preg_replace('/<[^>]+>/', ' ', $content);
-        $paragraphs = array_values(array_filter(array_map(
-            'trim',
-            preg_split('/\n{2,}/', $normalized) ?: []
-        )));
+        $lines = preg_split('/\R/', $normalized) ?: [];
 
-        if ($paragraphs === []) {
+        // A heading line is: optional numbering ("1.", "1.2", "Section 3:", "#")
+        // followed by a title, on its own line, with no trailing sentence period.
+        $headingPattern = '/^\s*(?:#{1,6}\s+|(?:section\s+)?\d+(?:\.\d+)*[.):]?\s+)(.{2,120})$/i';
+        $numberedOnly = '/^\s*\d+(?:\.\d+)*[.):]?\s*$/';
+
+        $sections = [];
+        $current = null;
+
+        $flush = static function () use (&$sections, &$current): void {
+            if ($current === null) {
+                return;
+            }
+
+            $hasContent = $current['body'] !== [] || $current['bullets'] !== [];
+
+            if ($current['title'] !== '' || $hasContent) {
+                $sections[] = $current;
+            }
+
+            $current = null;
+        };
+
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+
+            if ($trimmed === '') {
+                continue;
+            }
+
+            // A bare number is a heading whose title wrapped onto the next line.
+            if (preg_match($numberedOnly, $trimmed) === 1) {
+                continue;
+            }
+
+            if (preg_match($headingPattern, $trimmed, $matches) === 1) {
+                $title = trim($matches[1]);
+
+                // A heading is short and not a full sentence.
+                $looksLikeHeading = mb_strlen($title) <= 120 && ! preg_match('/[.!?]\s+\S/', $title);
+
+                if ($looksLikeHeading) {
+                    $flush();
+                    $current = [
+                        'id' => self::slugify($trimmed),
+                        'title' => $trimmed,
+                        'body' => [],
+                        'bullets' => [],
+                    ];
+
+                    continue;
+                }
+            }
+
+            if ($current === null) {
+                $current = ['id' => 'policy-content', 'title' => '', 'body' => [], 'bullets' => []];
+            }
+
+            if (preg_match('/^\s*[-*\x{2022}]\s+(.+)$/u', $trimmed, $matches) === 1) {
+                $current['bullets'][] = trim($matches[1]);
+
+                continue;
+            }
+
+            $current['body'][] = $trimmed;
+        }
+
+        $flush();
+
+        if ($sections === []) {
             return [];
         }
 
-        return [[
-            'id' => 'policy-content',
-            'title' => 'Policy Content',
-            'body' => $paragraphs,
-            'bullets' => [],
-        ]];
+        return self::normalizeSections($sections);
     }
 
     /**

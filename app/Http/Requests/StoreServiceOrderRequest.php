@@ -88,7 +88,7 @@ class StoreServiceOrderRequest extends FormRequest
      */
     public function rules(): array
     {
-        return array_merge([
+        $rules = array_merge([
             'full_name' => ['required', 'string', 'min:3', 'max:120', "regex:/^[\\pL\\s\\-\\.'`]+$/u"],
             'email' => ['required', 'string', 'email:rfc,filter', 'max:255'],
             'phone' => ['required', 'string', 'min:7', 'max:30', 'regex:/^[+0-9()\-\s]+$/'],
@@ -121,9 +121,14 @@ class StoreServiceOrderRequest extends FormRequest
             ],
             'human_check_nonce' => [Rule::requiredIf(! $this->usesTurnstile()), 'nullable', 'string', 'size:32'],
             'human_check_answer' => [Rule::requiredIf(! $this->usesTurnstile()), 'nullable', 'string', 'max:40'],
-            'turnstile_token' => [Rule::requiredIf($this->usesTurnstile()), 'nullable', 'string', 'max:2048'],
+            // Requirement is enforced by HumanVerification::validate() against
+            // server-side challenge state (Turnstile token *or* a server-issued
+            // degraded-mode challenge), not declared here.
+            'turnstile_token' => ['nullable', 'string', 'max:2048'],
             'form_rendered_at' => ['required', 'integer', 'min:1'],
         ], $this->serviceSpecificRules());
+
+        return $rules;
     }
 
     /**

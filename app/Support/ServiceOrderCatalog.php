@@ -163,6 +163,26 @@ class ServiceOrderCatalog
     }
 
     /**
+     * The order-form lane a service is quoted through.
+     *
+     * Usually the service's own slug. A service whose work is scoped by
+     * consultation before a price exists can point at another lane with
+     * `order_slug`, while keeping its own slug for routing, SEO and the
+     * landing page.
+     */
+    public function orderSlug(string $serviceSlug): string
+    {
+        $service = $this->service($serviceSlug);
+        $override = is_array($service) ? trim((string) ($service['order_slug'] ?? '')) : '';
+
+        if ($override !== '' && $this->service($override) !== null) {
+            return $override;
+        }
+
+        return $serviceSlug;
+    }
+
+    /**
      * @return array<string, mixed>|null
      */
     public function package(string $serviceSlug, string $packageCode): ?array

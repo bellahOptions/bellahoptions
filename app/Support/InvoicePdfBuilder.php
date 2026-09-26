@@ -108,11 +108,37 @@ class InvoicePdfBuilder
             'Total: '.$this->formatCurrency($total, (string) $invoice->currency),
             'Balance: '.$this->formatCurrency($balance, (string) $invoice->currency),
             'Payment Method: Bank Transfer',
-            'Bank Name: '.($transferPayment['bank_name'] !== '' ? $transferPayment['bank_name'] : 'N/A'),
-            'Account Name: '.($transferPayment['account_name'] !== '' ? $transferPayment['account_name'] : 'N/A'),
-            'Account Number: '.($transferPayment['account_number'] !== '' ? $transferPayment['account_number'] : 'N/A'),
+            ...$this->plainTransferLines($transferPayment),
             'Generated At: '.now()->format('d/m/Y H:i'),
         ]);
+    }
+
+    /**
+     * Bank details flattened into one line per field so every configured account
+     * survives into the no-Dompdf fallback PDF.
+     *
+     * @param  array{available:bool, accounts:array<int, array{bank_name:string,account_name:string,account_number:string}>}  $transferPayment
+     * @return list<string>
+     */
+    private function plainTransferLines(array $transferPayment): array
+    {
+        if (! ($transferPayment['available'] ?? false)) {
+            return ['Bank transfer details: contact us for the current account.'];
+        }
+
+        $lines = [];
+
+        foreach ($transferPayment['accounts'] as $index => $account) {
+            if ($index > 0) {
+                $lines[] = 'Or transfer to:';
+            }
+
+            $lines[] = 'Bank Name: '.($account['bank_name'] !== '' ? $account['bank_name'] : 'N/A');
+            $lines[] = 'Account Name: '.($account['account_name'] !== '' ? $account['account_name'] : 'N/A');
+            $lines[] = 'Account Number: '.($account['account_number'] !== '' ? $account['account_number'] : 'N/A');
+        }
+
+        return $lines;
     }
 
     public function buildReceipt(Invoice $invoice): string
@@ -250,25 +276,25 @@ class InvoicePdfBuilder
     }
 
     /**
-     * @return array{enabled:bool,account_number:string,account_name:string,bank_name:string,instructions:string}
+     * The same bank-transfer payload every other surface uses.
+     *
+     * This used to read the environment configuration directly, which meant an
+     * account edited on the settings screen never reached an invoice PDF.
+     *
+     * @return array{
+     *   available:bool,
+     *   accounts:array<int, array{bank_name:string,account_name:string,account_number:string}>,
+     *   instructions:string
+     * }
      */
     private function resolveTransferPaymentPayload(): array
     {
-        $accountNumber = trim((string) config('bellah.payment.transfer.account_number', ''));
-        $accountName = trim((string) config('bellah.payment.transfer.account_name', ''));
-        $bankName = trim((string) config('bellah.payment.transfer.bank_name', ''));
-        $instructions = trim((string) config('bellah.payment.transfer.instructions', ''));
-        $enabled = (bool) config('bellah.payment.transfer.enabled', true)
-            && $accountNumber !== ''
-            && $accountName !== ''
-            && $bankName !== '';
+        $payload = app(\App\Services\PaymentReadinessService::class)->transferPayload();
 
         return [
-            'enabled' => $enabled,
-            'account_number' => $accountNumber,
-            'account_name' => $accountName,
-            'bank_name' => $bankName,
-            'instructions' => $instructions,
+            'available' => $payload['available'],
+            'accounts' => $payload['accounts'],
+            'instructions' => $payload['instructions'],
         ];
     }
 

@@ -1,5 +1,6 @@
 import BriefFieldRenderer from '@/Components/BriefFieldRenderer';
 import HumanVerificationField from '@/Components/HumanVerificationField';
+import useHumanVerificationState from '@/hooks/use-human-verification-state';
 import { Card } from '@/Components/ui/card';
 import PageTheme from '@/Layouts/PageTheme';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -74,6 +75,7 @@ export default function CreateServiceBrief({
     humanCheckQuestion = '',
     humanCheckNonce = '',
     turnstileSiteKey = '',
+    humanVerificationFallback = {},
     formRenderedAt = 0,
 }) {
     const { flash } = usePage().props;
@@ -90,6 +92,14 @@ export default function CreateServiceBrief({
         form_rendered_at: formRenderedAt,
         upload_session_token: uploadSessionToken,
         website_confirm: '',
+    });
+
+    const verification = useHumanVerificationState({
+        humanVerificationMode,
+        humanCheckQuestion,
+        humanCheckNonce,
+        humanVerificationFallback,
+        setData,
     });
 
     useEffect(() => {
@@ -338,9 +348,12 @@ export default function CreateServiceBrief({
 
                                         <div className="border-t border-jv-line pt-4">
                                             <HumanVerificationField
-                                                mode={humanVerificationMode}
-                                                question={humanCheckQuestion}
+                                                mode={verification.verificationMode}
+                                                question={verification.question}
                                                 turnstileSiteKey={turnstileSiteKey}
+                                                fallbackAvailable={verification.fallbackAvailable}
+                                                fallbackIssueUrl={verification.fallbackIssueUrl}
+                                                onFallbackChange={verification.handleFallbackChallenge}
                                                 mathValue={data.human_check_answer}
                                                 onMathChange={(value) => setData('human_check_answer', value)}
                                                 onTurnstileChange={(token) => setData('turnstile_token', token)}

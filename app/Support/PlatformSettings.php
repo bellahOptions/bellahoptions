@@ -27,6 +27,21 @@ class PlatformSettings
 
     private const INVOICE_STYLE_KEY = 'invoice_style_json';
 
+    private const PAYMENT_FALLBACK_KEY = 'payment_fallback_json';
+
+    /**
+     * The three fields that make up a single transfer account. Records written
+     * before the fallback became a list stored these at the top level, so this
+     * list is also what the legacy migration looks for.
+     *
+     * @var array<int, string>
+     */
+    private const PAYMENT_FALLBACK_ACCOUNT_FIELDS = ['bank_name', 'account_name', 'account_number'];
+
+    private const ANNOUNCEMENT_KEY = 'service_announcement_json';
+
+    private const SERVICE_IMAGES_KEY = 'service_images_json';
+
     /**
      * @return array{phone: string, email: string, location: string, whatsapp_url: string, behance_url: string, map_embed_url: string}
      */
@@ -455,6 +470,489 @@ class PlatformSettings
     public static function setSiteUrl(string $siteUrl): void
     {
         AppSetting::setValue(self::MAIN_WEBSITE_URI_KEY, self::normalizeHttpUrl($siteUrl, self::defaultSiteUrl()));
+    }
+
+    /**
+     * The "new service" announcement modal shown on public pages.
+     *
+     * @return array{enabled: bool, badge: string, title: string, body: string, cta_label: string, cta_url: string, image: string, dismiss_days: int}
+     */
+    public static function serviceAnnouncement(): array
+    {
+        $defaults = self::defaultServiceAnnouncement();
+        $raw = AppSetting::getValue(self::ANNOUNCEMENT_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return self::applyAnnouncementImageOverride($defaults);
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return self::applyAnnouncementImageOverride($defaults);
+        }
+
+        return self::applyAnnouncementImageOverride([
+            'enabled' => array_key_exists('enabled', $decoded) ? (bool) $decoded['enabled'] : $defaults['enabled'],
+            'badge' => array_key_exists('badge', $decoded) ? mb_substr(trim((string) $decoded['badge']), 0, 40) : $defaults['badge'],
+            'title' => array_key_exists('title', $decoded) ? mb_substr(trim((string) $decoded['title']), 0, 120) : $defaults['title'],
+            'body' => array_key_exists('body', $decoded) ? mb_substr(trim((string) $decoded['body']), 0, 600) : $defaults['body'],
+            'cta_label' => array_key_exists('cta_label', $decoded) ? mb_substr(trim((string) $decoded['cta_label']), 0, 60) : $defaults['cta_label'],
+            'cta_url' => array_key_exists('cta_url', $decoded)
+                ? self::normalizeInternalOrHttpUrl((string) $decoded['cta_url'], $defaults['cta_url'])
+                : $defaults['cta_url'],
+            'image' => array_key_exists('image', $decoded)
+                ? self::normalizeInternalOrHttpUrl((string) $decoded['image'], $defaults['image'])
+                : $defaults['image'],
+            'dismiss_days' => array_key_exists('dismiss_days', $decoded)
+                ? max(0, min(365, (int) $decoded['dismiss_days']))
+                : $defaults['dismiss_days'],
+        ]);
+    }
+
+    /**
+     * The media picker writes to one shared image record, so an `announcement`
+     * entry there overrides whatever the announcement record itself carries.
+     *
+     * @param  array<string, mixed>  $announcement
+     * @return array<string, mixed>
+     */
+    private static function applyAnnouncementImageOverride(array $announcement): array
+    {
+        $override = self::serviceImages()['announcement'] ?? null;
+
+        if (is_string($override) && $override !== '') {
+            $announcement['image'] = $override;
+        }
+
+        return $announcement;
+    }
+    /**
+     * @param  array<string, mixed>  $announcement
+     */
+    public static function setServiceAnnouncement(array $announcement): void
+    {
+        $existing = self::serviceAnnouncement();
+        $defaults = self::defaultServiceAnnouncement();
+
+        $payload = [
+            'enabled' => array_key_exists('enabled', $announcement) ? (bool) $announcement['enabled'] : $existing['enabled'],
+            'badge' => mb_substr(self::stringOrDefault($announcement['badge'] ?? null, $existing['badge']), 0, 40),
+            'title' => mb_substr(self::stringOrDefault($announcement['title'] ?? null, $existing['title']), 0, 120),
+            'body' => mb_substr(self::stringOrDefault($announcement['body'] ?? null, $existing['body']), 0, 600),
+            'cta_label' => mb_substr(self::stringOrDefault($announcement['cta_label'] ?? null, $existing['cta_label']), 0, 60),
+            'cta_url' => self::normalizeInternalOrHttpUrl(
+                self::stringOrDefault($announcement['cta_url'] ?? null, $existing['cta_url']),
+                $defaults['cta_url'],
+            ),
+            'image' => self::normalizeInternalOrHttpUrl(
+                self::stringOrDefault($announcement['image'] ?? null, $existing['image']),
+                $defaults['image'],
+            ),
+            'dismiss_days' => array_key_exists('dismiss_days', $announcement)
+                ? max(0, min(365, (int) $announcement['dismiss_days']))
+                : $existing['dismiss_days'],
+        ];
+
+        AppSetting::setValue(self::ANNOUNCEMENT_KEY, json_encode($payload, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Super-admin image overrides for the service landing pages and the
+     * announcement modal, keyed by an arbitrary string ("social-media-design",
+     * "announcement", ...).
+     *
+     * Values are stored exactly as the media picker returns them — a `/media/...`
+     * engine path, a legacy `/images/...` public path, or an absolute URL — and
+     * are validated on write so a stored value is always safe to render.
+     *
+     * @return array<string, string>
+     */
+    public static function serviceImages(): array
+    {
+        $raw = AppSetting::getValue(self::SERVICE_IMAGES_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        if (! is_array($decoded)) {
+            return [];
+        }
+
+        $images = [];
+
+        foreach ($decoded as $key => $value) {
+            if (! is_string($key) || ! is_string($value)) {
+                continue;
+            }
+
+            $safeKey = self::sanitizeMediaKey($key);
+            $safeValue = Media::url($value);
+
+            if ($safeKey === null || $safeValue === null) {
+                continue;
+            }
+
+            $images[$safeKey] = $safeValue;
+        }
+
+        return $images;
+    }
+
+    /**
+     * Partial update: only the keys provided are written, so the admin form can
+     * auto-save one image at a time. An empty string clears the override and the
+     * page falls back to its built-in artwork.
+     *
+     * @param  array<string, mixed>  $images
+     */
+    public static function setServiceImages(array $images): void
+    {
+        $stored = self::serviceImages();
+
+        foreach ($images as $key => $value) {
+            if (! is_string($key)) {
+                continue;
+            }
+
+            $safeKey = self::sanitizeMediaKey($key);
+
+            if ($safeKey === null) {
+                continue;
+            }
+
+            if (! is_string($value) || trim($value) === '') {
+                unset($stored[$safeKey]);
+
+                continue;
+            }
+
+            $safeValue = Media::url($value);
+
+            if ($safeValue !== null) {
+                $stored[$safeKey] = $safeValue;
+            }
+        }
+
+        AppSetting::setValue(self::SERVICE_IMAGES_KEY, json_encode($stored, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * Keys are service slugs plus a small set of reserved names.
+     */
+    private static function sanitizeMediaKey(string $key): ?string
+    {
+        $candidate = strtolower(trim($key));
+
+        if ($candidate === '' || preg_match('/^[a-z0-9][a-z0-9-]{0,60}$/', $candidate) !== 1) {
+            return null;
+        }
+
+        return $candidate;
+    }
+
+    /**
+     * @return array{enabled: bool, badge: string, title: string, body: string, cta_label: string, cta_url: string, image: string, dismiss_days: int}
+     */
+    private static function defaultServiceAnnouncement(): array
+    {
+        return [
+            'enabled' => true,
+            'badge' => 'New service',
+            'title' => 'Social Media Management is here',
+            'body' => 'We now plan, create, publish and manage your social channels end to end, with community replies and a monthly report. Book a free scoping call and we will send a fixed monthly quote.',
+            'cta_label' => 'Explore the service',
+            'cta_url' => '/services/social-media-management',
+            'image' => '/sa2.jpeg',
+            'dismiss_days' => 3,
+        ];
+    }
+
+    /**
+     * Accept an in-app path or an absolute http(s) URL; anything else falls back.
+     */
+    private static function normalizeInternalOrHttpUrl(string $value, string $fallback): string
+    {
+        $candidate = trim($value);
+
+        if ($candidate === '') {
+            return $fallback;
+        }
+
+        if (str_starts_with($candidate, '/') && ! str_starts_with($candidate, '//')) {
+            return $candidate;
+        }
+
+        return self::normalizeHttpUrl($candidate, $fallback);
+    }
+
+    /**
+     * Super-admin-managed bank-transfer fallback accounts.
+     *
+     * A business can legitimately hold several accounts (different banks, NGN
+     * and domiciliary, or a per-brand account), so this is a list rather than a
+     * single record. "Fallback" does not mean unverified: accounts come from the
+     * platform settings record and are only allowed to reach a customer when
+     * they are complete, so an empty or half-filled entry is simply not offered
+     * instead of showing broken payment instructions.
+     *
+     * Fields a super admin has never saved fall back to the environment
+     * configuration, so an existing install keeps working untouched. Records
+     * written before this became a list stored the three account fields at the
+     * top level; those are migrated into a single account on read.
+     *
+     * @return array{enabled: bool, accounts: array<int, array{bank_name: string, account_name: string, account_number: string}>, instructions: string, support_email: string, reference_hint: string}
+     */
+    public static function paymentFallback(): array
+    {
+        $defaults = self::defaultPaymentFallback();
+        $decoded = self::storedPaymentFallback();
+
+        if ($decoded === []) {
+            return $defaults;
+        }
+
+        // Once a super admin has saved a value it wins, *including* a value that
+        // was deliberately blanked. Environment configuration only fills the
+        // fields that have never been saved.
+        return [
+            'enabled' => array_key_exists('enabled', $decoded) ? (bool) $decoded['enabled'] : $defaults['enabled'],
+            'accounts' => self::resolveStoredAccounts($decoded, $defaults['accounts']),
+            'instructions' => array_key_exists('instructions', $decoded) ? trim((string) $decoded['instructions']) : $defaults['instructions'],
+            'support_email' => array_key_exists('support_email', $decoded)
+                ? strtolower(trim((string) $decoded['support_email']))
+                : $defaults['support_email'],
+            'reference_hint' => array_key_exists('reference_hint', $decoded) ? trim((string) $decoded['reference_hint']) : $defaults['reference_hint'],
+        ];
+    }
+
+    /**
+     * Persist the fallback accounts.
+     *
+     * Only the keys present in $fallback are stored, so a partial update (the
+     * admin form is also auto-saved) can never wipe the rest of the record.
+     * Passing an explicit empty string blanks that field for good rather than
+     * silently restoring the environment value, and passing an empty `accounts`
+     * list removes every account rather than resurrecting the environment one.
+     *
+     * @param  array<string, mixed>  $fallback
+     */
+    public static function setPaymentFallback(array $fallback): void
+    {
+        $stored = self::storedPaymentFallback();
+
+        if (array_key_exists('enabled', $fallback)) {
+            $stored['enabled'] = (bool) $fallback['enabled'];
+        }
+
+        if (array_key_exists('accounts', $fallback)) {
+            $stored['accounts'] = self::normalizeAccountList($fallback['accounts']);
+
+            // Drop the pre-list fields so a migrated record cannot resurrect the
+            // old single account on the next read.
+            foreach (self::PAYMENT_FALLBACK_ACCOUNT_FIELDS as $field) {
+                unset($stored[$field]);
+            }
+        }
+
+        $stringFields = [
+            'instructions' => 500,
+            'support_email' => 255,
+            'reference_hint' => 160,
+        ];
+
+        foreach ($stringFields as $field => $maxLength) {
+            if (! array_key_exists($field, $fallback)) {
+                continue;
+            }
+
+            $value = mb_substr(trim((string) $fallback[$field]), 0, $maxLength);
+            $stored[$field] = $field === 'support_email' ? strtolower($value) : $value;
+        }
+
+        AppSetting::setValue(self::PAYMENT_FALLBACK_KEY, json_encode($stored, JSON_UNESCAPED_SLASHES));
+    }
+
+    /**
+     * The raw saved record, or an empty array when nothing has been saved yet.
+     *
+     * @return array<string, mixed>
+     */
+    private static function storedPaymentFallback(): array
+    {
+        $raw = AppSetting::getValue(self::PAYMENT_FALLBACK_KEY);
+
+        if (! is_string($raw) || trim($raw) === '') {
+            return [];
+        }
+
+        $decoded = json_decode($raw, true);
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Read the account list out of a stored record, accepting both the current
+     * `accounts` list and the legacy flat single-account shape.
+     *
+     * @param  array<string, mixed>  $decoded
+     * @param  array<int, array{bank_name: string, account_name: string, account_number: string}>  $defaultAccounts
+     * @return array<int, array{bank_name: string, account_name: string, account_number: string}>
+     */
+    private static function resolveStoredAccounts(array $decoded, array $defaultAccounts): array
+    {
+        if (array_key_exists('accounts', $decoded)) {
+            $raw = is_array($decoded['accounts']) ? $decoded['accounts'] : [];
+
+            // An explicitly saved (even empty) list is authoritative. Returning
+            // the environment default here would make deleting every account
+            // silently impossible.
+            return self::normalizeAccountList($raw);
+        }
+
+        $legacyAccount = self::legacyAccountFromRecord($decoded);
+
+        if ($legacyAccount === null) {
+            return $defaultAccounts;
+        }
+
+        return [$legacyAccount];
+    }
+
+    /**
+     * Build a single account from the pre-list record shape, or null when the
+     * record never stored any of those fields.
+     *
+     * @param  array<string, mixed>  $decoded
+     * @return array{bank_name: string, account_name: string, account_number: string}|null
+     */
+    private static function legacyAccountFromRecord(array $decoded): ?array
+    {
+        $hasLegacyField = false;
+
+        foreach (self::PAYMENT_FALLBACK_ACCOUNT_FIELDS as $field) {
+            if (array_key_exists($field, $decoded)) {
+                $hasLegacyField = true;
+                break;
+            }
+        }
+
+        if (! $hasLegacyField) {
+            return null;
+        }
+
+        // Unset fields in a legacy record used to be filled from the environment.
+        $defaults = self::defaultPaymentFallback()['accounts'][0] ?? self::blankAccount();
+
+        return [
+            'bank_name' => self::cleanAccountField($decoded['bank_name'] ?? $defaults['bank_name'], 120),
+            'bank_code' => '',
+            'account_name' => self::cleanAccountField($decoded['account_name'] ?? $defaults['account_name'], 120),
+            'account_number' => mb_substr(
+                self::sanitizeAccountNumber((string) ($decoded['account_number'] ?? $defaults['account_number'])),
+                0,
+                34,
+            ),
+        ];
+    }
+
+    /**
+     * Normalise an arbitrary account list: coerce each entry to the known
+     * fields, strip anything unsafe, and drop rows that are entirely blank so an
+     * untouched "add another account" row never persists.
+     *
+     * @param  mixed  $raw
+     * @return array<int, array{bank_name: string, account_name: string, account_number: string}>
+     */
+    private static function normalizeAccountList(mixed $raw): array
+    {
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $accounts = [];
+
+        foreach ($raw as $entry) {
+            if (! is_array($entry)) {
+                continue;
+            }
+
+            $account = [
+                'bank_name' => self::cleanAccountField($entry['bank_name'] ?? '', 120),
+                // The Paystack bank code, kept alongside the display name so the
+                // account name can be re-resolved without asking the operator to
+                // pick the bank again.
+                'bank_code' => self::cleanAccountField($entry['bank_code'] ?? '', 20),
+                'account_name' => self::cleanAccountField($entry['account_name'] ?? '', 120),
+                'account_number' => mb_substr(
+                    self::sanitizeAccountNumber((string) ($entry['account_number'] ?? '')),
+                    0,
+                    34,
+                ),
+            ];
+
+            if ($account['bank_name'] === '' && $account['account_name'] === '' && $account['account_number'] === '') {
+                continue;
+            }
+
+            $accounts[] = $account;
+        }
+
+        return $accounts;
+    }
+
+    /**
+     * Whether an account has every field a customer needs to make a transfer.
+     *
+     * @param  array{bank_name: string, account_name: string, account_number: string}  $account
+     */
+    private static function accountIsComplete(array $account): bool
+    {
+        return $account['bank_name'] !== ''
+            && $account['account_name'] !== ''
+            && $account['account_number'] !== '';
+    }
+
+    /**
+     * @return array{bank_name: string, bank_code: string, account_name: string, account_number: string}
+     */
+    private static function blankAccount(): array
+    {
+        return ['bank_name' => '', 'bank_code' => '', 'account_name' => '', 'account_number' => ''];
+    }
+
+    private static function cleanAccountField(mixed $value, int $maxLength): string
+    {
+        return mb_substr(trim((string) $value), 0, $maxLength);
+    }
+
+    /**
+     * Whether the bank-transfer fallback can actually be offered to a customer,
+     * and which accounts are safe to show.
+     *
+     * Incomplete accounts are filtered out here rather than at each call site, so
+     * no consumer can accidentally render a half-configured bank account.
+     *
+     * @return array{enabled: bool, accounts: array<int, array{bank_name: string, account_name: string, account_number: string}>, instructions: string, support_email: string, reference_hint: string}
+     */
+    public static function usablePaymentFallback(): array
+    {
+        $fallback = self::paymentFallback();
+
+        $usableAccounts = array_values(array_filter(
+            $fallback['accounts'],
+            static fn (array $account): bool => self::accountIsComplete($account),
+        ));
+
+        // array_merge (not +): the computed value must win over the stored
+        // "enabled" flag, otherwise an incomplete account would still be offered.
+        return array_merge($fallback, [
+            'enabled' => $fallback['enabled'] && $usableAccounts !== [],
+            'accounts' => $usableAccounts,
+        ]);
     }
 
     /**
@@ -1056,6 +1554,46 @@ class PlatformSettings
         $configured = trim((string) config('app.url', 'http://localhost'));
 
         return self::normalizeHttpUrl($configured, 'http://localhost');
+    }
+
+    /**
+     * Environment-provided defaults, so existing installs keep working until a
+     * super admin saves the settings screen.
+     *
+     * The environment can only ever describe one account, so it seeds a
+     * single-entry list. When it carries no bank details at all the list is left
+     * empty rather than seeded with a blank account.
+     *
+     * @return array{enabled: bool, accounts: array<int, array{bank_name: string, account_name: string, account_number: string}>, instructions: string, support_email: string, reference_hint: string}
+     */
+    private static function defaultPaymentFallback(): array
+    {
+        $account = [
+            'bank_name' => trim((string) config('bellah.payment.transfer.bank_name', '')),
+            // The environment has no bank code, so name resolution stays
+            // unavailable until an operator picks the bank in the settings screen.
+            'bank_code' => '',
+            'account_name' => trim((string) config('bellah.payment.transfer.account_name', '')),
+            'account_number' => self::sanitizeAccountNumber((string) config('bellah.payment.transfer.account_number', '')),
+        ];
+
+        return [
+            'enabled' => (bool) config('bellah.payment.transfer.enabled', true),
+            'accounts' => self::accountIsComplete($account) ? [$account] : [],
+            'instructions' => trim((string) config('bellah.payment.transfer.instructions', '')),
+            'support_email' => strtolower(trim((string) config('bellah.invoice.company_email', 'support@bellahoptions.com'))),
+            'reference_hint' => trim((string) config('bellah.payment.transfer.reference_hint', 'Use your order code or invoice number as the transfer reference.')),
+        ];
+    }
+
+    /**
+     * Strip everything a customer must never be shown in a bank account field.
+     */
+    private static function sanitizeAccountNumber(string $accountNumber): string
+    {
+        $digits = preg_replace('/[^0-9]/', '', $accountNumber) ?? '';
+
+        return $digits;
     }
 
     private static function stringOrDefault(mixed $value, string $default): string

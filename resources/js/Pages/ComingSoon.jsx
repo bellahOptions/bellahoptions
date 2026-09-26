@@ -1,5 +1,6 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
 import HumanVerificationField from '@/Components/HumanVerificationField';
+import useHumanVerificationState from '@/hooks/use-human-verification-state';
 import { Button } from '@/Components/ui/button';
 import {
     Card,
@@ -27,6 +28,7 @@ export default function ComingSoon({
     humanCheckQuestion = '',
     humanCheckNonce = '',
     turnstileSiteKey = '',
+    humanVerificationFallback = {},
     formRenderedAt = 0,
 }) {
     const { flash } = usePage().props;
@@ -42,7 +44,20 @@ export default function ComingSoon({
             form_rendered_at: formRenderedAt,
         });
 
+    const verification = useHumanVerificationState({
+        humanVerificationMode,
+        humanCheckQuestion,
+        humanCheckNonce,
+        humanVerificationFallback,
+        setData,
+    });
+
     useEffect(() => {
+        // A server-issued fallback challenge owns the nonce until it is solved.
+        if (verification.fallbackActive) {
+            return;
+        }
+
         setData((previous) => ({
             ...previous,
             human_check_nonce: humanCheckNonce,
@@ -50,7 +65,7 @@ export default function ComingSoon({
             human_check_answer: '',
             turnstile_token: '',
         }));
-    }, [formRenderedAt, humanCheckNonce, setData]);
+    }, [formRenderedAt, humanCheckNonce, setData, verification.fallbackActive]);
 
     const submit = (event) => {
         event.preventDefault();
@@ -213,9 +228,12 @@ export default function ComingSoon({
                                         </div>
 
                                         <HumanVerificationField
-                                            mode={humanVerificationMode}
-                                            question={humanCheckQuestion}
+                                            mode={verification.verificationMode}
+                                            question={verification.question}
                                             turnstileSiteKey={turnstileSiteKey}
+                                            fallbackAvailable={verification.fallbackAvailable}
+                                            fallbackIssueUrl={verification.fallbackIssueUrl}
+                                            onFallbackChange={verification.handleFallbackChallenge}
                                             mathValue={data.human_check_answer}
                                             onMathChange={(value) => setData('human_check_answer', value)}
                                             onTurnstileChange={(token) => setData('turnstile_token', token)}
