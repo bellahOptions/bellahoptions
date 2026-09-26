@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'title',
     'category',
+    'service_slug',
     'description',
     'image_path',
     'project_url',

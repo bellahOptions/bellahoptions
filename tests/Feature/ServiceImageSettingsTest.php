@@ -2,8 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\ImageUploader;
 use App\Models\User;
 use App\Support\ImageEngine;
+use App\Support\LocalImageUploader;
 use App\Support\PlatformSettings;
 use App\Support\ServiceLandingContent;
 use App\Support\ServiceOrderCatalog;
@@ -25,7 +27,10 @@ class ServiceImageSettingsTest extends TestCase
     {
         parent::setUp();
 
-        config(['services.cloudinary.url' => null]);
+        // These tests cover the local engine's folder and variant behaviour, so
+        // it is bound explicitly. The application default is Cloudinary-only.
+        $this->app->instance(ImageUploader::class, app(LocalImageUploader::class));
+
         Storage::fake(ImageEngine::DISK);
     }
 

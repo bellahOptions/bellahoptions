@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use App\Contracts\ImageUploader;
 use App\Support\CloudinaryUploader;
-use App\Support\LocalImageUploader;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -20,17 +19,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Cloudinary stays available, but image upload must not depend on a
-        // third-party credential being present. When CLOUDINARY_URL is empty the
-        // local image engine handles the upload, the width variants and delivery,
-        // which is what makes upload work out of the box.
-        $this->app->bind(ImageUploader::class, function (): ImageUploader {
-            $cloudinaryUrl = trim((string) config('services.cloudinary.url', ''));
-
-            return $cloudinaryUrl !== ''
-                ? new CloudinaryUploader()
-                : app(LocalImageUploader::class);
-        });
+        // Cloudinary is the only image store.
+        //
+        // Every upload goes to Cloudinary and every image is served from
+        // Cloudinary; nothing is written to this server's disk. That is a
+        // deliberate policy, so there is no silent fall back to local storage:
+        // a missing or stale CLOUDINARY_URL used to make uploads quietly land on
+        // the server instead, which looked like success and only surfaced when a
+        // redeploy removed the files.
+        //
+        // When the credential is absent the Cloudinary driver raises a clear,
+        // logged error instead, so a misconfigured deploy is caught immediately.
+        // The `media` disk and MediaController remain only to serve assets that
+        // were stored locally before this policy existed.
+        $this->app->bind(ImageUploader::class, CloudinaryUploader::class);
     }
 
     /**

@@ -51,7 +51,13 @@ class MediaDeliverySmokeTest extends TestCase
 
     public function test_uploaded_original_and_variants_are_served_from_the_real_disk(): void
     {
-        config(['services.cloudinary.url' => null]);
+        // This exercises the legacy local engine directly, so it is bound
+        // explicitly rather than relying on the application default, which is
+        // Cloudinary-only.
+        $this->app->instance(
+            \App\Contracts\ImageUploader::class,
+            app(\App\Support\LocalImageUploader::class),
+        );
 
         $admin = User::factory()->create(['role' => User::ROLE_SUPER_ADMIN]);
 

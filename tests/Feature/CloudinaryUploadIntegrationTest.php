@@ -7,6 +7,7 @@ use App\Models\GalleryProject;
 use App\Models\MediaUpload;
 use App\Models\SupportTicket;
 use App\Models\User;
+use App\Support\ImageEngine;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Mail;
@@ -53,28 +54,48 @@ class CloudinaryUploadIntegrationTest extends TestCase
         $this->assertDatabaseHas('media_uploads', ['secure_url' => $url, 'folder' => 'gallery-projects']);
     }
 
-    public function test_gallery_upload_falls_back_to_the_local_engine_without_cloudinary(): void
+    public function test_cloudinary_is_the_only_bound_image_uploader(): void
     {
-        // Previously this asserted a failure. Upload now degrades to the local
-        // image engine instead: a missing third-party credential must not make
-        // image upload unusable, which was the real complaint.
+        // The policy in one assertion: image upload always goes to Cloudinary,
+        // with no silent fall back to writing on this server.
+        $this->assertInstanceOf(
+            \App\Support\CloudinaryUploader::class,
+            app(ImageUploader::class),
+        );
+    }
+
+    public function test_gallery_upload_fails_loudly_without_cloudinary_and_writes_nothing_to_disk(): void
+    {
+        // Cloudinary is the only image store. A missing credential used to fall
+        // back to the server's disk, which looked like success and only broke
+        // when a redeploy removed the files. It must now fail with a clear,
+        // actionable message instead.
         config(['services.cloudinary.url' => null]);
-        Storage::fake(\App\Support\ImageEngine::DISK);
+        Storage::fake(ImageEngine::DISK);
+
         $admin = $this->superAdmin();
 
         $response = $this->actingAs($admin)->postJson(route('admin.gallery.media.upload'), [
             'file' => UploadedFile::fake()->image('cover.jpg', 800, 600),
         ]);
 
-        $response->assertCreated();
-        $this->assertStringStartsWith('/media/gallery-projects/', (string) $response->json('path'));
+        $response->assertStatus(422);
+        $this->assertStringContainsString(
+            'not configured',
+            (string) $response->json('errors.file.0'),
+        );
+
+        $this->assertSame(
+            [],
+            Storage::disk(ImageEngine::DISK)->allFiles(),
+            'Nothing may be written to the server as a fallback.',
+        );
     }
 
-    public function test_the_cloudinary_driver_still_reports_a_missing_credential(): void
+    public function test_the_cloudinary_driver_reports_a_missing_credential(): void
     {
-        // The Cloudinary driver itself keeps failing loudly; only the default
-        // binding falls back. This is what a misconfigured Cloudinary install
-        // sees if it is explicitly selected.
+        // This is now the single binding, so this is what a misconfigured deploy
+        // sees: a clear failure rather than a silent write to the server disk.
         config(['services.cloudinary.url' => null]);
 
         $this->expectException(\RuntimeException::class);

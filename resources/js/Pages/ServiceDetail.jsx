@@ -3,6 +3,7 @@ import { useState } from "react";
 import PageTheme from "@/Layouts/PageTheme";
 import FastImage from "@/Components/FastImage";
 import GoogleReviewsWidget from "@/Components/GoogleReviewsWidget";
+import ServiceProjectGallery from "@/Components/ServiceProjectGallery";
 import {
     Button,
     Card,
@@ -64,6 +65,7 @@ export default function ServiceDetail({
     service = {},
     content = {},
     relatedServices = [],
+    projects = [],
     orderUrl = "/services",
     paymentReadiness = {},
 }) {
@@ -337,6 +339,9 @@ export default function ServiceDetail({
                             </div>
                         </Section>
                     ) : null}
+
+                    {/* ── PROJECTS ── */}
+                    <ServiceProjectGallery projects={projects} serviceName={service.name} />
 
                     {/* ── PROCESS ── */}
                     {process.length > 0 ? (

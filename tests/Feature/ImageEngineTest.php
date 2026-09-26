@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\ImageUploader;
 use App\Models\MediaUpload;
 use App\Models\User;
 use App\Support\ImageEngine;
+use App\Support\LocalImageUploader;
 use App\Support\Media;
 use App\Support\MediaPath;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -15,10 +17,10 @@ use Tests\TestCase;
 /**
  * The local image engine: optimised storage, width variants, and delivery.
  *
- * Upload and display used to depend entirely on Cloudinary credentials. With
- * none configured, every upload failed, and images that were uploaded through
- * the symlinked `public/storage` disk did not render on hosts that cannot follow
- * a symlink. These tests pin down the replacement behaviour.
+ * Cloudinary is the only image store, so nothing here is on the production
+ * upload path any more. The engine is retained because it still serves assets
+ * that were written to this server before that policy, and these tests pin the
+ * behaviour of that legacy path.
  */
 class ImageEngineTest extends TestCase
 {
@@ -28,8 +30,12 @@ class ImageEngineTest extends TestCase
     {
         parent::setUp();
 
-        // No Cloudinary: the local engine must carry the whole flow.
-        config(['services.cloudinary.url' => null]);
+        // Cloudinary is the only image store in production, but the local engine
+        // still exists: it serves assets that were stored on the server before
+        // that policy, and these tests cover that engine's behaviour directly.
+        // It is bound explicitly here so the tests exercise the engine rather
+        // than the application's (Cloudinary-only) default binding.
+        $this->app->instance(ImageUploader::class, app(LocalImageUploader::class));
 
         Storage::fake(ImageEngine::DISK);
     }
@@ -60,7 +66,7 @@ class ImageEngineTest extends TestCase
         return new UploadedFile($path, $name, 'image/jpeg', null, true);
     }
 
-    public function test_upload_succeeds_without_cloudinary_and_stores_a_media_path(): void
+    public function test_the_local_engine_stores_a_media_path_when_explicitly_selected(): void
     {
         $admin = $this->superAdmin();
 

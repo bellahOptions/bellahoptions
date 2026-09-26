@@ -20,6 +20,7 @@ import {
     Image as ImageIcon,
     Info,
     LayoutGrid,
+    Layers,
     Link as LinkIcon,
     Pencil,
     RefreshCw,
@@ -34,6 +35,7 @@ import { useMemo, useRef, useState } from 'react';
 const emptyItem = {
     title: '',
     category: '',
+    service_slug: '',
     position: 0,
     description: '',
     image_path: '',
@@ -84,7 +86,7 @@ const cropAspectOptions = [
     { value: '9:16', label: 'Mobile (9:16)' },
 ];
 
-export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
+export default function GalleryAdmin({ items = [], mediaLibrary = null, serviceOptions = [] }) {
     const { flash } = usePage().props;
     const [editingId, setEditingId] = useState(null);
     const [mediaFiles, setMediaFiles] = useState(Array.isArray(mediaLibrary?.files) ? mediaLibrary.files : []);
@@ -145,6 +147,7 @@ export default function GalleryAdmin({ items = [], mediaLibrary = null }) {
         editForm.setData({
             title: item.title || '',
             category: item.category || '',
+            service_slug: item.service_slug || '',
             position: Number(item.position || 0),
             description: item.description || '',
             image_path: item.image_path || '',
@@ -645,6 +648,24 @@ function GalleryFields({
                             placeholder="Social Media Design"
                         />
                     </Field>
+
+                    <Field
+                        label="Service (landing page)"
+                        error={form.errors.service_slug}
+                        icon={Layers}
+                        hint="Tagged projects appear in the gallery on that service's landing page. Leave blank to match by category name instead."
+                    >
+                        <Select
+                            value={form.data.service_slug || ''}
+                            onChange={(event) => form.setData('service_slug', event.target.value)}
+                        >
+                            <option value="">No specific service</option>
+                            {serviceOptions.map((option) => (
+                                <option key={option.slug} value={option.slug}>
+                                    {option.name}
+                                </option>
+                            ))}
+                        </Select>                    </Field>
 
                     <Field
                         label="Position"

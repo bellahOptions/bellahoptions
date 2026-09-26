@@ -15,6 +15,7 @@ use App\Support\PlatformSettings;
 use App\Support\PolicyContent;
 use App\Support\PolicyContentParser;
 use App\Support\ServiceLandingContent;
+use App\Support\ServiceProjectGallery;
 use App\Support\ServiceOrderCatalog;
 use App\Support\SubscriptionPlanCatalog;
 use App\Support\VisitorLocalization;
@@ -114,6 +115,12 @@ class PagesController extends Controller
             ],
             'content' => $content,
             'relatedServices' => $related,
+            // Work that belongs to this service, so the landing page can show
+            // real examples instead of only describing what is delivered.
+            'projects' => ServiceProjectGallery::forService(
+                $serviceSlug,
+                (string) ($service['name'] ?? ''),
+            ),
             'orderUrl' => route('orders.create', $orderSlug, absolute: false),
             'paymentReadiness' => app(PaymentReadinessService::class)->forVisitor($localization),
         ]);

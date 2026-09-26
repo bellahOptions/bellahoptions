@@ -4,8 +4,10 @@ namespace App\Support;
 
 use App\Contracts\ImageUploader;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
+use Throwable;
 
 /**
  * Default ImageUploader: the local image engine.
@@ -29,7 +31,26 @@ class LocalImageUploader implements ImageUploader
         $sourcePath = $file->getRealPath();
 
         if (! is_string($sourcePath) || $sourcePath === '' || ! is_file($sourcePath)) {
-            throw new RuntimeException('Image upload failed. Please try again.');
+            // Almost always a host problem rather than a bad upload: PHP accepted
+            // the file but the process cannot reach its own temporary path
+            // (open_basedir, a full or missing upload_tmp_dir, a read-only mount).
+            // That is invisible from the browser, so it is logged with enough
+            // detail to act on.
+            Log::error('Uploaded file has no readable temporary path.', [
+                'driver' => 'local',
+                'folder' => $folder,
+                'client_name' => $file->getClientOriginalName(),
+                'client_size' => $this->safeSize($file),
+                'upload_error' => $file->getError(),
+                'is_valid_upload' => $file->isValid(),
+                'tmp_dir' => sys_get_temp_dir(),
+                'upload_tmp_dir' => (string) ini_get('upload_tmp_dir'),
+                'resolved_path' => is_string($sourcePath) ? $sourcePath : null,
+            ]);
+
+            throw new RuntimeException(
+                'The uploaded file could not be read on the server. Please contact support.'
+            );
         }
 
         // The folder becomes part of a filesystem path, so it is validated rather
@@ -156,6 +177,24 @@ class LocalImageUploader implements ImageUploader
         $parsed = MediaPath::parse($secureUrl);
 
         return $parsed === null ? null : $parsed['folder'].'/'.$parsed['name'];
+    }
+
+    /**
+     * Read the uploaded size without depending on the file still existing.
+     *
+     * `getSize()` stats the path, so it fails in precisely the situation this
+     * code exists to report — a temporary file the process can no longer reach.
+     * Logging must never be the thing that throws.
+     */
+    private function safeSize(UploadedFile $file): ?int
+    {
+        try {
+            $size = $file->getSize();
+        } catch (Throwable) {
+            return null;
+        }
+
+        return is_int($size) ? $size : null;
     }
 
     private function normalizeFolder(string $folder): string

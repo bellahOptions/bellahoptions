@@ -9,12 +9,15 @@ use App\Http\Controllers\Controller;
 use App\Models\GalleryProject;
 use App\Models\MediaUpload;
 use App\Support\PublicContentSecurity;
+use App\Support\ServiceOrderCatalog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -28,6 +31,7 @@ class GalleryProjectController extends Controller
             return Inertia::render('Admin/Gallery/Index', [
                 'items' => [],
                 'mediaLibrary' => $this->mediaLibraryPayload(),
+                'serviceOptions' => $this->serviceOptions(),
             ]);
         }
 
@@ -37,6 +41,9 @@ class GalleryProjectController extends Controller
                 ->latest('id')
                 ->get(),
             'mediaLibrary' => $this->mediaLibraryPayload(),
+            // Lets an operator tag a project to the service whose landing page
+            // should show it.
+            'serviceOptions' => $this->serviceOptions(),
         ]);
     }
 
@@ -118,6 +125,8 @@ class GalleryProjectController extends Controller
         try {
             $result = $uploader->uploadImage($file, $folder);
         } catch (RuntimeException $exception) {
+            $this->logUploadFailure($uploader, $file, $folder, $exception);
+
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
             ]);
@@ -160,6 +169,8 @@ class GalleryProjectController extends Controller
         try {
             $result = $uploader->uploadImage($file, 'gallery-projects', $validated['crop_aspect'] ?? null);
         } catch (RuntimeException $exception) {
+            $this->logUploadFailure($uploader, $file, 'gallery-projects', $exception);
+
             throw ValidationException::withMessages([
                 'file' => $exception->getMessage(),
             ]);
@@ -240,11 +251,91 @@ class GalleryProjectController extends Controller
     }
 
     /**
+     * Service slugs a project can be tagged to, taken from the catalogue so a
+     * newly added service becomes selectable without a code change.
+     *
+     * @return array<int, string>
+     */
+    private function serviceSlugs(): array
+    {
+        try {
+            return array_values(array_filter(
+                array_keys(app(ServiceOrderCatalog::class)->all()),
+                static fn (mixed $slug): bool => is_string($slug) && $slug !== '',
+            ));
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * @return array<int, array{slug: string, name: string}>
+     */
+    private function serviceOptions(): array
+    {
+        try {
+            $catalog = app(ServiceOrderCatalog::class);
+
+            return collect($catalog->all())
+                ->map(static fn (array $service, string $slug): array => [
+                    'slug' => $slug,
+                    'name' => (string) ($service['name'] ?? ucfirst(str_replace('-', ' ', $slug))),
+                ])
+                ->values()
+                ->all();
+        } catch (\Throwable) {
+            return [];
+        }
+    }
+
+    /**
+     * Record which driver handled an upload and what it was handed.
+     *
+     * The browser is deliberately told very little, so without this an upload
+     * failure on a new host leaves no trace at all and the only clue is "works
+     * locally". The driver class is the first thing worth knowing: an unexpected
+     * `CloudinaryUploader` means CLOUDINARY_URL is set in this environment and
+     * the local engine is not being used.
+     */
+    private function logUploadFailure(
+        ImageUploader $uploader,
+        UploadedFile $file,
+        string $folder,
+        RuntimeException $exception,
+    ): void {
+        Log::error('Admin image upload failed.', [
+            'driver' => $uploader::class,
+            'folder' => $folder,
+            'client_name' => $file->getClientOriginalName(),
+            'client_mime' => $file->getClientMimeType(),
+            'client_size' => $this->safeUploadSize($file),
+            'upload_error' => $file->getError(),
+            'reason' => $exception->getMessage(),
+            'media_disk_root' => (string) config('filesystems.disks.'.ImageEngine::DISK.'.root', ''),
+        ]);
+    }
+
+    /**
+     * `UploadedFile::getSize()` stats the path, so it throws when the temporary
+     * file is gone — which is one of the failure modes being reported here.
+     * Diagnostics must never be the thing that breaks.
+     */
+    private function safeUploadSize(UploadedFile $file): ?int
+    {
+        try {
+            $size = $file->getSize();
+        } catch (\Throwable) {
+            return null;
+        }
+
+        return is_int($size) ? $size : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function validatedData(Request $request): array
-    {
-        $request->merge([
+    {        $request->merge([
             'image_path' => PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl(
                 $request->input('image_path')
             ),
@@ -253,6 +344,10 @@ class GalleryProjectController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:160'],
             'category' => ['nullable', 'string', 'max:80'],
+            // Tagging a project to a service is what makes it appear on that
+            // service's landing page. Constrained to real service slugs so a typo
+            // cannot silently orphan the project.
+            'service_slug' => ['nullable', 'string', Rule::in($this->serviceSlugs())],
             'description' => ['nullable', 'string'],
             'image_path' => [
                 'required',
@@ -280,6 +375,7 @@ class GalleryProjectController extends Controller
             ...$data,
             'title' => trim((string) $data['title']),
             'category' => PublicContentSecurity::normalizeNullableText($data['category'] ?? null),
+            'service_slug' => PublicContentSecurity::normalizeNullableText($data['service_slug'] ?? null),
             'description' => PublicContentSecurity::normalizeNullableText($data['description'] ?? null),
             'image_path' => (string) PublicContentSecurity::sanitizeLenientRelativePathOrHttpUrl($data['image_path']),
             'project_url' => PublicContentSecurity::normalizeNullableText($data['project_url'] ?? null),

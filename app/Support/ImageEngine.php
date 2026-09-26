@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 use Throwable;
@@ -138,9 +139,10 @@ class ImageEngine
         $storedName = $digest.'.'.$storedExtension;
         $storagePath = MediaPath::storagePath($folder, $storedName);
 
-        $disk = Storage::disk(self::DISK);
-        $disk->makeDirectory($folder);
-
+        // No explicit makeDirectory() call: Flysystem creates the directory as
+        // part of the write, and calling it directly threw a raw
+        // UnableToCreateDirectory (including the absolute server path) straight
+        // past the friendly error handling below.
         if ($keepOriginal) {
             $payload = (string) file_get_contents($sourcePath);
         } else {
@@ -151,7 +153,7 @@ class ImageEngine
             throw new RuntimeException('That image could not be processed. Please try again.');
         }
 
-        $disk->put($storagePath, $payload);
+        $this->writeOrFail($storagePath, $payload);
 
         $variants = $this->generateVariants($sourcePath, $folder, $storedName, $sourceWidth, $sourceHeight, $isAnimated);
 
@@ -199,7 +201,6 @@ class ImageEngine
             return [];
         }
 
-        $disk = Storage::disk(self::DISK);
         $variants = [];
 
         $size = @getimagesize($sourcePath);
@@ -220,7 +221,7 @@ class ImageEngine
             }
 
             $path = MediaPath::storagePath($folder, $name);
-            $disk->put($path, $encoded);
+            $this->writeOrFail($path, $encoded);
 
             $variants[] = [
                 'width' => $width,
@@ -230,6 +231,58 @@ class ImageEngine
         }
 
         return $variants;
+    }
+
+    /**
+     * Write a file to the media disk, failing loudly.
+     *
+     * The `media` disk is configured with `throw => false`, so Flysystem returns
+     * false for an unwritable path instead of raising. The previous code ignored
+     * that return value, which turned a failed write into a *reported success*:
+     * the API answered 201 with a URL for a file that was never written, and the
+     * image only broke later, in the browser, as a 404.
+     *
+     * That is also why a permissions problem on a new host looked like anything
+     * but a permissions problem. This makes it explicit and logs the disk, the
+     * root and the reason so the host can actually be diagnosed.
+     */
+    private function writeOrFail(string $path, string $contents): void
+    {
+        $reason = '';
+
+        try {
+            // Resolving the disk belongs inside the guard: when the root cannot
+            // be created, LocalFilesystemAdapter throws from its constructor, so
+            // `Storage::disk()` is itself a failure point that would otherwise
+            // escape as a raw Flysystem error containing the absolute server path.
+            $disk = Storage::disk(self::DISK);
+
+            // Creating the parent directory happens inside put(), so a
+            // permissions or mount problem surfaces here too.
+            $written = $disk->put($path, $contents);
+        } catch (Throwable $exception) {
+            $written = false;
+            $reason = $exception->getMessage();
+        }
+
+        if ($written !== false) {
+            return;
+        }
+
+        $root = (string) config('filesystems.disks.'.self::DISK.'.root', '');
+
+        Log::error('Unable to write a media file.', [
+            'disk' => self::DISK,
+            'path' => $path,
+            'root' => $root,
+            'root_exists' => $root !== '' ? is_dir($root) : null,
+            'root_writable' => $root !== '' && is_dir($root) ? is_writable($root) : null,
+            'reason' => $reason !== '' ? $reason : 'the filesystem refused the write',
+        ]);
+
+        throw new RuntimeException(
+            'The image could not be saved on the server. Please contact support.'
+        );
     }
 
     /**
